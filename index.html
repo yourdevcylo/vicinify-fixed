@@ -1066,7 +1066,7 @@
 
     <script src="js/data.js?v=VICINIFY_REPAIR_20261026"></script>
     <script src="js/common.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/map.js?v=VICINIFY_REPAIR_20261026"></script>
+    <script src="js/map.js?v=VICINIFY_FIREBASE_20261027"></script>
     <script src="js/add.js?v=VICINIFY_REPAIR_20261026"></script>
     <script src="js/buzz.js?v=VICINIFY_REPAIR_20261026"></script>
     <script src="js/dashboard.js?v=VICINIFY_REPAIR_20261026"></script>
@@ -1107,7 +1107,7 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js?v=VICINIFY_UI_20261027_SCALE6', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('sw.js?v=VICINIFY_FIREBASE_20261027', { updateViaCache: 'none' })
                 .then((registration) => registration.update().then(() => registration))
                 .then(() => console.log('Vicinify PWA Ready!'))
                 .catch((err) => console.log('PWA Error', err));

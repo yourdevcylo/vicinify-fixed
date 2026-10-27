@@ -1,4 +1,4 @@
-const CACHE_NAME = "vicinify-ui-20261027-7";
+const CACHE_NAME = "vicinify-ui-20261027-8";
 const APP_SHELL = [
     "./",
     "./index.html",
@@ -9,7 +9,7 @@ const APP_SHELL = [
     "./js/ui.js?v=VICINIFY_UI_20261027",
     "./js/common.js?v=VICINIFY_REPAIR_20261026",
     "./js/data.js?v=VICINIFY_REPAIR_20261026",
-    "./js/map.js?v=VICINIFY_REPAIR_20261026",
+    "./js/map.js?v=VICINIFY_FIREBASE_20261027",
     "./js/add.js?v=VICINIFY_REPAIR_20261026",
     "./js/buzz.js?v=VICINIFY_REPAIR_20261026",
     "./js/dashboard.js?v=VICINIFY_REPAIR_20261026",

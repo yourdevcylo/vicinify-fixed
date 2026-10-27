@@ -235,20 +235,14 @@ window.MapPage = (() => {
     `;
     document.head.appendChild(mapPolishStyles);
 
-    let _placesCacheMaxUpdated = null;
-    let _lastFreshCheckAt = 0;
     let _placesInFlight = null;
-    // Places cache (quota discipline): the free Firebase tier allows 50k reads/day,
-    // so every read is budgeted. Strategy: initial fetch is capped at 20 docs;
-    // later refreshes run a SINGLE-document freshness check (latest updatedAt).
-    // If nothing changed, the cache is reused — 1 read total. Only when data
-    // actually changed do we re-fetch (1 check + up to 20 reads). All
-    // search/filter/radius operations run client-side on cached data; map
-    // movement never triggers a Firestore query.
-    // v53AY: smart cache — 1 read to check for updates, 20 reads only if changed.
-    // No time expiry; refreshes automatically ONLY when data actually changed.
-    // In-flight dedupe: overlapping callers (startup double-call, GPS +
-    // page show) share one fetch instead of paying for it twice.
+    let _catalogLoadedAt = 0;
+    let _catalogGeneration = 0;
+    let _placesRetryAt = 0;
+    let _lastPlacesErrorAt = 0;
+    // Public discovery reads only approved places through Firebase's client SDK.
+    // Firestore rules still govern this query; private workflows keep their APIs.
+    // Share overlapping loads and reuse even an empty catalog for five minutes.
     async function getAcceptedPlaces(forceRefresh = false) {
         if (_placesInFlight) return _placesInFlight;
         const run = _fetchAcceptedPlaces(forceRefresh);
@@ -256,26 +250,41 @@ window.MapPage = (() => {
         try { return await run; }
         finally { if (_placesInFlight === run) _placesInFlight = null; }
     }
-    let _catalogLoadedAt = 0;
-    let _catalogGeneration = 0;
     async function _fetchAcceptedPlaces(forceRefresh = false) {
-        if (!forceRefresh && _catalogLoadedAt && Date.now() - _catalogLoadedAt < 300000) return cloudPlaces;
+        const now = Date.now();
+        if (!forceRefresh && ((_catalogLoadedAt && now - _catalogLoadedAt < 300000) || now < _placesRetryAt)) return cloudPlaces;
         const generation = _catalogGeneration;
         try {
-            const response = await fetch("/.netlify/functions/catalog", { signal: AbortSignal.timeout(15000) });
-            const result = await response.json();
-            if (!response.ok || !Array.isArray(result.places)) throw new Error(result.error || "Catalog unavailable.");
+            // An unordered query includes documents without updatedAt and needs
+            // no composite index. Keep the existing 2,000-place display ceiling.
+            const snapshot = await window.db.collection("places")
+                .where("approval_status", "==", "approved").limit(2001).get();
             if (generation !== _catalogGeneration) return cloudPlaces;
-            cloudPlaces = result.places.map(normalizePlace);
+            cloudPlaces = snapshot.docs.slice(0, 2000)
+                .map(doc => normalizePlace({ ...doc.data(), id: doc.id }));
             _catalogLoadedAt = Date.now();
-            if (result.truncated) window.showToast?.("Showing a limited catalog. Some establishments may not appear.", "info");
+            _placesRetryAt = 0;
+            if (snapshot.size > 2000) window.showToast?.("Showing a limited catalog. Some establishments may not appear.", "info");
             return cloudPlaces;
         } catch (error) {
-            window.showToast?.("Could not refresh establishments. Check your connection or server setup.", "error");
+            if (generation !== _catalogGeneration) return cloudPlaces;
+            _placesRetryAt = Date.now() + 30000;
+            console.warn("Establishments Firebase read failed:", error.code || "unknown");
+            if (!_lastPlacesErrorAt || Date.now() - _lastPlacesErrorAt >= 30000) {
+                _lastPlacesErrorAt = Date.now();
+                const message = error.code === "permission-denied"
+                    ? "Firebase blocked access to approved establishments. Check the places read rules."
+                    : "Could not load establishments. Check your connection and try again.";
+                window.showToast?.(message, "error");
+            }
             return cloudPlaces;
         }
     }
-    window.invalidatePlacesCache = () => { _catalogLoadedAt = 0; _catalogGeneration++; };
+    window.invalidatePlacesCache = () => {
+        _catalogLoadedAt = 0;
+        _placesRetryAt = 0;
+        _catalogGeneration++;
+    };
 
 
     function clearAcceptedMarkers() {
