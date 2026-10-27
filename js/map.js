@@ -1364,7 +1364,7 @@ window.MapPage = (() => {
         const filters = [
             { key: "openNow", label: "Open now", icon: "clock" },
             { key: "verified", label: "Verified", icon: "badge-check" },
-            { key: "booking", label: "Booking", icon: "calendar-check" },
+            { key: "booking", label: "Bookable", icon: "calendar-check" },
             { key: "delivery", label: "Delivery", icon: "bike" },
             { key: "highRated", label: "4+ Rating", icon: "star" },
             { key: "freshOnly", label: "Fresh info", icon: "check-circle-2" }
@@ -1375,8 +1375,9 @@ window.MapPage = (() => {
         toggleBtn.className = "map-filter-toggle";
         toggleBtn.type = "button";
         toggleBtn.setAttribute("aria-expanded", "false");
-        toggleBtn.innerHTML = `<i data-lucide="sliders-horizontal"></i><span>Filters</span><b id="mapFilterCount" class="hidden">0</b>`;
-        chips.appendChild(toggleBtn);
+        toggleBtn.setAttribute("aria-controls", "mapSmartFilters");
+        toggleBtn.innerHTML = `<i data-lucide="sliders-horizontal"></i><span>More filters</span><b id="mapFilterCount" class="hidden">0</b>`;
+        chips.insertAdjacentElement("afterend", toggleBtn);
 
         const row = document.createElement("div");
         row.id = "mapSmartFilters";
@@ -1387,7 +1388,7 @@ window.MapPage = (() => {
             </button>
         `).join("");
 
-        chips.insertAdjacentElement("afterend", row);
+        toggleBtn.insertAdjacentElement("afterend", row);
         row.querySelectorAll(".map-smart-filter").forEach(btn => {
             const isActive = !!AppState.mapFilters?.[btn.dataset.filter];
             btn.classList.toggle("active", isActive);
@@ -1395,6 +1396,9 @@ window.MapPage = (() => {
         });
 
         function syncFilterToggle() {
+            const expanded = row.classList.contains("open");
+            toggleBtn.querySelector("span").textContent = expanded ? "Show less" : "More filters";
+            toggleBtn.setAttribute("aria-label", expanded ? "Hide additional filters" : "Show additional filters");
             const count = Object.values(AppState.mapFilters || {}).filter(Boolean).length;
             const badge = document.getElementById("mapFilterCount");
             if (badge) {
@@ -3239,38 +3243,8 @@ window.MapPage = (() => {
             }
         });
 
-        const btnMapView = document.getElementById("btnMapView");
-        const btnListView = document.getElementById("btnListView");
-        const mapContainer = document.getElementById("map");
-        const listContainer = document.getElementById("listViewContainer");
+        // Map/List state is owned by window.toggleView, used by the buttons and router.
 
-        if (btnMapView && btnListView && mapContainer && listContainer) {
-            btnMapView.addEventListener("click", () => {
-                btnMapView.classList.add("active");
-                btnListView.classList.remove("active");
-                btnMapView.style.background = "white";
-                btnMapView.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-                btnListView.style.background = "transparent";
-                btnListView.style.boxShadow = "none";
-
-                listContainer.style.display = "none";
-                mapContainer.style.display = "block";
-                
-                setTimeout(() => { if (map) map.invalidateSize(); }, 200);
-            });
-
-            btnListView.addEventListener("click", () => {
-                btnListView.classList.add("active");
-                btnMapView.classList.remove("active");
-                btnListView.style.background = "white";
-                btnListView.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-                btnMapView.style.background = "transparent";
-                btnMapView.style.boxShadow = "none";
-
-                mapContainer.style.display = "none";
-                listContainer.style.display = "block";
-            });
-        }
     });
 
     // Full map reset without a page reload: filters, search, radius and

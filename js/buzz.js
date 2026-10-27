@@ -138,19 +138,21 @@ window.BuzzPage = (() => {
         
         isBusinessPost = false;
         document.getElementById("toggleBizPostBtn").classList.remove("active");
+        document.getElementById("toggleBizPostBtn").setAttribute("aria-pressed", "false");
         document.getElementById("bizPostSelect").classList.remove("show");
         document.getElementById("bizPostSelect").value = "";
         
         selectedMediaFile = null;
+        window.__viciSyncPublish?.();
         fetchUserEstablishments();
         
         const m = document.getElementById("postModal");
-        if (m) m.classList.remove("hidden");
+        if (m) { m.classList.remove("hidden"); m.setAttribute("aria-hidden", "false"); }
     }
 
     function closeModal() {
         const m = document.getElementById("postModal");
-        if (m) m.classList.add("hidden");
+        if (m) { m.classList.add("hidden"); m.setAttribute("aria-hidden", "true"); }
     }
 
     async function publish() {
@@ -498,39 +500,47 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
         if(!mBody) return;
 
         mBody.innerHTML = `
-            <div style="display:flex; gap:8px; justify-content:center; padding-bottom:4px; margin-bottom:12px;">
-                <button class="type-chip active general" data-val="general" style="flex:1 1 0; min-width:0; justify-content:center; text-align:center;">General</button>
-                <button class="type-chip promo" data-val="promo" style="flex:1 1 0; min-width:0; justify-content:center; text-align:center;">Promo</button>
-                <button class="type-chip event" data-val="event" style="flex:1 1 0; min-width:0; justify-content:center; text-align:center;">Event</button>
-                <button class="type-chip tip" data-val="tip" style="flex:1 1 0; min-width:0; justify-content:center; text-align:center;">Tip</button>
-                <button class="type-chip announcement" data-val="announcement" style="flex:1 1 0; min-width:0; justify-content:center; text-align:center;">Announcement</button>
+            <fieldset class="post-type-fieldset">
+                <legend>Post type</legend>
+                <div class="post-type-options">
+                    <button type="button" class="type-chip active general" data-val="general" aria-pressed="true">General</button>
+                    <button type="button" class="type-chip promo" data-val="promo" aria-pressed="false">Promo</button>
+                    <button type="button" class="type-chip event" data-val="event" aria-pressed="false">Event</button>
+                    <button type="button" class="type-chip tip" data-val="tip" aria-pressed="false">Tip</button>
+                    <button type="button" class="type-chip announcement" data-val="announcement" aria-pressed="false">Announcement</button>
+                </div>
+            </fieldset>
+            <div id="bizToggleWrapper" style="display:none;">
+                <button type="button" id="toggleBizPostBtn" class="mod-btn-biz" aria-pressed="false"><i data-lucide="megaphone"></i> Post as Business</button>
+                <select id="bizPostSelect" class="mod-select-biz" aria-label="Business to post as"></select>
             </div>
-            
-            <div id="bizToggleWrapper" style="display:none; align-items:center; gap:8px; margin-bottom:12px;">
-                <button id="toggleBizPostBtn" class="mod-btn-biz"><i data-lucide="megaphone" style="width:14px; height:14px;"></i> Post as Business</button>
-                <select id="bizPostSelect" class="mod-select-biz"></select>
+            <div class="post-field">
+                <label for="postBarangay">Barangay <span>(optional)</span></label>
+                <select id="postBarangay"></select>
             </div>
-
-            <select id="postBarangay" style="width:100%; border:1px solid #e5e7eb; border-radius:12px; padding:10px 12px; font-size:14px; margin-bottom:12px; outline:none;"></select>
-            
-            <textarea id="postBody" rows="4" placeholder="What's happening? Promo, event, tip..." maxlength="500" style="width:100%; border:1px solid #e5e7eb; border-radius:12px; padding:12px; font-size:14px; resize:none; outline:none; box-sizing:border-box; margin-bottom:4px; font-family:inherit;"></textarea>
-            <div style="text-align:right; font-size:11px; color:#9ca3af; margin-bottom:12px;" id="charCount">0/500</div>
-            
-            <div id="mediaPreviewWrap" style="display:none; position:relative; margin-bottom:12px;">
-                <img id="mediaPreviewImg" src="" style="width:100%; height:160px; object-fit:cover; border-radius:12px;" />
-                <button id="removeMediaBtn" style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.5); color:white; border:none; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; cursor:pointer;"><i data-lucide="x" style="width:14px; height:14px;"></i></button>
+            <div class="post-field">
+                <label for="postBody">Post details</label>
+                <textarea id="postBody" rows="4" placeholder="Share an update, promo, event, or local tip…" maxlength="500" aria-describedby="charCount"></textarea>
+                <div id="charCount" class="post-character-count">0/500</div>
             </div>
-
-            <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#6b7280; cursor:pointer; width:fit-content;">
-                <i data-lucide="image-plus" style="width:16px; height:16px;"></i> Add a photo (optional)
-                <input type="file" id="postMedia" accept="image/*" style="display:none;" />
+            <div id="mediaPreviewWrap" class="post-media-preview" style="display:none;">
+                <img id="mediaPreviewImg" alt="Selected post photo" />
+                <button type="button" id="removeMediaBtn" aria-label="Remove selected photo"><i data-lucide="x"></i></button>
+            </div>
+            <label for="postMedia" class="post-upload">
+                <i data-lucide="image-plus"></i><span>Add a photo <span>(optional)</span></span>
+                <input type="file" id="postMedia" class="post-file-input" accept="image/*" />
             </label>
         `;
 
         document.querySelectorAll("#postModal .type-chip").forEach(chip => {
             chip.onclick = () => {
-                document.querySelectorAll("#postModal .type-chip").forEach(c => c.classList.remove("active"));
+                document.querySelectorAll("#postModal .type-chip").forEach(c => {
+                    c.classList.remove("active");
+                    c.setAttribute("aria-pressed", "false");
+                });
                 chip.classList.add("active");
+                chip.setAttribute("aria-pressed", "true");
             };
         });
 
@@ -539,7 +549,8 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
         if (toggleBtn && bizSelect) {
             toggleBtn.onclick = () => {
                 isBusinessPost = !isBusinessPost;
-                toggleBtn.classList.toggle("active");
+                toggleBtn.classList.toggle("active", isBusinessPost);
+                toggleBtn.setAttribute("aria-pressed", String(isBusinessPost));
                 if (isBusinessPost) {
                     bizSelect.classList.add("show");
                 } else {
@@ -599,11 +610,11 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
         if (!tabsWrap) return;
         
         tabsWrap.innerHTML = `
-            <button class="type-chip active all" data-type="all"><i data-lucide="package" style="width:14px; height:14px;"></i> All</button>
-            <button class="type-chip promo" data-type="promo"><i data-lucide="tag" style="width:14px; height:14px;"></i> Promo</button>
-            <button class="type-chip event" data-type="event"><i data-lucide="calendar-days" style="width:14px; height:14px;"></i> Event</button>
-            <button class="type-chip tip" data-type="tip"><i data-lucide="lightbulb" style="width:14px; height:14px;"></i> Tip</button>
-            <button class="type-chip announcement" data-type="announcement"><i data-lucide="megaphone" style="width:14px; height:14px;"></i> Announcement</button>
+            <button type="button" aria-pressed="true" class="type-chip active all" data-type="all"><i data-lucide="package" style="width:14px; height:14px;"></i> All</button>
+            <button type="button" aria-pressed="false" class="type-chip promo" data-type="promo"><i data-lucide="tag" style="width:14px; height:14px;"></i> Promo</button>
+            <button type="button" aria-pressed="false" class="type-chip event" data-type="event"><i data-lucide="calendar-days" style="width:14px; height:14px;"></i> Event</button>
+            <button type="button" aria-pressed="false" class="type-chip tip" data-type="tip"><i data-lucide="lightbulb" style="width:14px; height:14px;"></i> Tip</button>
+            <button type="button" aria-pressed="false" class="type-chip announcement" data-type="announcement"><i data-lucide="megaphone" style="width:14px; height:14px;"></i> Announcement</button>
         `;
         
         tabsWrap.style.display = "flex";
@@ -615,8 +626,9 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
         tabsWrap.addEventListener("click", (e) => {
             const btn = e.target.closest(".type-chip");
             if (!btn) return;
-            document.querySelectorAll("#buzzTabs .type-chip").forEach(t => t.classList.remove("active"));
+            document.querySelectorAll("#buzzTabs .type-chip").forEach(t => { t.classList.remove("active"); t.setAttribute("aria-pressed", "false"); });
             btn.classList.add("active");
+            btn.setAttribute("aria-pressed", "true");
             activeType = btn.dataset.type;
             listenToPosts();
         });
@@ -630,7 +642,7 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
 
         const postBrgySelect = document.getElementById("postBarangay");
         if (postBrgySelect) {
-            postBrgySelect.innerHTML = `<option value="" disabled selected hidden>📍 Select Barangay (optional)</option>` + 
+            postBrgySelect.innerHTML = `<option value="">Choose a barangay (optional)</option>` +
                 BARANGAYS.filter(b => b !== "All Barangays").map(b => `<option value="${b}">${b}</option>`).join("");
         }
 

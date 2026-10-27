@@ -378,6 +378,7 @@ window.vConfirm = function(title, message, confirmBtnText = "Confirm", isDanger 
         modalEl.querySelector("[data-vconfirm-title]").textContent = String(title || "Confirm");
         modalEl.querySelector("[data-vconfirm-message]").textContent = String(message || "");
         document.getElementById(`confirmBtn_${modalId}`).textContent = String(confirmBtnText || "Confirm");
+        document.getElementById(`confirmBtn_${modalId}`).dataset.danger = String(isDanger);
         
         const cleanup = (result) => {
             window.lockBodyScroll(false);

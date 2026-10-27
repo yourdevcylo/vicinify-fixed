@@ -1,0 +1,235 @@
+/* Reference discovery composition. Keep the map available below the controls. */
+html body.vicinify-ui { --ui-bg:#fff; --ui-soft:#f0f5f3; --ui-accent:#237f75; --ui-accent-soft:#e6f2ee; --ui-ink:#172d2e; --ui-muted:#64797d; --ui-border:#dce6e5; }
+.radius-caption { display:flex; align-items:center; justify-content:space-between; width:100%; gap:12px; }
+.radius-help { display:flex; align-items:center; gap:6px; color:var(--ui-muted); font-size:8px; white-space:nowrap; }
+.radius-help svg { width:11px; height:11px; }
+.note-art { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+.note-art svg { width:100%; height:100%; }
+@media (min-width:501px) {
+ html body.vicinify-ui { --ui-rail:30.5vw; --ui-header:80px; font-family:Inter,Arial,sans-serif; }
+ html body.vicinify-ui #main-content { border:1px solid var(--ui-border); border-radius:14px; min-height:calc(100dvh - 14px); margin:7px 3px 7px 0; overflow:hidden; }
+ html body.vicinify-ui:not(.on-login) #main-content .workspace-header { left:var(--ui-rail); right:0; top:30px; height:36px; padding:0 24px; border:0; background:transparent; pointer-events:none; }
+ .workspace-eyebrow { font-size:7px; letter-spacing:.18em; }
+ #workspaceTitle { font-size:16px; line-height:20px; }
+ .workspace-actions,.mobile-brand { display:none !important; }
+ html body.vicinify-ui:not(.on-login) #main-content .bottom-nav { position:fixed !important; inset:8px auto 8px 1px !important; width:calc(var(--ui-rail) - 1px) !important; height:auto !important; padding:20px 12px 24px !important; display:flex !important; flex-direction:column !important; align-items:stretch !important; border-right:1px solid var(--ui-border) !important; border-top:0 !important; gap:3px !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-brand { display:flex !important; padding:0 8px !important; font-size:23px !important; gap:8px; }
+ .brand-symbol { width:29px; height:33px; border-radius:9px; background:linear-gradient(135deg,#258e80,#236d69); box-shadow:inset 0 0 6px #ffffff50; }
+ .brand-symbol svg { width:22px; height:22px; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-section-label { display:block !important; padding:39px 10px 8px; font-size:7px; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-item { width:100% !important; min-height:42px !important; flex:0 0 auto !important; flex-direction:row !important; justify-content:flex-start !important; gap:12px !important; padding:11px 14px !important; border-radius:11px !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-item .navText { font-size:11px !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-item .navIcon,html body.vicinify-ui #main-content .bottom-nav .nav-item .navIcon svg { width:18px !important; height:18px !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-footer { display:flex !important; margin: auto 8px 0; padding:18px 0 0; gap:9px; }
+ .nav-footer strong { font-size:9px; }.nav-footer div>span { font-size:8px; line-height:1.5; }
+ html body.vicinify-ui #main-content #page-map.active { position:relative !important; inset:auto !important; width:100% !important; height:auto !important; min-height:calc(100dvh - 16px) !important; display:block !important; overflow:visible !important; background:var(--ui-surface) !important; }
+ html:has(#page-map.active),html body.vicinify-ui:has(#page-map.active) { height:auto !important; max-height:none !important; overflow-y:auto !important; }
+ html body.vicinify-ui:has(#page-map.active) #main-content { height:auto !important; max-height:none !important; width:auto !important; }
+ html body.vicinify-ui #main-content #page-map.active .discovery-panel { position:relative; box-sizing:border-box; width:100%; padding:149px 20px 34px !important; border:0; overflow:visible !important; background:radial-gradient(ellipse at 75% 7%,#f0f6f330,transparent 40%),var(--ui-surface); }
+ .discovery-art { position:absolute; right:20px; top:27px; width:67%; height:180px; margin:0; opacity:.8; mask-image:linear-gradient(#000 60%,transparent); }
+ .discovery-art svg { width:100%; height:100%; object-fit:cover; }
+ .explore-heading { display:block !important; position:relative; z-index:1; margin:0 4px 17px; }
+ .section-kicker { font-size:7px; letter-spacing:.18em; color:var(--ui-accent); }
+ .explore-heading h1 { font-family:Inter,Arial,sans-serif; font-size:32px; line-height:1.06; letter-spacing:-1.3px; margin:10px 0 9px; font-weight:800; }
+ .explore-heading p { font-size:11px; line-height:17px; }
+ html body.vicinify-ui #main-content #page-map.active .askBar { min-height:48px !important; padding:5px 7px 5px 14px !important; border-radius:13px !important; margin:0 0 15px !important; gap:12px !important; }
+ html body.vicinify-ui #main-content #page-map.active #askInput { height:36px !important; font-size:11px !important; }
+ html body.vicinify-ui #main-content #page-map.active .askBar>:is(svg,i) { width:18px !important; height:18px !important; flex-basis:18px !important; }
+ html body.vicinify-ui #main-content #page-map.active #askBtn { width:36px !important; height:36px !important; flex-basis:36px !important; border-radius:10px !important; background:linear-gradient(135deg,#2c8d81,#246e69) !important; box-shadow:inset 0 0 6px #ffffff30 !important; }
+ html body.vicinify-ui #main-content #page-map.active #askBtn svg { width:17px !important; height:17px !important; }
+ html body.vicinify-ui #main-content #page-map.active .toolbar-modern { display:flex !important; flex-direction:column !important; align-items:stretch !important; gap:15px !important; margin:0 0 14px !important; padding:0 !important; background:transparent !important; border:0 !important; box-shadow:none !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-wrapper { flex:0 0 auto !important; width:100% !important; display:flex !important; flex-direction:column !important; align-items:stretch !important; flex-wrap:nowrap !important; gap:10px !important; padding:10px !important; box-sizing:border-box !important; border:1px solid var(--ui-border) !important; border-radius:13px !important; background:var(--ui-surface) !important; box-shadow:0 2px 8px #173b3004 !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-label { display:flex !important; font-size:10px !important; gap:8px !important; line-height:14px !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-label svg { width:15px !important; height:15px !important; flex-basis:15px !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-segment-container { display:flex !important; padding:0 !important; gap:4px !important; border:0 !important; background:transparent !important; border-radius:0 !important; overflow:visible !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-segment-container .seg { flex:1 1 0 !important; min-width:0 !important; min-height:28px !important; padding:5px 0 !important; border-radius:8px !important; font-size:9px !important; background:var(--ui-soft) !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-segment-container .seg.active { background:var(--ui-accent) !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-segment-container .seg[data-radius="15000"],html body.vicinify-ui #main-content #page-map.active .radius-segment-container .seg[data-radius="20000"] { display:none !important; }
+ html body.vicinify-ui #main-content #page-map.active .top-actions-modern { width:100% !important; display:flex !important; justify-content:space-between !important; gap:40px !important; }
+ html body.vicinify-ui #main-content #page-map.active .toggle-group { flex:1 1 0 !important; display:flex !important; padding:4px !important; border:1px solid var(--ui-border) !important; border-radius:10px !important; background:var(--ui-surface) !important; }
+ html body.vicinify-ui #main-content #page-map.active :is(#btnMapView,#btnListView) { flex:1 !important; min-height:29px !important; padding:4px !important; font-size:10px !important; border-radius:7px !important; gap:7px !important; }
+ #btnMapView::after,#btnListView::after { display:inline !important; }
+ html body.vicinify-ui #main-content #page-map.active #btnMapView.active { background:var(--ui-accent-soft) !important; color:var(--ui-accent) !important; }
+ html body.vicinify-ui #main-content #page-map.active #resetMapBtn { display:flex !important; align-items:center !important; justify-content:center !important; gap:9px !important; width:85px !important; height:39px !important; font-size:10px !important; border-radius:11px !important; box-shadow:0 3px 8px #173b3005 !important; }
+ html body.vicinify-ui #main-content #page-map.active #catChips.modern-chips { display:grid !important; grid-template-columns:1fr 1fr !important; gap:7px !important; padding:8px !important; border:1px solid var(--ui-border) !important; border-radius:14px !important; box-shadow:0 2px 8px #173b3005; }
+ html body.vicinify-ui #main-content #page-map.active #catChips.modern-chips .chip { min-height:39px !important; padding:8px 14px !important; border-radius:9px !important; gap:12px !important; font-size:10px !important; white-space:nowrap !important; }
+ html body.vicinify-ui #main-content #page-map.active #catChips.modern-chips .chip svg { width:18px !important; height:18px !important; }
+ html body.vicinify-ui #main-content #page-map.active #catChips.modern-chips .chip.active { border-color:#4b9c7d !important; background:var(--ui-accent-soft) !important; }
+ html body.vicinify-ui #main-content #page-map.active #mapFilterToggle { display:flex !important; align-items:center; justify-content:center; gap:8px; width:106px !important; min-height:32px !important; margin:13px 0 6px !important; padding:5px 14px !important; border:1px solid #a8bcff !important; border-radius:30px !important; background:#eff5ff !important; color:#315bff !important; font-size:11px !important; box-shadow:none !important; }
+ #mapFilterToggle svg { width:17px; height:17px; }
+ html body.vicinify-ui #main-content #page-map.active #mapSmartFilters { display:flex !important; flex-wrap:wrap !important; overflow:visible !important; gap:6px !important; padding:0 3px !important; margin:0 !important; }
+ html body.vicinify-ui #main-content #page-map.active .map-smart-filter { display:flex !important; align-items:center; justify-content:center; gap:8px !important; min-height:34px !important; padding:7px 12px !important; border-radius:30px !important; border:1px solid var(--ui-border) !important; background:var(--ui-surface) !important; color:var(--ui-ink) !important; font-size:10px !important; box-shadow:0 3px 8px #173b3004 !important; }
+ .map-smart-filter svg { width:16px !important; height:16px !important; }
+ html body.vicinify-ui #main-content #page-map.active #mapSmartFilters:not(.open) .map-smart-filter:nth-child(n+4) { display:none !important; }
+ html body.vicinify-ui #main-content #page-map.active .map-smart-filter.active { background:var(--ui-accent-soft) !important; border-color:#78b49e !important; }
+ html body.vicinify-ui #main-content #page-map.active .discovery-note { display:flex !important; position:relative; overflow:hidden; gap:13px; margin:15px 1px 0 !important; min-height:88px; box-sizing:border-box; padding:19px 17px !important; border-radius:14px !important; background:linear-gradient(110deg,var(--ui-soft),var(--ui-accent-soft)); }
+ .discovery-note>svg { position:relative; z-index:1; width:18px; height:18px; margin-top:0; }
+ .discovery-note>div:not(.note-art) { position:relative; z-index:1; max-width:75%; }
+ html body.vicinify-ui #main-content #page-map.active .discovery-note strong { font-size:11px !important; }
+ html body.vicinify-ui #main-content #page-map.active .discovery-note p { font-size:9px !important; line-height:1.5 !important; margin:6px 0 0; }
+ html body.vicinify-ui #main-content #page-map.active .mapWrap { width:calc(100% - 40px) !important; height:440px !important; margin:0 20px 24px !important; }
+}
+@media (min-width:1000px) {
+ html body.vicinify-ui { --ui-rail:290px; }
+ html body.vicinify-ui #main-content #page-map.active .discovery-panel { max-width:680px; margin:auto; }
+ .discovery-art { width:60%; }
+}
+@media (max-width:500px) { .radius-help { display:none; } }
+@media (min-width:501px) {
+ html body.vicinify-ui:not(.on-login) #main-content { padding-left:var(--ui-rail) !important; padding-top:0 !important; padding-right:0 !important; }
+ html body.vicinify-ui:not(.on-login) #main-content .workspace-header { display:flex !important; }
+ html body.vicinify-ui #main-content #page-map.active .discovery-art { display:block !important; }
+ html body.vicinify-ui #main-content #page-map.active #resetMapBtn svg { display:block !important; width:16px !important; height:16px !important; position:static !important; flex-shrink:0; }
+ html body.vicinify-ui #main-content #page-map.active #mapFilterToggle { visibility:visible !important; opacity:1 !important; position:static !important; transform:none !important; }
+}
+@media (min-width:501px) {
+ html body.vicinify-ui:not(.on-login) #main-content .workspace-header { z-index:11000 !important; }
+ html body.vicinify-ui #main-content #page-map.active .explore-heading h1 { margin-top:3px; }
+ html body.vicinify-ui #main-content #page-map.active .explore-heading { margin-bottom:13px; }
+ html body.vicinify-ui #main-content #page-map.active .radius-wrapper { gap:6px !important; }
+ html body.vicinify-ui #main-content #page-map.active #resetMapBtn { flex:0 0 85px !important; width:85px !important; min-width:85px !important; }
+ .discovery-art { top:26px; height:180px; }
+ html body.vicinify-ui #main-content #page-map.active .discovery-note p { max-width:220px; }
+}
+@media (min-width:501px) {
+ html body.vicinify-ui #main-content .workspace-heading { display:flex !important; flex-direction:column; gap:3px; }
+ html body.vicinify-ui #main-content #page-map.active .mapWrap { margin-top:28px !important; }
+}
+/* Desktop workspace: navigation, discovery controls, and live map stay side by side. */
+@media (min-width:768px) {
+ html body.vicinify-ui { --ui-rail:220px; --ui-header:80px; }
+ html body.vicinify-ui:not(.on-login) #main-content { margin:0 !important; border-radius:10px; height:100dvh !important; min-height:0 !important; overflow:hidden !important; }
+ html body.vicinify-ui:has(#page-map.active),html:has(#page-map.active) { height:100dvh !important; overflow:hidden !important; }
+ html body.vicinify-ui:not(.on-login) #main-content .workspace-header { top:1px; height:79px; left:var(--ui-rail); right:1px; padding:0 32px; border-bottom:1px solid var(--ui-border); background:var(--ui-surface); pointer-events:auto; }
+ .workspace-eyebrow { font-size:9px; letter-spacing:.13em; }#workspaceTitle { font-size:18px; }
+ html body.vicinify-ui #main-content .workspace-actions { display:flex !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-item { min-height:48px !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-section-label { padding-top:42px; }
+ html body.vicinify-ui #main-content #page-map.active { position:fixed !important; top:80px !important; left:var(--ui-rail) !important; right:1px !important; bottom:1px !important; width:auto !important; height:auto !important; min-height:0 !important; display:grid !important; grid-template-columns:316px minmax(0,1fr) !important; overflow:hidden !important; }
+ html body.vicinify-ui #main-content #page-map.active .discovery-panel { width:auto !important; max-width:none !important; margin:0 !important; padding:30px 22px 24px !important; height:100%; min-height:0; overflow-y:auto !important; border-right:1px solid var(--ui-border); }
+ html body.vicinify-ui #main-content #page-map.active .discovery-art { display:none !important; }
+ html body.vicinify-ui #main-content #page-map.active .explore-heading { margin:0 0 20px !important; }
+ .explore-heading h1 { font-size:30px; line-height:1.1; margin:16px 0 11px !important; letter-spacing:-1.3px; }
+ .explore-heading p { font-size:10px; }
+ html body.vicinify-ui #main-content #page-map.active .top-actions-modern { gap:8px !important; }
+ html body.vicinify-ui #main-content #page-map.active #resetMapBtn { flex-basis:68px !important; min-width:68px !important; width:68px !important; gap:5px !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-help { font-size:7px; gap:3px; }
+ html body.vicinify-ui #main-content #page-map.active #catChips.modern-chips .chip { padding:8px 10px !important; gap:8px !important; font-size:10px !important; }
+ html body.vicinify-ui #main-content #page-map.active .map-smart-filter { padding:7px 9px !important; font-size:9px !important; gap:5px !important; }
+ html body.vicinify-ui #main-content #page-map.active #mapSmartFilters { padding:0 !important; gap:4px !important; }
+ html body.vicinify-ui #main-content #page-map.active .discovery-note { margin-top:24px !important; padding:18px 13px !important; min-height:85px; }
+ html body.vicinify-ui #main-content #page-map.active .mapWrap { position:relative !important; inset:auto !important; width:auto !important; height:auto !important; min-width:0 !important; min-height:0 !important; margin:18px !important; border-radius:16px !important; align-self:stretch; }
+ html body.vicinify-ui #main-content #page-map.active #map { width:100% !important; height:100% !important; position:absolute !important; inset:0 !important; }
+}
+/* A smaller window keeps a full-height map; only the navigation rail contracts. */
+@media (min-width:768px) and (max-width:1199px) {
+ html body.vicinify-ui { --ui-rail:76px; }
+ html body.vicinify-ui #main-content #page-map.active { grid-template-columns:280px minmax(0,1fr) !important; }
+ html body.vicinify-ui:not(.on-login) #main-content .bottom-nav { padding:20px 10px !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-brand { font-size:0 !important; justify-content:center; padding:0 !important; }
+ html body.vicinify-ui #main-content .bottom-nav .brand-dot,
+ html body.vicinify-ui #main-content .bottom-nav .nav-section-label,
+ html body.vicinify-ui #main-content .bottom-nav .nav-item .navText,
+ html body.vicinify-ui #main-content .bottom-nav .nav-footer { display:none !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-item { justify-content:center !important; margin-top:6px !important; padding:12px !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-item:first-of-type { margin-top:40px !important; }
+ html body.vicinify-ui #main-content #page-map.active .discovery-panel { padding:22px 14px !important; }
+ html body.vicinify-ui #main-content .city-label,html body.vicinify-ui #main-content .account-copy { display:none !important; }
+ html body.vicinify-ui #main-content #page-map.active .mapWrap { margin:12px !important; }
+}
+@media (max-width:767px) {
+ html body.vicinify-ui { --ui-rail:0px; --ui-header:64px; --navH:70px; }
+ html:has(#page-map.active),html body.vicinify-ui:has(#page-map.active) { height:100dvh !important; max-height:100dvh !important; overflow:hidden !important; }
+ html body.vicinify-ui:not(.on-login) #main-content { padding:0 !important; margin:0 !important; border:0 !important; border-radius:0 !important; height:100dvh !important; min-height:0 !important; overflow:hidden !important; }
+ html body.vicinify-ui:not(.on-login) #main-content .workspace-header { position:fixed; inset:0 0 auto !important; height:64px !important; padding:0 16px !important; display:flex !important; border-bottom:1px solid var(--ui-border); background:var(--ui-surface); z-index:11000 !important; pointer-events:auto; }
+ html body.vicinify-ui #main-content .workspace-heading { display:none !important; }
+ html body.vicinify-ui #main-content .mobile-brand { display:flex !important; }
+ html body.vicinify-ui #main-content .workspace-actions { display:flex !important; }
+ html body.vicinify-ui #main-content :is(.city-label,.account-copy,.account-button>svg) { display:none !important; }
+ html body.vicinify-ui:not(.on-login) #main-content .bottom-nav { inset:auto 0 0 !important; width:100% !important; height:70px !important; padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px)) !important; flex-direction:row !important; align-items:center !important; gap:0 !important; border:0 !important; border-top:1px solid var(--ui-border) !important; }
+ html body.vicinify-ui #main-content .bottom-nav :is(.nav-brand,.nav-section-label,.nav-footer) { display:none !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-item { width:20% !important; flex:1 1 0 !important; flex-direction:column !important; justify-content:center !important; gap:4px !important; padding:7px 2px !important; min-height:54px !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-item .navText { font-size:9px !important; }
+ html body.vicinify-ui #main-content #page-map.active { position:fixed !important; inset:64px 0 70px !important; width:100% !important; height:auto !important; min-height:0 !important; display:flex !important; flex-direction:column !important; overflow:hidden !important; }
+ html body.vicinify-ui #main-content #page-map.active .discovery-panel { display:grid !important; grid-template-columns:96px minmax(0,1fr); gap:8px; flex:0 0 auto !important; width:100%; max-width:none; margin:0 !important; padding:10px 12px !important; border:0 !important; border-bottom:1px solid var(--ui-border) !important; overflow:hidden !important; box-sizing:border-box; }
+ html body.vicinify-ui #main-content #page-map.active :is(.explore-heading,.discovery-art,.discovery-note,.radius-caption) { display:none !important; }
+ html body.vicinify-ui #main-content #page-map.active .askBar { grid-column:1/-1; min-height:48px !important; margin:0 !important; padding:5px 7px 5px 12px !important; }
+ html body.vicinify-ui #main-content #page-map.active #askInput { height:36px !important; font-size:12px !important; }
+ html body.vicinify-ui #main-content #page-map.active #askBtn { width:36px !important; height:36px !important; flex-basis:36px !important; }
+ html body.vicinify-ui #main-content #page-map.active .toolbar-modern { grid-column:1/-1; display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important; gap:8px !important; padding:0 !important; margin:0 !important; border:0 !important; box-shadow:none !important; background:transparent !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-wrapper { width:0 !important; flex:1 1 0 !important; min-width:0 !important; padding:0 !important; border:0 !important; background:transparent !important; box-shadow:none !important; overflow:hidden !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-segment-container { display:flex !important; width:100% !important; padding:3px !important; overflow-x:auto !important; gap:3px !important; border:1px solid var(--ui-border) !important; border-radius:9px !important; background:var(--ui-soft) !important; scrollbar-width:none; }
+ html body.vicinify-ui #main-content #page-map.active .radius-segment-container .seg { flex:0 0 auto !important; min-width:42px !important; min-height:30px !important; padding:5px 8px !important; font-size:10px !important; }
+ html body.vicinify-ui #main-content #page-map.active .top-actions-modern { flex:0 0 auto !important; width:auto !important; gap:5px !important; }
+ html body.vicinify-ui #main-content #page-map.active .toggle-group { flex:0 0 auto !important; padding:3px !important; }
+ html body.vicinify-ui #main-content #page-map.active :is(#btnMapView,#btnListView) { min-height:30px !important; min-width:30px !important; padding:4px 7px !important; }
+ html body.vicinify-ui #main-content #page-map.active :is(#btnMapView,#btnListView)::after { display:none !important; }
+ html body.vicinify-ui #main-content #page-map.active #resetMapBtn { flex:0 0 36px !important; width:36px !important; min-width:36px !important; height:38px !important; padding:0 !important; }
+ #resetMapBtn span { display:none !important; }
+ html body.vicinify-ui #main-content #page-map.active #catChips.modern-chips { grid-column:1/-1; display:flex !important; flex-wrap:nowrap !important; width:100% !important; padding:0 !important; gap:6px !important; overflow-x:auto !important; border:0 !important; border-radius:0 !important; box-shadow:none !important; scrollbar-width:none; }
+ html body.vicinify-ui #main-content #page-map.active #catChips.modern-chips .chip { flex:0 0 auto !important; min-height:34px !important; padding:7px 10px !important; font-size:10px !important; gap:7px !important; border-radius:9px !important; }
+ html body.vicinify-ui #main-content #page-map.active #mapFilterToggle { display:flex !important; align-items:center; justify-content:center; gap:7px; width:96px !important; min-height:32px !important; margin:0 !important; border:1px solid #a8bcff !important; border-radius:30px; background:#eff5ff !important; color:#315bff !important; font-size:11px; padding:5px 10px !important; }
+ html body.vicinify-ui #main-content #page-map.active #mapSmartFilters { display:flex !important; flex-wrap:nowrap !important; gap:5px !important; padding:0 !important; margin:0 !important; overflow-x:auto !important; min-width:0; scrollbar-width:none; }
+ html body.vicinify-ui #main-content #page-map.active .map-smart-filter { flex:0 0 auto; display:flex !important; align-items:center; gap:5px; padding:6px 9px !important; border:1px solid var(--ui-border); border-radius:20px; font-size:10px; white-space:nowrap; background:var(--ui-surface); color:var(--ui-ink); }
+ html body.vicinify-ui #main-content #page-map.active #mapSmartFilters:not(.open) .map-smart-filter:nth-child(n+4) { display:none !important; }
+ html body.vicinify-ui #main-content #page-map.active .mapWrap { flex:1 1 0 !important; position:relative !important; inset:auto !important; width:100% !important; height:auto !important; min-height:0 !important; margin:0 !important; border:0 !important; border-radius:0 !important; }
+ html body.vicinify-ui #main-content #page-map.active #map { position:absolute !important; inset:0 !important; width:100% !important; height:100% !important; }
+}
+/* Remove the floating arrow action from the map on all screen sizes. */
+html body.vicinify-ui #main-content #page-map #locateBtn {
+ display: none !important;
+}
+
+/* Keep active controls and the filter affordance readable with either palette. */
+html body.vicinify-ui.dark-mode #main-content #page-map.active .radius-segment-container .seg.active {
+ color:var(--ui-surface) !important;
+}
+html body.vicinify-ui.dark-mode #main-content #page-map.active #mapFilterToggle {
+ background:#1c3048 !important; color:#aec5ff !important; border-color:#526d9e !important;
+}
+html body.vicinify-ui.dark-mode #main-content #page-map.active #catChips.modern-chips .chip.active,
+html body.vicinify-ui.dark-mode #main-content #page-map.active .map-smart-filter.active {
+ border-color:var(--ui-accent) !important;
+}
+/* Keep all six distances and both view labels visible on phones. */
+@media (max-width:767px) {
+ html body.vicinify-ui #main-content #page-map.active .discovery-panel {
+  flex:0 1 auto !important; min-height:0; max-height:calc(100% - 140px); overflow-y:auto !important;
+ }
+ html body.vicinify-ui #main-content #page-map.active .toolbar-modern { flex-direction:column !important; align-items:stretch !important; gap:8px !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-wrapper {
+  width:100% !important; flex:0 0 auto !important; display:flex !important; flex-direction:column !important;
+  align-items:stretch !important; gap:7px !important; padding:8px !important;
+  border:1px solid var(--ui-border) !important; border-radius:11px !important; background:var(--ui-surface) !important;
+ }
+ html body.vicinify-ui #main-content #page-map.active .radius-caption { display:flex !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-label { display:flex !important; align-items:center !important; font-size:10px !important; gap:6px !important; color:var(--ui-ink) !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-label :is(i,svg) { width:14px !important; height:14px !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-help { display:flex !important; font-size:7px; }
+ html body.vicinify-ui #main-content #page-map.active .radius-segment-container { gap:3px !important; padding:0 !important; border:0 !important; background:transparent !important; overflow:visible !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-segment-container .seg { flex:1 1 0 !important; min-width:0 !important; min-height:28px !important; padding:5px 0 !important; font-size:9px !important; background:var(--ui-soft) !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-segment-container .seg.active { background:var(--ui-accent) !important; color:var(--ui-surface) !important; }
+ html body.vicinify-ui #main-content #page-map.active .radius-segment-container .seg:is([data-radius="15000"],[data-radius="20000"]) { display:none !important; }
+ html body.vicinify-ui #main-content #page-map.active .top-actions-modern { display:flex !important; width:100% !important; justify-content:space-between !important; gap:12px !important; }
+ html body.vicinify-ui #main-content #page-map.active .toggle-group { flex:1 1 0 !important; }
+ html body.vicinify-ui #main-content #page-map.active :is(#btnMapView,#btnListView) { flex:1 1 0 !important; min-height:30px !important; gap:7px !important; }
+ html body.vicinify-ui #main-content #page-map.active :is(#btnMapView,#btnListView)::after { display:inline !important; }
+ html body.vicinify-ui #main-content #page-map.active #resetMapBtn { flex:0 0 68px !important; min-width:68px !important; width:68px !important; gap:6px !important; }
+ html body.vicinify-ui #main-content #page-map.active #resetMapBtn span { display:inline !important; }
+}
+html body.vicinify-ui #main-content #page-map.active :is(#btnMapView,#btnListView).active {
+ background:var(--ui-accent-soft) !important; color:var(--ui-accent) !important;
+}
+html body.vicinify-ui #main-content #page-map.is-list-view .map-location-label { display:none !important; }
+/* Keep the full login composition within the viewport without horizontal overflow. */
+html body.vicinify-ui.on-login #main-content { margin:0 !important; padding:0 !important; width:100% !important; border:0 !important; border-radius:0 !important; }
+html body.vicinify-ui #main-content #page-login .login-wrapper,
+html body.vicinify-ui #main-content #page-login .auth-story { box-sizing:border-box !important; min-width:0; }
+/* The old animated indicator is hidden; the selected distance owns its highlight. */
+html body.vicinify-ui #main-content #page-map.active .radius-segment-container.slider-active .seg.active {
+ background:var(--ui-accent) !important; color:var(--ui-surface) !important;
+}
+html body.vicinify-ui #main-content #page-map.active #mapFilterToggle { width:120px !important; }
+@media(max-width:767px) {
+ html body.vicinify-ui #main-content #page-map.active .discovery-panel { grid-template-columns:120px minmax(0,1fr); }
+}
