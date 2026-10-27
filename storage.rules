@@ -1,0 +1,83 @@
+rules_version = '2';
+
+// ============================================================
+// VICINIFY — Firebase Storage Rules (NEW, 2026-10-03)
+// Upload folders used by the app:
+//   places/{uid}/*       establishment photos (Add page)
+//   buzz_posts/{uid}/*   Buzz post photos
+//   place_covers/{placeId}/*   business cover photos
+//   place_posts/{placeId}/*    menu / store posts
+// Images are shown publicly (map, place pages, Buzz), reads open.
+// Writes: owner folders are uid-locked; place folders need sign-in
+// + image type + <5MB (ownership itself is enforced in Firestore
+// when the URL is saved onto the place/post document).
+// ============================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isImageUnder5MB() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp|gif)')
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Writes require a verified email (spam/abuse gate).
+    function verifiedEmailStorage() {
+      return signedIn()
+        && request.auth.token.email_verified == true;
+    }
+
+    // Place ownership lives in Firestore (places/{placeId}.owner_uid).
+    // Storage rules can read it via firestore.get() because places
+    // reads are public. Closes the "Business A overwrites Business B's
+    // cover" hole.
+    function isPlaceOwnerStorage(placeId) {
+      return signedIn()
+        && firestore.get(/databases/(default)/documents/places/$(placeId)).data.owner_uid == request.auth.uid;
+    }
+
+    function isStorageAdmin() {
+      return signedIn()
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    match /places/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if verifiedEmailStorage()
+        && request.auth.uid == userId
+        && isImageUnder5MB();
+      allow delete: if verifiedEmailStorage() && request.auth.uid == userId;
+    }
+
+    match /buzz_posts/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if verifiedEmailStorage()
+        && request.auth.uid == userId
+        && isImageUnder5MB();
+      allow delete: if verifiedEmailStorage() && request.auth.uid == userId;
+    }
+
+    match /place_covers/{placeId}/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if isImageUnder5MB() && verifiedEmailStorage()
+        && (isPlaceOwnerStorage(placeId) || isStorageAdmin());
+      allow delete: if verifiedEmailStorage() && (isPlaceOwnerStorage(placeId) || isStorageAdmin());
+    }
+
+    match /place_posts/{placeId}/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if isImageUnder5MB() && verifiedEmailStorage()
+        && (isPlaceOwnerStorage(placeId) || isStorageAdmin());
+      allow delete: if verifiedEmailStorage() && (isPlaceOwnerStorage(placeId) || isStorageAdmin());
+    }
+
+    // Everything else: no access.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

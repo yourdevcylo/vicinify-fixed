@@ -1,0 +1,477 @@
+[
+  {
+    "path": "css/style.css",
+    "bytes": 418938,
+    "sha256": "e87ef6ac75426d778cdc34f8c9e72d67d467107686d93cc013bc4975e8fefbdc"
+  },
+  {
+    "path": "dist/css/style.css",
+    "bytes": 418938,
+    "sha256": "e87ef6ac75426d778cdc34f8c9e72d67d467107686d93cc013bc4975e8fefbdc"
+  },
+  {
+    "path": "dist/icons/icon-192.png",
+    "bytes": 1314,
+    "sha256": "f19b17aa0efd3c1ff298246540ccb91243eabbc38c766a8d4cacc0b248b3bd98"
+  },
+  {
+    "path": "dist/icons/icon-512.png",
+    "bytes": 3989,
+    "sha256": "ac2dd5fba7af5e42d4459261233e1badc81a224a01e93139ff72400ec60ef7b5"
+  },
+  {
+    "path": "dist/js/add.js",
+    "bytes": 24245,
+    "sha256": "4344a8570b160f929913e524ed6a8b283dda45a9d8e2d771dc160cb3debaa640"
+  },
+  {
+    "path": "dist/js/buzz.js",
+    "bytes": 35953,
+    "sha256": "43999d7ab747b2d9cb811e36b6e50bf2524d6d6b72a7fb9d572496f84b40d2e3"
+  },
+  {
+    "path": "dist/js/common.js",
+    "bytes": 265950,
+    "sha256": "9bc24a1078426548b62078480c81f129b6fda5bb887d475e80b98a4d2632bea7"
+  },
+  {
+    "path": "dist/js/dashboard.js",
+    "bytes": 158761,
+    "sha256": "f07528867f30cee67af496234883a9a67e44aca9526e2fe66d82886d8805cee4"
+  },
+  {
+    "path": "dist/js/data.js",
+    "bytes": 4859,
+    "sha256": "364546280eba64d75e5093a5bb277607e4d207fff9c334ecb91922e432e5f409"
+  },
+  {
+    "path": "dist/js/map.js",
+    "bytes": 174567,
+    "sha256": "0362da4e4ffce0484457f7927146e0eafca690ece2db7d30107e11c43ccf0f27"
+  },
+  {
+    "path": "dist/js/settings.js",
+    "bytes": 40777,
+    "sha256": "7c4f2bb602717dccfbe641a3549e819d883559c724a1dee86a07cff80887deec"
+  },
+  {
+    "path": "dist/logo-options/media-generation-last-upload-handles.json",
+    "bytes": 47,
+    "sha256": "7f0548ac012e69d3e63e3294dd940490e91fb8e99b72773a48f134a3a37ae335"
+  },
+  {
+    "path": "dist/logo-options/media-generation-vicinify-logo-1-0-f94ffbc4-e9b9-4f1a-a533-6ad9c252bfc9.webp",
+    "bytes": 89806,
+    "sha256": "ef2db95ddfeac17a47154200de7fffa87580c3f2962b3ca964a99f9c6d593869"
+  },
+  {
+    "path": "dist/logo-options/media-generation-vicinify-logo-1-1791418142.json",
+    "bytes": 631,
+    "sha256": "e619444e8d5f9d85507ee653209ec49fc089f1c11b08735d9ac371329bed7b7f"
+  },
+  {
+    "path": "dist/logo-options/media-generation-vicinify-logo-2-0-99fc45df-c016-4bb5-bcb1-30f15afe308d.webp",
+    "bytes": 93618,
+    "sha256": "61e418d55b06b6410fae0cd983b5d0d43e94d44e90b9060ea06bc4e6c2d15f11"
+  },
+  {
+    "path": "dist/logo-options/media-generation-vicinify-logo-2-1791418142.json",
+    "bytes": 631,
+    "sha256": "236a3b1dcb9beb0c5c256ea20ff3195cc8bf2add7adab0d5c8e7dbacb91174f7"
+  },
+  {
+    "path": "dist/logo-options/media-generation-vicinify-logo-3-0-ff8c7eae-143e-4e6c-b0c1-a1c39dd99972.webp",
+    "bytes": 100988,
+    "sha256": "34828ad57b2a5baee4727624e8b196209b8e651017cb62527973fece3320f598"
+  },
+  {
+    "path": "dist/logo-options/media-generation-vicinify-logo-3-1791418138.json",
+    "bytes": 631,
+    "sha256": "39da248d25794596048e6843768848959906dd4400a91354003a2cea1bb08c00"
+  },
+  {
+    "path": "dist/logo-options/media-generation-vicinify-logo-refined-1-0-f7925ec3-3412-441c-8540-bcd9a25ee81c.webp",
+    "bytes": 81710,
+    "sha256": "36652af04c7a3f3351cdef8097e0fbe95878908668a7d0c55daa87e5f3c4df83"
+  },
+  {
+    "path": "dist/logo-options/media-generation-vicinify-logo-refined-1-1791418311.json",
+    "bytes": 631,
+    "sha256": "858594d8a5221a748049eed195061bcdb5b599f3c4d1732703b439ce72e3dd3b"
+  },
+  {
+    "path": "dist/logo-options/media-generation-vicinify-logo-refined-2-0-5ebd3161-7b97-4f45-a070-0765b643a7fb.webp",
+    "bytes": 98326,
+    "sha256": "1b5cd2636c36de7843c144599b178616f01f22dbed03c5e911a585fdbba1a112"
+  },
+  {
+    "path": "dist/logo-options/media-generation-vicinify-logo-refined-2-1791418311.json",
+    "bytes": 631,
+    "sha256": "cc63a52359ce87de9a09f2da3dc09caa5c1b3abd1e8c067261e8b1de1e7447d6"
+  },
+  {
+    "path": "dist/logo-options/media-generation-vicinify-logo-refined-3-0-4c43edba-b3a9-4c1a-9cbd-5ef37a96abc3.webp",
+    "bytes": 97190,
+    "sha256": "e1e939e678e5cadf6be38938650579056de4ff36f5cbafa0094ab17e9e7cc744"
+  },
+  {
+    "path": "dist/logo-options/media-generation-vicinify-logo-refined-3-1791418312.json",
+    "bytes": 630,
+    "sha256": "b00cb40cc11b417c67721f63a5d3e9e35f371e8c5c09119afce412ff2258ce39"
+  },
+  {
+    "path": "dist/index.html",
+    "bytes": 103091,
+    "sha256": "e0642e31ac0ce0694e286e7ff028bcfb66753ccfbba9aeb656f757b08b56957c"
+  },
+  {
+    "path": "dist/manifest.json",
+    "bytes": 526,
+    "sha256": "ad51e01977046ae1a0aa77eb881e6d22407cb6118c45389dafeb23b6f3d655ca"
+  },
+  {
+    "path": "dist/notif.mp3",
+    "bytes": 35108,
+    "sha256": "3b6c199ac8fe61149913b71c1159424ae3ceaaa4f84f60e522317072b003ae71"
+  },
+  {
+    "path": "dist/sw.js",
+    "bytes": 2198,
+    "sha256": "2b0843ea0eeb0c752221ec80b7f758e42066b37879b5dcaee0dcc8b795f2e079"
+  },
+  {
+    "path": "icons/icon-192.png",
+    "bytes": 1314,
+    "sha256": "f19b17aa0efd3c1ff298246540ccb91243eabbc38c766a8d4cacc0b248b3bd98"
+  },
+  {
+    "path": "icons/icon-512.png",
+    "bytes": 3989,
+    "sha256": "ac2dd5fba7af5e42d4459261233e1badc81a224a01e93139ff72400ec60ef7b5"
+  },
+  {
+    "path": "js/add.js",
+    "bytes": 24245,
+    "sha256": "4344a8570b160f929913e524ed6a8b283dda45a9d8e2d771dc160cb3debaa640"
+  },
+  {
+    "path": "js/buzz.js",
+    "bytes": 35953,
+    "sha256": "43999d7ab747b2d9cb811e36b6e50bf2524d6d6b72a7fb9d572496f84b40d2e3"
+  },
+  {
+    "path": "js/common.js",
+    "bytes": 265950,
+    "sha256": "9bc24a1078426548b62078480c81f129b6fda5bb887d475e80b98a4d2632bea7"
+  },
+  {
+    "path": "js/dashboard.js",
+    "bytes": 158761,
+    "sha256": "f07528867f30cee67af496234883a9a67e44aca9526e2fe66d82886d8805cee4"
+  },
+  {
+    "path": "js/data.js",
+    "bytes": 4859,
+    "sha256": "364546280eba64d75e5093a5bb277607e4d207fff9c334ecb91922e432e5f409"
+  },
+  {
+    "path": "js/map.js",
+    "bytes": 174567,
+    "sha256": "0362da4e4ffce0484457f7927146e0eafca690ece2db7d30107e11c43ccf0f27"
+  },
+  {
+    "path": "js/settings.js",
+    "bytes": 40777,
+    "sha256": "7c4f2bb602717dccfbe641a3549e819d883559c724a1dee86a07cff80887deec"
+  },
+  {
+    "path": "logo-options/media-generation-last-upload-handles.json",
+    "bytes": 47,
+    "sha256": "7f0548ac012e69d3e63e3294dd940490e91fb8e99b72773a48f134a3a37ae335"
+  },
+  {
+    "path": "logo-options/media-generation-vicinify-logo-1-0-f94ffbc4-e9b9-4f1a-a533-6ad9c252bfc9.webp",
+    "bytes": 89806,
+    "sha256": "ef2db95ddfeac17a47154200de7fffa87580c3f2962b3ca964a99f9c6d593869"
+  },
+  {
+    "path": "logo-options/media-generation-vicinify-logo-1-1791418142.json",
+    "bytes": 631,
+    "sha256": "e619444e8d5f9d85507ee653209ec49fc089f1c11b08735d9ac371329bed7b7f"
+  },
+  {
+    "path": "logo-options/media-generation-vicinify-logo-2-0-99fc45df-c016-4bb5-bcb1-30f15afe308d.webp",
+    "bytes": 93618,
+    "sha256": "61e418d55b06b6410fae0cd983b5d0d43e94d44e90b9060ea06bc4e6c2d15f11"
+  },
+  {
+    "path": "logo-options/media-generation-vicinify-logo-2-1791418142.json",
+    "bytes": 631,
+    "sha256": "236a3b1dcb9beb0c5c256ea20ff3195cc8bf2add7adab0d5c8e7dbacb91174f7"
+  },
+  {
+    "path": "logo-options/media-generation-vicinify-logo-3-0-ff8c7eae-143e-4e6c-b0c1-a1c39dd99972.webp",
+    "bytes": 100988,
+    "sha256": "34828ad57b2a5baee4727624e8b196209b8e651017cb62527973fece3320f598"
+  },
+  {
+    "path": "logo-options/media-generation-vicinify-logo-3-1791418138.json",
+    "bytes": 631,
+    "sha256": "39da248d25794596048e6843768848959906dd4400a91354003a2cea1bb08c00"
+  },
+  {
+    "path": "logo-options/media-generation-vicinify-logo-refined-1-0-f7925ec3-3412-441c-8540-bcd9a25ee81c.webp",
+    "bytes": 81710,
+    "sha256": "36652af04c7a3f3351cdef8097e0fbe95878908668a7d0c55daa87e5f3c4df83"
+  },
+  {
+    "path": "logo-options/media-generation-vicinify-logo-refined-1-1791418311.json",
+    "bytes": 631,
+    "sha256": "858594d8a5221a748049eed195061bcdb5b599f3c4d1732703b439ce72e3dd3b"
+  },
+  {
+    "path": "logo-options/media-generation-vicinify-logo-refined-2-0-5ebd3161-7b97-4f45-a070-0765b643a7fb.webp",
+    "bytes": 98326,
+    "sha256": "1b5cd2636c36de7843c144599b178616f01f22dbed03c5e911a585fdbba1a112"
+  },
+  {
+    "path": "logo-options/media-generation-vicinify-logo-refined-2-1791418311.json",
+    "bytes": 631,
+    "sha256": "cc63a52359ce87de9a09f2da3dc09caa5c1b3abd1e8c067261e8b1de1e7447d6"
+  },
+  {
+    "path": "logo-options/media-generation-vicinify-logo-refined-3-0-4c43edba-b3a9-4c1a-9cbd-5ef37a96abc3.webp",
+    "bytes": 97190,
+    "sha256": "e1e939e678e5cadf6be38938650579056de4ff36f5cbafa0094ab17e9e7cc744"
+  },
+  {
+    "path": "logo-options/media-generation-vicinify-logo-refined-3-1791418312.json",
+    "bytes": 630,
+    "sha256": "b00cb40cc11b417c67721f63a5d3e9e35f371e8c5c09119afce412ff2258ce39"
+  },
+  {
+    "path": "netlify/functions/lib/admin.js",
+    "bytes": 2507,
+    "sha256": "48d8c1197ecff0cf6590aa0b1758454332d4706ed1ce0a97d7e4f343f8b06c22"
+  },
+  {
+    "path": "netlify/functions/lib/booking-policy.js",
+    "bytes": 1248,
+    "sha256": "4c07541a14b13627627c769995c6292aa9a33f95f6296e3336025c3df198e6b3"
+  },
+  {
+    "path": "netlify/functions/lib/catalog.js",
+    "bytes": 2014,
+    "sha256": "68e2a3bf8b4d8335f84e36c1f88eb963080ee2fcd35d7686548420612699fd28"
+  },
+  {
+    "path": "netlify/functions/adminSummary.js",
+    "bytes": 1061,
+    "sha256": "500cc29b73ea2a1835424189c9d3b77ece81843f4be18a71e818167df04b2004"
+  },
+  {
+    "path": "netlify/functions/askVici.js",
+    "bytes": 15373,
+    "sha256": "7a8dce9dd45521690c5eeb1af077879449141f68412cb84b66866386ad391ad1"
+  },
+  {
+    "path": "netlify/functions/booking.js",
+    "bytes": 2704,
+    "sha256": "009a51f4c2c3c522b8dbe6cc464a3e8002c0c111fd707903560febd934c48885"
+  },
+  {
+    "path": "netlify/functions/catalog.js",
+    "bytes": 602,
+    "sha256": "86cbf1f2fb9749d07b1e0de2450f9699bda178c2c48a81cb3d44b12cf66780fa"
+  },
+  {
+    "path": "netlify/functions/proof.js",
+    "bytes": 3636,
+    "sha256": "9791013a2f12e99444fc78e75f5d830f728086538ff107ee6670123577f0e51e"
+  },
+  {
+    "path": "netlify/functions/review.js",
+    "bytes": 3951,
+    "sha256": "49a0082d49a09a68b2cdf936ad253b0d4d7670050a3e97790d54f8d7b67df47c"
+  },
+  {
+    "path": "tests/core.test.cjs",
+    "bytes": 2858,
+    "sha256": "e82216dfb6ef8924d85de62e57b823d51ccddb4e3cff0d2365c276a7e0fca172"
+  },
+  {
+    "path": "tests/rules.integration.cjs",
+    "bytes": 7392,
+    "sha256": "6d379b7b853747d0d544a4e97013879ea1d2d4630b43ee71cbc3bdb57e11bd13"
+  },
+  {
+    "path": "tests/run-emulator.cjs",
+    "bytes": 448,
+    "sha256": "3c251ecaf08a8d83b45f76ff9c9a6d9d1a150244ab6efa362c2e0eb7808c3d5d"
+  },
+  {
+    "path": "tests/server.test.cjs",
+    "bytes": 2045,
+    "sha256": "2610ff3861bbb8b3c0f51a3a23763d7a93cc0dbd8551b89e459e4af6ce889175"
+  },
+  {
+    "path": "tests/ui.test.cjs",
+    "bytes": 2624,
+    "sha256": "93787a165cc73ab5bed7c60e9232e186c608fe265d16f6539ea4c8a147e5258c"
+  },
+  {
+    "path": ".env.example",
+    "bytes": 459,
+    "sha256": "3f785ef6096de6597d988ad8b900edfab83f0171c657890e8795f1cd598c9f6f"
+  },
+  {
+    "path": ".gitignore",
+    "bytes": 100,
+    "sha256": "eaea9b6e2c21e2e65eecb0c42a441fe2bcb64be49ef35182c693ec746a51be7e"
+  },
+  {
+    "path": "AI_API_SETUP.md",
+    "bytes": 3353,
+    "sha256": "a15b42ae0294e64fe0cc4dfebf21b7f8837f07130bd0bbb3b6f79beff28a68ae"
+  },
+  {
+    "path": "build_preview.py",
+    "bytes": 2126,
+    "sha256": "9689195c13c1953907f2889eae8b790eb2c6f65a75326afd410cc41d1f826d27"
+  },
+  {
+    "path": "build.cjs",
+    "bytes": 592,
+    "sha256": "bcee2907234f7c779aa25978ea2a92d3e7267f24a487dda590e7132dd3596f7d"
+  },
+  {
+    "path": "cleanup-test-data.js",
+    "bytes": 1473,
+    "sha256": "99ead09685da69486424bfe00f3242b44dc2b612e03f4fbf01656be718102625"
+  },
+  {
+    "path": "DEEP_FIX_CHANGELOG.md",
+    "bytes": 58234,
+    "sha256": "cf6e7ebe049cdd2a1fda9e94a1bf70229a3ec78488584a33d7cf0fc840ce24c3"
+  },
+  {
+    "path": "FIREBASE_USAGE.md",
+    "bytes": 2441,
+    "sha256": "bdea50a02249b232e60dd592c065fc3c7f93bb370f8dbec49d4153886d29f32c"
+  },
+  {
+    "path": "firebase.json",
+    "bytes": 686,
+    "sha256": "46c2a93b1575e39585b5df2cb186c9434c264d5c96b739c1c4eff66cb686e698"
+  },
+  {
+    "path": "firebase.test.json",
+    "bytes": 213,
+    "sha256": "32ca4e49f2531f79b138d8b773ae9022153b6d9e52808697ba3b665b95f88068"
+  },
+  {
+    "path": "firestore.indexes.json",
+    "bytes": 9526,
+    "sha256": "b88cbf353a1aafc07c8b908444c648f6af784331426c13a4e167e2a853979451"
+  },
+  {
+    "path": "firestore.rules",
+    "bytes": 19706,
+    "sha256": "46860c4b7c810331608af7ea40ee51131ab1d7587794388c758d5bca35bfb25e"
+  },
+  {
+    "path": "FIX_NOTES.md",
+    "bytes": 10209,
+    "sha256": "3ff267a018407b4dfeb72e7726b2344d1de5c21daeb88d4c321cc513f382ef1d"
+  },
+  {
+    "path": "index.html",
+    "bytes": 103091,
+    "sha256": "e0642e31ac0ce0694e286e7ff028bcfb66753ccfbba9aeb656f757b08b56957c"
+  },
+  {
+    "path": "manifest.json",
+    "bytes": 526,
+    "sha256": "ad51e01977046ae1a0aa77eb881e6d22407cb6118c45389dafeb23b6f3d655ca"
+  },
+  {
+    "path": "netlify.toml",
+    "bytes": 553,
+    "sha256": "4bc0ef0c023422458c8c1e6df0a810afeba043d203e6562af20c6485212d4d92"
+  },
+  {
+    "path": "notif.mp3",
+    "bytes": 35108,
+    "sha256": "3b6c199ac8fe61149913b71c1159424ae3ceaaa4f84f60e522317072b003ae71"
+  },
+  {
+    "path": "ORIGINAL_README.md",
+    "bytes": 8633,
+    "sha256": "bd80a621e45e06498ea4392aa8215a8f6d775917c38ed3d72c896ffd8140e920"
+  },
+  {
+    "path": "package-lock.json",
+    "bytes": 124277,
+    "sha256": "ac222422b9dc8843c8a11889b92cc4bce357a2907786ba27d09aa22c820dabef"
+  },
+  {
+    "path": "package.json",
+    "bytes": 398,
+    "sha256": "2dabc7986d89b7f5f4d185d7c67c139303a0faaf2b3a18b4a5ddfcb6bd320954"
+  },
+  {
+    "path": "PHASE5_FIRESTORE_RULES_AUDIT.md",
+    "bytes": 9909,
+    "sha256": "a9de505dced07d2c4b980edb53aa58abac536f5f86fdc2cefbb1ea52035282ed"
+  },
+  {
+    "path": "PHASE6_STORAGE_SECURITY_AUDIT.md",
+    "bytes": 4462,
+    "sha256": "4ce50854d649236c671feb5cbed74ce452fdbb8a3cbe13b3ff69577a93a5d8d8"
+  },
+  {
+    "path": "PHASE7_INPUT_VALIDATION_AUDIT.md",
+    "bytes": 3523,
+    "sha256": "192d9eb95e3cdc97b5083ace4486e37391035f6ea7f87ce7a010822380b626dd"
+  },
+  {
+    "path": "PHASE8_UIUX_AUDIT.md",
+    "bytes": 3470,
+    "sha256": "f836a3dc87fb05ccda6761e648a776ff01985729efdeab644c1a72fc6feac1e1"
+  },
+  {
+    "path": "PHASE9_FUNCTIONAL_TEST_MATRIX.md",
+    "bytes": 6748,
+    "sha256": "1cc2fb5ab298b92e3254ade354a9738d01aa3d6e7d460fe1dadad1c471838686"
+  },
+  {
+    "path": "README.md",
+    "bytes": 492,
+    "sha256": "26aa6fe5ba7271699560ccddf744dbdff94f5ef697093a1b6f46559c154a10c6"
+  },
+  {
+    "path": "REMAINING_WORK.md",
+    "bytes": 3662,
+    "sha256": "e28d0ba0501796ed64f93ae700372736a07aca391626df12b15a7d4f41b598d3"
+  },
+  {
+    "path": "START_HERE.md",
+    "bytes": 5221,
+    "sha256": "ff67fe0a90ed78fd00381adcf3e473e6ef7631a6bb990b1ba4a1299726ce61de"
+  },
+  {
+    "path": "storage.rules",
+    "bytes": 3074,
+    "sha256": "fe1e3e01875097dc4519cdf8dd3b1d734fa492421e99ffcc316a6ab9d6147d4a"
+  },
+  {
+    "path": "sw.js",
+    "bytes": 2198,
+    "sha256": "2b0843ea0eeb0c752221ec80b7f758e42066b37879b5dcaee0dcc8b795f2e079"
+  },
+  {
+    "path": "TEST_RESULTS.md",
+    "bytes": 1611,
+    "sha256": "540001a99ae7d1119626a8cdba611bb81654710f44782523b789dc5a16348f54"
+  }
+]

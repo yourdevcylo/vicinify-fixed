@@ -1,0 +1,417 @@
+rules_version = '2';
+
+// Trusted endpoints own booking transitions and rating aggregates.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Email must be verified for WRITES (spam/abuse gate).
+    // Reads stay open so unverified users can still browse.
+    // users/{uid} create is exempt — the profile must exist before
+    // the user can verify.
+    function verifiedEmail() {
+      return signedIn()
+        && request.auth.token.email_verified == true;
+    }
+
+    function isDeveloper() {
+      return signedIn()
+        && request.auth.uid == "Z45NZhQTgsTUX79WJ5ksCH8N3c02";
+    }
+
+    // The permanent admin account: once its profile holds role "admin",
+    // no one (not even another admin) can demote it or delete the doc.
+    // It is the recovery anchor for the whole project.
+    function isPermanentAdminId(userId) {
+      return userId == "Z45NZhQTgsTUX79WJ5ksCH8N3c02";
+    }
+
+    function isAdmin() {
+      return isDeveloper()
+        || (
+          signedIn()
+          && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
+        );
+    }
+
+    function isPlaceOwner(placeId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/places/$(placeId))
+        && get(/databases/$(database)/documents/places/$(placeId)).data.owner_uid == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      // Single profile lookup (owners see a customer's display name).
+      allow get: if signedIn() && (request.auth.uid == userId || isAdmin());
+      // Bulk listing = scraping every user's email. Admin only.
+      allow list: if isAdmin();
+
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.role == "user";
+
+      allow update: if (
+          isAdmin()
+          || (
+            signedIn()
+            && request.auth.uid == userId
+            && request.resource.data.role == resource.data.role
+            && request.resource.data.uid == resource.data.uid
+          )
+        )
+        // Permanent admin can never be demoted once it holds role "admin".
+        && !(
+          isPermanentAdminId(userId)
+          && resource.data.role == "admin"
+          && request.resource.data.role != "admin"
+        );
+
+      // Settings → Delete Account deletes your own profile doc first.
+      // The permanent admin's doc can never be deleted.
+      allow delete: if !isPermanentAdminId(userId)
+        && (
+          isAdmin()
+          || (signedIn() && request.auth.uid == userId)
+        );
+    }
+
+    match /public_profiles/{userId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(["fullName"])
+        && request.resource.data.fullName is string && request.resource.data.fullName.size() <= 120;
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /places/{placeId} {
+      allow read: if resource.data.approval_status == "approved" || isAdmin()
+        || (signedIn() && (resource.data.owner_uid == request.auth.uid || resource.data.addedBy == request.auth.uid));
+
+      allow create: if verifiedEmail()
+        && request.resource.data.addedBy == request.auth.uid
+        && request.resource.data.owner_uid == null
+        && request.resource.data.get("avgRating", 0) == 0
+        && request.resource.data.get("reviewCount", 0) == 0
+        && request.resource.data.get("ratingSum", 0) == 0
+        && (isAdmin() || (request.resource.data.get("is_verified", false) == false
+          && request.resource.data.get("is_premium", false) == false
+          && request.resource.data.get("is_featured", false) == false
+          && request.resource.data.get("claimStatus", "unclaimed") in ["unclaimed", "pending"]))
+        // Basic input sanity (client also enforces maxlength).
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 3
+        && request.resource.data.name.size() <= 120
+        && (!("description" in request.resource.data)
+            || request.resource.data.description.size() <= 1000)
+        && (
+          !("suggestedBy" in request.resource.data)
+          || request.resource.data.suggestedBy == request.auth.uid
+        )
+        && (
+          !("approval_status" in request.resource.data)
+          || request.resource.data.approval_status == "pending"
+          // Admins may publish directly — no self-approval step needed.
+          || (isAdmin() && request.resource.data.approval_status == "approved")
+        );
+
+      allow update: if isAdmin()
+        || (
+          // Owner edits their place, but may NOT transfer ownership,
+          // change who added it, approve their own place, or touch
+          // verification/trust fields (self-verification hole closed).
+          verifiedEmail()
+          && isPlaceOwner(placeId)
+          && !request.resource.data.diff(resource.data).affectedKeys()
+               .hasAny(["owner_uid", "addedBy", "approval_status",
+                        "is_verified", "claimStatus",
+                        "is_premium", "is_featured", "avgRating", "reviewCount", "ratingSum"])
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    match /favorites/{favId} {
+      allow read: if signedIn()
+        && (
+          isAdmin()
+          || resource.data.userId == request.auth.uid
+        );
+
+      allow create: if verifiedEmail()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow update, delete: if verifiedEmail()
+        && (
+          isAdmin()
+          || resource.data.userId == request.auth.uid
+        );
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if resource.data.get("isPublic", false) == true || isAdmin()
+        || (signedIn() && (resource.data.userId == request.auth.uid || isPlaceOwner(resource.data.placeId)));
+      allow write: if false;
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if signedIn()
+        && (
+          isAdmin()
+          || resource.data.userId == request.auth.uid
+          || isPlaceOwner(resource.data.placeId)
+        );
+
+      // Create: bookings always start as "pending" — a customer may not
+      // pre-accept their own booking or forge the initial state.
+      allow create: if verifiedEmail()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.placeId is string
+        && request.resource.data.status == "pending"
+        && request.resource.data.transactionId == bookingId
+        && request.resource.data.get("refundPercent", 50) == get(/databases/$(database)/documents/places/$(request.resource.data.placeId)).data.get("refund_percent", 50)
+        && !request.resource.data.keys().hasAny(["paymentProofUrl", "paymentProofPath", "customer_confirmed", "customerConfirmedAt"]);
+
+      allow update: if verifiedEmail() && (
+        (resource.data.userId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["customerReadAt", "customerReadBy", "customerRead", "readByCustomer", "readByCustomerAt"]))
+        || ((isPlaceOwner(resource.data.placeId) || isAdmin())
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["ownerReadAt", "ownerReadBy", "ownerRead", "readByOwner", "readByOwnerAt"]))
+      );
+      allow delete: if false;
+    }
+
+    match /messages/{msgId} {
+      function participant() {
+        return signedIn() && (resource.data.userId == request.auth.uid || isPlaceOwner(resource.data.placeId) || isAdmin());
+      }
+      function cardMirror() {
+        let order = get(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data;
+        return resource.data.type == "booking_card"
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status","bookingStatus","updatedAt","refundPercent","paymentProofUrl"])
+          && request.resource.data.status == order.status && request.resource.data.bookingStatus == order.status
+          && request.resource.data.get("refundPercent", 50) == order.get("refundPercent", 50)
+          && request.resource.data.get("paymentProofUrl", "") == order.get("paymentProofUrl", "");
+      }
+      allow read: if participant();
+      allow create: if verifiedEmail()
+        && request.resource.data.senderUid == request.auth.uid && request.resource.data.createdBy == request.auth.uid
+        && ((request.resource.data.userId == request.auth.uid && request.resource.data.senderRole == "customer"
+              && request.resource.data.type in ["text","booking_card","system_update","requirement_response","feedback_request","feedback_response"])
+          || ((isPlaceOwner(request.resource.data.placeId) || isAdmin()) && request.resource.data.senderRole == "owner"
+              && request.resource.data.type in ["text","system_update","requirement_request","completion_request"]))
+        && (request.resource.data.type != "booking_card" || (
+          request.resource.data.bookingStatus == "pending" && request.resource.data.status == "pending"
+          && getAfter(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)).data.status == "pending"
+          && getAfter(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)).data.userId == request.auth.uid
+          && getAfter(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)).data.placeId == request.resource.data.placeId));
+      allow update: if verifiedEmail() && participant()
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["userId","placeId","senderUid","senderRole","createdBy","createdAt","type","bookingId","transactionId"])
+        && (
+        (resource.data.type == "booking_card" && cardMirror())
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["deletedBy"])
+          && request.resource.data.deletedBy == resource.data.get("deletedBy", []).removeAll([request.auth.uid]).concat([request.auth.uid]))
+        || (resource.data.userId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["customerReadAt","customerReadBy","customerRead","readByCustomer","readByCustomerAt"]))
+        || ((isPlaceOwner(resource.data.placeId) || isAdmin())
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["ownerReadAt","ownerReadBy","ownerRead","readByOwner","readByOwnerAt"]))
+        || (resource.data.type == "text" && resource.data.senderUid != request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status","deliveredAt","seenAt"])
+          && request.resource.data.status in ["delivered","seen"])
+        || ((isPlaceOwner(resource.data.placeId) || isAdmin())
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["requirementStatus","paymentStatus","confirmedAt","transactionStatus","updatedAt","reply","replyAt","repliedAt"]))
+        || (resource.data.userId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["requirementStatus","submittedAt","updatedAt"])
+          && request.resource.data.requirementStatus == "submitted")
+        || (resource.data.userId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["feedbackStatus","rating","satisfaction","feedback","updatedAt"])
+          && request.resource.data.feedbackStatus in ["submitted", "feedback_submitted"])
+        || (resource.data.userId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["transactionStatus","customerConfirmedAt","updatedAt"])
+          && request.resource.data.transactionStatus == "received"
+          && get(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data.status == "received")
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /buzz_posts/{postId} {
+      function reaction() {
+        let old = resource.data.get("likedBy", []);
+        let next = request.resource.data.likedBy;
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(["likes","likedBy"])
+          && (next == old.removeAll([request.auth.uid]) || next == old.removeAll([request.auth.uid]).concat([request.auth.uid]))
+          && request.resource.data.likes == next.size();
+      }
+      function comment() {
+        let old = resource.data.get("comments", []);
+        let next = request.resource.data.comments;
+        let added = next[next.size()-1];
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(["comments"])
+          && next.size() == old.size()+1 && next.size() <= 100 && next == old.concat([added])
+          && added.authorUid == request.auth.uid
+          && added.keys().hasOnly(["text","authorName","authorUid","createdAt"])
+          && added.text is string && added.text.size() > 0 && added.text.size() <= 2000;
+      }
+      allow read: if true;
+      allow create: if verifiedEmail() && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.get("likes",0) == 0 && request.resource.data.get("likedBy",[]) == []
+        && request.resource.data.get("comments",[]) == []
+        && (!request.resource.data.get("isBusinessPost",false)
+          || isPlaceOwner(request.resource.data.get("sourcePlaceId",request.resource.data.get("establishmentId",""))) || isAdmin());
+      allow update: if verifiedEmail() && (isAdmin() || reaction() || comment()
+        || (resource.data.authorUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["body","mediaUrl","updatedAt"])));
+      allow delete: if isAdmin() || (verifiedEmail() && resource.data.authorUid == request.auth.uid);
+    }
+
+    match /place_posts/{postId} {
+      allow read: if true;
+
+      allow create: if verifiedEmail()
+        && (
+          isAdmin()
+          || isPlaceOwner(request.resource.data.placeId)
+        );
+
+      allow update, delete: if verifiedEmail()
+        && (
+          isAdmin()
+          || isPlaceOwner(resource.data.placeId)
+        );
+    }
+
+    match /admin_audit/{entryId} {
+      // Written by admins as actions happen; readable only by admins.
+      // Entries are never edited or deleted (append-only trail).
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // --- ADDED: these collections had NO rules (features were broken) ---
+
+    match /business_claims/{claimId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+
+      allow create: if verifiedEmail()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.get("status", "pending") == "pending"
+        && !request.resource.data.keys().hasAny(["reviewedBy", "reviewedAt", "approvedBy"]);
+
+      // Claimant edits own claim; admin reviews (approve/reject).
+      allow update: if isAdmin()
+        || (
+          verifiedEmail()
+          && resource.data.userId == request.auth.uid
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["contactName","contactPhone","proofUrl","message","updatedAt"])
+        );
+
+      allow delete: if isAdmin()
+        || (verifiedEmail() && resource.data.userId == request.auth.uid);
+    }
+
+    match /place_reports/{reportId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+
+      allow create: if verifiedEmail()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow update, delete: if isAdmin();
+    }
+
+    // --- ADDED 2026-10-05 (Suki Card / loyalty). Tightened 2026-10-05 (v53 audit). ---
+    // loyalty_cards/{cardId}: deterministic cardId = placeId + "_" + customerUid
+    // (idempotent approval: double-tap cannot double-stamp).
+    match /loyalty_cards/{cardId} {
+      // NOTE: `resource == null` covers the first-visit case — the customer
+      // must be allowed to `.get()` their card even before it exists.
+      allow read: if signedIn()
+        && (
+          isAdmin()
+          || resource == null
+          || resource.data.customerUid == request.auth.uid
+          || isPlaceOwner(resource.data.placeId)
+        );
+
+      // Create: safe starting state only — nobody may mint stamps or a
+      // pre-claimed card through the client.
+      // (a) the customer creates their own card on first stamp request, or
+      // (b) the place owner / admin creates it inside the approval
+      //     transaction when the doc does not exist yet (first stamp).
+      allow create: if verifiedEmail()
+        && request.resource.data.placeId is string
+        && request.resource.data.customerUid is string
+        && cardId == (request.resource.data.placeId + "_" + request.resource.data.customerUid)
+        && request.resource.data.claimed == false
+        && request.resource.data.claimRequested == false
+        && (
+          (
+            request.resource.data.customerUid == request.auth.uid
+            && request.resource.data.stamps == 0
+          )
+          || (
+            (isPlaceOwner(request.resource.data.placeId) || isAdmin())
+            && request.resource.data.stamps == 1
+          )
+        );
+
+      // Update: owners/admins run approvals and claim marking (stamps,
+      // claimed state). A customer may only flip their own claim-request
+      // fields — never stamps, claimed, placeId or customerUid.
+      allow update: if isAdmin()
+        || (verifiedEmail() && isPlaceOwner(resource.data.placeId))
+        || (
+          verifiedEmail()
+          && resource.data.customerUid == request.auth.uid
+          && request.resource.data.customerUid == request.auth.uid
+          && request.resource.data.placeId == resource.data.placeId
+          && request.resource.data.stamps == resource.data.stamps
+          && request.resource.data.claimed == resource.data.claimed
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(["claimRequested", "claimRequestedAt", "updatedAt"])
+        );
+
+      allow delete: if isAdmin()
+        || (verifiedEmail() && isPlaceOwner(resource.data.placeId));
+    }
+
+    // stamp_requests/{requestId}: Owner-tap approval flow.
+    match /stamp_requests/{requestId} {
+      allow read: if signedIn()
+        && (
+          isAdmin()
+          || resource.data.customerUid == request.auth.uid
+          || isPlaceOwner(resource.data.placeId)
+        );
+
+      // Customers create only their own pending requests.
+      allow create: if verifiedEmail()
+        && request.resource.data.customerUid == request.auth.uid
+        && request.resource.data.placeId is string
+        && request.resource.data.status == "pending";
+
+      // Owner approves/rejects; a customer may cancel their own request
+      // without touching any other field.
+      allow update: if isAdmin()
+        || (verifiedEmail() && isPlaceOwner(resource.data.placeId))
+        || (
+          verifiedEmail()
+          && resource.data.customerUid == request.auth.uid
+          && request.resource.data.customerUid == request.auth.uid
+          && request.resource.data.status == "cancelled"
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(["status", "updatedAt"])
+        );
+
+      allow delete: if isAdmin()
+        || (verifiedEmail() && isPlaceOwner(resource.data.placeId));
+    }
+  }
+}
+

@@ -1,0 +1,38 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "headers": [
+      {
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=3600"
+          }
+        ],
+        "source": "**/*.@(js|css)"
+      }
+    ],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "firestore.rules",
+      "storage.rules",
+      "AI_API_SETUP.md",
+      "DEEP_FIX_CHANGELOG.md",
+      "FIX_NOTES.md"
+    ],
+    "public": "dist",
+    "rewrites": [
+      {
+        "destination": "/index.html",
+        "source": "**"
+      }
+    ]
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}
