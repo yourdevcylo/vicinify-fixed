@@ -54,16 +54,16 @@ window.DashboardPage = (() => {
     function getRequestMeta(requestType) {
         const key = String(requestType || "booking").toLowerCase();
         const map = {
-            booking: { icon: "📅", title: "General Booking", fulfillLabel: "Mark as Fulfilled", confirmLabel: "Confirm Completed" },
-            table: { icon: "🍽️", title: "Table Reservation", fulfillLabel: "Mark Dining Completed", confirmLabel: "Confirm Completed" },
-            table_reservation: { icon: "🍽️", title: "Table Reservation", fulfillLabel: "Mark Dining Completed", confirmLabel: "Confirm Completed" },
-            food: { icon: "🍱", title: "Food Reservation", fulfillLabel: "Mark Food Prepared", confirmLabel: "Confirm Received" },
-            food_reservation: { icon: "🍱", title: "Food Reservation", fulfillLabel: "Mark Food Prepared", confirmLabel: "Confirm Received" },
-            pickup: { icon: "🛍️", title: "Pickup Order", fulfillLabel: "Mark Ready for Pickup", confirmLabel: "Confirm Picked Up" },
-            pickup_order: { icon: "🛍️", title: "Pickup Pre-order", fulfillLabel: "Mark Ready for Pickup", confirmLabel: "Confirm Picked Up" },
-            advance_order: { icon: "🗓️", title: "Advance Order", fulfillLabel: "Mark Order Completed", confirmLabel: "Confirm Received" },
-            delivery: { icon: "🛵", title: "Delivery Order", fulfillLabel: "Mark Delivered", confirmLabel: "Confirm Received" },
-            delivery_order: { icon: "🛵", title: "Delivery Order", fulfillLabel: "Mark Delivered", confirmLabel: "Confirm Received" }
+            booking: { icon: "calendar-days", title: "General Booking", fulfillLabel: "Mark as Fulfilled", confirmLabel: "Confirm Completed" },
+            table: { icon: "utensils", title: "Table Reservation", fulfillLabel: "Mark Dining Completed", confirmLabel: "Confirm Completed" },
+            table_reservation: { icon: "utensils", title: "Table Reservation", fulfillLabel: "Mark Dining Completed", confirmLabel: "Confirm Completed" },
+            food: { icon: "package", title: "Food Reservation", fulfillLabel: "Mark Food Prepared", confirmLabel: "Confirm Received" },
+            food_reservation: { icon: "package", title: "Food Reservation", fulfillLabel: "Mark Food Prepared", confirmLabel: "Confirm Received" },
+            pickup: { icon: "shopping-bag", title: "Pickup Order", fulfillLabel: "Mark Ready for Pickup", confirmLabel: "Confirm Picked Up" },
+            pickup_order: { icon: "shopping-bag", title: "Pickup Pre-order", fulfillLabel: "Mark Ready for Pickup", confirmLabel: "Confirm Picked Up" },
+            advance_order: { icon: "calendar-clock", title: "Advance Order", fulfillLabel: "Mark Order Completed", confirmLabel: "Confirm Received" },
+            delivery: { icon: "truck", title: "Delivery Order", fulfillLabel: "Mark Delivered", confirmLabel: "Confirm Received" },
+            delivery_order: { icon: "truck", title: "Delivery Order", fulfillLabel: "Mark Delivered", confirmLabel: "Confirm Received" }
         };
         return map[key] || map.booking;
     }
@@ -584,7 +584,7 @@ globalMessagesUnsub = [];
                         </div>
                         <span class="status-badge status-${status}">${status.toUpperCase()}</span>
                     </div>
-                    <p class="ticket-meta">${meta.icon} ${escapeHtml(meta.title)} • ${dateStr}</p>
+                    <p class="ticket-meta"><i data-lucide="${meta.icon}" aria-hidden="true"></i> <span>${escapeHtml(meta.title)} · ${dateStr}</span></p>
                     <details class="ticket-request-details"><summary>Request details</summary><p class="ticket-details">${escapeHtml(d.details || "No additional details.")}</p></details>
                     ${
                         status === "pending" ? `

@@ -238,9 +238,14 @@ service cloud.firestore {
         );
 
       allow create: if verifiedEmail()
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.placeId is string
+        && favId == request.auth.uid + '_' + request.resource.data.placeId
+        && exists(/databases/$(database)/documents/places/$(request.resource.data.placeId))
+        && get(/databases/$(database)/documents/places/$(request.resource.data.placeId)).data.get('owner_uid', '') != request.auth.uid;
 
       allow update: if verifiedEmail()
+        && request.resource.data.placeId == resource.data.placeId
         && request.resource.data.userId == resource.data.userId
         && (isAdmin() || resource.data.userId == request.auth.uid);
       allow delete: if verifiedEmail() && (isAdmin() || resource.data.userId == request.auth.uid);

@@ -2142,9 +2142,9 @@ window.MapPage = (() => {
                     <div style="display: flex; gap: 10px; align-items: center;">
 
 
-                        <button id="favBtn_${p.id}" class="btn-fav ${isFavorited ? 'active' : ''}" aria-pressed="${isFavorited}" aria-label="${isFavorited ? 'Remove from favorites' : 'Save establishment'}" onclick="window.toggleFavorite('${p.id}', this)">
+                        ${!isOwnPlaceView ? `<button id="favBtn_${p.id}" class="btn-fav ${isFavorited ? 'active' : ''}" aria-pressed="${isFavorited}" aria-label="${isFavorited ? 'Remove from favorites' : 'Save establishment'}" onclick="window.toggleFavorite('${p.id}', this)">
                             <i data-lucide="heart" style="${isFavorited ? 'fill: currentColor;' : ''}"></i>
-                        </button>
+                        </button>` : ''}
                     </div>
                 </div>
                 <div class="placeCoverBrand">

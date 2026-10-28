@@ -150,3 +150,7 @@ html body.vicinify-ui #placeSukiSection .suki-place-actions { display:flex; flex
 html body.vicinify-ui #placeSukiSection .suki-req-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:10px 14px; background:var(--ui-success-bg); color:var(--ui-success-ink); border:1px solid var(--ui-success-line); border-radius:10px; font-size:12px; }
 html body.vicinify-ui #placeSukiSection .suki-req-btn svg { width:18px; height:18px; }
 @media(max-width:540px) { html body.vicinify-ui #placeSukiSection .suki-place-block { padding:14px; } html body.vicinify-ui #placeSukiSection .suki-place-actions>* { width:100%; } }
+
+html body.vicinify-ui #main-content #page-suki-studio.active .suki-studio-header { display:flex !important; position:sticky !important; top:0 !important; padding:12px 16px !important; min-height:64px; z-index:20; flex-shrink:0; }
+html body.vicinify-ui #page-suki-studio .suki-studio-header button[aria-label="Back to Business Hub"] { display:inline-flex !important; align-items:center; justify-content:center; gap:6px; min-width:70px; min-height:42px; padding:8px 10px !important; border:1px solid var(--ui-border) !important; border-radius:10px; color:var(--ui-ink) !important; background:var(--ui-soft) !important; font-size:12px; flex-shrink:0; }
+@media(max-width:540px) { html body.vicinify-ui #page-suki-studio .suki-studio-header h2 { font-size:13px !important; } html body.vicinify-ui #page-suki-studio .suki-studio-header h2>span { display:none; } }

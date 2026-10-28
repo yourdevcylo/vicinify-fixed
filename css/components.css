@@ -1184,3 +1184,21 @@ html body.vicinify-ui #main-content .bottom-nav .nav-badge { min-width:15px; hei
  html body.vicinify-ui #main-content .bottom-nav .nav-badge { right:2px; top:-3px; }
 }
 @media(prefers-reduced-motion:reduce) { html body.vicinify-ui #main-content .bottom-nav .nav-item { transition:none; } }
+/* Buzz empty state follows the same palette as the feed. */
+html body.vicinify-ui .buzz-empty-card { background:var(--ui-surface) !important; color:var(--ui-muted) !important; border:1px solid var(--ui-border) !important; box-shadow:none !important; border-radius:16px; }
+html body.vicinify-ui .buzz-empty-card>div:first-child { background:var(--ui-success-bg) !important; }
+html body.vicinify-ui .buzz-empty-card>div:first-child svg { color:var(--ui-success-ink) !important; }
+html body.vicinify-ui .buzz-empty-card>div:nth-child(2) { color:var(--ui-ink) !important; }
+html body.vicinify-ui .buzz-empty-card .buzzEmptyBtn { background:#237e72 !important; color:#fff !important; border:1px solid #237e72 !important; box-shadow:none !important; min-height:44px; }
+/* Discovery filters share the green application palette. */
+html body.vicinify-ui #main-content #page-map.active #mapFilterToggle { color:var(--ui-success-ink) !important; background:var(--ui-success-bg) !important; border:1px solid var(--ui-success-line) !important; box-shadow:none !important; }
+html body.vicinify-ui #main-content #page-map.active .map-smart-filter { color:var(--ui-ink) !important; background:var(--ui-surface) !important; border-color:var(--ui-border) !important; }
+html body.vicinify-ui #main-content #page-map.active .map-smart-filter.active,
+html body.vicinify-ui #main-content #page-map.active .map-smart-filter[aria-pressed="true"] { color:var(--ui-success-ink) !important; background:var(--ui-success-bg) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui #main-content #page-map.active :is(#mapFilterToggle,.map-smart-filter):focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:2px; }
+
+html body.vicinify-ui #page-add .miniIcon { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #page-add .miniIcon svg { color:var(--ui-success-ink) !important; }
+
+html body.vicinify-ui .order-ticket .ticket-meta { display:flex; align-items:flex-start; gap:7px; }
+html body.vicinify-ui .order-ticket .ticket-meta svg { width:15px; height:15px; flex:0 0 15px; margin-top:2px; color:var(--ui-success-ink); stroke-width:1.7; }

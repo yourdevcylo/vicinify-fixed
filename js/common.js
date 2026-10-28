@@ -202,6 +202,33 @@ window.LangManager = (() => {
         'Add post / photo':'Magdagdag ng post / larawan', 'Store Suki QR':'Suki QR ng Tindahan'
     });
 
+    Object.assign(phDictionary, {
+      'Settings':'Mga Setting','Business Hub':'Sentro ng Negosyo','My Activity':'Aking Aktibidad',
+      'Back':'Bumalik','Save':'I-save','Save changes':'I-save ang pagbabago','View page':'Tingnan ang pahina',
+      'Manage Listing':'Ayusin ang Impormasyon','Edit Establishment':'I-edit ang Tindahan',
+      'Customer Inbox':'Inbox ng mga Customer','Messages':'Mga Mensahe','Transactions':'Mga Transaksyon',
+      'Favorites':'Mga Paborito','Chat History':'Kasaysayan ng Chat','Suki Cards':'Mga Suki Card',
+      'Open conversation':'Buksan ang pag-uusap','Hide record':'Itago ang rekord','Request details':'Detalye ng request',
+      'No posts yet':'Wala pang mga post','Post Now':'Mag-post Ngayon','More filters':'Iba pang filter','Show less':'Ipakita ang mas kaunti',
+      'Open now':'Bukas ngayon','Verified':'Beripikado','Bookable':'Tumatanggap ng booking','Delivery':'Paghahatid','Fresh info':'Bagong impormasyon',
+      'View menu':'Tingnan ang menu','Opening hours':'Oras ng pagbubukas','Delivery options':'Mga paraan ng paghahatid','Book a table':'Magpareserba ng mesa',
+      'Quick questions':'Mga madalas itanong','Hide':'Itago','Automatic reply':'Awtomatikong sagot',
+      'Booking':'Reserbasyon','Order':'Order','Reserve a table or food':'Magpareserba ng mesa o pagkain',
+      'Pickup, delivery, or advance':'Pickup, paghahatid, o paunang order','Reserve seats or table':'Magpareserba ng upuan o mesa',
+      'Reserve food/item':'Magpareserba ng pagkain','Seating Preference':'Gustong Upuan','No preference':'Kahit saan',
+      'Window':'Malapit sa bintana','Quiet':'Tahimik','Outdoor':'Sa labas','Occasion':'Okasyon','None':'Wala',
+      'Food Items to Reserve *':'Mga pagkaing ipapareserba *','Order Details *':'Detalye ng order *',
+      'Fulfillment':'Paraan ng pagtanggap','Dine-in':'Kakain sa tindahan','Payment Method *':'Paraan ng pagbabayad *',
+      'Send Table Reservation':'Ipadala ang Reserbasyon','Send Food Reservation':'Ipadala ang Food Reservation',
+      'Send Pickup Pre-order':'Ipadala ang Pickup Order','Send Delivery Order':'Ipadala ang Delivery Order',
+      'Submit for Approval':'Ipadala para sa Pag-apruba','Scan store QR':'I-scan ang QR ng tindahan',
+      'Stamp request pending':'Naghihintay ng stamp approval','Cancel request':'Kanselahin ang request',
+      'Menu & Store Posts':'Menu at Mga Post ng Tindahan','Edit caption / photo':'I-edit ang caption / larawan',
+      'Delete':'Burahin','Share to Buzz':'Ibahagi sa Balita','Search distance':'Layo ng paghahanap',
+      'Write a message...':'Sumulat ng mensahe...','Write a comment...':'Sumulat ng komento...',
+      'Search places or ask Vici…':'Maghanap ng lugar o magtanong kay Vici…'
+    });
+
     function translateDOM(lang = localStorage.getItem('vicinify_lang') || 'en') {
         // Tag known leaf labels as well, retaining their English source for reversal.
         document.querySelectorAll('h2,h3,h4,label,button,span,p,small,summary').forEach(el => {
@@ -220,6 +247,24 @@ window.LangManager = (() => {
             el.placeholder = lang === 'ph' ? (phDictionary[key] || key) : key;
         });
 
+        // Translate direct control text without replacing its SVG/icon children.
+        document.querySelectorAll('button,label,summary,h2,h3,h4,option').forEach(el => {
+            if(el.hasAttribute('data-i18n')) return;
+            el.childNodes.forEach(node => {
+                if(node.nodeType !== 3) return;
+                const original=node.__viciEnglish || node.textContent.trim();
+                if(!Object.hasOwn(phDictionary,original)) return;
+                node.__viciEnglish=original;
+                const value=lang==='ph'?phDictionary[original]:original;
+                if(node.textContent.trim()!==value) node.textContent=' '+value+' ';
+            });
+        });
+        document.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el=>{
+            const key=el.dataset.i18nPlaceholder || el.placeholder;
+            if(!Object.hasOwn(phDictionary,key)) return;
+            el.dataset.i18nPlaceholder=key;
+            el.placeholder=lang==='ph'?phDictionary[key]:key;
+        });
         document.documentElement.lang = lang === "ph" ? "tl" : "en";
         document.body.dataset.lang = lang;
     }
@@ -238,6 +283,13 @@ window.LangManager = (() => {
         }
 
         translateDOM(currentLang);
+        let pending=false;
+        const observer=new MutationObserver(records=>{
+            if(pending || !records.some(r=>r.type==='childList' && r.addedNodes.length)) return;
+            pending=true;
+            setTimeout(()=>{ observer.disconnect(); translateDOM(); pending=false; observer.observe(document.body,{childList:true,subtree:true}); },50);
+        });
+        observer.observe(document.body,{childList:true,subtree:true});
     }
 
     function init() {
@@ -4799,6 +4851,10 @@ window.toggleFavorite = async function (placeId, btn) {
         } else {
             const placeSnap = await window.db.collection("places").doc(placeId).get();
 const placeData = placeSnap.exists ? placeSnap.data() : {};
+if (!placeSnap.exists || placeData.owner_uid === userId) {
+    window.showToast?.('You cannot favorite your own establishment.', 'info');
+    return;
+}
 
 await favRef.set({
     userId,

@@ -192,9 +192,9 @@ window.AddPage = (() => {
         // 🔥 MODERN REACT MAP PIN 🔥
         const addPinSvg = `
             <svg viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 50C20 50 5 31.5 5 19.5C5 10.94 11.72 4 20 4C28.28 4 35 10.94 35 19.5C35 31.5 20 50 20 50Z" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+                <path d="M20 50C20 50 5 31.5 5 19.5C5 10.94 11.72 4 20 4C28.28 4 35 10.94 35 19.5C35 31.5 20 50 20 50Z" fill="#237e72" stroke="#ffffff" stroke-width="4"/>
                 <circle cx="20" cy="19.5" r="7" fill="#ffffff"/>
-                <circle cx="20" cy="19.5" r="3.2" fill="#2563eb"/>
+                <circle cx="20" cy="19.5" r="3.2" fill="#237e72"/>
             </svg>
         `;
 
