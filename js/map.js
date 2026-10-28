@@ -1362,11 +1362,34 @@ window.MapPage = (() => {
             });
         }, 100); 
 
+        const customForm = document.getElementById('customRadiusForm');
+        const customChoice = document.getElementById('customRadiusChoice');
+        const customStatus = document.getElementById('customRadiusStatus');
+        const slider = document.getElementById('radiusSlider');
+        const sliderValue = document.getElementById('radiusSliderValue');
+        function showRadius(meters) {
+            const km = meters / 1000;
+            if(slider) { slider.value = String(km); slider.style.setProperty('--radius-fill', `${(km - 0.1) / 29.9 * 100}%`); }
+            if(sliderValue) sliderValue.textContent = `${km} km`;
+        }
+        showRadius(AppState.radius);
+        slider?.addEventListener('input', () => {
+            sliderValue.textContent = `${slider.value} km`;
+            slider.style.setProperty('--radius-fill', `${(Number(slider.value) - 0.1) / 29.9 * 100}%`);
+        });
+        slider?.addEventListener('change', () => {
+            customChoice.dataset.radius = String(Math.round(Number(slider.value) * 1000));
+            customChoice.click();
+        });
         // Click Event
         segContainer.addEventListener("click", (e) => {
             const btn = e.target.closest(".seg");
             if (!btn) return;
-            
+            const meters = Number(btn.dataset.radius);
+            if (!Number.isFinite(meters) || meters < 100 || meters > 30000) return;
+            showRadius(meters);
+            if(customStatus) customStatus.textContent = `Searching within ${meters / 1000} km`;
+            if(customForm) customForm.classList.toggle('is-active', btn === customChoice);
             btns.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             

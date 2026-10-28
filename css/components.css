@@ -273,7 +273,7 @@ html body.vicinify-ui #main-content #page-map.active .radius-segment-container .
  margin:0 !important; padding:6px 2px !important; font-size:10px !important; line-height:1.3 !important;
  border-radius:8px !important; text-align:center; transform:none !important;
 }
-@container radius-card (max-width:220px) {
+@container radius-card (max-width:300px) {
  html body.vicinify-ui #main-content #page-map.active .radius-segment-container { grid-template-columns:repeat(3,minmax(0,1fr)); }
  html body.vicinify-ui #main-content #page-map.active .radius-caption { grid-template-columns:minmax(0,1fr); gap:5px; }
  html body.vicinify-ui #main-content #page-map.active .radius-help { justify-content:flex-start; text-align:left; }
@@ -867,7 +867,7 @@ html body.vicinify-ui #main-content #page-map.active #listViewContainer {
  background:var(--ui-bg) !important; overflow-x:hidden !important; scroll-padding:20px;
 }
 html body.vicinify-ui #main-content #page-map #listViewContainer .place-list-card {
- width:100% !important; max-width:1120px !important; box-sizing:border-box; margin:0 auto 12px !important;
+ width:100% !important; max-width:none !important; box-sizing:border-box; margin:0 0 12px !important;
  padding:16px !important; display:grid !important; grid-template-columns:minmax(0,1fr); align-items:center;
  gap:14px !important; background:var(--ui-surface) !important; color:var(--ui-ink) !important;
  border:1px solid var(--ui-border) !important; border-radius:15px !important; box-shadow:0 2px 6px #143c2404 !important;
@@ -888,7 +888,7 @@ html body.vicinify-ui #page-map #listViewContainer .place-list-status.is-open { 
 html body.vicinify-ui #page-map #listViewContainer .place-list-status.is-busy { background:var(--ui-warning-bg) !important; color:var(--ui-warning-ink) !important; border-color:var(--ui-warning-line) !important; }
 html body.vicinify-ui #page-map #listViewContainer .place-list-status.is-closed { background:var(--ui-soft) !important; color:var(--ui-muted) !important; border-color:var(--ui-border) !important; }
 html body.vicinify-ui #page-map #listViewContainer .place-list-address { color:var(--ui-muted) !important; font-size:11px !important; line-height:1.6; white-space:normal !important; text-transform:none !important; letter-spacing:0 !important; margin-top:7px !important; overflow-wrap:anywhere; }
-html body.vicinify-ui #page-map #listViewContainer .place-list-actions { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)); width:min(100%,440px); justify-self:end; gap:8px !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-actions { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)); width:min(100%,440px); justify-self:start; gap:8px !important; }
 html body.vicinify-ui #page-map #listViewContainer .place-list-actions button { display:flex; align-items:center; justify-content:center; gap:6px; min-width:0 !important; min-height:40px; padding:9px 10px !important; border-radius:10px !important; background:var(--ui-surface) !important; border:1px solid var(--ui-border) !important; color:var(--ui-ink) !important; font-size:12px !important; font-weight:600; box-shadow:none !important; }
 html body.vicinify-ui #page-map #listViewContainer .place-list-actions [data-action="route"] { background:#237e72 !important; color:#fff !important; border-color:#237e72 !important; }
 html body.vicinify-ui #page-map #listViewContainer .place-list-actions button:focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:3px; }
@@ -904,3 +904,35 @@ html body.vicinify-ui #page-map #listViewContainer .place-list-actions button:fo
  html body.vicinify-ui #page-map #listViewContainer .place-list-actions { width:100%; }
  html body.vicinify-ui #page-map #listViewContainer .place-list-actions button { padding:8px 6px !important; font-size:11px !important; gap:5px; }
 }
+
+/* Use the app password toggle without Edge adding a second eye. */
+#loginPass::-ms-reveal, #loginPass::-ms-clear { display:none; }
+
+/* A short results list should not look like an empty full-height card. */
+html body.vicinify-ui #main-content #page-map.active .mapWrap:has(#listViewContainer[style*="display: block"]) { border:0 !important; border-radius:0 !important; }
+
+html body.vicinify-ui #page-map .custom-radius-form { width:100%; min-width:0; margin-top:10px; padding-top:10px; border-top:1px solid var(--ui-border); }
+html body.vicinify-ui #page-map .custom-radius-form label { display:flex; justify-content:space-between; gap:8px; font-size:11px; color:var(--ui-ink); margin-bottom:7px; }
+html body.vicinify-ui #page-map .custom-radius-form label small { font-size:10px; color:var(--ui-muted); font-weight:400; }
+html body.vicinify-ui #page-map .custom-radius-form>div { display:flex; align-items:center; gap:8px; }
+html body.vicinify-ui #page-map .custom-radius-form input { width:0; min-width:0; flex:1; min-height:36px; padding:7px 10px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-surface); color:var(--ui-ink); }
+html body.vicinify-ui #page-map .custom-radius-form span { color:var(--ui-muted); font-size:12px; }
+html body.vicinify-ui #page-map .custom-radius-form button { min-height:36px; padding:7px 14px; border:0; border-radius:9px; background:#237e72; color:white; font-weight:600; }
+html body.vicinify-ui #page-map .custom-radius-form output { display:block; color:var(--ui-success-ink); font-size:10px; margin-top:6px; }
+
+html body.vicinify-ui #main-content #page-map.active .radius-segment-container { flex-shrink:1 !important; }
+html body.vicinify-ui #main-content #page-map.active .radius-segment-container .seg { white-space:nowrap !important; }
+html body.vicinify-ui #main-content #page-map.active #customRadiusChoice { display:none !important; }
+
+/* Compact slider: one short track and one exact-distance row. */
+html body.vicinify-ui #page-map .custom-radius-form { margin:0; padding:0; border:0; }
+html body.vicinify-ui #page-map .custom-radius-form>label { margin:0 0 7px; font-size:11px; }
+html body.vicinify-ui #page-map .custom-radius-form>label strong { color:var(--ui-success-ink); font-size:12px; }
+html body.vicinify-ui #page-map .custom-radius-form .radius-slider { display:block; appearance:none; width:100%; min-height:0; height:5px; margin:8px 0; padding:0; border:0; border-radius:5px; background:linear-gradient(to right,#287e70 var(--radius-fill,0%),var(--ui-border) var(--radius-fill,0%)); cursor:pointer; }
+.radius-slider::-webkit-slider-thumb { appearance:none; width:15px; height:15px; border:2px solid white; border-radius:50%; background:#287e70; box-shadow:0 0 0 1px #287e70; }
+.radius-slider::-moz-range-thumb { width:12px; height:12px; border:2px solid white; border-radius:50%; background:#287e70; }
+html body.vicinify-ui #page-map .custom-radius-form .radius-scale { display:flex; justify-content:space-between; margin:0 0 8px; }
+html body.vicinify-ui #page-map .custom-radius-form .radius-scale span { font-size:9px; }
+html body.vicinify-ui #page-map .custom-radius-form :is(#customRadiusKm,button) { min-height:30px; height:30px; padding:5px 9px; font-size:11px; }
+html body.vicinify-ui #page-map #customRadiusStatus { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+html body.vicinify-ui #main-content #page-map.active .radius-wrapper:has(#radiusSlider) .radius-caption { display:none !important; }

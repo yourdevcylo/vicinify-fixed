@@ -968,6 +968,7 @@ function initLogin() {
 
     if (togglePassBtn && passInput && eyeIcon) {
         togglePassBtn.addEventListener("click", () => {
+            const eyeIcon = document.getElementById("eyeIcon");
             if (passInput.type === "password") {
                 passInput.type = "text";
                 eyeIcon.setAttribute("data-lucide", "eye-off");
@@ -977,6 +978,9 @@ function initLogin() {
                 eyeIcon.setAttribute("data-lucide", "eye");
                 togglePassBtn.style.color = "#94a3b8";
             }
+            const visible = passInput.type === "text";
+            togglePassBtn.setAttribute("aria-label", visible ? "Hide password" : "Show password");
+            togglePassBtn.setAttribute("aria-pressed", String(visible));
             window.debouncedIcons?.();
         });
     }
@@ -4898,7 +4902,7 @@ window.renderListView = function(filteredPlaces) {
             const place = listContainer._places.get(button?.dataset.placeId || card?.dataset.placeCard);
             event.stopPropagation();
             if (!place) return;
-            if (!button) { window.viewPlace(place.id); return; }
+            if (!button) { if (window.PlacePreview?.open) window.PlacePreview.open(place); else window.viewPlace(place.id); return; }
             if (button.dataset.action === "menu") window.PlacePreview?.open(place);
             if (button.dataset.action === "favorite") window.toggleFavorite(place.id, button);
             if (button.dataset.action === "chat") window.openChatModal(place.id, place.name || "Establishment");
