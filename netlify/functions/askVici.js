@@ -120,7 +120,7 @@ exports.handler = async (event) => {
         if ((event.body || '').length > 12000) return { statusCode: 413, headers, body: JSON.stringify({ error: "Request too large" }) };
         const body = JSON.parse(event.body || '{}');
         query = typeof body.query === 'string' ? body.query.trim() : '';
-        if (!query || query.length > 500) return { statusCode: 400, headers, body: JSON.stringify({ error: "Enter a question up to 500 characters" }) };
+        if (!query || query.length > 500 || query.split(/\s+/u).length > 100) return { statusCode: 400, headers, body: JSON.stringify({ error: "Enter a question up to 500 characters and 100 words" }) };
         history = (Array.isArray(body.history) ? body.history : []).slice(-6).filter(m => m && ['user','assistant'].includes(m.role) && typeof m.text === 'string').map(m => ({role:m.role,text:m.text.slice(0,500)}));
         await limit(user.uid, 'ai', 6);
         await limit(user.uid, 'ai_daily', 50, 86400000);

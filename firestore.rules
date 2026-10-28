@@ -17,6 +17,78 @@ service cloud.firestore {
         && request.auth.token.email_verified == true;
     }
 
+    function validName(value) {
+      return value is string && value.size() >= 2 && value.size() <= 80
+        && !value.matches("(?s).*[<>\\r\\n\\x00-\\x1f\\x7f].*")
+        && value.matches("^[^\\s\\p{Z}]+([\\s\\p{Z}]+[^\\s\\p{Z}]+){0,11}$");
+    }
+    function validPlaceName(value) {
+      return value is string && value.size() >= 3 && value.size() <= 120
+        && !value.matches("(?s).*[<>\\r\\n\\x00-\\x1f\\x7f].*")
+        && value.matches("^[^\\s\\p{Z}]+([\\s\\p{Z}]+[^\\s\\p{Z}]+){0,19}$");
+    }
+    function validPost(value) {
+      return value is string && value.trim().size() >= 3 && value.size() <= 500
+        && value.matches("(?s)^[\\s\\p{Z}]*[^\\s\\p{Z}]+([\\s\\p{Z}]+[^\\s\\p{Z}]+){0,99}[\\s\\p{Z}]*$");
+    }
+    function validChat(value) {
+      return value is string && value.trim().size() >= 1 && value.size() <= 2000
+        && value.matches("(?s)^[\\s\\p{Z}]*[^\\s\\p{Z}]+([\\s\\p{Z}]+[^\\s\\p{Z}]+){0,299}[\\s\\p{Z}]*$");
+    }
+    function validComment(value) {
+      return value is string && value.trim().size() >= 1 && value.size() <= 500
+        && value.matches("(?s)^[\\s\\p{Z}]*[^\\s\\p{Z}]+([\\s\\p{Z}]+[^\\s\\p{Z}]+){0,99}[\\s\\p{Z}]*$");
+    }
+    function validDescription(value) {
+      return value is string && value.size() <= 1000
+        && (value.trim().size() == 0 || value.matches("(?s)^[\\s\\p{Z}]*[^\\s\\p{Z}]+([\\s\\p{Z}]+[^\\s\\p{Z}]+){0,199}[\\s\\p{Z}]*$"));
+    }
+    function optionalText(data,key,maximum) {
+      return !(key in data) || data[key] == null || (data[key] is string && data[key].size() <= maximum);
+    }
+    function cooldownSeconds(scope) { return scope == 'chat' ? 2 : scope == 'comment' ? 5 : scope in ['place','report','claim'] ? 60 : 30; }
+    function rateGate(scope, targetId) {
+      let gate = getAfter(/databases/$(database)/documents/write_cooldowns/$(request.auth.uid + '_' + scope)).data;
+      return gate.at == request.time && gate.targetId == targetId;
+    }
+    match /write_cooldowns/{gateId} {
+      allow read: if false;
+      allow create, update: if verifiedEmail()
+        && request.resource.data.keys().hasOnly(['uid','scope','targetId','at'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.scope in ['chat','buzz','menu','comment','place','report','claim']
+        && gateId == request.auth.uid + '_' + request.resource.data.scope
+        && request.resource.data.targetId is string
+        && request.resource.data.targetId.matches('^[A-Za-z0-9_-]{1,180}$')
+        && request.resource.data.at == request.time
+        && (resource == null || request.time >= resource.data.at + duration.value(cooldownSeconds(request.resource.data.scope), 's'));
+      allow delete: if false;
+    }
+
+    function messageGate(targetId, isText) {
+      let path = /databases/$(database)/documents/message_limits/$(request.auth.uid);
+      let gate = getAfter(path).data;
+      return gate.at == request.time && gate.targetId == targetId
+        && (!isText || !exists(path) || request.time >= get(path).data.at + duration.value(2,'s'));
+    }
+    match /message_limits/{userId} {
+      allow get: if signedIn() && userId == request.auth.uid;
+      allow list, delete: if false;
+      allow create, update: if verifiedEmail() && userId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid','targetId','at','windowStartedAt','count'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.at == request.time
+        && request.resource.data.targetId is string
+        && request.resource.data.targetId.matches('^[A-Za-z0-9_-]{1,180}$')
+        && request.resource.data.count is int && request.resource.data.count >= 1 && request.resource.data.count <= 30
+        && ((resource == null && request.resource.data.count == 1 && request.resource.data.windowStartedAt == request.time)
+          || (resource != null && request.resource.data.windowStartedAt == resource.data.windowStartedAt
+            && request.time < resource.data.windowStartedAt + duration.value(60,'s')
+            && request.resource.data.count == resource.data.count + 1)
+          || (resource != null && request.time >= resource.data.windowStartedAt + duration.value(60,'s')
+            && request.resource.data.count == 1 && request.resource.data.windowStartedAt == request.time));
+    }
+
     function isDeveloper() {
       return signedIn()
         && request.auth.uid == "Z45NZhQTgsTUX79WJ5ksCH8N3c02";
@@ -52,6 +124,8 @@ service cloud.firestore {
 
       allow create: if signedIn()
         && request.auth.uid == userId
+        && request.resource.data.uid == userId
+        && validName(request.resource.data.fullName)
         && request.resource.data.role == "user";
 
       allow update: if (
@@ -63,6 +137,7 @@ service cloud.firestore {
             && request.resource.data.uid == resource.data.uid
           )
         )
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['fullName']) || validName(request.resource.data.fullName))
         // Permanent admin can never be demoted once it holds role "admin".
         && !(
           isPermanentAdminId(userId)
@@ -83,8 +158,13 @@ service cloud.firestore {
       allow read: if signedIn();
       allow create, update: if signedIn() && request.auth.uid == userId
         && request.resource.data.keys().hasOnly(["fullName"])
-        && request.resource.data.fullName is string && request.resource.data.fullName.size() <= 120;
+        && validName(request.resource.data.fullName);
       allow delete: if signedIn() && request.auth.uid == userId;
+    }
+
+    // Administrative ownership contact data must not live in public place documents.
+    match /private_places/{placeId} {
+      allow read, write: if isAdmin();
     }
 
     match /places/{placeId} {
@@ -92,6 +172,8 @@ service cloud.firestore {
         || (signedIn() && (resource.data.owner_uid == request.auth.uid || resource.data.addedBy == request.auth.uid));
 
       allow create: if verifiedEmail()
+        && placeId.matches('^[A-Za-z0-9_-]{1,180}$')
+        && rateGate('place',placeId) && request.resource.data.createdAt == request.time
         && request.resource.data.addedBy == request.auth.uid
         && request.resource.data.owner_uid == null
         && request.resource.data.get("avgRating", 0) == 0
@@ -102,11 +184,9 @@ service cloud.firestore {
           && request.resource.data.get("is_featured", false) == false
           && request.resource.data.get("claimStatus", "unclaimed") in ["unclaimed", "pending"]))
         // Basic input sanity (client also enforces maxlength).
-        && request.resource.data.name is string
-        && request.resource.data.name.size() >= 3
-        && request.resource.data.name.size() <= 120
-        && (!("description" in request.resource.data)
-            || request.resource.data.description.size() <= 1000)
+        && validPlaceName(request.resource.data.name)
+        && validDescription(request.resource.data.get('description',''))
+        && validDescription(request.resource.data.get('desc',''))
         && (
           !("suggestedBy" in request.resource.data)
           || request.resource.data.suggestedBy == request.auth.uid
@@ -118,15 +198,21 @@ service cloud.firestore {
           || (isAdmin() && request.resource.data.approval_status == "approved")
         );
 
-      allow update: if isAdmin()
+      allow update: if (isAdmin()
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['name']) || validPlaceName(request.resource.data.name))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['description']) || validDescription(request.resource.data.description))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['desc']) || validDescription(request.resource.data.desc)))
         || (
           // Owner edits their place, but may NOT transfer ownership,
           // change who added it, approve their own place, or touch
           // verification/trust fields (self-verification hole closed).
           verifiedEmail()
           && isPlaceOwner(placeId)
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['description']) || validDescription(request.resource.data.description))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['desc']) || validDescription(request.resource.data.desc))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['name']) || validPlaceName(request.resource.data.name))
           && !request.resource.data.diff(resource.data).affectedKeys()
-               .hasAny(["owner_uid", "addedBy", "approval_status",
+               .hasAny(["owner_uid", "owner_email", "addedBy", "approval_status",
                         "is_verified", "claimStatus",
                         "is_premium", "is_featured", "avgRating", "reviewCount", "ratingSum"])
         );
@@ -144,11 +230,10 @@ service cloud.firestore {
       allow create: if verifiedEmail()
         && request.resource.data.userId == request.auth.uid;
 
-      allow update, delete: if verifiedEmail()
-        && (
-          isAdmin()
-          || resource.data.userId == request.auth.uid
-        );
+      allow update: if verifiedEmail()
+        && request.resource.data.userId == resource.data.userId
+        && (isAdmin() || resource.data.userId == request.auth.uid);
+      allow delete: if verifiedEmail() && (isAdmin() || resource.data.userId == request.auth.uid);
     }
 
     match /reviews/{reviewId} {
@@ -165,21 +250,18 @@ service cloud.firestore {
           || isPlaceOwner(resource.data.placeId)
         );
 
-      // Create: bookings always start as "pending" — a customer may not
-      // pre-accept their own booking or forge the initial state.
-      allow create: if verifiedEmail()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.placeId is string
-        && request.resource.data.status == "pending"
-        && request.resource.data.transactionId == bookingId
-        && request.resource.data.get("refundPercent", 50) == get(/databases/$(database)/documents/places/$(request.resource.data.placeId)).data.get("refund_percent", 50)
-        && !request.resource.data.keys().hasAny(["paymentProofUrl", "paymentProofPath", "customer_confirmed", "customerConfirmedAt"]);
+      // Server endpoint validates schedule, identity, place and initial payment state atomically.
+      allow create: if false;
 
       allow update: if verifiedEmail() && (
         (resource.data.userId == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["customerReadAt", "customerReadBy", "customerRead", "readByCustomer", "readByCustomerAt"]))
         || ((isPlaceOwner(resource.data.placeId) || isAdmin())
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["ownerReadAt", "ownerReadBy", "ownerRead", "readByOwner", "readByOwnerAt"]))
+        || ((isPlaceOwner(resource.data.placeId) || isAdmin())
+          && resource.data.status in ["received", "fulfilled", "delivered", "cancelled", "rejected"]
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["deletedBy"])
+          && request.resource.data.deletedBy == resource.data.get("deletedBy", []).removeAll([request.auth.uid]).concat([request.auth.uid]))
       );
       allow delete: if false;
     }
@@ -198,17 +280,40 @@ service cloud.firestore {
       }
       allow read: if participant();
       allow create: if verifiedEmail()
+        && msgId.matches('^[A-Za-z0-9_-]{1,180}$')
+        && request.resource.data.placeId is string
+        && request.resource.data.userId is string
+        && request.resource.data.createdAt == request.time
+        && messageGate(msgId,request.resource.data.type == "text")
+        && optionalText(request.resource.data,'placeName',120)
+        && optionalText(request.resource.data,'userName',120)
+        && optionalText(request.resource.data,'senderName',120)
+        && optionalText(request.resource.data,'notes',1000)
+        && optionalText(request.resource.data,'orderDetails',1000)
+        && optionalText(request.resource.data,'address',1000)
+        && optionalText(request.resource.data,'paymentReference',80)
+        && optionalText(request.resource.data,'paymentMethod',80)
+        && (request.resource.data.get('reply',null) == null || validChat(request.resource.data.reply))
+        && (request.resource.data.get('feedback','') == '' || validChat(request.resource.data.feedback))
+        && (request.resource.data.get('text','') == '' || validChat(request.resource.data.text))
+        && (request.resource.data.type != "text" || (validChat(request.resource.data.text)
+          && request.resource.data.get("status", "sent") == "sent"
+          && request.resource.data.get('reply',null) == null
+          && request.resource.data.get('deliveredAt',null) == null
+          && request.resource.data.get('seenAt',null) == null
+          && request.resource.data.keys().hasOnly(['placeId','placeName','userId','userName','type','text','status','deliveredAt','seenAt','senderUid','senderRole','senderName','createdBy','createdAt','reply'])))
         && request.resource.data.senderUid == request.auth.uid && request.resource.data.createdBy == request.auth.uid
         && ((request.resource.data.userId == request.auth.uid && request.resource.data.senderRole == "customer"
-              && request.resource.data.type in ["text","booking_card","system_update","requirement_response","feedback_request","feedback_response"])
+              && get(/databases/$(database)/documents/places/$(request.resource.data.placeId)).data.approval_status == "approved"
+              && get(/databases/$(database)/documents/places/$(request.resource.data.placeId)).data.owner_uid != request.auth.uid
+              && request.resource.data.type in ["text","system_update","requirement_response","feedback_request","feedback_response"])
           || ((isPlaceOwner(request.resource.data.placeId) || isAdmin()) && request.resource.data.senderRole == "owner"
-              && request.resource.data.type in ["text","system_update","requirement_request","completion_request"]))
-        && (request.resource.data.type != "booking_card" || (
-          request.resource.data.bookingStatus == "pending" && request.resource.data.status == "pending"
-          && getAfter(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)).data.status == "pending"
-          && getAfter(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)).data.userId == request.auth.uid
-          && getAfter(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)).data.placeId == request.resource.data.placeId));
+              && request.resource.data.type in ["text","system_update","requirement_request","completion_request"]));
       allow update: if verifiedEmail() && participant()
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['reply','feedback'])
+          || (messageGate(msgId,true)
+            && (request.resource.data.get('reply',null) == null || validChat(request.resource.data.reply))
+            && (request.resource.data.get('feedback','') == '' || validChat(request.resource.data.feedback))))
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["userId","placeId","senderUid","senderRole","createdBy","createdAt","type","bookingId","transactionId"])
         && (
         (resource.data.type == "booking_card" && cardMirror())
@@ -221,8 +326,13 @@ service cloud.firestore {
         || (resource.data.type == "text" && resource.data.senderUid != request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status","deliveredAt","seenAt"])
           && request.resource.data.status in ["delivered","seen"])
-        || ((isPlaceOwner(resource.data.placeId) || isAdmin())
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["requirementStatus","paymentStatus","confirmedAt","transactionStatus","updatedAt","reply","replyAt","repliedAt"]))
+        || (resource.data.type != "booking_card"
+          && (isPlaceOwner(resource.data.placeId) || isAdmin())
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["requirementStatus","confirmedAt","updatedAt","reply","replyAt","repliedAt"]))
+        || (resource.data.type == "completion_request"
+          && (isPlaceOwner(resource.data.placeId) || isAdmin())
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["transactionStatus","updatedAt"])
+          && request.resource.data.transactionStatus == get(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data.status)
         || (resource.data.userId == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["requirementStatus","submittedAt","updatedAt"])
           && request.resource.data.requirementStatus == "submitted")
@@ -253,17 +363,33 @@ service cloud.firestore {
           && next.size() == old.size()+1 && next.size() <= 100 && next == old.concat([added])
           && added.authorUid == request.auth.uid
           && added.keys().hasOnly(["text","authorName","authorUid","createdAt"])
-          && added.text is string && added.text.size() > 0 && added.text.size() <= 2000;
+          && validComment(added.text) && optionalText(added,'authorName',80)
+          && added.createdAt is int && added.createdAt >= 0 && rateGate('comment',postId);
       }
       allow read: if true;
-      allow create: if verifiedEmail() && request.resource.data.authorUid == request.auth.uid
+      allow create: if verifiedEmail() && postId.matches('^[A-Za-z0-9_-]{1,180}$')
+        && request.resource.data.authorUid == request.auth.uid
+        && !request.resource.data.keys().hasAny(['authorEmail'])
+        && optionalText(request.resource.data,'authorName',80)
+        && optionalText(request.resource.data,'barangay',120)
+        && request.resource.data.type in ['general','promo','event','tip','announcement']
+        && optionalText(request.resource.data,'establishmentName',120)
+        && optionalText(request.resource.data,'mediaUrl',2048)
+        && validPost(request.resource.data.body) && rateGate('buzz',postId)
+        && request.resource.data.createdAt == request.time
         && request.resource.data.get("likes",0) == 0 && request.resource.data.get("likedBy",[]) == []
         && request.resource.data.get("comments",[]) == []
         && (!request.resource.data.get("isBusinessPost",false)
           || isPlaceOwner(request.resource.data.get("sourcePlaceId",request.resource.data.get("establishmentId",""))) || isAdmin());
-      allow update: if verifiedEmail() && (isAdmin() || reaction() || comment()
+      allow update: if verifiedEmail()
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['body']) || validPost(request.resource.data.body))
+        && (isAdmin() || reaction() || comment()
         || (resource.data.authorUid == request.auth.uid
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["body","mediaUrl","updatedAt"])));
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["body","mediaUrl","updatedAt","type","barangay","establishmentName","authorName"])
+          && validPost(request.resource.data.body) && rateGate('buzz',postId)
+          && optionalText(request.resource.data,'authorName',80)
+          && optionalText(request.resource.data,'establishmentName',120)
+          && optionalText(request.resource.data,'mediaUrl',2048)));
       allow delete: if isAdmin() || (verifiedEmail() && resource.data.authorUid == request.auth.uid);
     }
 
@@ -271,16 +397,16 @@ service cloud.firestore {
       allow read: if true;
 
       allow create: if verifiedEmail()
-        && (
-          isAdmin()
-          || isPlaceOwner(request.resource.data.placeId)
-        );
+        && request.resource.data.createdAt == request.time && rateGate('menu',postId)
+        && (validPost(request.resource.data.body) || (request.resource.data.body == '' && request.resource.data.mediaUrl is string && request.resource.data.mediaUrl.size() > 0))
+        && (isAdmin() || isPlaceOwner(request.resource.data.placeId));
 
-      allow update, delete: if verifiedEmail()
-        && (
-          isAdmin()
-          || isPlaceOwner(resource.data.placeId)
-        );
+      allow update: if verifiedEmail()
+        && request.resource.data.placeId == resource.data.placeId
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['body'])
+          || ((validPost(request.resource.data.body) || (request.resource.data.body == '' && request.resource.data.mediaUrl is string && request.resource.data.mediaUrl.size() > 0)) && rateGate('menu',postId)))
+        && (isAdmin() || isPlaceOwner(resource.data.placeId));
+      allow delete: if verifiedEmail() && (isAdmin() || isPlaceOwner(resource.data.placeId));
     }
 
     match /admin_audit/{entryId} {
@@ -294,11 +420,13 @@ service cloud.firestore {
     // --- ADDED: these collections had NO rules (features were broken) ---
 
     match /business_claims/{claimId} {
-      allow read: if isAdmin()
-        || (signedIn() && resource.data.userId == request.auth.uid);
+      allow get: if isAdmin() || (signedIn() && claimId.matches('^' + request.auth.uid + '_[A-Za-z0-9_-]+$'));
+      allow list: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
 
       allow create: if verifiedEmail()
         && request.resource.data.userId == request.auth.uid
+        && claimId == request.auth.uid + '_' + request.resource.data.placeId
+        && rateGate('claim',claimId) && request.resource.data.createdAt == request.time
         && request.resource.data.get("status", "pending") == "pending"
         && !request.resource.data.keys().hasAny(["reviewedBy", "reviewedAt", "approvedBy"]);
 
@@ -320,7 +448,9 @@ service cloud.firestore {
         || (signedIn() && resource.data.userId == request.auth.uid);
 
       allow create: if verifiedEmail()
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == request.auth.uid
+        && rateGate('report',reportId) && request.resource.data.createdAt == request.time
+        && validPost(request.resource.data.details);
 
       allow update, delete: if isAdmin();
     }
@@ -365,7 +495,9 @@ service cloud.firestore {
       // claimed state). A customer may only flip their own claim-request
       // fields — never stamps, claimed, placeId or customerUid.
       allow update: if isAdmin()
-        || (verifiedEmail() && isPlaceOwner(resource.data.placeId))
+        || (verifiedEmail() && isPlaceOwner(resource.data.placeId)
+          && request.resource.data.placeId == resource.data.placeId
+          && request.resource.data.customerUid == resource.data.customerUid)
         || (
           verifiedEmail()
           && resource.data.customerUid == request.auth.uid
@@ -399,7 +531,9 @@ service cloud.firestore {
       // Owner approves/rejects; a customer may cancel their own request
       // without touching any other field.
       allow update: if isAdmin()
-        || (verifiedEmail() && isPlaceOwner(resource.data.placeId))
+        || (verifiedEmail() && isPlaceOwner(resource.data.placeId)
+          && request.resource.data.placeId == resource.data.placeId
+          && request.resource.data.customerUid == resource.data.customerUid)
         || (
           verifiedEmail()
           && resource.data.customerUid == request.auth.uid

@@ -186,3 +186,14 @@ test('navigation highlights only the current page, clearing stale selections',()
   assert.equal(d.querySelector('.bottom-nav .nav-item.active').dataset.goto,'page-add');
  } finally {dom.window.close();}
 });
+
+test('returning from establishment preserves the selected List or Map discovery view',()=>{
+ const dom=new JSDOM('<main id="page-map" class="page"></main><main id="page-place" class="page"></main>',{runScripts:'outside-only'}),w=dom.window;
+ try {
+  w.AppState={activePage:'page-map'};w.applyViciPageScrollState=()=>{};w.resetViciPageScroll=()=>{};w.requestAnimationFrame=()=>{};w.setTimeout=()=>{};
+  const page=w.document.getElementById('page-map');
+  w.toggleView=view=>{page.dataset.view=view;};
+  const code=read('js/common.js');w.eval(code.slice(code.indexOf('function showPage(pageId)'),code.indexOf('function initNav()')));
+  for(const view of ['list','map']) {page.dataset.view=view;w.showPage('page-place');w.showPage('page-map');assert.equal(page.dataset.view,view);assert.equal(w.AppState.activePage,'page-map');}
+ } finally {dom.window.close();}
+});

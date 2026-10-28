@@ -10,7 +10,7 @@ window.AppShell = (() => {
         const role = profile?.role || 'user';
         document.getElementById('workspaceTitle').textContent = page === 'page-dashboard' ? (role === 'user' ? 'My Activity' : role === 'admin' ? 'Admin workspace' : 'Business Hub') : titles[page] || 'Vicinify';
         document.getElementById('accountName').textContent = name;
-        document.getElementById('accountRole').textContent = role === 'admin' ? 'Administrator' : role === 'business' ? 'Business owner' : 'Local explorer';
+        document.getElementById('accountRole').textContent = role === 'admin' ? 'Admin' : role === 'business' ? 'Business' : 'Standard';
         document.getElementById('accountInitials').textContent = name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
         document.querySelectorAll('.bottom-nav .nav-item').forEach(button => {
             const current = button.dataset.goto === page;

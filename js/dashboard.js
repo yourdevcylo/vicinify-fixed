@@ -42,7 +42,7 @@ window.DashboardPage = (() => {
         if (window.db) {
             try {
                 const snap = await window.db.collection("places").doc(placeId).get();
-                return snap.exists && canManagePlaceData({ id: snap.id, ...snap.data() });
+                return snap.exists && canManagePlaceData({ ...snap.data(), id: snap.id });
             } catch (error) {
                 console.warn("Permission place lookup failed, using dashboard cache.", error);
             }
@@ -290,10 +290,7 @@ window.DashboardPage = (() => {
     .limit(20)
     .get();
 
-            places = ownedSnap.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-}));
+            places = ownedSnap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
 
             // Admins also operate the places they personally added: the
             // Add page always creates owner_uid: null (unclaimed until an
@@ -307,7 +304,7 @@ window.DashboardPage = (() => {
                         .get();
                     const seenPlaceIds = new Set(places.map(p => p.id));
                     addedSnap.docs.forEach(doc => {
-                        if (!seenPlaceIds.has(doc.id)) places.push({ id: doc.id, ...doc.data() });
+                        if (!seenPlaceIds.has(doc.id)) places.push({ ...doc.data(), id: doc.id });
                     });
                 } catch (e) { /* hub still works with owned places alone */ }
             }
@@ -641,7 +638,7 @@ globalMessagesUnsub = [];
                         ` : `
                             <div class="biz-interact-actions ticket-actions">
                                 <button class="btn-deny" onclick="window.DashboardPage.deleteBooking('${d.id}')" style="background:#fef2f2; color:#ef4444; border-color:#fee2e2; width:100%; font-size: 13px; padding: 9px;">
-                                    <i data-lucide="trash-2" style="width:15px; height:15px;"></i> Delete Record
+                                    <i data-lucide="trash-2" style="width:15px; height:15px;"></i> Hide Record
                                 </button>
                             </div>
                         `
@@ -921,20 +918,20 @@ globalBookingsUnsub.push(bookingUnsub);
             const user = window.auth.currentUser;
             const snap = await window.db.collection("messages").where("placeId", "==", placeId).where("userId", "==", userId).limit(20).get();
             const batch = window.db.batch();
-            // 🔥 FIXED: Isasama na ang universal 'owner_deleted' badge 🔥
-            snap.forEach(doc => { batch.update(doc.ref, { deletedBy: firebase.firestore.FieldValue.arrayUnion(user.uid, "owner_deleted") }); });
+            // Hide only for this account; never hide another participant’s history.
+            snap.forEach(doc => { batch.update(doc.ref, { deletedBy: firebase.firestore.FieldValue.arrayUnion(user.uid) }); });
             await batch.commit();
         } catch (e) { alert("Error: " + e.message); }
     }
 
     async function deleteBooking(id) {
-        const ans = await window.vConfirm("Delete Request", "Delete this request record from your dashboard? (It will remain in the customer's history)", "Delete", true);
+        const ans = await window.vConfirm("Hide Record", "Hide this completed request from your dashboard? It remains in the customer history.", "Hide", true);
         if (!ans) return;
 
         try {
             const user = window.auth.currentUser;
-            // 🔥 FIXED: Isasama na ang universal 'owner_deleted' badge 🔥
-            await window.db.collection("bookings").doc(id).update({ deletedBy: firebase.firestore.FieldValue.arrayUnion(user.uid, "owner_deleted") });
+            // Hide only for this account; never hide another participant’s history.
+            await window.db.collection("bookings").doc(id).update({ deletedBy: firebase.firestore.FieldValue.arrayUnion(user.uid) });
         } catch (e) { alert("Error: " + e.message); }
     }
 
@@ -1024,9 +1021,13 @@ globalBookingsUnsub.push(bookingUnsub);
             let places = []; let totalPlaces = 0; let pendingApprovals = 0; let totalBusinessOwners = 0;
 
             placesSnap.forEach(doc => {
-                const data = doc.data(); places.push({ id: doc.id, ...data }); totalPlaces++;
+                const data = doc.data(); places.push({ ...data, id: doc.id }); totalPlaces++;
                 if (data.status === "pending" || data.approval_status === "pending") pendingApprovals++;
             });
+            await Promise.all(places.map(async place => {
+                const privateDoc = await window.db.collection('private_places').doc(place.id).get();
+                if (privateDoc.exists) place.owner_email = privateDoc.data().owner_email || '';
+            }));
             usersSnap.forEach(doc => { if (doc.data().role === "business") totalBusinessOwners++; });
 
             const totals = await window.ViciData.command("adminSummary", {});
@@ -1224,7 +1225,7 @@ globalBookingsUnsub.push(bookingUnsub);
         wrap.innerHTML = `<div class="muted" style="padding:20px; font-size:15px;">Fetching claims...</div>`;
         try {
             const snap = await window.db.collection("business_claims").orderBy("createdAt", "desc").limit(20).get();
-            let docs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            let docs = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
             if (!docs.length) {
                 wrap.innerHTML = `<div class="muted" style="padding:24px; font-size:15px;">No business claims yet.</div>`;
@@ -1257,9 +1258,10 @@ globalBookingsUnsub.push(bookingUnsub);
             const claimantSnap = await window.db.collection("users").doc(c.userId).get().catch(() => null);
             const claimantRole = claimantSnap && claimantSnap.exists ? claimantSnap.data().role : null;
             const batch = window.db.batch();
+            batch.set(window.db.collection('private_places').doc(c.placeId), {owner_email:c.userEmail || '',owner_uid:c.userId}, {merge:true});
             batch.update(window.db.collection("places").doc(c.placeId), {
                 owner_uid: c.userId,
-                owner_email: c.userEmail || "",
+                owner_email: firebase.firestore.FieldValue.delete(),
                 approval_status: "approved",
                 claimStatus: "verified",
                 is_verified: true
@@ -1292,7 +1294,7 @@ globalBookingsUnsub.push(bookingUnsub);
         wrap.innerHTML = `<div class="muted" style="padding:20px; font-size:15px;">Fetching reports...</div>`;
         try {
             const snap = await window.db.collection("place_reports").orderBy("createdAt", "desc").limit(20).get();
-            let docs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            let docs = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
             if (!docs.length) {
                 wrap.innerHTML = `<div class="muted" style="padding:24px; font-size:15px;">No reports yet.</div>`;
@@ -1365,7 +1367,7 @@ globalBookingsUnsub.push(bookingUnsub);
             let html = `<div style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Author</th><th>Barangay</th><th>Content</th><th>Type</th><th>Actions</th></tr></thead><tbody>`;
             snap.forEach(doc => {
                 const d = doc.data();
-                posts.push({ id: doc.id, ...d });
+                posts.push({ ...d, id: doc.id });
                 html += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('buzz_posts', '${doc.id}')">
                     <td style="font-weight:700;">${escapeHtml(d.authorName || 'User')}</td>
                     <td>${escapeHtml(d.barangay || 'All')}</td>
@@ -1395,7 +1397,7 @@ globalBookingsUnsub.push(bookingUnsub);
             snap.forEach(doc => {
                 const d = doc.data();
                 if ((d.deletedBy || []).includes("admin_deleted")) return;
-                bks.push({ id: doc.id, ...d });
+                bks.push({ ...d, id: doc.id });
                 const s = d.status || 'pending';
                 html += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('bookings', '${doc.id}')">
                     <td style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
@@ -1432,7 +1434,7 @@ globalBookingsUnsub.push(bookingUnsub);
             snap.forEach(doc => {
                 const d = doc.data();
                 if ((d.deletedBy || []).includes("admin_deleted")) return;
-                msgs.push({ id: doc.id, ...d });
+                msgs.push({ ...d, id: doc.id });
                 html += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('messages', '${doc.id}')">
                     <td style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
                     <td style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
@@ -1588,7 +1590,7 @@ async function updateBookingStatus(id, stat) {
                     "Cash on Delivery if allowed"
                 ].filter(Boolean)));
 
-                await window.db.collection("messages").add({
+                await window.ContentPolicy.create(window.db, 'messages', {
                     placeId: bookingData.placeId,
                     placeName: bookingData.placeName,
                     userId: bookingData.userId,
@@ -1601,7 +1603,7 @@ async function updateBookingStatus(id, stat) {
                     requirements: {
                         address: true,
                         location: true,
-                        payment: true,
+                        payment: false,
                         orderDetails: true
                     },
                     prefillAddress: bookingData.deliveryAddress || "",
@@ -1727,9 +1729,10 @@ async function updateBookingStatus(id, stat) {
             batch.update(userRef, userUpdate);
 
             const placeRef = window.db.collection("places").doc(placeId);
+            batch.set(window.db.collection('private_places').doc(placeId), {owner_email:targetEmail.toLowerCase().trim(),owner_uid:userUid}, {merge:true});
             batch.update(placeRef, { 
                 owner_uid: userUid,
-                owner_email: targetEmail.toLowerCase().trim(),
+                owner_email: firebase.firestore.FieldValue.delete(),
                 approval_status: "approved",
                 claimStatus: "verified",
                 is_verified: true,
@@ -1935,7 +1938,7 @@ if (description.length < 10) {
     };
 
     const ownerEmailInput = document.getElementById("dynEmail").value.trim();
-    updateData.owner_email = ownerEmailInput || null;
+    updateData.owner_email = firebase.firestore.FieldValue.delete();
 
     if (ownerEmailInput) {
         try {
@@ -1982,7 +1985,16 @@ if (description.length < 10) {
         }
 
         try {
-            await window.db.collection(type).doc(id).update(updateData);
+            if (type === 'places') {
+                const batch = window.db.batch();
+                batch.update(window.db.collection(type).doc(id), updateData);
+                batch.set(window.db.collection('private_places').doc(id), {
+                    owner_email:document.getElementById('dynEmail').value.trim() || null,
+                    owner_uid:updateData.owner_uid || adminData.places.find(p=>p.id===id)?.owner_uid || null
+                }, {merge:true});
+                await batch.commit();
+            } else if(type==='messages') await window.ContentPolicy.updateMessage(window.db,window.db.collection(type).doc(id),updateData);
+            else await window.db.collection(type).doc(id).update(updateData);
             alert("Record successfully updated!");
             closeSidePanel();
 
@@ -2021,7 +2033,7 @@ if (description.length < 10) {
             enabled: !!place.suki_enabled,
             template: place.suki_template || "custom",
             colorMode: place.suki_color_mode === "gradient" ? "gradient" : "solid",
-            color: place.suki_color || cat.color || "#f59e0b",
+            color: /^#[0-9a-f]{6}$/i.test(place.suki_color || '') ? place.suki_color : '#237e72',
             gradId: place.suki_gradient || "sunset",
             gradFrom: place.suki_gradient_from || "",
             gradTo: place.suki_gradient_to || "",
@@ -2040,7 +2052,7 @@ if (description.length < 10) {
         const tplWrap = document.getElementById("sukiTemplateChips");
         if (tplWrap) {
             tplWrap.innerHTML = Object.entries(D.TEMPLATES).map(([id, t]) =>
-                `<button type="button" class="suki-chip" data-suki-template="${id}">${escapeHtml(t.label)}</button>`).join("");
+                `<button type="button" class="suki-chip suki-template-option" data-suki-template="${id}"><span class="suki-template-swatch" style="background:${t.colorMode==='gradient'?`linear-gradient(135deg,${t.gradFrom},${t.gradTo})`:t.color}"><span></span><span></span><span></span><span></span></span><strong>${escapeHtml(t.label)}</strong></button>`).join("");
             tplWrap.querySelectorAll("[data-suki-template]").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const t = D.TEMPLATES[btn.dataset.sukiTemplate];
@@ -2128,6 +2140,7 @@ if (description.length < 10) {
         document.getElementById("sukiGradTo").value = d.gradTo || (preset ? preset.to : "#ef4444");
         document.querySelectorAll("#sukiPatternChips [data-suki-pattern]").forEach(b => b.classList.toggle("active", b.dataset.sukiPattern === d.pattern));
         document.querySelectorAll("#sukiIconChips [data-suki-icon]").forEach(b => b.classList.toggle("active", b.dataset.sukiIcon === d.icon));
+        document.querySelectorAll('#sukiStudioBody .suki-chip').forEach(button=>button.setAttribute('aria-pressed',String(button.classList.contains('active'))));
         document.getElementById("sukiStampCount").value = d.stampCount;
         document.getElementById("sukiReward").value = d.reward;
         window.debouncedIcons?.();
@@ -2507,7 +2520,7 @@ let updateData = {
                     return;
                 }
 
-               let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+               let docs = snap.docs.map(d => ({ ...d.data(), id: d.id }))
     .filter(d => {
         const del = d.deletedBy || [];
 
@@ -2648,7 +2661,18 @@ let updateData = {
         try { window.SettingsPage?.stopAllListeners?.(); } catch (e) {}
     }
 
+    function resetSession() {
+        stopAllListeners();
+        adminSnapCache = null; adminSnapAt = 0;
+        myPlacesCache = null; myPlacesCacheUid = null; myPlacesCacheAt = 0;
+        currentAdminPlaces = []; adminData = {places:[],buzz_posts:[],bookings:[],messages:[]};
+        bookingMap.clear(); messageMap.clear();
+        ['pendingList','myEstablishments','biz-panel-bookings','biz-panel-messages','biz-panel-suki','myBookingsList','myChatsList'].forEach(id=>{const el=document.getElementById(id);if(el)el.replaceChildren();});
+        const overlay = document.getElementById('adminSidePanelOverlay');
+        if(overlay) { overlay.classList.remove('show'); overlay.classList.add('hidden'); overlay.querySelector('.panel-body')?.replaceChildren(); }
+    }
     return {
+        resetSession,
         render,
         updateBookingStatus,
         deleteBooking,

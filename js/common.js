@@ -260,7 +260,7 @@ window.__nativeAlert = window.__nativeAlert || window.alert.bind(window);
 function vicinifyCleanMessage(msg) {
     const msgStr = String(msg ?? "");
     const low = msgStr.toLowerCase();
-    let clean = msgStr.replace('Firebase Error: Firebase: ', '').replace('Firebase: ', '').replace(/\(auth\/.*\)\./g, '').trim();
+    let clean = msgStr.replace('Firebase Error: Firebase: ', '').replace('Firebase: ', '').replace(/\(auth\/.*\)\./g, '').replace(/[🎉🎊🥳]/gu,'').trim();
     if (low.includes('email-already-in-use') || low.includes('already in use')) clean = "This email is already in use. Please try another one.";
     else if (low.includes('wrong-password') || low.includes('invalid-credential')) clean = "Invalid email or password. Please try again.";
     else if (low.includes('user-not-found')) clean = "No account registered with this email address.";
@@ -272,7 +272,7 @@ function vicinifyDetectType(msg, forced) {
     if (forced && ['success','error','warning','info'].includes(forced)) return forced;
     const low = String(msg ?? "").toLowerCase();
     if (/(error|failed|unable|invalid|denied|wrong|not allowed|does not exist|no longer exists|missing)/.test(low)) return 'error';
-    if (/(please (enter|select|fill|choose|log|check|add)|required|at least|must )/.test(low)) return 'warning';
+    if (/(please (enter|select|fill|choose|log|check|add)|required|at least|must |wait |limit reached|maximum|characters|words|verify|offline)/.test(low)) return 'warning';
     if (/(success|sent|saved|created|updated|removed|deleted|approved|confirmed|submitted|done|thank)/.test(low)) return 'success';
     return 'info';
 }
@@ -288,10 +288,13 @@ window.vicinifyToast = function(msg, type) {
     if (!stack) {
         stack = document.createElement('div');
         stack.id = 'v-toast-stack';
-        stack.setAttribute('aria-live', 'polite');
+        stack.setAttribute('role','region'); stack.setAttribute('aria-label','Notifications');
         document.body.appendChild(stack);
     }
-    while (stack.children.length >= 3) stack.firstChild.remove();
+    const toastKey=kind+':'+text;
+    const existing=[...stack.children].find(item=>item.dataset.toastKey===toastKey&&!item.classList.contains('out'));
+    if(existing)return existing;
+    while (stack.children.length >= 2) stack.firstChild.remove();
     const icons = {
         success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5L19.5 6.5"/></svg>',
         error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>',
@@ -301,7 +304,8 @@ window.vicinifyToast = function(msg, type) {
     const titles = { success: 'Success', error: 'Something went wrong', warning: 'Heads up', info: 'Info' };
     const el = document.createElement('div');
     el.className = 'v-toast v-toast-' + kind;
-    el.setAttribute('role', 'status');
+    el.dataset.toastKey=toastKey;
+    el.setAttribute('role',kind==='error'?'alert':'status');
     const icon = document.createElement('span'); icon.className = 'v-toast-icon'; icon.innerHTML = icons[kind] || icons.info;
     const body = document.createElement('span'); body.className = 'v-toast-body';
     const titleEl = document.createElement('b'); titleEl.className = 'v-toast-title'; titleEl.textContent = titles[kind] || 'Info';
@@ -314,11 +318,11 @@ window.vicinifyToast = function(msg, type) {
     stack.appendChild(el);
     const duration = Math.min(8500, Math.max(3600, 2200 + text.length * 45));
     bar.style.animationDuration = duration + 'ms';
-    let gone = false;
-    const dismiss = () => { if (gone) return; gone = true; el.classList.add('out'); setTimeout(() => el.remove(), 260); };
+    let gone = false, timer;
+    const dismiss = () => { if (gone) return; gone = true; clearTimeout(timer); el.classList.add('out'); setTimeout(() => el.remove(), 260); };
     close.onclick = dismiss;
     el.onclick = (e) => { if (e.target === el || e.target === body) dismiss(); };
-    setTimeout(dismiss, duration);
+    timer=setTimeout(dismiss, duration);
     return el;
 };
 window.showToast = function(msg, type) { return window.vicinifyToast(msg, type || 'info'); };
@@ -353,17 +357,18 @@ window.handleFirestoreError = function(err, fallbackMsg) {
 
 window.vConfirm = function(title, message, confirmBtnText = "Confirm", isDanger = false) {
     return new Promise((resolve) => {
-        const modalId = "vConfirmModal_" + Date.now();
+        const modalId = "vConfirm_" + Date.now() + '_' + (window.__vConfirmSequence = (window.__vConfirmSequence || 0) + 1);
+        const previousFocus=document.activeElement;
         window.lockBodyScroll(true);
         const btnClass = isDanger ? "danger" : "primary";
         const btnStyle = isDanger ? "background: #ef4444; color: white; border: none; padding: 12px 18px; border-radius: 10px; font-weight: 600; cursor: pointer;" : "background: #0f172a; color: white; border: none; padding: 12px 18px; border-radius: 10px; font-weight: 600; cursor: pointer;";
         
         const modalHtml = `
-            <div id="${modalId}" style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 99999;">
+            <div id="${modalId}" role="alertdialog" aria-modal="true" aria-labelledby="${modalId}_title" aria-describedby="${modalId}_body" style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 99999;">
                 <div class="modalBackdrop" style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
                 <div class="modalBox" style="position: relative; width: 90%; max-width: 400px; background: #fff; border-radius: 18px; padding: 24px; z-index: 1; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
-                    <h3 data-vconfirm-title style="margin-top: 0; font-size: 18px; color: #0f172a; margin-bottom: 12px;"></h3>
-                    <p data-vconfirm-message style="font-size: 14px; color: #475569; margin-bottom: 24px; line-height: 1.5; white-space: pre-line;"></p>
+                    <h3 id="${modalId}_title" data-vconfirm-title style="margin-top: 0; font-size: 18px; color: #0f172a; margin-bottom: 12px;"></h3>
+                    <p id="${modalId}_body" data-vconfirm-message style="font-size: 14px; color: #475569; margin-bottom: 24px; line-height: 1.5; white-space: pre-line;"></p>
                     <div style="display: flex; gap: 12px;">
                         <button id="cancelBtn_${modalId}" style="flex: 1; background: #f1f5f9; color: #475569; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer;">Cancel</button>
                         <button id="confirmBtn_${modalId}" style="flex: 1; ${btnStyle}"></button>
@@ -380,11 +385,26 @@ window.vConfirm = function(title, message, confirmBtnText = "Confirm", isDanger 
         document.getElementById(`confirmBtn_${modalId}`).textContent = String(confirmBtnText || "Confirm");
         document.getElementById(`confirmBtn_${modalId}`).dataset.danger = String(isDanger);
         
+        let finished=false;
         const cleanup = (result) => {
+            if(finished)return;finished=true;
+            document.removeEventListener('keydown',onKey,true);
             window.lockBodyScroll(false);
             modalEl.remove();
+            if(previousFocus?.isConnected)previousFocus.focus?.();
             resolve(result);
         };
+        const onKey=event=>{
+            if([...document.querySelectorAll('[id^="vConfirm_"][role="alertdialog"]')].at(-1)!==modalEl)return;
+            if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();cleanup(false);}
+            if(event.key==='Tab'){
+                const buttons=[...modalEl.querySelectorAll('button')];
+                if(event.shiftKey&&document.activeElement===buttons[0]){event.preventDefault();buttons.at(-1).focus();}
+                else if(!event.shiftKey&&document.activeElement===buttons.at(-1)){event.preventDefault();buttons[0].focus();}
+            }
+        };
+        document.addEventListener('keydown',onKey,true);
+        document.getElementById(`cancelBtn_${modalId}`).focus();
 
         document.getElementById(`cancelBtn_${modalId}`).onclick = () => cleanup(false);
         document.getElementById(`confirmBtn_${modalId}`).onclick = () => cleanup(true);
@@ -834,11 +854,10 @@ function showPage(pageId) {
     }
 
     if (pageId === "page-map") {
-        // Navigating to Map/Home always resets List View -> Map View (user report 2026-10-03).
-        // Covers: bottom-nav Map tap, back from Place, and re-entering Map from other pages.
-        // toggleView('map') itself calls MapPage.refresh after showing the map.
+        // Return to the user's selected discovery view, including after Place details.
+        const discoveryView = document.getElementById('page-map')?.dataset.view === 'list' ? 'list' : 'map';
         if (typeof window.toggleView === "function") {
-            try { window.toggleView("map"); } catch (e) { setTimeout(() => window.MapPage?.refresh?.(), 200); }
+            try { window.toggleView(discoveryView); } catch (e) { setTimeout(() => window.MapPage?.refresh?.(), 200); }
         } else {
             setTimeout(() => window.MapPage?.refresh?.(), 200);
         }
@@ -1153,6 +1172,8 @@ function initLogin() {
                 return window.alert("Please enter your email and password.");
             }
 
+            const nameProblem = !isLoginMode && window.ContentPolicy?.error('name',fullName);
+            if(nameProblem) return window.alert(nameProblem);
             if (!isLoginMode && fullName.length < 2) {
                 return window.alert("Please enter your full name.");
             }
@@ -1322,6 +1343,10 @@ window.auth.onAuthStateChanged(async (user) => {
         // previous user's conversation (privacy on shared devices).
         try { window.MapPage && window.MapPage.resetViciAI && window.MapPage.resetViciAI(); } catch (e) {}
 
+        window.DashboardPage?.resetSession?.();
+        window.closeChatModal?.();
+        document.getElementById('chatMessageList')?.replaceChildren();
+        currentChatDocsCache = [];
         window.ViciData?.stop();
         showPage("page-login");
     }
@@ -2362,7 +2387,7 @@ async function addSystemUpdate(placeId, placeName, userId, userName, text, stage
         if (transactionId) payload.transactionId = transactionId;
         if (bookingId) payload.bookingId = bookingId;
 
-        await window.db.collection("messages").add(payload);
+        await window.ContentPolicy.create(window.db, 'messages', payload);
     } catch (e) {
         console.warn("System update skipped:", e);
     }
@@ -2479,6 +2504,8 @@ const input = document.getElementById("chatMessageInput");
 const text = input.value.trim();
 
 if (!text) return;
+const contentError = window.ContentPolicy?.error('chat',text);
+if (contentError) return window.alert(contentError);
 
 // Clear right away (chat-style); the text is restored below if the send fails.
 input.value = "";
@@ -2494,7 +2521,7 @@ const senderName = isOwner
     : (AppState.userProfile?.fullName || user.displayName || "Customer");
 
 try {
-    await window.db.collection("messages").add({
+    await window.ContentPolicy.create(window.db, 'messages', {
         placeId,
         placeName,
         userId: customerUid,
@@ -2734,7 +2761,7 @@ window.updateBookingFromChat = async function(bookingId, messageId, status) {
                     "Cash on Delivery if allowed"
                 ].filter(Boolean)));
 
-                await window.db.collection("messages").add({
+                await window.ContentPolicy.create(window.db, 'messages', {
                     placeId: msgData.placeId,
                     placeName: msgData.placeName,
                     userId: msgData.userId,
@@ -2748,7 +2775,8 @@ window.updateBookingFromChat = async function(bookingId, messageId, status) {
                     requirements: {
                         address: true,
                         location: true,
-                        payment: true,
+                        // Payment proof has its own canonical, owner-reviewed booking action.
+                        payment: false,
                         orderDetails: true
                     },
                     prefillAddress: msgData.deliveryAddress || "",
@@ -2824,7 +2852,7 @@ try {
     if (existingFeedback.empty) {
         const placeName = await getPlaceDisplayName(placeId, "Establishment");
 
-        await window.db.collection("messages").add({
+        await window.ContentPolicy.create(window.db, 'messages', {
             placeId,
             placeName,
             userId: user.uid,
@@ -2962,7 +2990,7 @@ document.getElementById(`send_${modalId}`).onclick = async () => {
     const notes = document.getElementById(`reqNotes_${modalId}`).value.trim();
 
     try {
-        await window.db.collection("messages").add({
+        await window.ContentPolicy.create(window.db, 'messages', {
             placeId,
             placeName,
             userId: customerUid,
@@ -3225,7 +3253,7 @@ window.lockBodyScroll(true);
         }
 
         try {
-            await window.db.collection("messages").add(payload);
+            await window.ContentPolicy.create(window.db, 'messages', payload);
 
             await window.db.collection("messages").doc(requestMessageId).update({
                 requirementStatus: "submitted",
@@ -3522,7 +3550,7 @@ document.getElementById(`submit_${modalId}`).onclick = async () => {
         window.invalidatePlacesCache?.();
 
         if (feedbackMessageId && feedbackMessageId !== "null" && feedbackMessageId !== "undefined") {
-            await window.db.collection("messages").doc(feedbackMessageId).update({
+            await window.ContentPolicy.updateMessage(window.db,window.db.collection("messages").doc(feedbackMessageId), {
                 feedbackStatus: "feedback_submitted",
                 rating,
                 satisfaction,
@@ -3533,7 +3561,7 @@ document.getElementById(`submit_${modalId}`).onclick = async () => {
 
         const placeName = await getPlaceDisplayName(placeId, "Establishment");
 
-        await window.db.collection("messages").add({
+        await window.ContentPolicy.create(window.db, 'messages', {
             placeId,
             placeName,
             userId: user.uid,
@@ -3805,7 +3833,8 @@ currentChatUnsub = window.db.collection("messages")
     .onSnapshot(snap => queueChatRender(snap), err => {
         console.error("Chat listener error:", err);
         if (!window.handleFirestoreError(err)) {
-            listWrap.innerHTML = `<div class="muted" style="text-align:center; padding:20px; font-size:12px;">Could not load messages: ${escapeHtml(err.message || String(err))}</div>`;
+            const missingIndex = err.code === "failed-precondition" && /index/i.test(err.message || "");
+            listWrap.innerHTML = `<div class="chat-empty" role="alert"><h4>${missingIndex ? "Chat setup needed" : "Messages could not load"}</h4><p>${missingIndex ? "The database index for this conversation is missing or still building. Please contact the site administrator." : "Check your connection and try reopening this conversation."}</p></div>`;
         }
     });
 
@@ -3816,10 +3845,7 @@ const renderChatSnap = (snap) => {
             return;
         }
 
-        let docs = snap.docs.map(d => ({
-            id: d.id,
-            ...d.data()
-        })).filter(d => !(d.deletedBy || []).includes(user?.uid));
+        let docs = snap.docs.map(d => ({ ...d.data(), id: d.id })).filter(d => !(d.deletedBy || []).includes(user?.uid));
         currentChatDocsCache = docs;
 
         if (docs.length === 0) {
@@ -4157,32 +4183,11 @@ window.playNotifSound = function () {
 // 🔔 IN-APP NOTIFICATION POPUPS (top-right) + FLOATING ORDER WINDOW
 // ==========================================
 window.vicinifyNotify = function(title, body) {
-    let host = document.getElementById("v-notify-host");
-    if (!host) {
-        host = document.createElement("div");
-        host.id = "v-notify-host";
-        document.body.appendChild(host);
-    }
-    while (host.children.length >= 3) host.firstChild.remove();
-    const el = document.createElement("div");
-    el.className = "v-notify-card";
-    const icon = document.createElement("span");
-    icon.className = "v-notify-icon";
-    icon.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
-    const text = document.createElement("span");
-    text.className = "v-notify-text";
-    const t = document.createElement("b"); t.textContent = title || "Notification";
-    const b = document.createElement("span"); b.textContent = body || "";
-    text.append(t, b);
-    const close = document.createElement("button");
-    close.className = "v-notify-close";
-    close.type = "button";
-    close.setAttribute("aria-label", "Dismiss");
-    close.textContent = "×";
-    close.onclick = () => el.remove();
-    el.append(icon, text, close);
-    host.appendChild(el);
-    setTimeout(() => { try { el.remove(); } catch (e) {} }, 5000);
+    const heading=String(title || 'Notification'),message=String(body || '');
+    const notice=window.vicinifyToast(heading+'\n'+message,'info');
+    notice.querySelector('.v-toast-title').textContent=heading;
+    const text=notice.querySelector('.v-toast-text');text.textContent=message;text.hidden=!message;
+    return notice;
 };
 
 // Reverse geocoding via OpenStreetMap Nominatim (free, no API key,
@@ -4503,7 +4508,7 @@ window.GlobalNotifier = (() => {
                 }
 
                 // In-app popups on status transitions + floating order window.
-                const docsArr = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const docsArr = snap.docs.map(d => ({ ...d.data(), id: d.id }));
                 window._custBookingDocs = docsArr;
                 docsArr.forEach(d => {
                     const prev = prevBookingStatus.get(d.id);
@@ -4556,10 +4561,7 @@ window.GlobalNotifier = (() => {
         unsubs.push(custMsgUnsub);
 
         // Suki stamp popups: toast when a card's stamp count increases.
-        const sukiUnsub = window.db.collection("loyalty_cards")
-            .where("customerUid", "==", user.uid)
-            .limit(20)
-            .onSnapshot(snap => {
+        const sukiUnsub = window.ViciData.sukiFeed(user.uid, snap => {
                 const next = new Map();
                 snap.forEach(doc => {
                     const d = doc.data();
@@ -5022,6 +5024,8 @@ window.uploadImageFileToStorage = async function(file, folderName, options = {})
    ============================================================ */
 window.SukiDesign = (() => {
     const TEMPLATES = {
+        forest: {label:"Forest",colorMode:"gradient",color:"#216d5b",gradId:"forest",gradFrom:"#1b5649",gradTo:"#328d74",pattern:"waves"},
+        linen: {label:"Mint Linen",colorMode:"solid",color:"#edf5ef",gradId:"forest",gradFrom:"#edf5ef",gradTo:"#d8ebe0",pattern:"dots"},
         kraft:    { label: "Kraft",           colorMode: "solid",    color: "#a0714f", gradId: "sunset",   gradFrom: "#a0714f", gradTo: "#c49a6c", pattern: "beans" },
         minimal:  { label: "Minimal White",   colorMode: "solid",    color: "#f8fafc", gradId: "ocean",    gradFrom: "#ffffff", gradTo: "#e2e8f0", pattern: "dots" },
         midnight: { label: "Midnight",        colorMode: "gradient", color: "#0f172a", gradId: "midnight", gradFrom: "#0f172a", gradTo: "#475569", pattern: "lines" },
@@ -5030,6 +5034,7 @@ window.SukiDesign = (() => {
         custom:   { label: "Custom",          colorMode: "solid",    color: "#f59e0b", gradId: "sunset",   gradFrom: "#f97316", gradTo: "#ef4444", pattern: "none" }
     };
     const GRADIENTS = {
+        forest: {label:"Forest",from:"#1b5649",to:"#328d74"},
         sunset:   { label: "Sunset",   from: "#f97316", to: "#ef4444" },
         ocean:    { label: "Ocean",    from: "#0ea5e9", to: "#2563eb" },
         matcha:   { label: "Matcha",   from: "#84cc16", to: "#16a34a" },
@@ -5069,19 +5074,20 @@ window.Suki = (() => {
     function designOf(place) {
         const p = place || {};
         const cat = catDefault(p);
-        const gradPreset = D.GRADIENTS[p.suki_gradient] || null;
+        const gradPreset = Object.hasOwn(D.GRADIENTS,p.suki_gradient) ? D.GRADIENTS[p.suki_gradient] : null;
+        const hex = (value,fallback) => /^#[0-9a-f]{6}$/i.test(String(value||'')) ? String(value) : fallback;
         return {
             enabled: !!p.suki_enabled,
             stampCount: Math.max(2, Math.min(24, parseInt(p.suki_stamp_count, 10) || 8)),
             reward: String(p.suki_reward || "Free reward").slice(0, 120),
-            icon: String(p.suki_icon || cat.icon || "star"),
+            icon: /^[a-z0-9-]{1,40}$/.test(String(p.suki_icon || cat.icon || 'star')) ? String(p.suki_icon || cat.icon || 'star') : 'star',
             template: String(p.suki_template || "custom"),
             colorMode: p.suki_color_mode === "gradient" ? "gradient" : "solid",
-            color: String(p.suki_color || cat.color || "#f59e0b"),
+            color: hex(p.suki_color,'#237e72'),
             gradId: String(p.suki_gradient || "sunset"),
-            gradFrom: String(p.suki_gradient_from || (gradPreset && gradPreset.from) || "#f97316"),
-            gradTo: String(p.suki_gradient_to || (gradPreset && gradPreset.to) || "#ef4444"),
-            pattern: String(p.suki_pattern || "none"),
+            gradFrom: hex(p.suki_gradient_from,(gradPreset && gradPreset.from)||'#1b5649'),
+            gradTo: hex(p.suki_gradient_to,(gradPreset && gradPreset.to)||'#328d74'),
+            pattern: Object.hasOwn(D.PATTERNS,p.suki_pattern) ? p.suki_pattern : 'none',
             placeName: String(p.name || "Establishment")
         };
     }
@@ -5110,16 +5116,12 @@ window.Suki = (() => {
     function renderCard(place, card, opts) {
         opts = opts || {};
         const d = designOf(place);
-        const stamps = Math.max(0, parseInt(card && card.stamps, 10) || 0);
+        const stamps = Math.min(d.stampCount,Math.max(0, parseInt(card && card.stamps, 10) || 0));
         const full = stamps >= d.stampCount;
-        const baseForTone = full ? "#d4a017" : (d.colorMode === "gradient" ? d.gradFrom : d.color);
+        const baseForTone = d.colorMode === "gradient" ? d.gradFrom : d.color;
         const tone = textTone(baseForTone);
         const toneCls = tone === "#ffffff" ? "suki-on-dark" : "suki-on-light";
-        const bg = full
-            ? "linear-gradient(135deg,#7c5a00 0%,#d4a017 22%,#ffedb0 50%,#d4a017 78%,#7c5a00 100%)"
-            : (d.colorMode === "gradient"
-                ? `linear-gradient(135deg, ${d.gradFrom} 0%, ${d.gradTo} 100%)`
-                : d.color);
+        const bg = d.colorMode === "gradient" ? `linear-gradient(135deg, ${d.gradFrom} 0%, ${d.gradTo} 100%)` : d.color;
         const cardId = (card && (card.cardId || card.id)) || "";
         const custName = (card && card.customerName) || "";
         const claimed = !!(card && card.claimed);
@@ -5129,7 +5131,7 @@ window.Suki = (() => {
         for (let i = 0; i < d.stampCount; i++) {
             slots += `<span class="suki-slot ${i < stamps ? "got" : ""}"><i data-lucide="${sukiEsc(d.icon)}"></i></span>`;
         }
-        const remaining = d.stampCount - stamps;
+        const remaining = Math.max(0,d.stampCount - stamps);
         const watermarkFront = d.pattern === "watermark"
             ? `<i data-lucide="${sukiEsc(d.icon)}" class="suki-watermark"></i>` : "";
         // The back face always carries the large faint watermark icon.
@@ -5142,7 +5144,7 @@ window.Suki = (() => {
             : "";
 
         return `
-        <div class="suki-3d" data-suki-card>
+        <div class="suki-3d${d.stampCount>12||d.reward.length>60||d.placeName.length>28?' suki-dense':''}" data-suki-card style="--suki-columns:${d.stampCount<=6?d.stampCount:d.stampCount<=8?4:d.stampCount<=10?5:d.stampCount<=18?6:8}" data-stamp-count="${d.stampCount}">
             <div class="suki-flip">
                 <div class="suki-face suki-front ${toneCls}" style="background:${sukiEsc(bg)}; color:${tone};">
                     <div class="suki-pattern suki-pattern-${sukiEsc(d.pattern)}"></div>
@@ -5151,13 +5153,13 @@ window.Suki = (() => {
                     <div class="suki-content">
                         <div class="suki-top">
                             <span class="suki-badge-icon"><i data-lucide="${sukiEsc(d.icon)}"></i></span>
-                            <span class="suki-name">${sukiEsc(d.placeName)}</span>
-                            ${full ? `<span class="suki-gold-tag">GOLD</span>` : ""}
+                            <span class="suki-name" title="${sukiEsc(d.placeName)}">${sukiEsc(d.placeName)}</span>
+                            ${full ? `<span class="suki-gold-tag">${claimed ? 'Claimed' : claimReq ? 'Claim pending' : 'Reward ready'}</span>` : ""}
                         </div>
                         <div class="suki-stamps">${slots}</div>
                         <div class="suki-progress"><b>${stamps} / ${d.stampCount}</b> stamps</div>
-                        <div class="suki-reward"><span><i data-lucide="gift"></i></span><span>${sukiEsc(d.reward)}</span></div>
-                        <div class="suki-remaining">${full ? "Card is full!" : `${remaining} more stamp${remaining === 1 ? "" : "s"} to go`}</div>
+                        <div class="suki-reward"><span><i data-lucide="gift"></i></span><span title="${sukiEsc(d.reward)}">${sukiEsc(d.reward)}</span></div>
+                        <div class="suki-remaining">${claimed ? "Reward claimed" : claimReq ? "Claim sent for review" : full ? "Your reward is ready" : `${remaining} more stamp${remaining === 1 ? "" : "s"} to go`}</div>
                     </div>
                     <button type="button" class="suki-flip-btn" data-suki-flip title="Flip" aria-label="Flip card"><i data-lucide="rotate-3d"></i></button>
                 </div>
@@ -5169,7 +5171,7 @@ window.Suki = (() => {
                         <div class="suki-back-title">Suki Card</div>
                         <div class="suki-back-row"><span>Reward</span><b><i data-lucide="gift" style="width:14px;height:14px;vertical-align:-2px;"></i> ${sukiEsc(d.reward)}</b></div>
                         <div class="suki-back-row"><span>Card ID</span><b class="suki-mono">${sukiEsc(cardId || "—")}</b></div>
-                        <div class="suki-back-row"><span>Owner</span><b>${sukiEsc(custName || "—")}</b></div>
+                        <div class="suki-back-row"><span>Cardholder</span><b>${sukiEsc(custName || "—")}</b></div>
                         <div class="suki-back-row"><span>Status</span><b>${sukiEsc(statusText)}</b></div>
                         ${claimBtn}
                     </div>
@@ -5667,7 +5669,7 @@ window.Suki = (() => {
         try {
             const snap = await window.db.collection("places").doc(placeId).get();
             if (!snap.exists) { window.showToast?.("Store not found.", "error"); return; }
-            const place = { id: snap.id, ...snap.data() };
+            const place = { ...snap.data(), id: snap.id };
             if (!place.suki_enabled) { window.showToast?.("This store has no Suki Card.", "info"); return; }
             // Anti-fraud location gate (device-side, zero Firestore cost).
             const loc = await verifyScanLocation(place);

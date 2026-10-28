@@ -936,3 +936,100 @@ html body.vicinify-ui #page-map .custom-radius-form .radius-scale span { font-si
 html body.vicinify-ui #page-map .custom-radius-form :is(#customRadiusKm,button) { min-height:30px; height:30px; padding:5px 9px; font-size:11px; }
 html body.vicinify-ui #page-map #customRadiusStatus { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
 html body.vicinify-ui #main-content #page-map.active .radius-wrapper:has(#radiusSlider) .radius-caption { display:none !important; }
+
+/* Business inbox: use the green dark theme instead of legacy navy surfaces. */
+html body.vicinify-ui.dark-mode #ownerInboxSection .pro-inbox-panel { background:transparent !important; border-color:var(--ui-border) !important; box-shadow:none !important; }
+html body.vicinify-ui.dark-mode #ownerInboxSection :is(.order-ticket,.biz-interaction-card,.inbox-row) { background:var(--ui-surface) !important; border-color:var(--ui-border) !important; color:var(--ui-ink) !important; box-shadow:none !important; }
+html body.vicinify-ui.dark-mode #ownerInboxSection :is(.ticket-who h4,.ticket-who h4 *, .ticket-details) { color:var(--ui-ink) !important; }
+html body.vicinify-ui.dark-mode #ownerInboxSection :is(.ticket-meta,.ticket-place) { color:var(--ui-muted) !important; }
+html body.vicinify-ui.dark-mode #ownerInboxSection .ticket-avatar { background:var(--ui-soft) !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui.dark-mode #ownerInboxSection .ticket-actions { border-color:var(--ui-border) !important; }
+html body.vicinify-ui.dark-mode #ownerInboxSection .payment-conversation-action { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:1px solid var(--ui-success-line) !important; }
+html body.vicinify-ui.dark-mode #ownerInboxSection :is(button,.order-ticket):focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:3px; }
+
+/* Keep upload tiles bounded even when only one photo slot is present. */
+html body.vicinify-ui #page-add #viciPhotoGrid { display:grid !important; grid-template-columns:repeat(auto-fill,minmax(100px,132px)) !important; gap:10px !important; width:100% !important; min-width:0; }
+html body.vicinify-ui #page-add #viciPhotoGrid :is(.add-photo-btn,.photo-preview-item) { width:100% !important; height:112px !important; aspect-ratio:auto !important; min-width:0; }
+html body.vicinify-ui.dark-mode #page-add :is(.uploadBox,#viciPhotoGrid) { background:transparent !important; }
+html body.vicinify-ui.dark-mode #page-add .add-photo-btn { background:var(--ui-soft) !important; border-color:var(--ui-success-line) !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui.dark-mode #page-add .add-photo-btn:hover { background:var(--ui-success-bg) !important; }
+html body.vicinify-ui.dark-mode #page-buzz :is(.buzz-feed-card,.buzz-feed-comments,.mod-comment-bubble) { background:var(--ui-surface) !important; border-color:var(--ui-border) !important; color:var(--ui-ink) !important; }
+html body.vicinify-ui.dark-mode #page-buzz .buzz-feed-actions { background:transparent !important; border-color:var(--ui-border) !important; }
+html body.vicinify-ui.dark-mode #page-buzz .buzz-feed-actions .mod-btn { background:var(--ui-soft) !important; border-color:var(--ui-border) !important; color:var(--ui-ink) !important; }
+html body.vicinify-ui.dark-mode #page-buzz .buzz-feed-actions .liked { color:var(--ui-success-ink) !important; background:var(--ui-success-bg) !important; }
+html body.vicinify-ui.dark-mode #page-dashboard :is(.cust-panel,#myBookingsList) { background:transparent !important; border-color:var(--ui-border) !important; }
+html body.vicinify-ui.dark-mode #page-dashboard .history-note { background:var(--ui-soft) !important; border-color:var(--ui-border) !important; color:var(--ui-muted) !important; }
+html body.vicinify-ui.dark-mode #page-dashboard .history-note svg { color:var(--ui-success-ink) !important; }
+html body.vicinify-ui.dark-mode #bookingModal :is(.request-choice,[data-request-type]) { background:var(--ui-soft) !important; border-color:var(--ui-border) !important; color:var(--ui-ink) !important; }
+html body.vicinify-ui.dark-mode #bookingModal :is(.request-choice,[data-request-type]).active { background:var(--ui-success-bg) !important; border-color:var(--ui-success-ink) !important; color:var(--ui-success-ink) !important; }
+
+/* My Activity: compact, consistent surfaces across all four tabs. */
+html body.vicinify-ui #customerActivitySection { padding:22px !important; }
+html body.vicinify-ui #customerActivitySection .settings-pill-tabs { display:flex !important; flex-wrap:wrap; gap:5px !important; padding:5px !important; width:fit-content; max-width:100%; border:1px solid var(--ui-border) !important; border-radius:12px !important; background:var(--ui-soft) !important; }
+html body.vicinify-ui #customerActivitySection .cust-tab { min-height:38px; padding:8px 13px !important; gap:7px; background:transparent !important; border:0 !important; color:var(--ui-muted) !important; border-radius:8px !important; font-size:12px !important; }
+html body.vicinify-ui #customerActivitySection .cust-tab.active { background:var(--ui-surface) !important; color:var(--ui-success-ink) !important; box-shadow:0 1px 4px #1029220a !important; }
+html body.vicinify-ui #customerActivitySection .cust-tab svg { width:16px !important; height:16px !important; }
+html body.vicinify-ui #customerActivitySection :is(.cust-panel,#myChatsList,#myBookingsList,#myFavoritesList) { background:transparent !important; min-width:0; }
+html body.vicinify-ui #customerActivitySection .history-note { background:var(--ui-soft) !important; color:var(--ui-muted) !important; border:1px solid var(--ui-border) !important; border-radius:10px !important; font-size:12px; padding:10px 12px; margin:0 0 14px; }
+html body.vicinify-ui #customerActivitySection .history-note svg { color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #customerActivitySection :is(.transaction-history-card,.inbox-row,.activity-thread) { background:var(--ui-surface) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-border) !important; border-radius:12px !important; box-shadow:none !important; margin-bottom:10px !important; }
+html body.vicinify-ui #customerActivitySection .activity-thread { display:flex; align-items:center; padding:4px 8px 4px 4px; min-width:0; }
+html body.vicinify-ui #customerActivitySection .activity-thread-open { display:flex; align-items:center; gap:12px; flex:1; min-width:0; padding:12px; background:transparent; border:0; text-align:left; color:var(--ui-ink); font-family:inherit; cursor:pointer; }
+html body.vicinify-ui #customerActivitySection .activity-thread-avatar { display:grid; place-items:center; width:42px; height:42px; flex:0 0 42px; border:1px solid var(--ui-success-line); border-radius:13px; background:var(--ui-success-bg); color:var(--ui-success-ink); font-size:15px; font-weight:650; }
+html body.vicinify-ui #customerActivitySection .activity-thread-copy { display:grid; gap:5px; flex:1; min-width:0; }
+html body.vicinify-ui #customerActivitySection .activity-thread-copy strong { font-size:13px; color:var(--ui-ink) !important; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+html body.vicinify-ui #customerActivitySection .activity-thread-copy>span { font-size:12px; color:var(--ui-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+html body.vicinify-ui #customerActivitySection .activity-thread-meta { display:grid; gap:6px; justify-items:end; color:var(--ui-muted); font-size:10px; flex-shrink:0; }
+html body.vicinify-ui #customerActivitySection .activity-thread-unread { color:var(--ui-success-ink); background:var(--ui-success-bg); padding:3px 7px; border-radius:6px; font-size:9px; }
+html body.vicinify-ui #customerActivitySection .activity-thread-hide { display:grid; place-items:center; flex:0 0 32px; width:32px; height:32px; border:0; border-radius:8px; background:transparent; color:var(--ui-muted); cursor:pointer; }
+html body.vicinify-ui #customerActivitySection .activity-thread-hide svg { width:16px; height:16px; }
+html body.vicinify-ui #customerActivitySection :is(.activity-thread-open,.activity-thread-hide):hover { background:var(--ui-soft); border-radius:9px; }
+html body.vicinify-ui #customerActivitySection button:focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:2px; }
+html body.vicinify-ui #customerActivitySection :is(.transaction-history-place,.inbox-name) { color:var(--ui-ink) !important; }
+html body.vicinify-ui #customerActivitySection :is(.transaction-history-type,.transaction-history-date,.transaction-history-summary,.inbox-snippet) { color:var(--ui-muted) !important; }
+@media(max-width:600px) {
+ html body.vicinify-ui #customerActivitySection { padding:14px !important; }
+ html body.vicinify-ui #customerActivitySection .settings-pill-tabs { display:grid !important; width:100%; grid-template-columns:1fr 1fr; }
+ html body.vicinify-ui #customerActivitySection .cust-tab { justify-content:center; }
+ html body.vicinify-ui #customerActivitySection .activity-thread-open { padding:10px 6px; gap:9px; }
+ html body.vicinify-ui #customerActivitySection .activity-thread-avatar { width:36px; height:36px; flex-basis:36px; }
+}
+html body.vicinify-ui #customerActivitySection :is(.transaction-history-details,.transaction-history-meta) { color:var(--ui-muted) !important; border-color:var(--ui-border) !important; font-size:12px; line-height:1.6; }
+html body.vicinify-ui #customerActivitySection .transaction-history-actions button { border-radius:9px !important; min-height:36px; padding:8px 12px; box-shadow:none !important; }
+html body.vicinify-ui #customerActivitySection .transaction-action-primary { background:#237e72 !important; color:#fff !important; border:1px solid #237e72 !important; }
+html body.vicinify-ui #customerActivitySection .transaction-action-secondary { background:var(--ui-soft) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-border) !important; }
+
+/* One green interaction palette for Buzz, including active and focus states. */
+html body.vicinify-ui #page-buzz .buzz-feed-actions :is(.mod-btn-like.liked,.mod-btn-comment.active) { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:1px solid var(--ui-success-line) !important; }
+html body.vicinify-ui #page-buzz :is(.mod-send-btn,.sendCommentBtn) { background:#237e72 !important; color:white !important; box-shadow:none !important; border:1px solid #237e72 !important; border-radius:10px !important; }
+html body.vicinify-ui #page-buzz .mod-input { background:var(--ui-surface) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-border) !important; border-radius:10px !important; box-shadow:none !important; }
+html body.vicinify-ui #page-buzz .mod-input:focus { outline:2px solid var(--ui-success-line) !important; outline-offset:1px; border-color:var(--ui-success-ink) !important; box-shadow:none !important; }
+html body.vicinify-ui #page-buzz :is(.buzz-feed-comments,.mod-comment-bubble) { background:var(--ui-soft) !important; border-color:var(--ui-border) !important; color:var(--ui-ink) !important; }
+html body.vicinify-ui #page-buzz .buzz-comment-name { color:var(--ui-ink) !important; }
+html body.vicinify-ui #page-buzz :is(.buzz-comment-time,.buzz-no-comments) { color:var(--ui-muted) !important; }
+/* Compact notices: neutral surface, small status marker, no large icon glow. */
+html body.vicinify-ui #v-toast-stack { top:calc(16px + env(safe-area-inset-top)) !important; right:16px !important; left:auto !important; transform:none !important; width:min(360px,calc(100vw - 32px)) !important; gap:8px !important; }
+html body.vicinify-ui .v-toast { background:var(--ui-surface) !important; border:1px solid var(--ui-border) !important; color:var(--ui-ink) !important; border-radius:13px !important; box-shadow:0 8px 28px #10292216 !important; padding:12px !important; gap:10px !important; backdrop-filter:none !important; }
+html body.vicinify-ui .v-toast-icon { width:28px !important; height:28px !important; flex:0 0 28px !important; border-radius:9px !important; background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; box-shadow:none !important; }
+html body.vicinify-ui .v-toast-icon svg { width:15px !important; height:15px !important; stroke-width:2.2; }
+html body.vicinify-ui .v-toast-error .v-toast-icon { background:var(--ui-danger-bg) !important; color:var(--ui-danger-ink) !important; }
+html body.vicinify-ui .v-toast-warning .v-toast-icon { background:var(--ui-warning-bg) !important; color:var(--ui-warning-ink) !important; }
+html body.vicinify-ui .v-toast-title { font-size:11px !important; font-weight:650 !important; color:var(--ui-ink) !important; letter-spacing:0 !important; }
+html body.vicinify-ui .v-toast-text { font-size:12px !important; font-weight:400 !important; color:var(--ui-muted) !important; line-height:1.6 !important; overflow-wrap:anywhere; max-height:140px; overflow:auto; }
+html body.vicinify-ui .v-toast-close { flex:0 0 26px; width:26px; height:26px; color:var(--ui-muted); }
+html body.vicinify-ui .v-toast-bar { height:2px; background:var(--ui-success-ink); opacity:.25; }
+html body.vicinify-ui .v-toast-error .v-toast-bar { background:var(--ui-danger-ink); }
+html body.vicinify-ui .v-toast-warning .v-toast-bar { background:var(--ui-warning-ink); }
+html body.vicinify-ui [id^="vConfirm_"][role="alertdialog"] { padding:16px; box-sizing:border-box; z-index:30010 !important; }
+html body.vicinify-ui [id^="vConfirm_"] .modalBackdrop { background:#10292266 !important; backdrop-filter:blur(3px); }
+html body.vicinify-ui [id^="vConfirm_"] .modalBox { width:100% !important; max-width:400px !important; max-height:calc(100dvh - 32px); overflow-y:auto; background:var(--ui-surface) !important; border:1px solid var(--ui-border); padding:22px !important; border-radius:16px !important; text-align:left !important; box-shadow:0 20px 65px #10292233 !important; }
+html body.vicinify-ui [id^="vConfirm_"] h3 { color:var(--ui-ink) !important; font-size:18px !important; }
+html body.vicinify-ui [id^="vConfirm_"] p { color:var(--ui-muted) !important; font-size:13px !important; line-height:1.7 !important; overflow-wrap:anywhere; }
+html body.vicinify-ui [id^="vConfirm_"] button { min-height:40px; border-radius:10px !important; }
+html body.vicinify-ui [id^="cancelBtn_vConfirm_"] { background:var(--ui-soft) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-border) !important; }
+html body.vicinify-ui [id^="confirmBtn_vConfirm_"] { background:#237e72 !important; color:white !important; }
+html body.vicinify-ui [id^="confirmBtn_vConfirm_"][data-danger="true"] { background:var(--ui-danger-bg) !important; color:var(--ui-danger-ink) !important; border:1px solid var(--ui-danger-line) !important; }
+html body.vicinify-ui :is(.v-toast-close,[id^="vConfirm_"] button):focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:2px; }
+@media(prefers-reduced-motion:reduce) {html body.vicinify-ui .v-toast { animation:none !important; }}
+html body.vicinify-ui #page-buzz .buzz-feed-type { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui #page-buzz :is(.buzz-source-place,.buzz-feed-name>svg) { color:var(--ui-success-ink) !important; }

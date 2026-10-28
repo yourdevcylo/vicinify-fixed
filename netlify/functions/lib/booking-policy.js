@@ -9,6 +9,8 @@ function transition(order, actor, patch) {
         preparing: ['ready', 'fulfilled', 'out_for_delivery'], ready: ['fulfilled'], out_for_delivery: ['delivered']
     };
     if (actor === 'owner' && (ownerSteps[current] || []).includes(next)) {
+        if (['delivery_order','delivery'].includes(order.requestType) && next === 'fulfilled')
+            throw Object.assign(new Error('Delivery must pass through preparation, dispatch and delivery confirmation.'),{status:409});
         if (next === 'out_for_delivery' && !['delivery_order', 'delivery'].includes(order.requestType))
             throw Object.assign(new Error('Only delivery orders can be marked out for delivery.'), { status: 409 });
         if (current === 'accepted' && ['preparing', 'fulfilled'].includes(next) && isOnline(order))

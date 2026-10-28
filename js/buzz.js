@@ -97,7 +97,7 @@ window.BuzzPage = (() => {
             if (!(userEstablishments.length && (Date.now() - estCacheAt) < 60000)) {
                 const ownedSnap = await window.db.collection("places").where("owner_uid", "==", user.uid).limit(20).get();
                 let placesMap = new Map();
-                ownedSnap.forEach(doc => placesMap.set(doc.id, { id: doc.id, ...doc.data() }));
+                ownedSnap.forEach(doc => placesMap.set(doc.id, { ...doc.data(), id: doc.id }));
                 userEstablishments = Array.from(placesMap.values());
                 estCacheAt = Date.now();
             }
@@ -168,6 +168,8 @@ window.BuzzPage = (() => {
         const brgy = document.getElementById("postBarangay").value;
         const selectedBizId = document.getElementById("bizPostSelect").value;
 
+        const bodyProblem=window.ContentPolicy?.error('post',body);
+        if(bodyProblem) return window.showToast ? window.showToast(bodyProblem,'error') : alert(bodyProblem);
         if (!body) {
             window.showToast ? window.showToast("Post content is empty!", "error") : alert("Post content is empty!");
             return;
@@ -198,7 +200,7 @@ window.BuzzPage = (() => {
                 mediaUrl = await window.uploadImageFileToStorage(selectedMediaFile, `buzz_posts/${user.uid}`, { maxWidth: 900, quality: 0.8 });
             }
 
-            await window.db.collection("buzz_posts").add({
+            await window.ContentPolicy.create(window.db, 'buzz_posts', {
                 type: selectedType,
                 barangay: brgy,
                 body: body,
@@ -217,7 +219,7 @@ window.BuzzPage = (() => {
             });
 
             closeModal();
-            if(window.showToast) window.showToast("Posted! 🎉", "success");
+            if(window.showToast) window.showToast("Post published.", "success");
         } catch (error) {
             if(window.showToast) window.showToast("Error: " + error.message, "error");
         } finally {
@@ -241,7 +243,7 @@ window.BuzzPage = (() => {
             .orderBy("createdAt", "desc")
             .limit(15)
             .onSnapshot((snapshot) => {
-currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));                renderUI();
+currentPosts = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));                renderUI();
             }, (error) => {
                 console.error("Error fetching live posts:", error);
                 window.handleFirestoreError(error);
@@ -368,8 +370,8 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
                         `).join("")}
                     </div>
                     <div class="mod-input-row">
-                        <input type="text" class="mod-input" id="input-${p.id}" placeholder="Write a comment..." data-i18n-placeholder="Write a comment..." />
-                        <button class="mod-send-btn sendCommentBtn" data-id="${p.id}"><i data-lucide="send"></i></button>
+                        <input type="text" class="mod-input" maxlength="500" aria-label="Write a comment" id="input-${p.id}" placeholder="Write a comment..." data-i18n-placeholder="Write a comment..." />
+                        <button class="mod-send-btn sendCommentBtn" aria-label="Send comment" data-id="${p.id}"><i data-lucide="send"></i></button>
                     </div>
                 </div>
             </article>
@@ -487,10 +489,11 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
                 // arrayUnion = atomic append. The old read-modify-write of the
                 // whole comments array lost comments when two people commented
                 // at the same time (last writer won).
-                await postRef.update({
-                    comments: firebase.firestore.FieldValue.arrayUnion(newComment)
-                });
-                input.value = "";
+                try {
+                    await window.ContentPolicy.comment(window.db,postRef,newComment);
+                    input.value = "";
+                } catch(error) {window.showToast?.(error.code==='permission-denied'?'Wait a few seconds before commenting again, and check the comment limits.':error.message,'error');}
+                finally {btn.disabled=false;btn.textContent='Send';}
             };
         });
     }

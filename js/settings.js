@@ -245,18 +245,17 @@ async function markCustomerChatsRead() {
 
 function listenToCustomerActivities(user) {
     if (!user || !user.uid) return;
-    if (activeCustKey === user.uid && custBookingsUnsub) return;
+    if (activeCustKey === user.uid && custBookingsUnsub) {syncOptionalActivityTab(user);return;}
     activeCustKey = user.uid;
     if (custBookingsUnsub) custBookingsUnsub();
     if (custChatsUnsub) custChatsUnsub();
     if (custFavoritesUnsub) custFavoritesUnsub();
     if (custSukiUnsub) custSukiUnsub();
+    custBookingsUnsub = custChatsUnsub = custFavoritesUnsub = custSukiUnsub = null;
+    currentTransactionDocs = []; currentChatDocs = [];
 
     // TRANSACTION HISTORY LISTENER
-    // No server orderBy: the (userId, createdAt) composite index is new
-    // and may not exist yet on a fresh project — a missing index would
-    // kill the query and leave the section on "Loading" forever.
-    // The handler sorts client-side below; the window is the same 15.
+    // Reuse the notifier's ordered, bounded customer feed.
     custBookingsUnsub = window.ViciData.customerFeed("bookings", user.uid, snap => {
             const badge = document.getElementById("custBookBadge");
             const wrap = document.getElementById("myBookingsList");
@@ -269,10 +268,7 @@ function listenToCustomerActivities(user) {
                 return;
             }
 
-            let docs = snap.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            let docs = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
 
             docs.sort((a, b) => {
                 return (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0);
@@ -362,10 +358,7 @@ function listenToCustomerActivities(user) {
                 return;
             }
 
-            let docs = snap.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })).filter(d => !(d.deletedBy || []).includes(user.uid));
+            let docs = snap.docs.map(doc => ({ ...doc.data(), id: doc.id })).filter(d => !(d.deletedBy || []).includes(user.uid));
 
             let threads = {};
 
@@ -388,60 +381,21 @@ function listenToCustomerActivities(user) {
             window._settingsChatCount = unreadChatCount;
             window.GlobalNotifier?.refreshSettingsBadge?.();
 
-            let unreadHtml = "";
-            let readHtml = "";
-
-            threadArr.forEach(d => {
-                const dateStr = d.createdAt && d.createdAt.toDate
-                    ? d.createdAt.toDate().toLocaleDateString("en-US", { month: "short", day: "numeric" })
-                    : "Just now";
-
-                const initial = (d.placeName || "P").charAt(0).toUpperCase();
-                const lastMsg = d.reply ? `Reply: ${d.reply}` : `You: ${d.text}`;
-
-                const rowHtml = `
-                    <div class="inbox-row" style="position:relative; padding-right:50px;" onclick="window.SettingsPage.markCustomerChatThreadRead('${d.placeId}'); window.openChatModal('${d.placeId}', '${safeString(d.placeName)}')">
-                        <div class="inbox-avatar">${initial}</div>
-
-                        <div class="inbox-content">
-                            <div class="inbox-top">
-                                <div class="inbox-name">${escapeHtml(d.placeName)}</div>
-                                <div class="inbox-time">${dateStr}</div>
-                            </div>
-
-                            <div class="inbox-bottom">
-                                <div class="inbox-snippet" style="${d.reply ? "font-weight:700; color:#0f172a;" : "color:#64748b;"}">
-                                    ${escapeHtml(lastMsg)}
-                                </div>
-                                ${isCustomerUnreadMessage(d, user.uid) ? `<div class="inbox-unread" style="background:#ef4444;">NEW</div>` : ""}
-                            </div>
-                        </div>
-
-                        <button onclick="window.SettingsPage.deleteCustomerChatThread('${d.placeId}', event)"
-                            style="position:absolute; right:16px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:#ef4444; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.2s;"
-                            title="Hide Chat">
-                            <i data-lucide="trash-2" style="width:18px; height:18px;"></i>
-                        </button>
-                    </div>
-                `;
-
-                if (d.reply) unreadHtml += rowHtml;
-                else readHtml += rowHtml;
-            });
-
-            let finalHtml = "";
-
-            if (unreadHtml) {
-                finalHtml += `<div style="font-size:12px; font-weight:700; color:#3b82f6; margin-bottom:10px; margin-top:10px; text-transform:uppercase; letter-spacing:0.5px;">Active Conversations</div>` + unreadHtml;
-            }
-
-            if (readHtml) {
-                finalHtml += `<div style="font-size:12px; font-weight:700; color:#64748b; margin-top:24px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">Awaiting Reply</div>` + readHtml;
-            }
-
-            if (threadArr.length === 0) {
-                finalHtml = `<div class="muted" style="text-align:center; padding: 20px;">No messages, or they have been deleted.</div>`;
-            }
+            const finalHtml = threadArr.length ? threadArr.map(d => {
+                const title = window.MapPage?.getCachedPlace?.(d.placeId)?.name || currentTransactionDocs.find(order=>order.placeId===d.placeId)?.placeName || d.placeName || 'Establishment';
+                const own = d.senderUid === user.uid || (!d.senderUid && !d.reply);
+                const preview = d.reply ? `Business: ${d.reply}` : d.type === 'text' ? `${own ? 'You' : 'Business'}: ${d.text || ''}` : d.text || 'Transaction update';
+                const date = d.createdAt?.toDate ? d.createdAt.toDate().toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'Just now';
+                const unread = isCustomerUnreadMessage(d,user.uid);
+                return `<article class="activity-thread${unread?' is-unread':''}">
+                    <button type="button" class="activity-thread-open" onclick="window.SettingsPage.markCustomerChatThreadRead('${safeString(d.placeId)}');window.openChatModal('${safeString(d.placeId)}','${safeString(title)}')">
+                        <span class="activity-thread-avatar">${escapeHtml(title.charAt(0).toUpperCase())}</span>
+                        <span class="activity-thread-copy"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(preview)}</span></span>
+                        <span class="activity-thread-meta"><time>${escapeHtml(date)}</time>${unread?'<span class="activity-thread-unread">New</span>':''}</span>
+                    </button>
+                    <button type="button" class="activity-thread-hide" aria-label="Hide conversation with ${escapeHtml(title)}" onclick="window.SettingsPage.deleteCustomerChatThread('${safeString(d.placeId)}',event)"><i data-lucide="archive"></i></button>
+                </article>`;
+            }).join('') : '<div class="activity-empty">Your conversations will appear here.</div>';
 
             wrap.innerHTML = finalHtml;
             window.debouncedIcons?.();
@@ -451,6 +405,10 @@ function listenToCustomerActivities(user) {
             if (w) w.innerHTML = `<div class="muted" style="text-align:center; padding: 20px;">Could not load. Please try again later.</div>`;
         });
 
+    syncOptionalActivityTab(user);
+}
+function startFavorites(user) {
+    if(custFavoritesUnsub)return;
     // FAVORITES LISTENER
     custFavoritesUnsub = window.db.collection("favorites")
         .where("userId", "==", user.uid)
@@ -464,10 +422,7 @@ function listenToCustomerActivities(user) {
                 return;
             }
 
-            let docs = snap.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            let docs = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
 
             docs.sort((a, b) => {
                 return (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0);
@@ -500,12 +455,12 @@ function listenToCustomerActivities(user) {
             window.debouncedIcons?.();
         }, err => window.handleFirestoreError(err));
 
+}
+function startSukiCards(user) {
+    if(custSukiUnsub)return;
     // SUKI CARDS LISTENER — one card per establishment, each rendered
     // in that place's own design. Bounded (customerUid filter + limit).
-    custSukiUnsub = window.db.collection("loyalty_cards")
-        .where("customerUid", "==", user.uid)
-        .limit(20)
-        .onSnapshot(snap => {
+    custSukiUnsub = window.ViciData.sukiFeed(user.uid, snap => {
             const wrap = document.getElementById("mySukiCardsList");
             if (!wrap) return;
 
@@ -514,7 +469,7 @@ function listenToCustomerActivities(user) {
                 return;
             }
 
-            const cards = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const cards = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             cards.sort((a, b) => (b.updatedAt?.toMillis?.() || 0) - (a.updatedAt?.toMillis?.() || 0));
 
             (async () => {
@@ -523,12 +478,15 @@ function listenToCustomerActivities(user) {
                     const placeMap = {};
                     const placeIds = [...new Set(cards.map(c => c.placeId).filter(Boolean))];
                     for (const pid of placeIds) {
+                        const cached=window.MapPage?.getCachedPlace?.(pid);
+                        if(cached) {placeMap[pid]=cached;continue;}
                         if (placeJoinCache.has(pid)) { placeMap[pid] = placeJoinCache.get(pid); continue; }
                         try {
                             const pd = await window.db.collection("places").doc(pid).get();
-                            if (pd.exists) { placeMap[pid] = { id: pd.id, ...pd.data() }; placeJoinCache.set(pid, placeMap[pid]); }
+                            if (pd.exists) { placeMap[pid] = { ...pd.data(), id: pd.id }; placeJoinCache.set(pid, placeMap[pid]); }
                         } catch (e) { window.handleFirestoreError(e); }
                     }
+                    if(window.auth?.currentUser?.uid!==user.uid || activeCustKey!==user.uid)return;
                     const html = cards.map(c => {
                         const p = placeMap[c.placeId];
                         if (!p) return "";
@@ -552,6 +510,13 @@ function listenToCustomerActivities(user) {
             window.handleFirestoreError(err, "Could not load Suki Cards.");
         });
 }
+function syncOptionalActivityTab(user) {
+    if(!user)return;
+    const tab=document.querySelector('#customerActivitySection .cust-tab.active')?.dataset.custtab;
+    if(tab==='favorites')startFavorites(user);
+    if(tab==='suki')startSukiCards(user);
+}
+
 
 function syncSettingsSegment(group, value) {
     const selector = `[data-settings-segment="${group}"] button`;
@@ -697,6 +662,8 @@ function init() {
 
         const newName = nicknameInput ? nicknameInput.value.trim() : "User";
 
+        const nameProblem = window.ContentPolicy?.error('name',newName);
+        if(nameProblem) return alert(nameProblem);
         saveProfileBtn.textContent = "Saving to Cloud...";
         saveProfileBtn.disabled = true;
 
@@ -840,13 +807,13 @@ function init() {
             targetPanel.classList.add("active");
         }
 
+        syncOptionalActivityTab(window.auth?.currentUser);
         if (tabBtn.dataset.custtab === "bookings") {
             markCustomerTransactionsRead();
         }
 
-        if (tabBtn.dataset.custtab === "chats") {
-            markCustomerChatsRead();
-        }
+        // Opening the list does not read every conversation. Mark only the
+        // selected thread when it opens, avoiding a bulk write/read fan-out.
     });
 }
 

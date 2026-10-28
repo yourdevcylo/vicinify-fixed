@@ -1,0 +1,135 @@
+/* Keep owner-selected card artwork; unify the surrounding controls and spacing. */
+html body.vicinify-ui .suki-3d { max-width:370px; width:100%; margin:0 auto 12px; }
+html body.vicinify-ui .suki-flip { aspect-ratio:1.586; height:auto; }
+html body.vicinify-ui .suki-face { border-radius:20px; box-shadow:0 10px 28px #10292218; border:1px solid #ffffff38; }
+html body.vicinify-ui .suki-content { padding:18px; gap:6px; }
+html body.vicinify-ui .suki-top { gap:9px; padding-right:0; }
+html body.vicinify-ui .suki-badge-icon { width:32px; height:32px; border-radius:10px; }
+html body.vicinify-ui .suki-badge-icon svg { width:18px; height:18px; }
+html body.vicinify-ui .suki-name { font-size:16px; line-height:1.4; font-weight:650; white-space:normal; overflow-wrap:anywhere; }
+html body.vicinify-ui .suki-gold-tag { background:#ffffffda; color:#215c47; font-size:8px; letter-spacing:.2px; padding:5px 7px; border-radius:7px; }
+html body.vicinify-ui .suki-stamps { grid-template-columns:repeat(var(--suki-columns,6),minmax(0,1fr)); gap:6px; margin:8px 0 4px; }
+html body.vicinify-ui .suki-slot { height:30px; width:30px; max-width:100%; aspect-ratio:auto; justify-self:center; border-width:1px; }
+html body.vicinify-ui .suki-slot svg { width:16px; height:16px; }
+html body.vicinify-ui .suki-slot.got svg { color:#256d56; fill:none; }
+html body.vicinify-ui .suki-on-light .suki-slot.got { background:#256d56; }
+html body.vicinify-ui .suki-on-light .suki-slot.got svg { color:white; }
+html body.vicinify-ui .suki-progress { font-size:11px; }
+html body.vicinify-ui .suki-reward { font-size:13px; line-height:1.5; font-weight:600; padding-right:25px; overflow-wrap:anywhere; }
+html body.vicinify-ui .suki-remaining { font-size:10px; padding-right:30px; }
+html body.vicinify-ui .suki-flip-btn { width:28px; height:28px; border-radius:9px; }
+html body.vicinify-ui .suki-flip-btn svg { width:15px; height:15px; }
+html body.vicinify-ui .suki-shadow { opacity:.13 !important; }
+html body.vicinify-ui .suki-shine { opacity:.3; }
+html body.vicinify-ui .suki-pattern { opacity:.22; }
+html body.vicinify-ui .suki-back-content { gap:14px; }
+html body.vicinify-ui .suki-back-row { font-size:11px; line-height:1.5; min-width:0; }
+html body.vicinify-ui .suki-back-row>b { min-width:0; overflow-wrap:anywhere; }
+html body.vicinify-ui :is(.suki-place-block,.suki-req-card,.suki-studio-row) { background:var(--ui-surface) !important; border-color:var(--ui-border) !important; box-shadow:none !important; }
+html body.vicinify-ui .suki-place-block { padding:18px; border-radius:14px; }
+html body.vicinify-ui :is(.suki-place-head,.suki-field-label) { color:var(--ui-ink) !important; }
+html body.vicinify-ui .suki-note { color:var(--ui-muted) !important; font-size:12px; line-height:1.7; }
+html body.vicinify-ui :is(.suki-wallet-view-btn,.suki-plain-btn,.suki-chip,.suki-req-wait) { background:var(--ui-soft) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-border) !important; border-radius:10px; box-shadow:none !important; }
+html body.vicinify-ui :is(.suki-req-btn,.suki-approve-btn) { background:#237e72 !important; color:white !important; border:1px solid #237e72 !important; border-radius:10px; }
+html body.vicinify-ui .suki-chip.active { background:var(--ui-success-bg) !important; border-color:var(--ui-success-ink) !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #sukiTemplateChips { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; }
+html body.vicinify-ui #sukiTemplateChips .suki-template-option { display:flex; flex-direction:column; align-items:stretch; gap:8px; padding:8px !important; min-width:0; text-align:left; }
+html body.vicinify-ui .suki-template-option strong { font-size:10px; font-weight:600; padding:0 2px; }
+html body.vicinify-ui .suki-template-swatch { display:flex; gap:5px; align-items:flex-end; border-radius:7px; height:44px; padding:8px; border:1px solid #10292210; }
+html body.vicinify-ui .suki-template-swatch>span { width:9px; height:9px; border:1px solid #ffffffbb; border-radius:50%; background:#ffffff55; }
+html body.vicinify-ui #page-suki-studio .suki-field-label { font-size:11px; margin-top:20px; letter-spacing:0; text-transform:none; }
+html body.vicinify-ui #page-suki-studio .suki-studio-row { border-radius:10px; padding:10px; gap:10px; flex-wrap:wrap; }
+html body.vicinify-ui #saveSukiStudioBtn { background:#237e72 !important; border-radius:10px !important; }
+html body.vicinify-ui #mySukiCardsList { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),370px)); gap:20px; align-items:start; background:transparent !important; }
+html body.vicinify-ui #page-place #placeUpdatesList>.place-menu-card { padding:16px !important; margin:0 0 14px !important; border-radius:14px !important; background:var(--ui-surface) !important; border:1px solid var(--ui-border) !important; box-shadow:none !important; }
+html body.vicinify-ui #page-place #placeUpdatesList .place-menu-author strong { font-size:12px; color:var(--ui-ink) !important; }
+html body.vicinify-ui #page-place #placeUpdatesList .place-menu-author small { color:var(--ui-muted) !important; }
+html body.vicinify-ui #page-place #placeUpdatesList .place-menu-author>div { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #page-place #placeUpdatesList .place-menu-media { margin-top:12px !important; border-radius:10px !important; background:var(--ui-soft) !important; }
+html body.vicinify-ui #page-place #placeUpdatesList .place-menu-media img { display:block; width:100% !important; height:auto !important; max-height:440px !important; object-fit:contain !important; }
+html body.vicinify-ui #page-place #placeUpdatesList .place-menu-body { font-size:13px !important; line-height:1.7 !important; color:var(--ui-ink) !important; white-space:pre-wrap; overflow-wrap:anywhere; }
+html body.vicinify-ui #page-place .place-menu-chip { background:var(--ui-soft) !important; color:var(--ui-success-ink) !important; border-color:var(--ui-border) !important; }
+html body.vicinify-ui :is(.suki-chip,.suki-plain-btn,.suki-wallet-view-btn):focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:3px; }
+@media(max-width:600px) {
+ html body.vicinify-ui #sukiTemplateChips { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ html body.vicinify-ui .suki-place-block { padding:14px; }
+ html body.vicinify-ui .suki-content { padding:16px; }
+ html body.vicinify-ui .suki-name { font-size:14px; }
+}
+@media(prefers-reduced-motion:reduce) {html body.vicinify-ui .suki-flip {transition:none !important;} }
+html body.vicinify-ui .suki-name { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; min-width:0; }
+html body.vicinify-ui .suki-front .suki-reward>span:last-child { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
+html body.vicinify-ui .suki-back-content { overflow-y:auto; padding-bottom:48px; }
+html body.vicinify-ui #page-suki-studio { background:var(--ui-bg) !important; }
+html body.vicinify-ui #page-suki-studio .suki-studio-header { background:var(--ui-surface) !important; border-color:var(--ui-border) !important; box-shadow:none !important; gap:12px; }
+html body.vicinify-ui #page-suki-studio .suki-studio-header>div { min-width:0; gap:10px !important; }
+html body.vicinify-ui #page-suki-studio .suki-studio-header h2 { flex-wrap:wrap; font-size:16px !important; color:var(--ui-ink) !important; }
+html body.vicinify-ui #page-suki-studio .suki-studio-header button:not(#saveSukiStudioBtn) { color:var(--ui-muted) !important; }
+html body.vicinify-ui #page-suki-studio :is(label,.suki-studio-row span) { color:var(--ui-ink) !important; }
+html body.vicinify-ui #page-suki-studio .suki-studio-container>p { color:var(--ui-muted) !important; line-height:1.7; }
+html body.vicinify-ui #page-suki-studio .card { background:var(--ui-surface) !important; border:1px solid var(--ui-border) !important; box-shadow:none !important; }
+@media(max-width:600px) {
+ html body.vicinify-ui #page-suki-studio .suki-studio-header { padding:12px 14px !important; }
+ html body.vicinify-ui #page-suki-studio .suki-studio-container { padding:16px 12px 100px !important; }
+ html body.vicinify-ui #page-suki-studio .card { padding:16px !important; }
+ html body.vicinify-ui #page-suki-studio .suki-studio-row>div { min-width:0 !important; }
+}
+html body.vicinify-ui #page-place .place-menu-image-link { display:block; position:relative; color:var(--ui-ink); text-decoration:none; }
+html body.vicinify-ui #page-place .place-menu-image-link>span { position:absolute; right:10px; bottom:10px; display:flex; align-items:center; gap:5px; padding:7px 9px; border-radius:8px; border:1px solid var(--ui-border); background:var(--ui-surface); color:var(--ui-success-ink); font-size:10px; font-weight:600; }
+html body.vicinify-ui #page-place .place-menu-image-link>span svg { width:12px; height:12px; }
+html body.vicinify-ui #page-place .place-menu-image-link:focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:2px; }
+
+/* Fixed credit-card shape. Higher stamp counts use denser content inside. */
+html body.vicinify-ui .suki-3d { container-type:inline-size; container-name:suki-card; }
+html body.vicinify-ui .suki-content { padding:13px; gap:4px; }
+html body.vicinify-ui .suki-badge-icon { width:26px; height:26px; border-radius:8px; }
+html body.vicinify-ui .suki-badge-icon svg { width:16px; height:16px; }
+html body.vicinify-ui .suki-name { font-size:13px; line-height:1.25; }
+html body.vicinify-ui .suki-stamps { gap:4px; margin:4px 0; }
+html body.vicinify-ui .suki-slot { height:23px; width:23px; }
+html body.vicinify-ui .suki-slot svg { width:13px; height:13px; }
+html body.vicinify-ui .suki-progress { font-size:10px; line-height:1.2; }
+html body.vicinify-ui .suki-reward { font-size:11px; line-height:1.35; }
+html body.vicinify-ui .suki-front .suki-reward>span:last-child { -webkit-line-clamp:2; }
+html body.vicinify-ui .suki-remaining { font-size:9px; line-height:1.2; }
+html body.vicinify-ui .suki-dense .suki-content { padding:10px; gap:3px; }
+html body.vicinify-ui .suki-dense .suki-slot { height:18px; width:18px; }
+html body.vicinify-ui .suki-dense .suki-slot svg { width:10px; height:10px; }
+html body.vicinify-ui .suki-dense .suki-stamps { margin:3px 0; gap:3px; }
+html body.vicinify-ui .suki-dense .suki-name { font-size:11px; }
+html body.vicinify-ui .suki-dense .suki-badge-icon { width:22px; height:22px; }
+html body.vicinify-ui .suki-dense .suki-reward { font-size:10px; }
+html body.vicinify-ui .suki-dense .suki-reward svg { width:13px; height:13px; }
+html body.vicinify-ui .suki-back-content { gap:9px; padding:14px 14px 42px; }
+html body.vicinify-ui .suki-back-title { font-size:14px; }
+html body.vicinify-ui .suki-back-row { font-size:10px; }
+@container suki-card (max-width:300px) {
+ html body.vicinify-ui .suki-content { padding:10px; gap:3px; }
+ html body.vicinify-ui .suki-name { font-size:11px; }
+ html body.vicinify-ui .suki-badge-icon { width:21px; height:21px; }
+ html body.vicinify-ui .suki-slot { width:18px; height:18px; }
+ html body.vicinify-ui .suki-slot svg { width:10px; height:10px; }
+ html body.vicinify-ui .suki-reward { font-size:10px; }
+ html body.vicinify-ui .suki-reward svg { width:13px; height:13px; }
+ html body.vicinify-ui .suki-dense .suki-slot { width:14px; height:14px; }
+ html body.vicinify-ui .suki-dense .suki-slot svg { width:8px; height:8px; }
+ html body.vicinify-ui .suki-dense .suki-progress, html body.vicinify-ui .suki-dense .suki-remaining { font-size:8px; }
+ html body.vicinify-ui .suki-gold-tag { font-size:7px; padding:4px 5px; }
+ html body.vicinify-ui .suki-flip-btn { width:24px; height:24px; right:7px; bottom:7px; }
+}
+
+@container suki-card (max-width:300px) {
+ html body.vicinify-ui .suki-dense .suki-content { padding:8px; gap:1px; }
+ html body.vicinify-ui .suki-dense .suki-name { font-size:10px; }
+ html body.vicinify-ui .suki-dense .suki-reward { font-size:9.5px; }
+}
+@container suki-card (max-width:300px) {
+ html body.vicinify-ui .suki-dense .suki-content { padding:7px; }
+ html body.vicinify-ui .suki-dense .suki-stamps { gap:2px; margin:2px 0; }
+}
+html body.vicinify-ui .suki-dense .suki-name { font-size:12px; }
+html body.vicinify-ui .suki-dense .suki-reward { font-size:11px; }
+@container suki-card (max-width:300px) {
+ html body.vicinify-ui .suki-dense .suki-name { font-size:10px; }
+ html body.vicinify-ui .suki-dense .suki-reward { font-size:10.5px; }
+}

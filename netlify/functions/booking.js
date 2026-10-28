@@ -1,13 +1,34 @@
-const { services, authenticate, identifier, reply } = require('./lib/admin');
+const { services, authenticate, identifier, limit, reply } = require('./lib/admin');
+const { createBooking } = require('./lib/booking-create');
 const { transition } = require('./lib/booking-policy');
 exports.handler = async event => {
     if (event.httpMethod !== 'POST') return reply(405, { error: 'POST only' });
     try {
         const user = await authenticate(event);
-        if ((event.body || '').length > 8000) return reply(413, { error: 'Request is too large.' });
+        if ((event.body || '').length > 16000) return reply(413, { error: 'Request is too large.' });
         const body = JSON.parse(event.body || '{}');
-        const bookingId = identifier(body.bookingId);
         const { db, FieldValue } = services();
+        if (body.action === 'create') {
+            const input = body.request || {};
+            const placeId = identifier(input.placeId);
+            await limit(user.uid, 'booking_create', 6);
+            const placeRef = db.collection('places').doc(placeId);
+            const ref = db.collection('bookings').doc();
+            const card = db.collection('messages').doc();
+            await db.runTransaction(async transaction => {
+                const place = await transaction.get(placeRef);
+                const profile = await transaction.get(db.collection('users').doc(user.uid));
+                if (!place.exists) throw Object.assign(new Error('Establishment not found.'), {status:404});
+                const order = {...createBooking(input,user,place.data(),profile.data()), transactionId:ref.id,
+                    createdAt:FieldValue.serverTimestamp(), updatedAt:FieldValue.serverTimestamp()};
+                transaction.create(ref,order);
+                transaction.create(card,{...order,type:'booking_card',bookingId:ref.id,bookingStatus:'pending',
+                    senderUid:user.uid,senderRole:'customer',senderName:order.userName,createdBy:user.uid,reply:null});
+            });
+            return reply(200, {saved:true,bookingId:ref.id});
+        }
+        if (body.action && body.action !== 'update') return reply(400,{error:'Unknown booking action.'});
+        const bookingId = identifier(body.bookingId);
         const ref = db.collection('bookings').doc(bookingId);
         await db.runTransaction(async transaction => {
             const booking = await transaction.get(ref);

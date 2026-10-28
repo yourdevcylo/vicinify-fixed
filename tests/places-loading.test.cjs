@@ -1,13 +1,13 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm');
-function setup(get){
+function setup(get,storage){
  const source=fs.readFileSync(require.resolve('../js/map.js'),'utf8');
  const start=source.indexOf('    let _placesInFlight = null;');
  const end=source.indexOf('\n\n    function clearAcceptedMarkers',start);
  const calls=[],toasts=[];
  const query={where(...args){calls.push(['where',...args]);return this;},limit(n){calls.push(['limit',n]);return this;},get};
- const context={cloudPlaces:[],normalizePlace:p=>p,Date,console:{warn(){}},window:{db:{collection(name){calls.push(['collection',name]);return query;}},showToast:(...args)=>toasts.push(args)}};
+ const context={cloudPlaces:[],normalizePlace:p=>p,Date,console:{warn(){}},window:{sessionStorage:storage,db:{collection(name){calls.push(['collection',name]);return query;}},showToast:(...args)=>toasts.push(args)}};
  vm.createContext(context);vm.runInContext(source.slice(start,end),context);
  return {load:force=>context.getAcceptedPlaces(force),invalidate:()=>context.window.invalidatePlacesCache(),calls,toasts};
 }
@@ -32,4 +32,16 @@ test('invalidated in-flight results cannot repopulate the cache',async()=>{
 });
 test('catalog cap is explicit and warns when results are truncated',async()=>{
  const docs=Array.from({length:2001},(_,id)=>({id:String(id),data:()=>({})}));const x=setup(async()=>snapshot(docs));assert.equal((await x.load()).length,2000);assert.equal(x.toasts[0][1],'info');
+});
+
+test('public catalog cache survives reload without caching private fields and invalidates explicitly',async()=>{
+ const values=new Map(),storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)};
+ let reads=0;const get=async()=>{reads++;return snapshot([{id:'shop',data:()=>({name:'Shop',approval_status:'approved',owner_email:'private@example.test',updatedAt:{toDate:()=>new Date('2026-10-28T00:00:00Z')}})}]);};
+ await setup(get,storage).load();const reload=setup(get,storage);const places=await reload.load();assert.equal(reads,1);assert.equal(places[0].name,'Shop');assert.equal(places[0].updatedAt,'2026-10-28T00:00:00.000Z');assert(![...values.values()][0].includes('private@example.test'));
+ reload.invalidate();await reload.load();assert.equal(reads,2);
+});
+test('expired or corrupt public session cache is not trusted',async()=>{
+ for(const value of ['not JSON',JSON.stringify({at:Date.now()-300001,places:[]}),JSON.stringify({at:Date.now(),places:[{id:'private',name:'Pending',approval_status:'pending'}]})]){
+  let reads=0;await setup(async()=>{reads++;return snapshot();},{getItem:()=>value,setItem(){}}).load();assert.equal(reads,1);
+ }
 });

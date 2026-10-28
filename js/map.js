@@ -250,8 +250,25 @@ window.MapPage = (() => {
         try { return await run; }
         finally { if (_placesInFlight === run) _placesInFlight = null; }
     }
+    const publicCacheKey='vicinify:approved-catalog:20261028';
+    const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','hours','operatingHours','operating_hours','is_verified','is_featured','is_premium','owner_uid','addedBy','approval_status','avgRating','reviewCount','priceRange','accepts_booking','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
+    function readPublicSessionCache(now) {
+        try {
+            const cached=JSON.parse(window.sessionStorage?.getItem(publicCacheKey)||'null');
+            if(!cached || !Number.isFinite(cached.at) || now<cached.at || now-cached.at>=300000 || !Array.isArray(cached.places) || cached.places.length>2000)return false;
+            if(cached.places.some(p=>!p||typeof p.id!=='string'||typeof p.name!=='string'||p.approval_status!=='approved'))return false;
+            cloudPlaces=cached.places.map(normalizePlace);_catalogLoadedAt=cached.at;return true;
+        } catch {return false;}
+    }
+    function writePublicSessionCache() {
+        try {
+            const places=cloudPlaces.filter(p=>p.approval_status==='approved').map(p=>Object.fromEntries(cachedPublicFields.filter(key=>p[key]!==undefined).map(key=>[key,typeof p[key]?.toDate==='function'?p[key].toDate().toISOString():p[key]])));
+            window.sessionStorage?.setItem(publicCacheKey,JSON.stringify({at:_catalogLoadedAt,places}));
+        } catch { /* Storage can be disabled/full; in-memory caching still works. */ }
+    }
     async function _fetchAcceptedPlaces(forceRefresh = false) {
         const now = Date.now();
+        if(!forceRefresh && !_catalogLoadedAt)readPublicSessionCache(now);
         if (!forceRefresh && ((_catalogLoadedAt && now - _catalogLoadedAt < 300000) || now < _placesRetryAt)) return cloudPlaces;
         const generation = _catalogGeneration;
         try {
@@ -263,6 +280,7 @@ window.MapPage = (() => {
             cloudPlaces = snapshot.docs.slice(0, 2000)
                 .map(doc => normalizePlace({ ...doc.data(), id: doc.id }));
             _catalogLoadedAt = Date.now();
+            writePublicSessionCache();
             _placesRetryAt = 0;
             if (snapshot.size > 2000) window.showToast?.("Showing a limited catalog. Some establishments may not appear.", "info");
             return cloudPlaces;
@@ -281,6 +299,7 @@ window.MapPage = (() => {
         }
     }
     window.invalidatePlacesCache = () => {
+        try {window.sessionStorage?.removeItem(publicCacheKey);} catch {}
         _catalogLoadedAt = 0;
         _placesRetryAt = 0;
         _catalogGeneration++;
@@ -463,7 +482,7 @@ window.MapPage = (() => {
         if (window.db && placeId) {
             try {
                 const snap = await window.db.collection("places").doc(placeId).get();
-                return snap.exists ? normalizePlace({ id: snap.id, ...snap.data() }) : null;
+                return snap.exists ? normalizePlace({ ...snap.data(), id: snap.id }) : null;
             } catch (error) {
                 console.warn("Permission place lookup failed, using local cache.", error);
             }
@@ -2047,7 +2066,7 @@ window.MapPage = (() => {
             try {
                 const placeDoc = await window.db.collection("places").doc(id).get();
                 if (placeDoc.exists) {
-                    p = normalizePlace({ id: placeDoc.id, ...placeDoc.data() });
+                    p = normalizePlace({ ...placeDoc.data(), id: placeDoc.id });
                     cloudPlaces = [p, ...cloudPlaces.filter(place => place.id !== p.id)];
                 }
             } catch (e) {
@@ -2290,7 +2309,7 @@ window.MapPage = (() => {
                 .limit(100)
                 .get();
 
-            let reviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            let reviews = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }))
                 .filter(r => r.isPublic !== false && (r.feedback || r.comment || r.satisfaction || r.rating));
 
             reviews.sort((a, b) => (b.createdAt?.toMillis?.() || b.updatedAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || a.updatedAt?.toMillis?.() || 0));
@@ -2413,7 +2432,7 @@ window.MapPage = (() => {
                 return window.showToast("You already have a pending claim for this establishment.", "info");
             }
 
-            await claimRef.set({
+            await window.ContentPolicy.create(window.db,'business_claims',{
                 placeId,
                 placeName: placeName || "Establishment",
                 userId: user.uid,
@@ -2423,7 +2442,7 @@ window.MapPage = (() => {
                 source: "place_page",
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
+            });
 
             window.showToast("Claim request submitted for admin review.", "success");
         } catch (error) {
@@ -2481,7 +2500,7 @@ window.MapPage = (() => {
             }
 
             try {
-                await window.db.collection("place_reports").add({
+                await window.ContentPolicy.create(window.db,'place_reports',{
                     placeId,
                     placeName: placeName || "Establishment",
                     issueType,
@@ -2566,6 +2585,8 @@ window.MapPage = (() => {
             return window.showToast("Please add a caption or upload a photo!", "error");
         }
 
+        const contentProblem=body && window.ContentPolicy?.error('post',body);
+        if(contentProblem) return window.showToast(contentProblem,'error');
         btn.disabled = true;
         btn.textContent = "Posting...";
 
@@ -2576,7 +2597,7 @@ window.MapPage = (() => {
                 mediaUrl = await window.uploadImageFileToStorage(file, `place_posts/${placeId}`, { maxWidth: 700, quality: 0.76 });
             }
 
-            await window.db.collection('place_posts').add({
+            await window.ContentPolicy.create(window.db, 'place_posts', {
                 placeId: placeId,
                 body: body,
                 mediaUrl: mediaUrl,
@@ -2628,7 +2649,7 @@ window.MapPage = (() => {
             const postDoc = await postRef.get();
             if (!postDoc.exists) return window.showToast("This menu/store post no longer exists.", "error");
 
-            const post = { id: postDoc.id, ...postDoc.data() };
+            const post = { ...postDoc.data(), id: postDoc.id };
             const allowed = await canManagePlace(post.placeId);
             if (!allowed) return window.showToast("Only the approved owner or an admin can share this post.", "error");
 
@@ -2642,7 +2663,6 @@ window.MapPage = (() => {
                 mediaUrl: post.mediaUrl || null,
                 authorUid: user.uid,
                 authorName: AppState.userProfile?.fullName || user.displayName || "Store Admin",
-                authorEmail: user.email || "",
                 isBusinessPost: true,
                 establishmentId: post.placeId,
                 establishmentName: place.name || "Establishment",
@@ -2656,14 +2676,14 @@ window.MapPage = (() => {
             if (post.buzzPostId) {
                 const existingRef = window.db.collection("buzz_posts").doc(post.buzzPostId);
                 const existingDoc = await existingRef.get();
-                if (existingDoc.exists) {
-                    await existingRef.update(buzzPayload);
+                if (existingDoc.exists && existingDoc.data().authorUid === user.uid) {
+                    await window.ContentPolicy.updatePost(window.db,'buzz_posts',existingRef,buzzPayload);
                     buzzRef = existingRef;
                 }
             }
 
             if (!buzzRef) {
-                buzzRef = await window.db.collection("buzz_posts").add({
+                buzzRef = await window.ContentPolicy.create(window.db, 'buzz_posts', {
                     ...buzzPayload,
                     likes: 0,
                     likedBy: [],
@@ -2718,7 +2738,7 @@ window.MapPage = (() => {
                     return;
                 }
 
-                let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                let docs = snap.docs.map(d => ({ ...d.data(), id: d.id }));
                 docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
 
                 let html = "";
@@ -2728,7 +2748,7 @@ window.MapPage = (() => {
                     let imgHtml = "";
                     const safeMediaUrl = getSafeImageUrl(data.mediaUrl);
                     if (safeMediaUrl) {
-                        imgHtml = `<div class="place-menu-media"><img src="${escapeHtml(safeMediaUrl)}" loading="lazy" onerror="this.closest('.place-menu-media')?.remove()" /></div>`;
+                        imgHtml = `<div class="place-menu-media"><a class="place-menu-image-link" href="${escapeHtml(safeMediaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Open menu photo in full size"><img src="${escapeHtml(safeMediaUrl)}" alt="${escapeHtml(String(data.body || 'Menu and store photo').slice(0,100))}" loading="lazy" onerror="this.closest('.place-menu-media')?.remove()" /><span>View full image <i data-lucide="arrow-up-right"></i></span></a></div>`;
                     }
                     const sharedBadgeHtml = data.sharedToBuzz ? `
                         <span class="place-menu-shared"><i data-lucide="share-2"></i> Shared to Buzz</span>
@@ -3247,29 +3267,8 @@ window.MapPage = (() => {
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            const bookingRef = window.db.collection("bookings").doc();
-            const transactionId = bookingRef.id;
-            requestData.transactionId = transactionId;
-
-            // One batch: booking + its chat card succeed or fail together.
-            // (Two separate writes could leave a booking with no chat card
-            // when the connection dropped in between.)
-            const bookingBatch = window.db.batch();
-            bookingBatch.set(bookingRef, requestData);
-            const bookingMsgRef = window.db.collection("messages").doc();
-            bookingBatch.set(bookingMsgRef, {
-                ...requestData,
-                transactionId,
-                type: "booking_card",
-                bookingId: bookingRef.id,
-                bookingStatus: "pending",
-                senderUid: user.uid,
-                senderRole: "customer",
-                senderName: userName,
-                createdBy: user.uid,
-                reply: null
-            });
-            await bookingBatch.commit();
+            // The server validates identity, Philippine schedule, place and initial payment state.
+            await window.ViciData.command('booking', {action:'create',request:requestData});
 
             window.showToast(`${meta.shortLabel} sent! Opening transaction chat...`, "success");
             window.closeBookingModal();
@@ -3363,7 +3362,7 @@ window.MapPage = (() => {
         window.showToast?.("Map reset to defaults.", "success");
     }
 
-    return { refresh, locate, processAISearch, resetMap,
+    return { getCachedPlace: id => cloudPlaces.find(place=>place.id===id), refresh, locate, processAISearch, resetMap,
         stopPlaceListeners: () => { try { if (typeof placeUpdatesUnsub === "function") placeUpdatesUnsub(); } catch (e) {} placeUpdatesUnsub = null; try { window.Suki?.unmountPlaceSection?.(); } catch (e) {} },
         resetViciAI: () => { try {
             // Clear + HIDE the panel (privacy wipe for the next account).

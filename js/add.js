@@ -410,6 +410,8 @@ window.AddPage = (() => {
         const ll = pinMarker.getLatLng();
 
 const name = (document.getElementById("bizName").value || "").trim();
+const nameProblem = window.ContentPolicy?.error('place',name);
+if(nameProblem) return window.showToast(nameProblem,'error');
 const cat = document.getElementById("bizCat").value;
 const priceRange = document.getElementById("bizPriceRange") ? document.getElementById("bizPriceRange").value : "";
 const addr = (document.getElementById("bizAddr").value || "").trim();
@@ -470,7 +472,7 @@ if (desc.length < 10) {
             // queue — the status AND the success message both use this.
             const isAdminSubmitter = AppState.userProfile?.role === "admin" || window.auth.currentUser.uid === "Z45NZhQTgsTUX79WJ5ksCH8N3c02";
 
-           await window.db.collection("places").add({
+           await window.ContentPolicy.create(window.db,'places',{
     name,
 
     // old field names

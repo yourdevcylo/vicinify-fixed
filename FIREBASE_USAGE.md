@@ -22,3 +22,17 @@ https://firebase.google.com/docs/firestore/pricing
 
 No percentage reduction or guaranteed bill amount is asserted.
 
+
+## 28 October update — read-specific changes
+
+- The approved public discovery catalog now has a **five-minute session cache** across reloads. Only an explicit public-field allowlist is stored; ownership email and private chats/transactions are not persisted there. Expired/corrupt entries are ignored, and explicit invalidation clears the entry. This is a freshness/read-cost tradeoff, not a permanent cache.
+- My Activity starts the Favorites query only when Favorites is first opened, rather than on every hub entry. It remains live during that hub session and stops on leaving it.
+- The Suki wallet and notifier use one shared bounded subscription through ViciData, and cached public places are reused for card design/name joins. Identical native SDK queries may already share an underlying target; no separate billing saving is asserted solely from merging callback code.
+- Opening Chat History no longer writes read markers to every message in the list. A selected thread is marked when opened. This avoids unnecessary writes and their listener-update reads for untouched conversations.
+- The existing bounded customer feeds, in-flight request deduplication, receipt-write guards and listener cleanup remain in place. Activity row cleanup does not add a query per conversation.
+
+Read counts already charged will not be undone by this release. Firestore usage is cumulative over its displayed period. If a daily quota is exhausted, code changes do not reset it. Check the Firebase Console period, quota/error status and current read rate before assuming a new deployment failed.
+
+The new anti-spam gates add document access checks and, for messages, an explicit transaction read plus a gate write. Server authentication, payment review and booking validation also read trusted records. Those are deliberate security costs. Avoid deleting these checks solely to lower the dashboard count.
+
+Measure equal traffic windows before/after: total reads, number of fresh sessions, catalog size, active chat users, listener reconnects and console browsing. A cold catalog query can still read up to 2,001 approved places. Larger deployments should move discovery to indexed geographic/paginated queries and maintain server-written conversation summaries; these larger data-model changes are not implemented here. Budget alerts notify; they do not enforce a hard spending cap.

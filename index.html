@@ -22,12 +22,13 @@
     <link rel="dns-prefetch" href="https://tile.openstreetmap.org" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <link rel="stylesheet" href="css/style.css?v=VICINIFY_REPAIR_20261026" />
-    <link rel="stylesheet" href="css/ui.css?v=VICINIFY_UI_20261027" />
-    <link rel="stylesheet" href="css/reference.css?v=20261027" />
-    <link rel="stylesheet" href="css/components.css?v=20261028_10" />
-    <link rel="stylesheet" href="css/place-preview.css?v=VICINIFY_SLIDER_ONLY_20261028">
-    <link rel="stylesheet" href="css/vici-chat.css?v=VICINIFY_SLIDER_ONLY_20261028" />
+    <link rel="stylesheet" href="css/style.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028" />
+    <link rel="stylesheet" href="css/ui.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028" />
+    <link rel="stylesheet" href="css/reference.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028" />
+    <link rel="stylesheet" href="css/components.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028" />
+    <link rel="stylesheet" href="css/place-preview.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028">
+    <link rel="stylesheet" href="css/suki-polish.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028">
+    <link rel="stylesheet" href="css/vici-chat.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028" />
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -43,7 +44,7 @@
         <header class="workspace-header">
             <div class="workspace-heading"><span class="workspace-eyebrow">YOUR LOCAL COMPANION</span><strong id="workspaceTitle">Explore Lipa</strong></div>
             <a class="mobile-brand" href="#" data-goto="page-map"><span class="brand-symbol"><i data-lucide="map-pin"></i></span><span class="brand-wordmark">vicinify<span class="brand-dot">.</span></span></a>
-            <div class="workspace-actions"><span class="city-label"><i data-lucide="map-pin"></i> Lipa City, Batangas</span><button type="button" class="account-button" data-goto="page-settings" aria-label="Open profile and settings"><span id="accountInitials">V</span><span class="account-copy"><strong id="accountName">Your account</strong><small id="accountRole">Local explorer</small></span><i data-lucide="chevron-down"></i></button></div>
+            <div class="workspace-actions"><span class="city-label"><i data-lucide="map-pin"></i> Lipa City, Batangas</span><button type="button" class="account-button" data-goto="page-settings" aria-label="Open profile and settings"><span id="accountInitials">V</span><span class="account-copy"><strong id="accountName">Your account</strong><small id="accountRole">Standard</small></span><i data-lucide="chevron-down"></i></button></div>
             <div id="connectionNotice" class="connection-notice" role="status" hidden>You’re offline. Some features need an internet connection.</div>
         </header>
 
@@ -51,7 +52,7 @@
             <div class="login-wrapper">
                 <aside class="auth-story" aria-label="Discover Vicinify">
                     <div class="story-brand"><span class="brand-symbol"><i data-lucide="map-pin"></i></span><span class="brand-wordmark">vicinify<span class="brand-dot">.</span></span></div>
-                    <div class="story-content"><span class="story-kicker"><span></span> MADE FOR LIPA CITY</span><h2>Find your next <br>favorite.<br><em>Closer to home.</em></h2><p>From your morning kapeng barako to a new neighborhood find. Discover the local places that make Lipa, Lipa.</p></div>
+                    <div class="story-content"><span class="story-kicker"><span></span> MADE FOR LIPA CITY</span><h2>Go somewhere<br>good.<br><em>Around the<br>neighborhood.</em></h2><p>From your morning kapeng barako to a new neighborhood find. Discover the local places that make Lipa, Lipa.</p></div>
                     <div class="neighborhood-art" aria-hidden="true"><svg viewBox="0 0 540 270" fill="none"><rect x="12" y="20" width="516" height="240" rx="28" fill="#e5eeeb"/><path d="M0 206 540 80M122 0 250 280M332 0 406 280M0 76 540 230" stroke="#fff" stroke-width="23"/><path d="M-5 206 540 80M122 0 250 280M332 0 406 280M0 76 540 230" stroke="#cbdcd6" stroke-width="1.5" stroke-dasharray="5 6"/><rect x="60" y="105" width="68" height="43" rx="9" fill="#bfd8cc" transform="rotate(-14 60 105)"/><rect x="245" y="62" width="67" height="48" rx="9" fill="#c6d4cb" transform="rotate(-14 245 62)"/><rect x="288" y="184" width="66" height="45" rx="9" fill="#bfd8cc" transform="rotate(14 288 184)"/><circle cx="268" cy="142" r="39" fill="#137e72" fill-opacity=".08"/><circle cx="268" cy="142" r="25" fill="#137e72" fill-opacity=".12"/><circle cx="268" cy="142" r="9" fill="#137e72" stroke="#fff" stroke-width="4"/><g transform="translate(109 54)"><rect width="52" height="52" rx="17" fill="#fff"/><path d="M17 17h18v13a8 8 0 0 1-8 8h-2a8 8 0 0 1-8-8V17Zm18 3h3a5 5 0 0 1 0 10h-3M20 12v-3m7 3V7m6 5V9" stroke="#b77b44" stroke-width="2.5" stroke-linecap="round"/></g><g transform="translate(365 125)"><rect width="52" height="52" rx="17" fill="#fff"/><path d="M14 25h24l-3-10H17l-3 10Zm3 2v12h18V27M23 39v-9h6v9" stroke="#137e72" stroke-width="2.5" stroke-linejoin="round"/></g></svg><div class="art-label"><i data-lucide="navigation"></i><span>A little closer to your community.</span></div></div>
                     <div class="story-footer"><span><i data-lucide="compass"></i> Discover local</span><span><i data-lucide="heart-handshake"></i> Support local</span><span><i data-lucide="sparkles"></i> Ask Vici</span></div>
                 </aside>
@@ -69,7 +70,7 @@
                     <div class="auth-form" id="authForm" role="tabpanel" aria-labelledby="authTabSignIn">
                         <div class="field signup-field">
                             <label>Full Name</label>
-                            <div class="input-group"><i data-lucide="user"></i><input type="text" id="regName" placeholder="e.g., Cylo De Torres" autocomplete="name" /></div>
+                            <div class="input-group"><i data-lucide="user"></i><input type="text" id="regName" placeholder="e.g., Cylo De Torres" minlength="2" maxlength="80" autocomplete="name" /></div>
                         </div>
                         <div class="field">
                             <label>Email</label>
@@ -503,7 +504,7 @@
 </section>
             <section class="card">
                 <h3 style="margin-top:0; margin-bottom:16px; font-size:16px; color:#0f172a;" data-i18n="User Profile">User Profile</h3>
-                <div class="field"><label>Nickname (Display Name)</label><input type="text" id="profileNickname" placeholder="e.g. Cylo"><p style="font-size:11px; color:#64748b; margin-top:4px;">This will appear on your Buzz posts and comments.</p></div>
+                <div class="field"><label>Nickname (Display Name)</label><input type="text" id="profileNickname" minlength="2" maxlength="80" placeholder="e.g. Cylo"><p style="font-size:11px; color:#64748b; margin-top:4px;">This will appear on your Buzz posts and comments.</p></div>
                 <button id="saveProfileBtn" class="primaryWide" style="margin-top:10px;">Save Profile</button>
             </section>
 
@@ -691,7 +692,7 @@
             </div>
         </main>
         <main id="page-suki-studio" class="page" style="background: #f8fafc; padding: 0 !important; overflow-y: auto;">
-            <div style="background: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+            <div class="suki-studio-header" style="background: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                 <div style="display: flex; align-items: center; gap: 16px;">
                     <button onclick="showPage('page-dashboard')" style="background: none; border: none; cursor: pointer; color: #0f172a; padding: 4px;" aria-label="Back"><i data-lucide="arrow-left"></i></button>
                     <div>
@@ -704,7 +705,7 @@
                 </button>
             </div>
 
-            <div style="max-width: 680px; margin: 0 auto; padding: 24px; padding-bottom: 120px;">
+            <div class="suki-studio-container" style="max-width: 680px; margin: 0 auto; padding: 24px; padding-bottom: 120px;">
                 <input type="hidden" id="sukiStudioPlaceId" />
                 <p style="font-size: 13px; color: #64748b; margin: 0 0 16px;">Design your store's loyalty stamp card. The preview is live — drag to rotate, tap <i data-lucide="rotate-3d" style="width:12px; height:12px; vertical-align:-2px;"></i> to flip. Works even without internet or quota.</p>
                 <div class="card" style="border-radius: 12px; padding: 24px;">
@@ -714,10 +715,10 @@
                     </div>
 
                     <div id="sukiStudioBody">
-                        <div class="suki-field-label">Live 3D Preview <span style="font-weight:400; text-transform:none; letter-spacing:0;">(drag to rotate, tap <i data-lucide="rotate-3d" style="width:12px; height:12px; vertical-align:-2px;"></i> to flip)</span></div>
+                        <div class="suki-field-label">Your card preview <span style="font-weight:400; text-transform:none; letter-spacing:0;">(drag to rotate, tap <i data-lucide="rotate-3d" style="width:12px; height:12px; vertical-align:-2px;"></i> to flip)</span></div>
                         <div id="sukiStudioPreview" style="padding: 12px 0 4px;"></div>
 
-                        <div class="suki-field-label">Template <span style="font-weight:400; text-transform:none; letter-spacing:0;">(Canva-style: pick one, then edit freely)</span></div>
+                        <div class="suki-field-label">Template <span style="font-weight:400; text-transform:none; letter-spacing:0;">(choose a style, then customize)</span></div>
                         <div id="sukiTemplateChips" class="suki-chips"></div>
 
                         <div class="suki-field-label">Color mode</div>
@@ -824,7 +825,7 @@
                     <div class="field"><label>Select Barangay</label><select id="postBarangay"></select></div>
                     <div class="field"><label>Type</label><select id="postType"><option value="promo">Promo</option><option value="event">Event</option><option value="tip">Tip</option><option value="announcement">Announcement</option></select></div>
                     <div class="field"><label>Title</label><input type="text" id="postTitle" placeholder="Enter title" /></div>
-                    <div class="field"><label>Details</label><textarea id="postBody" rows="4" placeholder="Write something..."></textarea></div>
+                    <div class="field"><label>Details</label><textarea id="postBody" minlength="3" maxlength="500" rows="4" placeholder="Write something..."></textarea></div>
                     <div class="field">
                         <label><i data-lucide="image" style="width:16px; height:16px; vertical-align:middle;"></i> Add Photo or Video</label>
                         <input type="file" id="postMedia" accept="image/*,video/*" style="border: 1px dashed #cbd5e1; background: #f8fafc; padding: 10px; cursor: pointer; border-radius: 8px; width: 100%;" />
@@ -960,7 +961,7 @@
                     <input type="hidden" id="chatPlaceId" />
                     <input type="hidden" id="chatPlaceName" />
                     <input type="hidden" id="chatCustomerUid" />
-                    <textarea id="chatMessageInput" aria-label="Message" rows="1" placeholder="Write a message…" autocomplete="off"></textarea>
+                    <textarea id="chatMessageInput" maxlength="2000" aria-label="Message" rows="1" placeholder="Write a message…" autocomplete="off"></textarea>
                     <button id="sendChatBtn" aria-label="Send message" onclick="sendChatMessage()">
                         <i data-lucide="send" style="width:18px; height:18px; color: white;"></i>
                     </button>
@@ -1078,17 +1079,18 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-    <script src="js/data.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/payment-policy.js?v=VICINIFY_PAYMENT_REVIEW_20261028"></script>
-    <script src="js/place-features.js?v=VICINIFY_SLIDER_ONLY_20261028"></script>
-    <script src="js/place-preview.js?v=VICINIFY_SLIDER_ONLY_20261028"></script>
-    <script src="js/common.js?v=VICINIFY_SLIDER_ONLY_20261028"></script>
-    <script src="js/vici-chat.js?v=VICINIFY_SLIDER_ONLY_20261028"></script>
-    <script src="js/map.js?v=VICINIFY_SLIDER_ONLY_20261028"></script>
-    <script src="js/add.js?v=VICINIFY_SLIDER_ONLY_20261028"></script>
-    <script src="js/buzz.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/dashboard.js?v=VICINIFY_SLIDER_ONLY_20261028"></script>
-    <script src="js/settings.js?v=VICINIFY_CANCELLATION_20261028"></script>
+    <script src="js/data.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/payment-policy.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/place-features.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/place-preview.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/content-policy.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/common.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/vici-chat.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/map.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/add.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/buzz.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/dashboard.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/settings.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
 
     <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
     <script>lucide.createIcons();</script>
@@ -1125,7 +1127,7 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js?v=VICINIFY_SLIDER_ONLY_20261028', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('sw.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028', { updateViaCache: 'none' })
                 .then((registration) => registration.update().then(() => registration))
                 .then(() => console.log('Vicinify PWA Ready!'))
                 .catch((err) => console.log('PWA Error', err));
@@ -1154,6 +1156,6 @@ html body #page-place.active #placeUpdatesList > .place-menu-card {
 </style>
 
 <!-- build: VICINIFY_MODERN_FINAL_20261003 -->
-    <script src="js/ui.js?v=VICINIFY_SLIDER_ONLY_20261028"></script>
+    <script src="js/ui.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
 </body>
 </html>

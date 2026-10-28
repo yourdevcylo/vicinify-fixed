@@ -1,3 +1,4 @@
+const ContentPolicy = require('../../js/content-policy');
 const { services, authenticate, identifier, limit, reply } = require('./lib/admin');
 
 exports.handler = async event => {
@@ -10,6 +11,8 @@ exports.handler = async event => {
         const rating = Number(body.rating);
         if (!Number.isInteger(rating) || rating < 1 || rating > 5) return reply(400, { error: 'Choose a rating from 1 to 5.' });
         if (typeof body.feedback !== 'undefined' && (typeof body.feedback !== 'string' || body.feedback.length > 2000)) return reply(400, { error: 'Feedback must be at most 2,000 characters.' });
+        const feedbackProblem = body.feedback && ContentPolicy.error('review',body.feedback);
+        if(feedbackProblem) return reply(400,{error:feedbackProblem});
         await limit(user.uid, 'review', 10);
         const { db, FieldValue } = services();
         let bookingId = body.bookingId;
