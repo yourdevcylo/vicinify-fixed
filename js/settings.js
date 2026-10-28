@@ -573,7 +573,7 @@ function init() {
     const soundKnob = document.getElementById("soundToggleKnob");
     function updateSoundToggle() {
         const on = window.NavSound?.enabled !== false;
-        if (soundBtn) soundBtn.style.background = on ? "#4f46e5" : "#cbd5e1";
+        if (soundBtn) { soundBtn.style.background = on ? "#237e72" : "#94a3b8"; soundBtn.setAttribute("role", "switch"); soundBtn.setAttribute("aria-checked", String(on)); soundBtn.setAttribute("aria-label", "Navigation sounds"); }
         if (soundKnob) soundKnob.style.left = on ? "23px" : "3px";
     }
     soundBtn?.addEventListener("click", () => {
