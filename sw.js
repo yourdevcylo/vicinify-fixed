@@ -1,27 +1,28 @@
-const CACHE_NAME = "vicinify-ui-20261028-32";
+const CACHE_NAME = "vicinify-ui-20261029-33";
 const APP_SHELL = [
     "./",
     "./index.html",
-    "./css/style.css?v=VICINIFY_QA_FINAL_20261028",
-    "./css/ui.css?v=VICINIFY_QA_FINAL_20261028",
-    "./css/reference.css?v=VICINIFY_QA_FINAL_20261028",
-    "./css/place-preview.css?v=VICINIFY_QA_FINAL_20261028",
-    "./css/suki-polish.css?v=VICINIFY_QA_FINAL_20261028",
-    "./css/vici-chat.css?v=VICINIFY_QA_FINAL_20261028",
-    "./css/components.css?v=VICINIFY_QA_FINAL_20261028",
-    "./js/ui.js?v=VICINIFY_QA_FINAL_20261028",
-    "./js/payment-policy.js?v=VICINIFY_QA_FINAL_20261028",
-    "./js/place-features.js?v=VICINIFY_QA_FINAL_20261028",
-    "./js/place-preview.js?v=VICINIFY_QA_FINAL_20261028",
-    "./js/content-policy.js?v=VICINIFY_QA_FINAL_20261028",
-    "./js/common.js?v=VICINIFY_QA_FINAL_20261028",
-    "./js/data.js?v=VICINIFY_QA_FINAL_20261028",
-    "./js/vici-chat.js?v=VICINIFY_QA_FINAL_20261028",
-    "./js/map.js?v=VICINIFY_QA_FINAL_20261028",
-    "./js/add.js?v=VICINIFY_QA_FINAL_20261028",
-    "./js/buzz.js?v=VICINIFY_QA_FINAL_20261028",
-    "./js/dashboard.js?v=VICINIFY_QA_FINAL_20261028",
-    "./js/settings.js?v=VICINIFY_QA_FINAL_20261028",
+    "./css/style.css?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./css/ui.css?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./css/reference.css?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./css/place-preview.css?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./css/suki-polish.css?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./css/vici-chat.css?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./css/mobile.css?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./css/components.css?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/ui.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/payment-policy.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/place-features.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/place-preview.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/content-policy.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/common.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/data.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/vici-chat.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/map.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/add.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/buzz.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/dashboard.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/settings.js?v=VICINIFY_GREEN_EDITOR_20261029",
     "./manifest.json",
     "./icons/icon-192.png",
     "./icons/icon-512.png",
@@ -40,7 +41,7 @@ self.addEventListener("activate", event => {
     event.waitUntil(
         caches.keys()
             .then(keys => Promise.all(keys
-                .filter(key => key !== CACHE_NAME)
+                .filter(key => key.startsWith("vicinify-ui-") && key !== CACHE_NAME)
                 .map(key => caches.delete(key))))
             .then(() => self.clients.claim())
     );

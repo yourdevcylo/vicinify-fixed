@@ -4698,6 +4698,7 @@ window.GlobalNotifier = (() => {
                 let isBookInit = true;
                 const bookUnsub = window.db.collection("bookings")
                     .where("placeId", "in", chunk)
+                    .orderBy("createdAt", "desc")
                     .limit(10)
                     .onSnapshot(snap => {
                         let unread = 0;
@@ -4729,6 +4730,7 @@ window.GlobalNotifier = (() => {
                 let isMsgInit = true;
                 const msgUnsub = window.db.collection("messages")
                     .where("placeId", "in", chunk)
+                    .orderBy("createdAt", "desc")
                     .limit(10)
                     .onSnapshot(snap => {
                         let unread = 0;

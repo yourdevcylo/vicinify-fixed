@@ -40,3 +40,12 @@ Measure equal traffic windows before/after: total reads, number of fresh session
 
 ## Customer quick questions and business replies
 Customer quick questions send immediately while preserving any typed draft. Business owners enable Automatic replies in Manage listing and may customize menu, hours, delivery and booking answers. Replies use saved business data; they never confirm bookings or payments. Deploy the matching frontend, Netlify functions and Firestore rules together. Each enabled reply adds bounded server reads and one reply write; duplicate calls reuse the same reply. Owner self-chat prompts are blocked; select an actual customer from Business Hub Messages. Rules emulator validation remains required before publishing rules.
+
+
+## Latest delivery verification — 29 October 2026
+- Rechecked source: map radius/categories filter locally; approved catalog reused for five minutes; overlapping map loads share one request. Catalog can still read up to 2001 docs on a cold load.
+- Shared customer feeds capped at 50 records, loyalty at 20; active chat at 100; Buzz at 15; AI catalog candidates at 20 with a 60-second instance cache. Live changes and reconnects still incur reads.
+- Owner global notifications and Business Hub queries overlap. This remains an additional read source, not a zero-usage guarantee.
+- Deploy updates clear only old app shell caches, preserving user/account data and the short-lived public catalog cache. Build output is cleaned before fingerprinting, so stale files cannot survive a deploy.
+- Update check runs only when the tab is visible and the browser is online; it is an HTTP service-worker update check, not Firestore polling.
+- Verified: stable build hash on unchanged code, version rotation on changed assets, obsolete output removal, old app-cache deletion and unrelated cache preservation. 16 test files passed. Live Firebase billing was not available for verification.

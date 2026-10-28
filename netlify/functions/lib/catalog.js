@@ -8,7 +8,21 @@ function publicValue(value) {
 }
 let cached = null, expiresAt = 0, inFlight = null;
 
-async function catalog() {
+const selectedCache = new Map();
+async function selectedCatalog(ids) {
+    const unique = [...new Set([...ids].filter(id => typeof id === 'string' && /^[A-Za-z0-9_-]{1,180}$/.test(id)))].slice(0,20);
+    const now=Date.now();
+    const missing=unique.filter(id=>!selectedCache.has(id) || selectedCache.get(id).expiresAt<=now);
+    if(missing.length){
+        const db=services().db;
+        const docs=await db.getAll(...missing.map(id=>db.collection('places').doc(id)),{fieldMask:fields});
+        docs.forEach(doc=>selectedCache.set(doc.id,{expiresAt:Date.now()+60000,value:doc.exists && doc.data().approval_status==='approved'?{...publicValue(doc.data()),id:doc.id}:null}));
+        if(selectedCache.size>2000) for(const [id,entry] of selectedCache){if(entry.expiresAt<=Date.now() || selectedCache.size>2000)selectedCache.delete(id);}
+    }
+    return {places:unique.map(id=>selectedCache.get(id)?.value).filter(Boolean),truncated:false};
+}
+async function catalog(ids) {
+    if(ids) return selectedCatalog(ids);
     if (cached && Date.now() < expiresAt) return cached;
     if (inFlight) return inFlight;
     inFlight = (async () => {

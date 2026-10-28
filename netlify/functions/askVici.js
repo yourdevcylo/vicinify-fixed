@@ -125,7 +125,7 @@ exports.handler = async (event) => {
         await limit(user.uid, 'ai', 6);
         await limit(user.uid, 'ai_daily', 50, 86400000);
         const ids = new Set((Array.isArray(body.recommendations) ? body.recommendations : []).slice(0,20).map(p => p.id));
-        places = (await catalog()).places.filter(p => ids.has(p.id)).map(p => ({ ...p, rating: p.avgRating, suki: p.suki_enabled }));
+        places = (await catalog(ids)).places.filter(p => ids.has(p.id)).map(p => ({ ...p, rating: p.avgRating, suki: p.suki_enabled }));
         radius = ''; // Location claims are not treated as verified server facts.
     } catch (error) {
         return { statusCode: error.status || (error instanceof SyntaxError ? 400 : 500), headers, body: JSON.stringify({ error: error.status ? error.message : "Request could not be processed" }) };

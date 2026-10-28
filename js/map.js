@@ -1342,12 +1342,37 @@ window.MapPage = (() => {
         refreshPlaces();
     }
 
+    let locationRequest = null;
+    function locationNotice(message, state) {
+        let notice=document.getElementById('locationPermissionNotice');
+        if(!notice){
+            notice=document.createElement('div');notice.id='locationPermissionNotice';notice.setAttribute('role','status');
+            const text=document.createElement('span');text.className='location-notice-text';notice.append(text);
+            const retry=document.createElement('button');retry.type='button';retry.textContent='Enable location';retry.addEventListener('click',()=>locate());notice.append(retry);
+            document.querySelector('#page-map .askBar')?.after(notice);
+        }
+        notice.querySelector('span').textContent=message;
+        notice.dataset.state=state;
+        notice.hidden=state==='ready';
+        const button=notice.querySelector('button');button.disabled=state==='loading';button.textContent=state==='loading'?'Locating…':'Try location';
+    }
     function locate() {
-        if (!navigator.geolocation) return window.showToast("Geolocation is not supported by your browser.", "error");
-        navigator.geolocation.getCurrentPosition(
-            pos => { setUser(pos.coords.latitude, pos.coords.longitude); setTimeout(() => { if (map) map.invalidateSize(); }, 300); },
-            err => { console.error(err); window.showToast("Location access denied. Please enable location services.", "error"); }, { enableHighAccuracy: true }
-        );
+        if(locationRequest)return locationRequest;
+        if(!navigator.geolocation){locationNotice('Location is not supported in this browser. Use Safari, Chrome or Edge.','unsupported');return Promise.resolve(false);}
+        if(!window.isSecureContext){locationNotice('Location requires a secure HTTPS connection.','unsupported');return Promise.resolve(false);}
+        locationNotice('Finding your location. Allow access when your browser asks.','loading');
+        locationRequest=new Promise(resolve=>navigator.geolocation.getCurrentPosition(pos=>{
+            const {latitude,longitude,accuracy}=pos.coords;
+            if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180){locationNotice('Could not get a valid location. Please try again.','error');resolve(false);return;}
+            AppState.locationFix={timestamp:pos.timestamp || Date.now(),accuracy};
+            setUser(latitude,longitude);
+            locationNotice(accuracy>200?'Location is approximate. Enable precise location for better nearby results.':'Location ready',accuracy>200?'approximate':'ready');
+            setTimeout(()=>map?.invalidateSize(),300);resolve(true);
+        },err=>{
+            const messages={1:'Location blocked. Open browser site settings and allow Location. On iPhone, also enable Location Services and Precise Location.',2:'Location unavailable. Turn on device Location Services and try again.',3:'Location timed out. Check GPS or move near a window, then retry.'};
+            locationNotice(messages[err.code] || 'Could not find your location. Please retry.','error');resolve(false);
+        },{enableHighAccuracy:true,timeout:15000,maximumAge:30000})).finally(()=>{locationRequest=null;});
+        return locationRequest;
     }
 
    function initRadius() {
@@ -1744,7 +1769,7 @@ window.MapPage = (() => {
         navDest = { lat: destLat, lng: destLng };
         if (!AppState.userLocation || AppState.userLocation.lat == null || AppState.userLocation.lng == null) {
             window.showToast("We need your location to start navigation.", "error");
-            locate();
+            locate().then(ok=>{if(ok)window.routeToPlace(destLat,destLng,destName);});
             return;
         }
         if (typeof L.Routing === "undefined") {

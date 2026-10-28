@@ -62,3 +62,44 @@ window.AppShell = (() => {
     });
     return { sync };
 })();
+
+// PWA installation is browser-mediated; iOS uses Share > Add to Home Screen.
+(() => {
+ let deferredInstall=null;
+ function installed(){return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true;}
+ function syncInstall(){
+  const button=document.getElementById('installVicinifyBtn'), help=document.getElementById('installVicinifyHelp');
+  if(!button||!help)return;
+  button.disabled=installed();
+  button.textContent=installed()?'App installed':deferredInstall?'Install app':'How to install';
+  help.textContent=installed()?'Vicinify is running as an installed app.':'Add Vicinify to your home screen for quick access.';
+ }
+ window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstall=event;syncInstall();});
+ window.addEventListener('appinstalled',()=>{deferredInstall=null;syncInstall();});
+ function setup(){
+  document.getElementById('installVicinifyBtn')?.addEventListener('click',async()=>{
+   if(installed())return;
+   if(deferredInstall){const prompt=deferredInstall;deferredInstall=null;await prompt.prompt();await prompt.userChoice;syncInstall();return;}
+   const ios=/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+   const message=ios?'In Safari, tap Share, then Add to Home Screen.':'Open your browser menu and choose Install app or Add to Home screen. If unavailable, use Chrome or Edge on the production site.';
+   document.getElementById('installVicinifyHelp').textContent=message;
+  });syncInstall();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
+})();
+
+// Visual viewport follows the iOS keyboard without resizing the entire document.
+(() => {
+ const viewport=window.visualViewport;
+ if(!viewport)return;
+ let queued=false;
+ const sync=()=>{queued=false;const root=document.documentElement;
+  root.style.setProperty('--vici-visual-height',viewport.height+'px');
+  root.style.setProperty('--vici-visual-top',viewport.offsetTop+'px');
+  const input=document.activeElement?.matches('input:not([type=checkbox]):not([type=radio]),textarea,[contenteditable=true]');
+  document.body.classList.toggle('keyboard-open',!!input && window.innerHeight-viewport.height>120);
+ };
+ const queue=()=>{if(!queued){queued=true;requestAnimationFrame(sync);}};
+ viewport.addEventListener('resize',queue);viewport.addEventListener('scroll',queue);
+ document.addEventListener('focusin',queue);document.addEventListener('focusout',queue);sync();
+})();

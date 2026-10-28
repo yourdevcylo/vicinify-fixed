@@ -22,13 +22,13 @@
     <link rel="dns-prefetch" href="https://tile.openstreetmap.org" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <link rel="stylesheet" href="css/style.css?v=VICINIFY_QA_FINAL_20261028" />
-    <link rel="stylesheet" href="css/ui.css?v=VICINIFY_QA_FINAL_20261028" />
-    <link rel="stylesheet" href="css/reference.css?v=VICINIFY_QA_FINAL_20261028" />
-    <link rel="stylesheet" href="css/components.css?v=VICINIFY_QA_FINAL_20261028" />
-    <link rel="stylesheet" href="css/place-preview.css?v=VICINIFY_QA_FINAL_20261028">
-    <link rel="stylesheet" href="css/suki-polish.css?v=VICINIFY_QA_FINAL_20261028">
-    <link rel="stylesheet" href="css/vici-chat.css?v=VICINIFY_QA_FINAL_20261028" />
+    <link rel="stylesheet" href="css/style.css?v=VICINIFY_GREEN_EDITOR_20261029" />
+    <link rel="stylesheet" href="css/ui.css?v=VICINIFY_GREEN_EDITOR_20261029" />
+    <link rel="stylesheet" href="css/reference.css?v=VICINIFY_GREEN_EDITOR_20261029" />
+    <link rel="stylesheet" href="css/components.css?v=VICINIFY_GREEN_EDITOR_20261029" />
+    <link rel="stylesheet" href="css/place-preview.css?v=VICINIFY_GREEN_EDITOR_20261029">
+    <link rel="stylesheet" href="css/suki-polish.css?v=VICINIFY_GREEN_EDITOR_20261029">
+    <link rel="stylesheet" href="css/vici-chat.css?v=VICINIFY_GREEN_EDITOR_20261029" />
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -558,6 +558,12 @@
 
             
 
+            <section class="card" id="installVicinifyCard">
+                <h3>Install Vicinify</h3>
+                <p id="installVicinifyHelp" class="place-features-help">Add Vicinify to your home screen for quick access.</p>
+                <button type="button" id="installVicinifyBtn" class="primaryWide">Install app</button>
+            </section>
+
             <button id="logoutBtn" class="danger" style="margin-top: 24px; width: 100%; padding: 16px; border-radius: 12px; font-weight: bold; background: white; color: #ef4444; border: 2px solid #fee2e2; cursor: pointer;">Log Out</button>
             <button id="deleteAccountBtn" style="margin-top: 12px; width: 100%; padding: 16px; border-radius: 12px; font-weight: bold; background: #fef2f2; color: #dc2626; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;"><i data-lucide="trash-2" style="width: 18px; height: 18px;"></i> Delete My Account</button>
         </main>
@@ -577,7 +583,7 @@
                 <input type="hidden" id="bizPortalId" />
 
                 <h3 class="bizedit-section-title">Basic Info</h3>
-                <div class="card bizedit-card">
+                <div class="card bizedit-card bizedit-basic-card">
                     <div class="field"><label>Establishment Name</label><input type="text" id="bizPortalName" /></div>
                     <div class="field">
                         <label>Category</label>
@@ -1077,18 +1083,18 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-    <script src="js/data.js?v=VICINIFY_QA_FINAL_20261028"></script>
-    <script src="js/payment-policy.js?v=VICINIFY_QA_FINAL_20261028"></script>
-    <script src="js/place-features.js?v=VICINIFY_QA_FINAL_20261028"></script>
-    <script src="js/place-preview.js?v=VICINIFY_QA_FINAL_20261028"></script>
-    <script src="js/content-policy.js?v=VICINIFY_QA_FINAL_20261028"></script>
-    <script src="js/common.js?v=VICINIFY_QA_FINAL_20261028"></script>
-    <script src="js/vici-chat.js?v=VICINIFY_QA_FINAL_20261028"></script>
-    <script src="js/map.js?v=VICINIFY_QA_FINAL_20261028"></script>
-    <script src="js/add.js?v=VICINIFY_QA_FINAL_20261028"></script>
-    <script src="js/buzz.js?v=VICINIFY_QA_FINAL_20261028"></script>
-    <script src="js/dashboard.js?v=VICINIFY_QA_FINAL_20261028"></script>
-    <script src="js/settings.js?v=VICINIFY_QA_FINAL_20261028"></script>
+    <script src="js/data.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/payment-policy.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/place-features.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/place-preview.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/content-policy.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/common.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/vici-chat.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/map.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/add.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/buzz.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/dashboard.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/settings.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
 
     <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
     <script>lucide.createIcons();</script>
@@ -1125,10 +1131,30 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js?v=VICINIFY_QA_FINAL_20261028', { updateViaCache: 'none' })
-                .then((registration) => registration.update().then(() => registration))
-                .then(() => console.log('Vicinify PWA Ready!'))
-                .catch((err) => console.log('PWA Error', err));
+            let registration, refreshPending=false, reloading=false;
+            const hadController=!!navigator.serviceWorker.controller;
+            function refreshWhenIdle(){
+                if(!refreshPending || reloading || document.visibilityState!=='visible') return;
+                const editing=document.activeElement?.matches('input,textarea,select,[contenteditable=true]');
+                const dialog=[...document.querySelectorAll('[role=dialog],#bookingModal,#chatModal,#placePostModal')].some(el=>el.getClientRects().length && getComputedStyle(el).visibility!=='hidden');
+                if(editing || dialog || window.__chatSending) return;
+                reloading=true; location.reload();
+            }
+            navigator.serviceWorker.addEventListener('controllerchange',()=>{
+                if(!hadController)return;
+                refreshPending=true; refreshWhenIdle();
+            });
+            navigator.serviceWorker.register('sw.js', {updateViaCache:'none'})
+                .then(value=>{registration=value;return registration.update();})
+                .catch(err=>console.warn('PWA update check unavailable',err));
+            document.addEventListener('visibilitychange',()=>{
+                if(document.visibilityState==='visible'){registration?.update().catch(()=>{});refreshWhenIdle();}
+            });
+            setInterval(()=>{
+                if(document.visibilityState!=='visible' || !navigator.onLine)return;
+                registration?.update().catch(()=>{});refreshWhenIdle();
+            },60000);
+            document.addEventListener('focusout',()=>setTimeout(refreshWhenIdle,500));
         }
     </script>
 
@@ -1153,7 +1179,8 @@ html body #page-place.active #placeUpdatesList > .place-menu-card {
 }
 </style>
 
+<link rel="stylesheet" href="css/mobile.css?v=VICINIFY_GREEN_EDITOR_20261029" />
 <!-- build: VICINIFY_MODERN_FINAL_20261003 -->
-    <script src="js/ui.js?v=VICINIFY_QA_FINAL_20261028"></script>
+    <script src="js/ui.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
 </body>
 </html>
