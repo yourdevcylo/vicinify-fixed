@@ -36,3 +36,7 @@ Read counts already charged will not be undone by this release. Firestore usage 
 The new anti-spam gates add document access checks and, for messages, an explicit transaction read plus a gate write. Server authentication, payment review and booking validation also read trusted records. Those are deliberate security costs. Avoid deleting these checks solely to lower the dashboard count.
 
 Measure equal traffic windows before/after: total reads, number of fresh sessions, catalog size, active chat users, listener reconnects and console browsing. A cold catalog query can still read up to 2,001 approved places. Larger deployments should move discovery to indexed geographic/paginated queries and maintain server-written conversation summaries; these larger data-model changes are not implemented here. Budget alerts notify; they do not enforce a hard spending cap.
+
+
+## Customer quick questions and business replies
+Customer quick questions send immediately while preserving any typed draft. Business owners enable Automatic replies in Manage listing and may customize menu, hours, delivery and booking answers. Replies use saved business data; they never confirm bookings or payments. Deploy the matching frontend, Netlify functions and Firestore rules together. Each enabled reply adds bounded server reads and one reply write; duplicate calls reuse the same reply. Owner self-chat prompts are blocked; select an actual customer from Business Hub Messages. Rules emulator validation remains required before publishing rules.

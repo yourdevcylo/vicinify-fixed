@@ -1,6 +1,8 @@
 /* UI hints mirror the deployed rules; the rules remain the enforcement boundary. */
 (function(root){
  const limits={name:{min:2,max:80,words:12,label:'Name'},place:{min:3,max:120,words:20,label:'Business name'},post:{min:3,max:500,words:100,label:'Post'},report:{min:3,max:500,words:100,label:'Report'},chat:{min:1,max:2000,words:300,label:'Message'},comment:{min:1,max:500,words:100,label:'Comment'},review:{min:3,max:2000,words:300,label:'Feedback'},description:{min:0,max:1000,words:200,label:'Description'}};
+ const quickQuestions={menu:{label:'View menu',text:'Hi! Can I see your menu, please?'},hours:{label:'Opening hours',text:'Hi! What are your opening hours?'},delivery:{label:'Delivery options',text:'Hi! Do you offer delivery, and which areas do you cover?'},booking:{label:'Book a table',text:'Hi! Can I reserve a table? What details do you need?'}};
+ const topicFor=text=>Object.keys(quickQuestions).find(key=>quickQuestions[key].text===String(text||'').trim())||null;
  function error(kind,value){
   const rule=limits[kind],text=typeof value==='string'?value.trim():'';
   if(!rule)return 'Invalid content type.';
@@ -56,6 +58,6 @@
   batch.set(db.collection('write_cooldowns').doc(`${uid}_${scope}`),{uid,scope,targetId:ref.id,at:root.firebase.firestore.FieldValue.serverTimestamp()});
   batch.update(ref,payload);await batch.commit();
  }
- const api={limits,error,create,comment,updatePost,updateMessage:(db,ref,patch)=>create(db,'messages',patch,ref)};
+ const api={quickQuestions,topicFor,limits,error,create,comment,updatePost,updateMessage:(db,ref,patch)=>create(db,'messages',patch,ref)};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.ContentPolicy=api;
 })(typeof window!=='undefined'?window:globalThis);

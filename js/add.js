@@ -459,15 +459,9 @@ if (desc.length < 10) {
         }
 
         try {
-            // 🔥 Gamitin yung Array natin galing sa Photo Grid 🔥
-            const photos = await readPhotos(selectedFilesArray);
-
-            // PLUS49: optional logo — same upload path as photos, smaller cap
-            let logoUrl = "";
-            const logoInput = document.getElementById("bizLogo");
-            if (logoInput && logoInput.files && logoInput.files.length > 0) {
-                logoUrl = await window.uploadImageFileToStorage(logoInput.files[0], "place_logos/new", { maxWidth: 512, quality: 0.85 });
-            }
+            // Branding and photo uploads belong to the verified owner edit flow.
+            const photos = [];
+            const logoUrl = "";
             // Admins (incl. the permanent admin UID) skip the approval
             // queue — the status AND the success message both use this.
             const isAdminSubmitter = AppState.userProfile?.role === "admin" || window.auth.currentUser.uid === "Z45NZhQTgsTUX79WJ5ksCH8N3c02";

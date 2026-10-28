@@ -107,3 +107,7 @@ Supersedes the earlier auto-height Suki presentation: cards now keep the same 1.
 Buzz selected Like/Comment, comment send/focus and badges now use green. Notifications share one compact, bounded, deduplicated queue. Confirmation dialogs have accessible labels, unique IDs, keyboard focus trapping, Escape cancellation, safe text insertion and focus restoration. Danger/error styling retains semantic red. Tests cover duplicate notices, nested confirmation handling and shared notification rendering.
 
 Current local suite: **93 tests passed**, plus build and light/dark responsive checks. Existing Firebase rules/emulator/live-flow limitations still apply; this visual follow-up did not deploy or verify production rules.
+
+
+## Customer quick questions and business replies
+Customer quick questions send immediately while preserving any typed draft. Business owners enable Automatic replies in Manage listing and may customize menu, hours, delivery and booking answers. Replies use saved business data; they never confirm bookings or payments. Deploy the matching frontend, Netlify functions and Firestore rules together. Each enabled reply adds bounded server reads and one reply write; duplicate calls reuse the same reply. Owner self-chat prompts are blocked; select an actual customer from Business Hub Messages. Rules emulator validation remains required before publishing rules.

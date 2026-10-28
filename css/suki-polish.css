@@ -133,3 +133,20 @@ html body.vicinify-ui .suki-dense .suki-reward { font-size:11px; }
  html body.vicinify-ui .suki-dense .suki-name { font-size:10px; }
  html body.vicinify-ui .suki-dense .suki-reward { font-size:10.5px; }
 }
+
+/* Establishment loyalty section and scan-ready QR. */
+html body.vicinify-ui #placeSukiSection { min-width:0; }
+html body.vicinify-ui #placeSukiSection .suki-place-block { padding:18px; border:1px solid var(--ui-border); border-radius:16px; background:var(--ui-surface); margin:0; }
+html body.vicinify-ui #placeSukiSection .suki-place-head { display:flex; align-items:center; gap:9px; margin-bottom:10px; color:var(--ui-success-ink); }
+html body.vicinify-ui #placeSukiSection h3 { margin:0; font-size:15px; color:var(--ui-ink); }
+html body.vicinify-ui #placeSukiSection .suki-place-head svg { width:20px; height:20px; }
+html body.vicinify-ui #placeSukiSection .suki-note { font-size:12px; line-height:1.7; color:var(--ui-muted); margin:0 0 16px; }
+html body.vicinify-ui #placeSukiSection .suki-qr-box { display:flex; flex-direction:column; align-items:center; gap:10px; padding:18px 12px; background:var(--ui-soft); border:1px solid var(--ui-border); border-radius:14px; min-width:0; }
+html body.vicinify-ui #placeSukiSection .suki-qr-img { display:flex; justify-content:center; align-items:center; padding:16px; background:#fff !important; border-radius:12px; width:212px; max-width:100%; min-height:212px; box-sizing:border-box; }
+html body.vicinify-ui #placeSukiSection .suki-qr-img :is(img,canvas) { width:180px; height:180px; max-width:100%; object-fit:contain; }
+html body.vicinify-ui #placeSukiSection .suki-qr-token { max-width:100%; overflow-wrap:anywhere; text-align:center; font:10px/1.5 monospace; color:var(--ui-muted); }
+html body.vicinify-ui #placeSukiSection .suki-qr-count { color:var(--ui-success-ink); font-size:11px !important; text-align:center; }
+html body.vicinify-ui #placeSukiSection .suki-place-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+html body.vicinify-ui #placeSukiSection .suki-req-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:10px 14px; background:var(--ui-success-bg); color:var(--ui-success-ink); border:1px solid var(--ui-success-line); border-radius:10px; font-size:12px; }
+html body.vicinify-ui #placeSukiSection .suki-req-btn svg { width:18px; height:18px; }
+@media(max-width:540px) { html body.vicinify-ui #placeSukiSection .suki-place-block { padding:14px; } html body.vicinify-ui #placeSukiSection .suki-place-actions>* { width:100%; } }

@@ -22,13 +22,13 @@
     <link rel="dns-prefetch" href="https://tile.openstreetmap.org" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <link rel="stylesheet" href="css/style.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028" />
-    <link rel="stylesheet" href="css/ui.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028" />
-    <link rel="stylesheet" href="css/reference.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028" />
-    <link rel="stylesheet" href="css/components.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028" />
-    <link rel="stylesheet" href="css/place-preview.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028">
-    <link rel="stylesheet" href="css/suki-polish.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028">
-    <link rel="stylesheet" href="css/vici-chat.css?v=VICINIFY_ALERTS_FIXED_CARD_20261028" />
+    <link rel="stylesheet" href="css/style.css?v=VICINIFY_FULL_DEPLOY_20261028" />
+    <link rel="stylesheet" href="css/ui.css?v=VICINIFY_FULL_DEPLOY_20261028" />
+    <link rel="stylesheet" href="css/reference.css?v=VICINIFY_FULL_DEPLOY_20261028" />
+    <link rel="stylesheet" href="css/components.css?v=VICINIFY_FULL_DEPLOY_20261028" />
+    <link rel="stylesheet" href="css/place-preview.css?v=VICINIFY_FULL_DEPLOY_20261028">
+    <link rel="stylesheet" href="css/suki-polish.css?v=VICINIFY_FULL_DEPLOY_20261028">
+    <link rel="stylesheet" href="css/vici-chat.css?v=VICINIFY_FULL_DEPLOY_20261028" />
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -358,21 +358,7 @@
                 </div>
             </section>
             <section class="card place-features-add-card"><details><summary>About &amp; amenities <small>optional</small></summary><p class="place-features-help">Select only details you can confirm for this place.</p><div id="bizFeatures" data-place-feature-form></div></details></section>
-            <section class="card">
-                <div class="cardTitle"><span class="miniIcon"><i data-lucide="image"></i></span> Photos (optional)</div>
-                <div class="uploadBox">
-                    <input id="bizPhotos" type="file" accept="image/*" multiple />
-                    <div class="uploadHint">Max 5 photos (Optimized for cloud storage).</div>
-                </div>
-            </section>
-            <section class="card">
-                <div class="cardTitle"><span class="miniIcon"><i data-lucide="badge-check"></i></span> Logo (optional)</div>
-                <div class="uploadBox">
-                    <input id="bizLogo" type="file" accept="image/*" />
-                    <div class="uploadHint">Your store logo, shown beside your store name in the list view. Square images work best.</div>
-                    <img id="bizLogoPreview" alt="Logo preview" style="display:none; width:84px; height:84px; object-fit:contain; border-radius:16px; border:1px solid #e2e8f0; margin-top:10px; background:#fff;" />
-                </div>
-            </section>
+            <p class="place-features-help">After approval, edit your profile picture, logo and cover from Business Hub. Manage posts and menu photos on your establishment page.</p>
             <section class="stickyBar">
                 <button id="submitPendingBtn" class="primaryWide"><span class="btnIcon"><i data-lucide="send"></i></span> Submit for Approval</button>
             </section>
@@ -633,7 +619,7 @@
 
                     <div class="bizedit-cover">
                         <label class="bizedit-cover-label">
-                            <i data-lucide="badge-check"></i> Store Logo (optional)
+                            <i data-lucide="badge-check"></i> Profile Picture / Store Logo (optional)
                         </label>
                         <div id="bizPortalLogoPreview" class="bizedit-cover-preview" style="height:110px; background-size:contain; background-repeat:no-repeat; background-position:center;"></div>
                         <input type="file" id="bizPortalLogo" class="bizedit-cover-input" accept="image/*" />
@@ -658,6 +644,18 @@
                     </div>
                 </div>
 
+                <h3 class="bizedit-section-title">Automatic replies</h3>
+                <section class="card bizedit-card auto-reply-settings">
+                    <label class="auto-reply-switch"><input type="checkbox" id="bizAutoReplies"> Reply automatically to customer quick questions</label>
+                    <p class="bizedit-hint">Replies are labeled automatic. Leave an answer blank to use your saved business details. Bookings and payments still need your confirmation.</p>
+                    <div class="auto-reply-fields">
+                        <div class="field"><label for="bizAutoMenu">Menu answer <small>optional</small></label><textarea id="bizAutoMenu" rows="2" maxlength="500" placeholder="Use the menu button and store posts by default."></textarea></div>
+                        <div class="field"><label for="bizAutoHours">Opening hours answer <small>optional</small></label><textarea id="bizAutoHours" rows="2" maxlength="500" placeholder="Use your saved opening hours by default."></textarea></div>
+                        <div class="field"><label for="bizAutoDelivery">Delivery answer <small>optional</small></label><textarea id="bizAutoDelivery" rows="2" maxlength="500" placeholder="Use your saved delivery options by default."></textarea></div>
+                        <div class="field"><label for="bizAutoBooking">Booking answer <small>optional</small></label><textarea id="bizAutoBooking" rows="2" maxlength="500" placeholder="Tell customers how to request a booking."></textarea></div>
+                    </div>
+                    <p class="bizedit-hint">Custom answers: 3–500 characters, up to 100 words.</p>
+                </section>
                 <h3 class="bizedit-section-title"><i data-lucide="clipboard-list"></i> About &amp; Amenities</h3>
                 <div class="card bizedit-card"><p class="place-features-help">Select only features available at your establishment. Unchecked items will not be shown as available.</p><div id="bizPortalFeatures" data-place-feature-form></div></div>
                 <h3 class="bizedit-section-title"><i data-lucide="bike"></i> Delivery &amp; Logistics</h3>
@@ -828,7 +826,7 @@
                     <div class="field"><label>Details</label><textarea id="postBody" minlength="3" maxlength="500" rows="4" placeholder="Write something..."></textarea></div>
                     <div class="field">
                         <label><i data-lucide="image" style="width:16px; height:16px; vertical-align:middle;"></i> Add Photo or Video</label>
-                        <input type="file" id="postMedia" accept="image/*,video/*" style="border: 1px dashed #cbd5e1; background: #f8fafc; padding: 10px; cursor: pointer; border-radius: 8px; width: 100%;" />
+                        <input type="file" id="postMedia" accept="image/*" style="border: 1px dashed #cbd5e1; background: #f8fafc; padding: 10px; cursor: pointer; border-radius: 8px; width: 100%;" />
                         <div id="mediaPreview" style="margin-top: 10px; max-height: 150px; overflow: hidden; border-radius: 8px; display: none; border: 1px solid #e2e8f0;"></div>
                     </div>
                 </div>
@@ -1079,18 +1077,18 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-    <script src="js/data.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
-    <script src="js/payment-policy.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
-    <script src="js/place-features.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
-    <script src="js/place-preview.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
-    <script src="js/content-policy.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
-    <script src="js/common.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
-    <script src="js/vici-chat.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
-    <script src="js/map.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
-    <script src="js/add.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
-    <script src="js/buzz.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
-    <script src="js/dashboard.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
-    <script src="js/settings.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/data.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
+    <script src="js/payment-policy.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
+    <script src="js/place-features.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
+    <script src="js/place-preview.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
+    <script src="js/content-policy.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
+    <script src="js/common.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
+    <script src="js/vici-chat.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
+    <script src="js/map.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
+    <script src="js/add.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
+    <script src="js/buzz.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
+    <script src="js/dashboard.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
+    <script src="js/settings.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
 
     <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
     <script>lucide.createIcons();</script>
@@ -1127,7 +1125,7 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('sw.js?v=VICINIFY_FULL_DEPLOY_20261028', { updateViaCache: 'none' })
                 .then((registration) => registration.update().then(() => registration))
                 .then(() => console.log('Vicinify PWA Ready!'))
                 .catch((err) => console.log('PWA Error', err));
@@ -1156,6 +1154,6 @@ html body #page-place.active #placeUpdatesList > .place-menu-card {
 </style>
 
 <!-- build: VICINIFY_MODERN_FINAL_20261003 -->
-    <script src="js/ui.js?v=VICINIFY_ALERTS_FIXED_CARD_20261028"></script>
+    <script src="js/ui.js?v=VICINIFY_FULL_DEPLOY_20261028"></script>
 </body>
 </html>

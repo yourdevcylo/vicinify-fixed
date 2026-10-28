@@ -13,7 +13,7 @@ window.MapPage = (() => {
     }
     let cloudPlaces = [];
     let placeUpdatesUnsub = null;
-    let routingControl = null; 
+    let routingControl = null;
 
     // 🔥 REACT/TAILWIND STYLE CSS INJECTION + NEW ANIMATIONS 🔥
     const btnFixStyles = document.createElement('style');
@@ -24,18 +24,18 @@ window.MapPage = (() => {
 
         /* Modern AI Search Bar - Z-INDEX FIX APPLIED HERE */
        /* Modern AI Search Bar - Z-INDEX FIX APPLIED HERE */
-.askBar { 
-    position: relative !important; 
-    z-index: 9999 !important; 
-    display: flex !important; 
-    align-items: center !important; 
-    background: transparent !important; 
-    padding: 12px 16px 8px 16px !important; 
+.askBar {
+    position: relative !important;
+    z-index: 9999 !important;
+    display: flex !important;
+    align-items: center !important;
+    background: transparent !important;
+    padding: 12px 16px 8px 16px !important;
     margin: 0 !important; /* 🔥 ITO YUNG FIX: Tinanggal ang margin para hindi lumagpas sa 100% width 🔥 */
     width: 100% !important;
     box-sizing: border-box !important;
-    border: none !important; 
-    box-shadow: none !important; 
+    border: none !important;
+    box-shadow: none !important;
 }
         #askInput { width: 100% !important; height: 54px !important; padding: 0 64px 0 58px !important; border-radius: 18px !important; border: 1px solid #dbe7f6 !important; background: rgba(255,255,255,0.98) !important; box-shadow: 0 2px 10px rgba(15,23,42,0.05) !important; font-size: 15px !important; line-height: 54px !important; outline: none !important; transition: border-color .2s ease, box-shadow .2s ease, background .2s ease !important; font-family: inherit !important; color: #0f172a !important; box-sizing: border-box !important; }
         #askInput::placeholder { color: #94a3b8 !important; font-weight: 600 !important; }
@@ -70,23 +70,23 @@ window.MapPage = (() => {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
         }
-        
+
         .user-marker-modern {
             width: 20px; height: 20px; background: #3b82f6; border: 3px solid white; border-radius: 50%;
             animation: userRadarPulse 2s ease-in-out infinite; margin-left: 4px; margin-top: 4px;
         }
-        
+
         .vici-marker-wrap.premium-pulse { animation: markerPulseAnim 2s infinite; z-index: 1000 !important; }
         .vici-star-badge {
             position: absolute; top: -8px; right: -12px; background: #f59e0b; color: white; border-radius: 50%;
             width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px;
             border: 2px solid white; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        
+
         /* Modern React Popup Overrides */
         .leaflet-popup-content-wrapper { border-radius: 16px !important; overflow: hidden !important; padding: 0 !important; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1) !important; border: 1px solid #f3f4f6; }
         .leaflet-popup-content { margin: 0 !important; width: 240px !important; }
-        .leaflet-popup-tip-container { display: none !important; } 
+        .leaflet-popup-tip-container { display: none !important; }
     `;
     document.head.appendChild(btnFixStyles);
 
@@ -1201,7 +1201,7 @@ window.MapPage = (() => {
                     <div class="mec-sub"><span class="mec-cat">${escapeHtml(catLabel)}</span><span class="mec-dot-sep">•</span><span>${escapeHtml(placeLine)}</span></div>
                 </div>
             </div>
-            
+
             ${p.suki_enabled ? `<div class="mec-suki-row"><span class="mec-suki-badge"><i data-lucide="stamp"></i> Suki Card Available</span></div>` : ``}
             <div class="mec-status-row">
                 <div class="mec-status ${statusClass}">
@@ -1213,7 +1213,7 @@ window.MapPage = (() => {
                 </div>` : ''}
             </div>
             ${openState.hint ? `<div class="mec-hours-hint"><i data-lucide="clock" style="width:12px; height:12px; vertical-align:-2px;"></i> ${escapeHtml(openState.hint)}</div>` : ''}
-            
+
             <div class="mec-info-line">
                 <span class="mec-rating">${ratingHtml}</span>
                 ${distText ? `<span class="mec-info-dist"><i data-lucide="navigation" style="width:12px;height:12px;"></i>${distText} away</span>` : ''}
@@ -1221,7 +1221,7 @@ window.MapPage = (() => {
 
             <!-- 🔥 IDINAGDAG ANG DELIVERY BADGES DITO 🔥 -->
             ${deliverySummaryHtml}
-            
+
             <div class="mec-actions">
                 <button class="mec-btn-view" onclick="window.viewPlace('${p.id}')"><span data-i18n="View">View</span></button>
                 <button class="mec-btn-nav" onclick="window.routeToPlace(${p.lat}, ${p.lng})">
@@ -1286,12 +1286,12 @@ window.MapPage = (() => {
         function buildMarker(p, freshness) {
             const config = CAT_CONFIG[p.cat] || CAT_CONFIG["default"];
             const markerColor = "#e1f1e9";
-            
+
             const isPremium = p.is_featured || p.is_premium;
             const premiumClass = isPremium && !freshness.isInactive ? "premium-pulse" : "";
             const starBadgeHtml = isPremium ? `<div class="vici-star-badge"><i data-lucide="star" style="width:12px; height:12px; fill:white;"></i></div>` : '';
             const staleBadgeHtml = freshness.level && freshness.level !== "active" ? `<div class="vici-stale-badge" title="${escapeHtml(freshness.label || '')}"><i data-lucide="${freshness.isInactive ? 'pause' : 'alert-triangle'}" style="width:10px; height:10px;"></i></div>` : '';
-            
+
             const customHtml = `
                 <div class="vici-marker-wrap ${premiumClass} ${freshness.className || ''}" style="position:relative;">
                     ${starBadgeHtml}
@@ -1302,12 +1302,12 @@ window.MapPage = (() => {
                     </div>
                 </div>
             `;
-            
+
             const customIcon = L.divIcon({ className: 'custom-pin-wrap', html: customHtml, iconSize: [36, 44], iconAnchor: [18, 44], popupAnchor: [0, -46] });
             const m = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(map);
             // v53BK #7: lazy popup — build card HTML only when opened, not for all markers upfront
             m.bindPopup(() => buildPlaceCard(p), { className: "vici-place-popup", maxWidth: 300, minWidth: 240 });
-            m.on('popupopen', (e) => { 
+            m.on('popupopen', (e) => {
                 try {
                     const popupEl = e.popup?.getElement();
                     if (popupEl && window.lucide) window.lucide.createIcons({ root: popupEl });
@@ -1353,18 +1353,18 @@ window.MapPage = (() => {
    function initRadius() {
         const segContainer = document.getElementById("radiusSegment");
         if (!segContainer) return;
-        
+
         const indicator = document.getElementById("radiusIndicator");
         const btns = segContainer.querySelectorAll(".seg");
-        
+
         function updateIndicator(btn) {
             if (!indicator || !btn) return;
             // Kung nakatago pa ang page, wag muna i-activate ang slider para yung CSS fallback ang gumana
-            if (btn.offsetWidth === 0) return; 
-            
+            if (btn.offsetWidth === 0) return;
+
             // I-activate ang slider at ipwesto
             segContainer.classList.add("slider-active");
-            indicator.style.transform = "none"; 
+            indicator.style.transform = "none";
             indicator.style.width = btn.offsetWidth + "px";
             indicator.style.left = btn.offsetLeft + "px";
         }
@@ -1379,7 +1379,7 @@ window.MapPage = (() => {
                     b.classList.remove("active");
                 }
             });
-        }, 100); 
+        }, 100);
 
         const customForm = document.getElementById('customRadiusForm');
         const customChoice = document.getElementById('customRadiusChoice');
@@ -1411,9 +1411,9 @@ window.MapPage = (() => {
             if(customForm) customForm.classList.toggle('is-active', btn === customChoice);
             btns.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            
+
             updateIndicator(btn); // I-slide ang background
-            
+
             AppState.radius = Number(btn.dataset.radius);
             if (typeof radiusCircle !== 'undefined' && radiusCircle) {
                 radiusCircle.setRadius(AppState.radius);
@@ -2004,7 +2004,7 @@ window.MapPage = (() => {
 
         const suggDiv = document.createElement('div');
         suggDiv.className = 'ai-suggestions';
-        
+
         // Added .text-truncate structure to prevent horizontal spill out
         suggDiv.innerHTML = `
             <div class="ai-sugg-header">Try asking</div>
@@ -2015,7 +2015,7 @@ window.MapPage = (() => {
         askInput.addEventListener('focus', () => {
             if (!askInput.value.trim()) suggDiv.classList.add('show');
         });
-        
+
         askInput.addEventListener('input', () => {
             if (askInput.value.trim()) suggDiv.classList.remove('show');
             else suggDiv.classList.add('show');
@@ -2030,7 +2030,7 @@ window.MapPage = (() => {
                 const text = item.textContent.replace('→', '').trim();
                 askInput.value = text;
                 suggDiv.classList.remove('show');
-                processAISearch(); 
+                processAISearch();
             });
         });
     }
@@ -2138,11 +2138,11 @@ window.MapPage = (() => {
             <div class="placeCover ${finalCoverImg ? 'has-cover' : 'no-cover'}" style="${coverStyle}">
                 <div class="placeTopBar">
                     <button class="circleBackBtn" aria-label="Back to map" onclick="showPage('page-map')"><i data-lucide="arrow-left"></i></button>
-                    
+
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        ${p.is_featured ? `<div class="featuredBadge"><i data-lucide="star"></i> Featured</div>` : ''}
-                        
-                        <button id="favBtn_${p.id}" class="btn-fav ${isFavorited ? 'active' : ''}" aria-label="Save establishment" onclick="window.toggleFavorite('${p.id}', this)">
+
+
+                        <button id="favBtn_${p.id}" class="btn-fav ${isFavorited ? 'active' : ''}" aria-pressed="${isFavorited}" aria-label="${isFavorited ? 'Remove from favorites' : 'Save establishment'}" onclick="window.toggleFavorite('${p.id}', this)">
                             <i data-lucide="heart" style="${isFavorited ? 'fill: currentColor;' : ''}"></i>
                         </button>
                     </div>
@@ -2162,10 +2162,10 @@ window.MapPage = (() => {
                         <span class="place-profile-eyebrow">LOCAL FAVORITES · LIPA CITY</span>
                         <h1>${escapeHtml(p.name)}</h1>
                         <p style="margin-bottom: 8px;">${escapeHtml((p.cat || p.category || "Establishment").toUpperCase())}</p>
-                        
+
                         ${p.avgRating ? `
                             <button type="button" class="place-rating-jump" onclick="window.scrollPlaceReviews('${p.id}')" style="border:none; display:inline-flex; align-items:center; gap:6px; background:#fef9c3; color:#854d0e; padding:6px 10px; border-radius:8px; font-weight:700; font-size:13px;">
-                                <i data-lucide="star" style="width:16px; height:16px; fill:#854d0e;"></i> 
+                                <i data-lucide="star" style="width:16px; height:16px; fill:#854d0e;"></i>
                                 ${p.avgRating} <span style="font-weight:normal; opacity:0.8;">(${p.reviewCount} Reviews)</span>
                             </button>
                         ` : `
@@ -2189,12 +2189,12 @@ window.MapPage = (() => {
                     <span style="background:#f1f5f9; color:#475569; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="bike" style="width:14px;"></i> Grab/Foodpanda
                     </span>` : ''}
-                    
+
                     ${p.delivery_inhouse ? `
                     <span style="background:#f1f5f9; color:#475569; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="home" style="width:14px;"></i> In-house Delivery
                     </span>` : ''}
-                    
+
                     ${p.delivery_radius ? `
                     <span style="background:#fef3c7; color:#854d0e; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="map" style="width:14px;"></i> Radius: ${escapeHtml(p.delivery_radius)}km
@@ -2208,7 +2208,7 @@ window.MapPage = (() => {
                     <div class="placeContactRow"><i data-lucide="map-pin"></i> <span>${escapeHtml(placeAddrText)}</span></div>
                     <div class="placeContactRow link"><i data-lucide="phone"></i> <span>${escapeHtml(p.phone || p.contact_phone || "No contact number")}</span></div>
                 </div>
-                
+
                 <div class="placeActionBtns">
                     <button class="btnNav" onclick="window.routeToPlace(${p.lat}, ${p.lng})" style="display:flex; align-items:center; justify-content:center; gap:8px;"><i data-lucide="send"></i> <span data-i18n="Navigate">Navigate</span></button>
                     <button class="btnBook" onclick="window.openBookingModal('${p.id}', '${safeName}')" style="display:flex; align-items:center; justify-content:center; gap:8px;"><i data-lucide="calendar"></i> <span data-i18n="Send Request">Send Request</span></button>
@@ -2227,7 +2227,7 @@ window.MapPage = (() => {
                         </div>
                     </div>
                     <p class="place-description-text">${escapeHtml(p.desc || p.description || "No details provided.")}</p>
-                    
+
                     ${adminPostBtnHtml}
 
                     <div class="rating-section place-rating-panel" style="margin-top: 24px; padding: 20px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0;">
@@ -2237,9 +2237,9 @@ window.MapPage = (() => {
                         <h4 style="margin:0; font-size:14px; color:#1e293b;">${userRating > 0 ? 'Your Rating' : 'Rate this establishment'}</h4>
                         <div class="stars-input" id="starInputContainer" style="display: flex; gap: 8px; margin: 12px 0;">
                             ${[1, 2, 3, 4, 5].map(num => `
-                                <button class="star-btn ${num <= userRating ? 'active' : ''}" 
+                                <button class="star-btn ${num <= userRating ? 'active' : ''}"
                                         aria-label="Rate ${num} ${num === 1 ? 'star' : 'stars'}"
-                                        onclick="window.submitRating('${p.id}', ${num})" 
+                                        onclick="window.submitRating('${p.id}', ${num})"
                                         style="background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center;">
                                     <i data-lucide="star" style="width:30px; height:30px; display:block;"></i>
                                 </button>
@@ -2272,7 +2272,7 @@ window.MapPage = (() => {
                             <span>Menu board</span>
                             <h3><i data-lucide="utensils"></i> <span data-i18n="Menu & Store Posts">Menu & Store Posts</span></h3>
                         </div>
-                        ${isOwnerOrAdmin ? `<button type="button" onclick="window.openPlacePostModal('${p.id}', '${safeName}')"><i data-lucide="plus"></i> Add Post</button>` : ""}
+                        ${isOwnerOrAdmin ? `<button type="button" onclick="window.openPlacePostModal('${p.id}', '${safeName}')"><i data-lucide="image-plus"></i> Add post / photo</button>` : ""}
                     </div>
                     <div id="placeUpdatesList">
                         <div class="muted" style="text-align:center; padding: 20px; font-size: 13px;">Checking menu and store posts...</div>
@@ -2531,6 +2531,7 @@ window.MapPage = (() => {
             return window.showToast("Only the owner or an admin can post updates for this establishment.", "error");
         }
 
+        document.getElementById('placePostModal').dataset.editPostId = '';
         document.getElementById('placePostPlaceId').value = placeId;
         const postBodyEl = document.getElementById('placePostBody');
         postBodyEl.value = "";
@@ -2567,7 +2568,21 @@ window.MapPage = (() => {
         if (box) box.scrollTop = 0;
     };
 
+    window.editPlacePost = async function(postId) {
+        try {
+            const snap=await window.db.collection('place_posts').doc(postId).get();
+            if(!snap.exists) return window.showToast('Post no longer exists.','info');
+            const post=snap.data();
+            if(!await canManagePlace(post.placeId)) return window.showToast('Only the owner or an admin can edit this post.','error');
+            await window.openPlacePostModal(post.placeId, 'Establishment');
+            document.getElementById('placePostModal').dataset.editPostId=postId;
+            document.getElementById('placePostBody').value=post.body || '';
+            document.getElementById('submitPlacePostBtn').textContent='Save changes';
+        } catch(e) { window.showToast('Could not open post. Please try again.','error'); }
+    };
+
     window.submitPlacePost = async function () {
+        const editPostId = document.getElementById('placePostModal').dataset.editPostId || '';
         const placeId = document.getElementById('placePostPlaceId').value;
         const body = document.getElementById('placePostBody').value.trim();
         const fileInput = document.getElementById('placePostMedia');
@@ -2581,7 +2596,7 @@ window.MapPage = (() => {
             return window.showToast("Only the owner or an admin can post updates for this establishment.", "error");
         }
 
-        if (!body && (!fileInput.files || fileInput.files.length === 0)) {
+        if (!editPostId && !body && (!fileInput.files || fileInput.files.length === 0)) {
             return window.showToast("Please add a caption or upload a photo!", "error");
         }
 
@@ -2597,7 +2612,15 @@ window.MapPage = (() => {
                 mediaUrl = await window.uploadImageFileToStorage(file, `place_posts/${placeId}`, { maxWidth: 700, quality: 0.76 });
             }
 
-            await window.ContentPolicy.create(window.db, 'place_posts', {
+            if(editPostId) {
+                const ref=window.db.collection('place_posts').doc(editPostId);
+                const original=await ref.get();
+                if(!original.exists || original.data().placeId!==placeId) throw new Error('Post does not belong to this establishment.');
+                if(!body && !mediaUrl && !original.data().mediaUrl) throw new Error('Add a caption or photo.');
+                const changes={body};
+                if(mediaUrl) changes.mediaUrl=mediaUrl;
+                await ref.update(changes);
+            } else await window.ContentPolicy.create(window.db, 'place_posts', {
                 placeId: placeId,
                 body: body,
                 mediaUrl: mediaUrl,
@@ -2759,6 +2782,7 @@ window.MapPage = (() => {
                                 <i data-lucide="more-horizontal"></i>
                             </button>
                             <div class="place-menu-dropdown" id="placePostMenu-${data.id}">
+                                <button onclick="window.editPlacePost('${data.id}')"><i data-lucide="pencil"></i> Edit caption / photo</button>
                                 <button onclick="window.sharePlacePostToBuzz('${data.id}', 'general')"><i data-lucide="share-2"></i> Share to Buzz</button>
                                 <button onclick="window.sharePlacePostToBuzz('${data.id}', 'announcement')"><i data-lucide="megaphone"></i> Share as Announcement</button>
                                 <button onclick="window.sharePlacePostToBuzz('${data.id}', 'promo')"><i data-lucide="tag"></i> Share as Promo</button>
@@ -2989,7 +3013,7 @@ window.MapPage = (() => {
                     <input type="hidden" id="bookFulfillment" value="Dine-in" />
                 </div>
                 <div class="field"><label>Payment Method</label>
-                    ${chipRow("bookPayment", ["Cash", "GCash", "Maya"], "Cash")}
+                    ${chipRow("bookPayment", ["Cash", "GCash", "Maya", "Bank Transfer", "Others"], "Cash")}
                     <input type="hidden" id="bookPayment" value="Cash" />
                 </div>`;
         } else if (meta.key === "pickup_order") {
@@ -2998,7 +3022,7 @@ window.MapPage = (() => {
                     <textarea id="bookItems" rows="3" placeholder="Example:\n1x Chicken Meal\n2x Fries"></textarea>
                 </div>
                 <div class="field"><label>Payment Method *</label>
-                    ${chipRow("bookPayment", ["Cash on Pickup", "GCash", "Maya"], "Cash on Pickup")}
+                    ${chipRow("bookPayment", ["Cash on Pickup", "GCash", "Maya", "Bank Transfer", "Others"], "Cash on Pickup")}
                     <input type="hidden" id="bookPayment" value="Cash on Pickup" />
                 </div>`;
         } else if (meta.key === "advance_order") {
@@ -3012,7 +3036,7 @@ window.MapPage = (() => {
                     <input type="hidden" id="bookPaymentType" value="Downpayment" />
                 </div>
                 <div class="field"><label>Payment Method *</label>
-                    ${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer"], "GCash")}
+                    ${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer", "Others"], "GCash")}
                     <input type="hidden" id="bookPayment" value="GCash" />
                 </div>`;
         } else if (meta.key === "delivery_order") {
@@ -3022,7 +3046,7 @@ window.MapPage = (() => {
                     <textarea id="bookItems" rows="3" placeholder="Example:\n2x Burger\n1x Large Fries"></textarea>
                 </div>
                 <div class="field"><label>Payment Method *</label>
-                    ${chipRow("bookPayment", ["GCash", "Maya", "COD"], "GCash")}
+                    ${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer", "COD", "Others"], "GCash")}
                     <input type="hidden" id="bookPayment" value="GCash" />
                 </div>`;
         } else {
@@ -3071,13 +3095,14 @@ window.MapPage = (() => {
         const time = document.getElementById("bookTime");
         if (!date || !time) return;
         const now = new Date();
-        const today = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
-        const nextMinute = new Date(now.getTime() + 60000);
-        const minTime = String(nextMinute.getHours()).padStart(2, "0") + ":" + String(nextMinute.getMinutes()).padStart(2, "0");
+        const phNow = new Date(now.getTime() + 8 * 3600000);
+        const today = phNow.toISOString().slice(0, 10);
+        const nextMinute = new Date(phNow.getTime() + 60000);
+        const minTime = String(nextMinute.getUTCHours()).padStart(2, "0") + ":" + String(nextMinute.getUTCMinutes()).padStart(2, "0");
         date.min = today;
         date.setCustomValidity(date.value && date.value < today ? "Please choose today or a future date." : "");
         time.min = date.value === today ? minTime : "";
-        const chosen = date.value && time.value ? new Date(date.value + "T" + time.value) : null;
+        const chosen = date.value && time.value ? new Date(date.value + "T" + time.value + ":00+08:00") : null;
         time.setCustomValidity(chosen && (!Number.isFinite(chosen.getTime()) || chosen.getTime() <= now.getTime())
             ? "Please choose a future time. Past bookings are not allowed." : "");
     }
@@ -3176,7 +3201,7 @@ window.MapPage = (() => {
         }
         // Past bookings are not allowed: today or a future date/time only.
         {
-            const chosen = new Date(date + "T" + time);
+            const chosen = new Date(date + "T" + time + ":00+08:00");
             if (isNaN(chosen.getTime()) || chosen.getTime() <= Date.now()) {
                 return window.showToast("Please choose today or a future date and time.", "error");
             }
@@ -3380,15 +3405,15 @@ window.MapPage = (() => {
 document.addEventListener("click", function(e) {
     const btnMap = e.target.closest("#btnMapView");
     const btnList = e.target.closest("#btnListView");
-    
+
     if (btnList) {
         const mapCont = document.getElementById("map");
         const listCont = document.getElementById("listViewContainer");
         const btnM = document.getElementById("btnMapView");
-        
+
         btnList.classList.add("active");
         if (btnM) btnM.classList.remove("active");
-        
+
         btnList.style.background = "white";
         btnList.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
         if (btnM) {

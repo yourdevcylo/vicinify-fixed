@@ -13,15 +13,15 @@ function schedule(now,date,time){
  return {doc,run:()=>ctx.syncBookingSchedule(),setNow:n=>current=n,close:()=>dom.window.close()};
 }
 test('past date and earlier time today are rejected; calendar minimum is today',()=>{
- const s=schedule(new Date(2026,9,27,14,30,25).getTime(),'2026-10-26','15:00');s.run();const date=s.doc.getElementById('bookDate'),time=s.doc.getElementById('bookTime');assert.equal(date.min,'2026-10-27');assert.equal(date.checkValidity(),false);
+ const s=schedule(new Date("2026-10-27T14:30:25+08:00").getTime(),'2026-10-26','15:00');s.run();const date=s.doc.getElementById('bookDate'),time=s.doc.getElementById('bookTime');assert.equal(date.min,'2026-10-27');assert.equal(date.checkValidity(),false);
  date.value='2026-10-27';time.value='14:30';s.run();assert.equal(time.checkValidity(),false);assert.equal(time.min,'14:31');
  time.value='14:31';s.run();assert.equal(time.checkValidity(),true);s.close();
 });
 test('future dates allow earlier clock times and clear old validity errors',()=>{
- const s=schedule(new Date(2026,9,27,14,30).getTime(),'2026-10-27','08:00');s.run();assert.equal(s.doc.getElementById('bookTime').checkValidity(),false);
+ const s=schedule(new Date("2026-10-27T14:30:00+08:00").getTime(),'2026-10-27','08:00');s.run();assert.equal(s.doc.getElementById('bookTime').checkValidity(),false);
  s.doc.getElementById('bookDate').value='2026-10-28';s.run();assert.equal(s.doc.getElementById('bookTime').min,'');assert.equal(s.doc.getElementById('bookTime').checkValidity(),true);s.close();
 });
 test('schedule guard refreshes after midnight and rejects time elapsed while form was open',()=>{
- const s=schedule(new Date(2026,9,27,23,58).getTime(),'2026-10-27','23:59');s.run();assert.equal(s.doc.getElementById('bookTime').checkValidity(),true);
- s.setNow(new Date(2026,9,28,0,1).getTime());s.run();assert.equal(s.doc.getElementById('bookDate').min,'2026-10-28');assert.equal(s.doc.getElementById('bookDate').checkValidity(),false);s.close();
+ const s=schedule(new Date("2026-10-27T23:58:00+08:00").getTime(),'2026-10-27','23:59');s.run();assert.equal(s.doc.getElementById('bookTime').checkValidity(),true);
+ s.setNow(new Date("2026-10-28T00:01:00+08:00").getTime());s.run();assert.equal(s.doc.getElementById('bookDate').min,'2026-10-28');assert.equal(s.doc.getElementById('bookDate').checkValidity(),false);s.close();
 });

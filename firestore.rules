@@ -46,6 +46,15 @@ service cloud.firestore {
     function optionalText(data,key,maximum) {
       return !(key in data) || data[key] == null || (data[key] is string && data[key].size() <= maximum);
     }
+    function validAutoReplies(data) {
+      let answers=data.get('auto_reply_answers',{});
+      return data.get('auto_reply_enabled',false) is bool
+        && answers is map && answers.keys().hasOnly(['menu','hours','delivery','booking'])
+        && (answers.get('menu','')=='' || validPost(answers.menu))
+        && (answers.get('hours','')=='' || validPost(answers.hours))
+        && (answers.get('delivery','')=='' || validPost(answers.delivery))
+        && (answers.get('booking','')=='' || validPost(answers.booking));
+    }
     function cooldownSeconds(scope) { return scope == 'chat' ? 2 : scope == 'comment' ? 5 : scope in ['place','report','claim'] ? 60 : 30; }
     function rateGate(scope, targetId) {
       let gate = getAfter(/databases/$(database)/documents/write_cooldowns/$(request.auth.uid + '_' + scope)).data;
@@ -184,7 +193,7 @@ service cloud.firestore {
           && request.resource.data.get("is_featured", false) == false
           && request.resource.data.get("claimStatus", "unclaimed") in ["unclaimed", "pending"]))
         // Basic input sanity (client also enforces maxlength).
-        && validPlaceName(request.resource.data.name)
+        && validPlaceName(request.resource.data.name) && validAutoReplies(request.resource.data)
         && validDescription(request.resource.data.get('description',''))
         && validDescription(request.resource.data.get('desc',''))
         && (
@@ -198,7 +207,7 @@ service cloud.firestore {
           || (isAdmin() && request.resource.data.approval_status == "approved")
         );
 
-      allow update: if (isAdmin()
+      allow update: if (isAdmin() && validAutoReplies(request.resource.data)
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['name']) || validPlaceName(request.resource.data.name))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['description']) || validDescription(request.resource.data.description))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['desc']) || validDescription(request.resource.data.desc)))
@@ -207,7 +216,7 @@ service cloud.firestore {
           // change who added it, approve their own place, or touch
           // verification/trust fields (self-verification hole closed).
           verifiedEmail()
-          && isPlaceOwner(placeId)
+          && isPlaceOwner(placeId) && validAutoReplies(request.resource.data)
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['description']) || validDescription(request.resource.data.description))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['desc']) || validDescription(request.resource.data.desc))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['name']) || validPlaceName(request.resource.data.name))
@@ -224,6 +233,7 @@ service cloud.firestore {
       allow read: if signedIn()
         && (
           isAdmin()
+          || favId.matches(request.auth.uid + "_.*")
           || resource.data.userId == request.auth.uid
         );
 
@@ -285,6 +295,8 @@ service cloud.firestore {
         && request.resource.data.userId is string
         && request.resource.data.createdAt == request.time
         && messageGate(msgId,request.resource.data.type == "text")
+        && !request.resource.data.keys().hasAny(['isAutoReply','autoReplyTopic','replyTo'])
+        && (!('quickQuestion' in request.resource.data) || request.resource.data.quickQuestion in ['menu','hours','delivery','booking'])
         && optionalText(request.resource.data,'placeName',120)
         && optionalText(request.resource.data,'userName',120)
         && optionalText(request.resource.data,'senderName',120)
@@ -301,7 +313,7 @@ service cloud.firestore {
           && request.resource.data.get('reply',null) == null
           && request.resource.data.get('deliveredAt',null) == null
           && request.resource.data.get('seenAt',null) == null
-          && request.resource.data.keys().hasOnly(['placeId','placeName','userId','userName','type','text','status','deliveredAt','seenAt','senderUid','senderRole','senderName','createdBy','createdAt','reply'])))
+          && request.resource.data.keys().hasOnly(['placeId','placeName','userId','userName','type','text','status','deliveredAt','seenAt','senderUid','senderRole','senderName','createdBy','createdAt','reply','quickQuestion'])))
         && request.resource.data.senderUid == request.auth.uid && request.resource.data.createdBy == request.auth.uid
         && ((request.resource.data.userId == request.auth.uid && request.resource.data.senderRole == "customer"
               && get(/databases/$(database)/documents/places/$(request.resource.data.placeId)).data.approval_status == "approved"

@@ -375,7 +375,7 @@ updateDashboardKpis(places);
                 <i data-lucide="stamp" style="width: 14px; height: 14px;"></i> Suki Card
             </button>
             <button class="biz-edit-btn" style="padding: 8px 12px; background: #ffffff; border: 1px solid #e2e8f0; color: #0f172a; border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;" data-posts="${p.id}">
-                <i data-lucide="image" style="width: 14px; height: 14px;"></i> Posts
+                <i data-lucide="store" style="width: 14px; height: 14px;"></i> View page
             </button>
         </div>
     </div>
@@ -585,7 +585,7 @@ globalMessagesUnsub = [];
                         <span class="status-badge status-${status}">${status.toUpperCase()}</span>
                     </div>
                     <p class="ticket-meta">${meta.icon} ${escapeHtml(meta.title)} • ${dateStr}</p>
-                    <p class="ticket-details" title="${escapeHtml(d.details || "")}">"${escapeHtml(d.details || "")}"</p>
+                    <details class="ticket-request-details"><summary>Request details</summary><p class="ticket-details">${escapeHtml(d.details || "No additional details.")}</p></details>
                     ${
                         status === "pending" ? `
                             <div class="biz-interact-actions ticket-actions">
@@ -638,7 +638,7 @@ globalMessagesUnsub = [];
                         ` : `
                             <div class="biz-interact-actions ticket-actions">
                                 <button class="btn-deny" onclick="window.DashboardPage.deleteBooking('${d.id}')" style="background:#fef2f2; color:#ef4444; border-color:#fee2e2; width:100%; font-size: 13px; padding: 9px;">
-                                    <i data-lucide="trash-2" style="width:15px; height:15px;"></i> Hide Record
+                                    <i data-lucide="archive" style="width:15px; height:15px;"></i> Hide record
                                 </button>
                             </div>
                         `
@@ -681,10 +681,8 @@ globalMessagesUnsub = [];
             return (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0);
         });
 
-        let unreadThreads = threadArr.filter(d => !d.reply);
-        let readThreads = threadArr.filter(d => d.reply);
-
-        const unreadThreadCount = threadArr.filter(d => isOwnerUnreadMessage(d, currentUserUid)).length;
+        const threadUnread = thread => docs.some(message=>message.placeId===thread.placeId && message.userId===thread.userId && isOwnerUnreadMessage(message,currentUserUid));
+        const unreadThreadCount = threadArr.filter(threadUnread).length;
         setNotifBadge("ownerMsgBadge", unreadThreadCount);
         window._dashMsgCount = unreadThreadCount;
         updateDashboardKpis(currentAdminPlaces || []);
@@ -705,45 +703,47 @@ globalMessagesUnsub = [];
                 : "Just now";
 
             const initial = (d.userName || "U").charAt(0).toUpperCase();
-            const lastMsg = d.reply ? `You: ${d.reply}` : `${d.text || ""}`;
+            const waitingForBusiness = d.senderRole ? d.senderRole === 'customer' : !d.reply;
+            const lastMsg = d.reply ? `You: ${d.reply}` : `${d.senderUid===currentUserUid?'You: ':''}${d.text || 'Transaction update'}`;
+            const businessName=currentAdminPlaces.find(place=>place.id===d.placeId)?.name || (d.placeName !== d.userName ? d.placeName : '') || 'Establishment';
 
             const rowHtml = `
-                <div class="inbox-row" style="position: relative; padding: 16px; padding-right: 50px; display: flex; align-items: center; gap: 14px;" onclick="window.DashboardPage.markOwnerMessageThreadRead('${d.userId}', '${d.placeId}'); window.openChatModal('${d.placeId}', '${safeString(d.userName || "Customer")}', '${d.userId}')">
-                    <div class="inbox-avatar" style="background: #e0e7ff; color: #4f46e5; width: 44px; height: 44px; font-size: 20px;">${initial}</div>
+                <div class="inbox-row business-chat-row" style="position: relative; padding: 16px; padding-right: 50px; display: flex; align-items: center; gap: 14px;" onclick="window.DashboardPage.markOwnerMessageThreadRead('${d.userId}', '${d.placeId}'); window.openChatModal('${d.placeId}', '${safeString(d.userName || "Customer")}', '${d.userId}')">
+                    <div class="inbox-avatar" style="background: var(--ui-success-bg); color: var(--ui-success-ink); width: 44px; height: 44px; font-size: 20px;">${escapeHtml(initial)}</div>
 
                     <div class="inbox-content" style="flex: 1; overflow: hidden;">
                         <div class="inbox-top" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                             <div class="inbox-name" style="font-size: 16px; font-weight: 700;">
                                 ${escapeHtml(d.userName || "Customer")}
-                                <span style="font-size:13px; color:#94a3b8; font-weight:500;">(@ ${escapeHtml(d.placeName || "Establishment")})</span>
+                                <span class="business-chat-place">${escapeHtml(businessName)}</span>
                             </div>
                             <div class="inbox-time" style="font-size: 13px; color: #64748b;">${dateStr}</div>
                         </div>
 
                         <div class="inbox-bottom" style="display: flex; align-items: center; gap: 8px;">
                             <div class="inbox-snippet" style="font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ${!d.reply ? "font-weight:700; color:#0f172a;" : "color:#64748b;"}">${escapeHtml(lastMsg)}</div>
-                            ${!d.reply ? `<div class="inbox-unread" style="background:#ef4444; font-size: 11px; padding: 2px 6px;">NEW</div>` : ""}
+                            ${threadUnread(d) ? `<div class="inbox-unread" style="background:var(--ui-success-bg); color:var(--ui-success-ink); font-size: 11px; padding: 2px 6px;">NEW</div>` : ""}
                         </div>
                     </div>
 
-                    <button onclick="window.DashboardPage.deleteChatThread('${d.userId}', '${d.placeId}', event)" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #ef4444; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Delete Thread">
-                        <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
+                    <button onclick="window.DashboardPage.deleteChatThread('${d.userId}', '${d.placeId}', event)" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--ui-muted); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Hide conversation">
+                        <i data-lucide="archive" style="width: 20px; height: 20px;"></i>
                     </button>
                 </div>
             `;
 
-            if (!d.reply) unreadHtml += rowHtml;
+            if (waitingForBusiness) unreadHtml += rowHtml;
             else readHtml += rowHtml;
         });
 
         let finalHtml = "";
 
         if (unreadHtml) {
-            finalHtml += `<div style="font-size: 14px; font-weight: 800; color: #ef4444; margin-bottom: 12px; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Awaiting Reply</div>` + unreadHtml;
+            finalHtml += `<div style="font-size: 14px; font-weight: 800; color: var(--ui-muted); margin-bottom: 12px; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px;" class="business-chat-heading">Needs your reply</div>` + unreadHtml;
         }
 
         if (readHtml) {
-            finalHtml += `<div style="font-size: 14px; font-weight: 800; color: #64748b; margin-top: 32px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Previous Conversations</div>` + readHtml;
+            finalHtml += `<div style="font-size: 14px; font-weight: 800; color: #64748b; margin-top: 32px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;" class="business-chat-heading">Conversations</div>` + readHtml;
         }
 
         messagesWrap.innerHTML = finalHtml;
@@ -1587,6 +1587,7 @@ async function updateBookingStatus(id, stat) {
                     "GCash",
                     "Maya",
                     "Bank Transfer",
+                    "Others",
                     "Cash on Delivery if allowed"
                 ].filter(Boolean)));
 
@@ -2235,6 +2236,9 @@ if (description.length < 10) {
         document.getElementById("bizPortalCat").value = place.category || place.cat || "restaurant";
         document.getElementById("bizPortalDesc").value = place.description || place.desc || "";
         window.PlaceFeatures?.renderForm(document.getElementById("bizPortalFeatures"), place.place_features || {});
+        document.getElementById('bizAutoReplies').checked=place.auto_reply_enabled===true;
+        for(const [topic,suffix] of Object.entries({menu:'Menu',hours:'Hours',delivery:'Delivery',booking:'Booking'}))
+            document.getElementById('bizAuto'+suffix).value=place.auto_reply_answers?.[topic] || '';
         document.getElementById("bizPortalAddress").value = place.address || place.addr || "";
         document.getElementById("bizPortalPhone").value = place.contact_phone || place.phone || "";
         document.getElementById("bizPortalEmail").value = place.contact_email || "";
@@ -2413,9 +2417,18 @@ if (description.length < 10) {
             return;
         }
 
+        const autoAnswers={};
+        for(const [topic,suffix] of Object.entries({menu:'Menu',hours:'Hours',delivery:'Delivery',booking:'Booking'})){
+            const value=document.getElementById('bizAuto'+suffix).value.trim();
+            const error=value && window.ContentPolicy.error('post',value);
+            if(error)return window.alert(error);
+            autoAnswers[topic]=value;
+        }
         btn.textContent = "Saving..."; btn.disabled = true;
-
+        try {
 let updateData = {
+    auto_reply_enabled:document.getElementById('bizAutoReplies').checked,
+    auto_reply_answers:autoAnswers,
     name,
 
     ...(window.PlaceFeatures && document.getElementById("bizPortalFeatures") ? { place_features: window.PlaceFeatures.readForm(document.getElementById("bizPortalFeatures")) } : {}),
@@ -2472,8 +2485,8 @@ let updateData = {
             updateData.logoUrl = await window.uploadImageFileToStorage(logoInputEl.files[0], `place_logos/${id}`, { maxWidth: 512, quality: 0.85 });
         }
 
-        try {
             await window.db.collection("places").doc(id).update(updateData);
+            myPlacesCache=null;myPlacesCacheAt=0;
             window.invalidatePlacesCache?.();
             alert("Business Profile Updated Successfully!");
             showPage("page-dashboard");
@@ -2488,11 +2501,8 @@ let updateData = {
     function openBizPosts(id) {
         const place = currentAdminPlaces.find(p => p.id === id);
         if (!place) return;
-        document.getElementById("bizPostsPlaceId").value = place.id;
-        document.getElementById("bizPostsPlaceName").textContent = place.name || "";
-        listenToBizPosts(id);
-        window.debouncedIcons?.();
-        showPage("page-biz-posts");
+        // Posts are managed in their public establishment context.
+        window.viewPlace?.(id);
     }
 
     function openAddPostFromPosts() {

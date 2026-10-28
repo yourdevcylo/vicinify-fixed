@@ -21,7 +21,7 @@ window.ThemeManager = (() => {
 
         document.documentElement.dataset.theme = resolvedTheme;
         document.body.dataset.theme = resolvedTheme;
-        document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolvedTheme === "dark" ? "#0f172a" : "#3b82f6");
+        document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolvedTheme === "dark" ? "#14231f" : "#237e72");
         window.dispatchEvent(new CustomEvent("vicinify:themechange", { detail: { theme, resolvedTheme } }));
     }
 
@@ -30,7 +30,7 @@ window.ThemeManager = (() => {
         applyTheme(savedTheme);
 
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-            if (localStorage.getItem('vicinify_theme') === 'system') applyTheme('system');
+            if ((localStorage.getItem('vicinify_theme') || 'system') === 'system') applyTheme('system');
         });
     }
 
@@ -185,7 +185,29 @@ window.LangManager = (() => {
         ,"Audit": "Audit Log"
     };
 
+    Object.assign(phDictionary, {
+        'Profile & Settings':'Profile at Mga Setting', 'Appearance':'Hitsura',
+        'Sounds':'Mga Tunog', 'Navigation sounds':'Tunog sa navigation',
+        'Subtle clicks when navigating':'Mahinang tunog habang lumilipat ng pahina',
+        'Manage your account and preferences.':'Pamahalaan ang iyong account at mga kagustuhan.',
+        'Nickname (Display Name)':'Palayaw (Pangalang ipinapakita)',
+        'Save Profile':'I-save ang Profile', 'Log Out':'Mag-log out',
+        'Delete My Account':'Burahin ang Aking Account',
+        'Date *':'Petsa *', 'Time *':'Oras *', 'Cancel':'Kanselahin',
+        'Send a request':'Magpadala ng request', 'Choose your booking':'Piliin ang booking',
+        'Table Reservation':'Reserbasyon ng Mesa', 'Food Reservation':'Reserbasyon ng Pagkain',
+        'Number of Guests *':'Bilang ng Bisita *', 'Additional Notes':'Karagdagang Pahayag',
+        'Payment Method':'Paraan ng Pagbabayad', 'Payment Method *':'Paraan ng Pagbabayad *',
+        'Needs your reply':'Kailangang sagutin', 'Conversations':'Mga Pag-uusap',
+        'Add post / photo':'Magdagdag ng post / larawan', 'Store Suki QR':'Suki QR ng Tindahan'
+    });
+
     function translateDOM(lang = localStorage.getItem('vicinify_lang') || 'en') {
+        // Tag known leaf labels as well, retaining their English source for reversal.
+        document.querySelectorAll('h2,h3,h4,label,button,span,p,small,summary').forEach(el => {
+            if (!el.children.length && !el.hasAttribute('data-i18n') && Object.hasOwn(phDictionary,el.textContent.trim()))
+                el.setAttribute('data-i18n',el.textContent.trim());
+        });
         // Papalitan nito yung mga text na may data-i18n tag
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
@@ -1524,7 +1546,7 @@ function setupChatSuggestions(isOwnerView) {
             toggle.setAttribute("aria-expanded", String(!choices.hidden));
         });
         group.appendChild(choices);
-        const questions = [
+        const questions = window.ContentPolicy?.quickQuestions ? Object.values(window.ContentPolicy.quickQuestions).map(q=>[q.label,q.text]) : [
             ["View menu", "Hi! Can I see your menu, please?"],
             ["Opening hours", "Hi! What are your opening hours?"],
             ["Delivery options", "Hi! Do you offer delivery, and which areas do you cover?"],
@@ -1535,15 +1557,11 @@ function setupChatSuggestions(isOwnerView) {
             button.type = "button";
             button.textContent = title;
             button.className = "chat-suggestion";
-            button.setAttribute("aria-label", "Draft message: " + message);
+            button.setAttribute("aria-label", "Send question: " + message);
             button.addEventListener("click", () => {
-                if (group.dataset.customer !== "true") return;
-                // Draft only; sending still requires the customer's Send action.
-                const draft = input.value.trim();
-                input.value = draft ? draft + " " + message : message;
-                input.dispatchEvent(new Event("input", { bubbles: true }));
-                input.focus();
-                input.setSelectionRange(input.value.length, input.value.length);
+                if (group.dataset.customer !== "true" || window.__chatSending) return;
+                // Send only this selected question; never append or send a draft.
+                window.sendChatMessage?.({text:message});
             });
             choices.appendChild(button);
         });
@@ -2414,13 +2432,35 @@ if (!user.emailVerified) {
     return;
 }
 
-// Open FIRST with the name the caller already passed; the place fetch
-// (real name + self-chat check) and the customer-name fetch now resolve
-// in the background and update the header in place. They used to block
-// the modal + listener behind two sequential round trips, which made
-// the conversation (and its booking cards) feel hung on open.
+// Resolve this establishment's actual ownership before enabling customer prompts
+// or subscribing to a thread. An account role alone does not identify the chat side.
+const opening = window.__chatOpenGeneration = (window.__chatOpenGeneration || 0) + 1;
+let placeData;
+try {
+    const placeDoc = await window.db.collection('places').doc(placeId).get();
+    if(opening !== window.__chatOpenGeneration || window.auth?.currentUser?.uid !== user.uid)return;
+    if(!placeDoc.exists) return window.showToast('This establishment is unavailable.','error');
+    placeData = placeDoc.data();
+} catch(error) {
+    if(opening !== window.__chatOpenGeneration)return;
+    console.error('Chat ownership lookup failed:',error);
+    return window.showToast('Could not open this conversation. Please try again.','error');
+}
+const ownsPlace = placeData.owner_uid === user.uid;
+const admin = AppState.userProfile?.role === 'admin' || user.uid === 'Z45NZhQTgsTUX79WJ5ksCH8N3c02';
 const targetUid = customerUid || user.uid;
-const isOwnerView = !!customerUid;
+if(ownsPlace && targetUid === user.uid) {
+    setupChatSuggestions(true);
+    window.closeChatModal?.();
+    window.showToast('Open a customer conversation from Business Hub → Messages.','info');
+    showPage('page-dashboard');
+    return;
+}
+const isOwnerView = targetUid !== user.uid;
+if(isOwnerView && !ownsPlace && !admin)
+    return window.showToast('You cannot open another customer’s conversation.','error');
+placeName = placeData.name || placeName || 'Establishment';
+document.getElementById('chatModal').dataset.autoReply=String(!isOwnerView && placeData.auto_reply_enabled===true);
 
 document.getElementById("chatPlaceId").value = placeId;
 document.getElementById("chatPlaceName").value = placeName || "Establishment";
@@ -2447,41 +2487,21 @@ document.getElementById("chatModal").setAttribute("aria-hidden", "false");
 if (!window.__chatScrollLocked) { window.__chatScrollLocked = true; window.lockBodyScroll?.(true); }
 listenToChatRoom(placeId, targetUid);
 
-// Background header resolution. Guarded by the hidden fields so a
-// late result can never overwrite a different chat opened meanwhile.
-(async () => {
-    const stillThisChat = () =>
-        document.getElementById("chatPlaceId")?.value === placeId &&
-        document.getElementById("chatCustomerUid")?.value === targetUid;
+// Resolve only the customer's display name in the background. The business name
+// always comes from the place document, including when opened by its business.
+if(isOwnerView) (async()=>{
     try {
-        if (!isOwnerView) {
-            const placeDoc = await window.db.collection("places").doc(placeId).get();
-            if (!placeDoc.exists || !stillThisChat()) return;
-            const placeData = placeDoc.data();
-            if (placeData.owner_uid === user.uid) {
-                window.closeChatModal();
-                window.alert("This is your own establishment. You cannot message yourself here.");
-                return;
-            }
-            if (placeData.name) {
-                document.getElementById("chatPlaceName").value = placeData.name;
-                document.getElementById("chatModalTitle").innerText = placeData.name;
-                document.getElementById("chatModalAvatar").innerText = getInitial(placeData.name);
-            }
-        } else {
-            const name = await getCustomerDisplayName(customerUid);
-            if (!stillThisChat()) return;
-            document.getElementById("chatModalTitle").innerText = name;
-            document.getElementById("chatModalAvatar").innerText = getInitial(name);
-        }
-    } catch (e) {
-        console.error("Chat header resolution failed:", e);
-    }
+        const name=await getCustomerDisplayName(targetUid);
+        if(opening !== window.__chatOpenGeneration || document.getElementById('chatPlaceId')?.value!==placeId || document.getElementById('chatCustomerUid')?.value!==targetUid)return;
+        document.getElementById('chatModalTitle').innerText=name;
+        document.getElementById('chatModalAvatar').innerText=getInitial(name);
+    }catch(error){console.error('Chat customer-name lookup failed:',error);}
 })();
 
 };
 
 window.closeChatModal = function() {
+window.__chatOpenGeneration = (window.__chatOpenGeneration || 0) + 1;
 document.getElementById("chatModal").classList.add("hidden");
 document.getElementById("chatModal").setAttribute("aria-hidden", "true");
 if (window.__chatScrollLocked) { window.__chatScrollLocked = false; window.lockBodyScroll?.(false); }
@@ -2493,7 +2513,8 @@ if (currentChatUnsub) {
 
 };
 
-window.sendChatMessage = async function() {
+window.sendChatMessage = async function(options = {}) {
+if(window.__chatSending)return;
 const user = window.auth?.currentUser;
 if (!user) return;
 
@@ -2501,16 +2522,19 @@ const placeId = document.getElementById("chatPlaceId").value;
 const placeName = document.getElementById("chatPlaceName").value;
 const customerUid = document.getElementById("chatCustomerUid").value;
 const input = document.getElementById("chatMessageInput");
-const text = input.value.trim();
+const quickSend = typeof options.text === 'string';
+const text = quickSend ? options.text.trim() : input.value.trim();
 
 if (!text) return;
 const contentError = window.ContentPolicy?.error('chat',text);
 if (contentError) return window.alert(contentError);
 
-// Clear right away (chat-style); the text is restored below if the send fails.
-input.value = "";
-input.dispatchEvent(new Event("input", { bubbles: true }));
+// Quick questions preserve the current draft; typed sends clear immediately.
+if(!quickSend){input.value = "";input.dispatchEvent(new Event("input", { bubbles: true }));}
+window.__chatSending=true;
+document.querySelectorAll('#chatSuggestions .chat-suggestion').forEach(button=>button.disabled=true);
 
+try {
 const isOwner = user.uid !== customerUid;
 const customerName = isOwner
     ? await getCustomerDisplayName(customerUid)
@@ -2520,14 +2544,15 @@ const senderName = isOwner
     ? placeName
     : (AppState.userProfile?.fullName || user.displayName || "Customer");
 
-try {
-    await window.ContentPolicy.create(window.db, 'messages', {
+const quickQuestion = !isOwner ? window.ContentPolicy?.topicFor(text) : null;
+    const messageRef = await window.ContentPolicy.create(window.db, 'messages', {
         placeId,
         placeName,
         userId: customerUid,
         userName: customerName,
         type: "text",
         text,
+        ...(quickQuestion ? {quickQuestion} : {}),
         status: "sent",
         deliveredAt: null,
         seenAt: null,
@@ -2538,12 +2563,22 @@ try {
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         reply: null
     });
+    if(quickQuestion && document.getElementById('chatModal').dataset.autoReply==='true') {
+        window.ViciData.command('autoReply',{messageId:messageRef.id,topic:quickQuestion})
+            .catch(error=>{
+                console.warn('Automatic reply unavailable:',error.message);
+                if(window.auth?.currentUser?.uid===user.uid && document.getElementById('chatPlaceId').value===placeId && !document.getElementById('chatModal').classList.contains('hidden'))
+                    window.showToast('Question sent. Automatic reply is unavailable right now; the business can still respond.','info');
+            });
+    }
 } catch (error) {
     console.error("sendChatMessage failed:", error);
-    input.value = text;
-    input.dispatchEvent(new Event("input", { bubbles: true }));
+    if(!quickSend && !input.value.trim()){input.value = text;input.dispatchEvent(new Event("input", { bubbles: true }));}
     if (window.vicinifyToast) window.vicinifyToast("Message not sent: " + error.message, "error");
     else window.alert("Error sending message: " + error.message);
+} finally {
+    window.__chatSending=false;
+    document.querySelectorAll('#chatSuggestions .chat-suggestion').forEach(button=>button.disabled=false);
 }
 
 };
@@ -2758,6 +2793,7 @@ window.updateBookingFromChat = async function(bookingId, messageId, status) {
                     "GCash",
                     "Maya",
                     "Bank Transfer",
+                    "Others",
                     "Cash on Delivery if allowed"
                 ].filter(Boolean)));
 
@@ -3766,7 +3802,9 @@ function renderTextBubble(d, currentUid, dateStr, options = {}) {
         ${!isMine ? `<span class="chat-sender-avatar" aria-hidden="true">${escapeHtml(String(d.senderName || "B").charAt(0).toUpperCase())}</span>` : ""}
         <div class="chat-bubble ${isMine ? "me" : "other"}">
             ${!isMine && !options.grouped && d.senderName ? `<span class="chat-message-sender">${escapeHtml(d.senderName)}</span>` : ""}
+            ${d.isAutoReply ? '<span class="chat-auto-reply-label">Automatic reply</span>' : ''}
             <div class="chat-message-text">${escapeHtml(d.text || "")}</div>
+            ${d.isAutoReply && d.autoReplyTopic==='menu' ? `<button type="button" class="chat-auto-menu" data-auto-menu="${escapeHtml(d.placeId)}">View menu</button>` : ''}
             <div class="chat-message-meta">${isMine ? receiptHtml(d, currentUid, { time: dateStr }) : escapeHtml(dateStr)}</div>
         </div>
     </div>`;
@@ -4142,6 +4180,11 @@ const renderChatSnap = (snap) => {
         const wasAtBottom = (prevH - prevTop - listWrap.clientHeight) < 90;
 
         listWrap.innerHTML = html;
+        listWrap.querySelectorAll('[data-auto-menu]').forEach(button=>button.onclick=()=>{
+            const id=button.dataset.autoMenu,cached=window.MapPage?.getCachedPlace?.(id);
+            window.closeChatModal();
+            if(cached && window.PlacePreview)window.PlacePreview.open(cached);else window.viewPlace?.(id);
+        });
 
         if (wasAtBottom || prevH === 0) {
             listWrap.scrollTop = listWrap.scrollHeight;
@@ -4742,6 +4785,8 @@ window.toggleFavorite = async function (placeId, btn) {
         return;
     }
 
+    if (btn?.disabled) return;
+    if (btn) btn.disabled = true;
     const userId = user.uid;
     const favRef = window.db.collection("favorites").doc(`${userId}_${placeId}`);
 
@@ -4749,7 +4794,7 @@ window.toggleFavorite = async function (placeId, btn) {
         const doc = await favRef.get();
         if (doc.exists) {
             await favRef.delete();
-            if (btn) btn.classList.remove("active");
+            if (btn) { btn.classList.remove("active"); btn.setAttribute("aria-pressed", "false"); btn.setAttribute("aria-label", "Save establishment"); }
             window.alert("Removed from favorites.");
         } else {
             const placeSnap = await window.db.collection("places").doc(placeId).get();
@@ -4765,12 +4810,14 @@ await favRef.set({
 
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
 });
-            if (btn) btn.classList.add("active");
+            if (btn) { btn.classList.add("active"); btn.setAttribute("aria-pressed", "true"); btn.setAttribute("aria-label", "Remove from favorites"); }
             window.alert("Successfully added to favorites!");
         }
     } catch (e) {
         console.error("Favorite Error:", e);
         window.alert("Error updating favorites. Please try again later.");
+    } finally {
+        if (btn) btn.disabled = false;
     }
 };
 
@@ -5689,8 +5736,8 @@ window.Suki = (() => {
         if (isOwner) {
             el.innerHTML = `
                 <div class="suki-place-block">
-                    <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card — Owner view</h3></div>
-                    <p class="suki-note">Show this QR to the customer so they can scan it and request a stamp. The token changes every 10 seconds.</p>
+                    <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Store Suki QR</h3></div>
+                    <p class="suki-note">Let customers scan this code to request a stamp. Review requests before approving.</p>
                     <div data-suki-qr></div>
                 </div>`;
             window.debouncedIcons?.();
@@ -5731,10 +5778,10 @@ window.Suki = (() => {
                     ${renderCard(place, card)}
                     <div class="suki-place-actions">
                         ${pendingReq ? `
-                            <button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="clock"></i> Waiting for the owner's approval…</button>
+                            <button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="clock"></i> Stamp request pending</button>
                             <button type="button" class="suki-plain-btn" data-suki-cancel-req="${sukiEsc(pendingReq.id)}">Cancel request</button>
                         ` : `
-                            <button type="button" class="suki-req-btn" data-suki-scan><i data-lucide="qr-code"></i> Scan with Vicinify</button>
+                            <button type="button" class="suki-req-btn" data-suki-scan><i data-lucide="qr-code"></i> Scan store QR</button>
                         `}
                     </div>
                 </div>`;
@@ -5755,3 +5802,11 @@ window.Suki = (() => {
         mountPlaceSection, unmountPlaceSection, requestStampForPlaceId, customerDisplayName
     };
 })();
+
+// Reject non-photo selections before preview/upload handlers run.
+if (typeof document !== 'undefined') document.addEventListener('change', function(event) {
+ const input=event.target;
+ if (!input?.matches?.('input[type="file"][accept*="image/"]')) return;
+ const invalid=Array.from(input.files || []).some(file=>!file.type.startsWith('image/'));
+ if(invalid){ input.value=''; event.stopImmediatePropagation(); window.showToast?.('Photos only. Please choose an image.', 'error'); }
+}, true);

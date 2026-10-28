@@ -198,3 +198,15 @@ test('reply edits cannot evade message length and gate requirements',async()=>{
  await assertFails(updateDoc(doc(dbFor('owner'),'messages/text'),{reply:'a'.repeat(2001)}));
  await assertFails(updateDoc(doc(dbFor('owner'),'messages/text'),{reply:'Direct edit without a gate'}));
 });
+
+test('only the business can configure bounded auto replies; customers cannot forge automatic messages',async()=>{
+ const db=dbFor('owner');
+ await assertSucceeds(updateDoc(doc(db,'places/shop'),{auto_reply_enabled:true,auto_reply_answers:{menu:'Please view our saved menu.'}}));
+ await assertFails(updateDoc(doc(dbFor('customer'),'places/shop'),{auto_reply_enabled:true}));
+ await assertFails(updateDoc(doc(db,'places/shop'),{auto_reply_enabled:'yes'}));
+ await assertFails(updateDoc(doc(db,'places/shop'),{auto_reply_answers:{menu:'a'.repeat(501)}}));
+ await assertFails(updateDoc(doc(db,'places/shop'),{auto_reply_answers:{other:'Unknown FAQ'}}));
+ const uid='faq-user',data={userId:uid,placeId:'shop',senderUid:uid,createdBy:uid,senderRole:'customer',type:'text',status:'sent',text:'Hi! Can I see your menu, please?',quickQuestion:'menu'};
+ await assertFails(gatedWrite(uid,'chat','forgedauto',{...data,isAutoReply:true}));
+ await assertSucceeds(gatedWrite(uid,'chat','validfaq',data));
+});

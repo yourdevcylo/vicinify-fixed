@@ -1033,3 +1033,154 @@ html body.vicinify-ui :is(.v-toast-close,[id^="vConfirm_"] button):focus-visible
 @media(prefers-reduced-motion:reduce) {html body.vicinify-ui .v-toast { animation:none !important; }}
 html body.vicinify-ui #page-buzz .buzz-feed-type { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border-color:var(--ui-success-line) !important; }
 html body.vicinify-ui #page-buzz :is(.buzz-source-place,.buzz-feed-name>svg) { color:var(--ui-success-ink) !important; }
+/* Cover legacy inbox rows as well as the new activity rows. */
+html body.vicinify-ui :is(#customerActivitySection,#ownerInboxSection) .inbox-avatar { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:1px solid var(--ui-success-line) !important; border-radius:12px !important; font-size:15px !important; width:42px !important; height:42px !important; }
+html body.vicinify-ui :is(#customerActivitySection,#ownerInboxSection) .inbox-name { color:var(--ui-ink) !important; font-size:13px !important; }
+html body.vicinify-ui :is(#customerActivitySection,#ownerInboxSection) :is(.inbox-time,.inbox-snippet) { color:var(--ui-muted) !important; font-size:12px !important; }
+html body.vicinify-ui :is(#customerActivitySection,#ownerInboxSection) .inbox-unread { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border-radius:6px; font-size:9px !important; }
+html body.vicinify-ui :is(#customerActivitySection,#ownerInboxSection) .inbox-row>button { color:var(--ui-muted) !important; }
+html body.vicinify-ui .chat-auto-reply-label { display:block; font-size:9px; color:var(--ui-success-ink); margin-bottom:5px; font-weight:600; }
+html body.vicinify-ui .chat-auto-menu { display:inline-flex; border:1px solid var(--ui-success-line); background:var(--ui-success-bg); color:var(--ui-success-ink); border-radius:8px; padding:7px 10px; font-family:inherit; font-size:11px; margin-top:8px; cursor:pointer; }
+html body.vicinify-ui .auto-reply-settings .auto-reply-switch { display:flex; align-items:center; gap:10px; font-weight:600; font-size:13px; color:var(--ui-ink); }
+html body.vicinify-ui .auto-reply-switch input { accent-color:#237e72; width:17px; height:17px; }
+html body.vicinify-ui .auto-reply-fields { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
+html body.vicinify-ui .auto-reply-fields small { color:var(--ui-muted); font-weight:400; }
+@media(max-width:650px){html body.vicinify-ui .auto-reply-fields { grid-template-columns:1fr; }}
+html body.vicinify-ui .chat-bubble.me .chat-auto-reply-label { color:#d2efe3; }
+
+/* Compact, theme-aware customer request tickets. */
+html body.vicinify-ui #ownerInboxSection .ticket-board { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),380px)); gap:14px; align-items:start; }
+html body.vicinify-ui #ownerInboxSection .order-ticket { border:1px solid var(--ui-border); border-radius:16px; padding:16px; background:var(--ui-surface); box-shadow:none; overflow:hidden; }
+html body.vicinify-ui #ownerInboxSection .order-ticket::before { display:none; }
+html body.vicinify-ui #ownerInboxSection .ticket-avatar { background:var(--ui-success-bg); color:var(--ui-success-ink); border-radius:12px; }
+html body.vicinify-ui #ownerInboxSection .ticket-place { color:var(--ui-muted); }
+html body.vicinify-ui #ownerInboxSection .status-fulfilled.status-badge { background:var(--ui-success-bg); color:var(--ui-success-ink); border:1px solid var(--ui-success-line); }
+html body.vicinify-ui #ownerInboxSection .ticket-meta { font-size:12px; line-height:1.6; color:var(--ui-muted); }
+.ticket-request-details { margin:12px 0; padding:10px 12px; background:var(--ui-soft); border-radius:10px; }
+.ticket-request-details summary { cursor:pointer; font-size:12px; font-weight:600; color:var(--ui-ink); }
+html body.vicinify-ui #ownerInboxSection .ticket-request-details .ticket-details { display:block; -webkit-line-clamp:unset; white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; line-height:1.7; margin:10px 0 0; color:var(--ui-muted); }
+html body.vicinify-ui #ownerInboxSection .ticket-actions .btn-deny:only-child { background:transparent !important; color:var(--ui-muted) !important; border:1px solid var(--ui-border) !important; border-radius:10px; }
+html body.vicinify-ui #ownerInboxSection .payment-conversation-action { margin-top:10px; border-radius:10px; min-height:40px; }
+
+/* Business Hub conversation list: explicit row styles independent of legacy inbox rules. */
+html body.vicinify-ui .business-chat-heading { color:var(--ui-muted) !important; font-size:10px !important; font-weight:700 !important; letter-spacing:.08em !important; margin:18px 0 10px !important; }
+html body.vicinify-ui .business-chat-row { border:1px solid var(--ui-border) !important; border-radius:12px !important; box-shadow:none !important; background:var(--ui-surface) !important; margin:0 0 8px !important; min-height:76px; gap:12px !important; padding:14px 54px 14px 14px !important; transition:background .15s; }
+html body.vicinify-ui .business-chat-row:hover { background:var(--ui-soft) !important; }
+html body.vicinify-ui .business-chat-row .inbox-avatar { width:38px !important; height:38px !important; flex:0 0 38px; border-radius:11px !important; background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; font-size:14px !important; }
+html body.vicinify-ui .business-chat-row .inbox-name { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; font-size:13px !important; color:var(--ui-ink) !important; }
+.business-chat-place { font-size:11px; font-weight:400; color:var(--ui-muted); }
+html body.vicinify-ui .business-chat-row .inbox-snippet { font-size:12px !important; font-weight:400 !important; color:var(--ui-muted) !important; line-height:1.6; }
+html body.vicinify-ui .business-chat-row .inbox-time { font-size:10px !important; color:var(--ui-muted) !important; flex-shrink:0; margin-left:10px; }
+html body.vicinify-ui .business-chat-row .inbox-unread { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; font-size:9px !important; border-radius:5px; padding:2px 5px !important; }
+html body.vicinify-ui .business-chat-row>button { color:var(--ui-muted) !important; right:10px !important; width:32px !important; height:32px !important; border-radius:8px; }
+html body.vicinify-ui .business-chat-row>button:hover { background:var(--ui-soft) !important; color:var(--ui-ink) !important; }
+@media(max-width:540px) { .business-chat-place { flex-basis:100%; } html body.vicinify-ui .business-chat-row { padding:12px 42px 12px 10px !important; gap:9px !important; } }
+/* Mobile request form: equal native date/time controls, including iOS Safari. */
+html body.vicinify-ui #bookingModal .booking-date-grid { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:12px !important; align-items:start; }
+html body.vicinify-ui #bookingModal .booking-date-grid .booking-field { min-width:0; width:100%; margin:0; }
+html body.vicinify-ui #bookingModal .booking-date-grid label { display:block; line-height:20px; margin:0 0 8px; }
+html body.vicinify-ui #bookingModal :is(input[type=date],input[type=time]) { appearance:none; -webkit-appearance:none; display:block; box-sizing:border-box; width:100% !important; min-width:0 !important; max-width:100%; height:46px !important; min-height:46px !important; padding:10px 12px !important; line-height:24px; font-size:16px !important; text-align:left; border-radius:10px !important; }
+#bookingModal input::-webkit-date-and-time-value { text-align:left; min-height:24px; }
+html body.vicinify-ui #bookingModal .req-chip { background:var(--ui-soft); color:var(--ui-ink); border-color:var(--ui-border); min-height:42px; border-radius:10px; }
+html body.vicinify-ui #bookingModal .req-chip.active { background:var(--ui-success-bg); color:var(--ui-success-ink); border-color:var(--ui-success-line); }
+@media(max-width:640px) {
+ html body.vicinify-ui #bookingModal .booking-sheet { display:flex !important; flex-direction:column !important; max-height:calc(100dvh - 20px) !important; overflow:hidden; }
+ html body.vicinify-ui #bookingModal .modalBody { min-height:0; overflow-y:auto !important; overflow-x:hidden; padding:16px !important; scroll-padding-bottom:20px; }
+ html body.vicinify-ui #bookingModal .booking-footer { display:grid !important; grid-template-columns:minmax(0,1fr) minmax(0,1.35fr); gap:10px !important; padding:12px 16px max(12px,env(safe-area-inset-bottom)) !important; flex-shrink:0; }
+ html body.vicinify-ui #bookingModal .booking-footer button { width:100%; min-width:0; min-height:46px; margin:0; padding:10px !important; font-size:12px !important; line-height:1.4; }
+ html body.vicinify-ui #bookingModal :is(.booking-choice-grid,.req-section,.req-chips) { min-width:0; max-width:100%; box-sizing:border-box; }
+ html body.vicinify-ui #bookingModal .req-chips { gap:7px; }
+ html body.vicinify-ui #bookingModal button[data-request-type] { background:var(--ui-soft) !important; color:var(--ui-ink) !important; border-color:var(--ui-border) !important; }
+ html body.vicinify-ui #bookingModal button[data-request-type].active { background:var(--ui-success-bg) !important; border-color:var(--ui-success-line) !important; }
+}
+
+html body.vicinify-ui .placeTopBar :is(.btn-fav,.circleBackBtn) { display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:13px; background:var(--ui-surface) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-border); box-shadow:0 2px 10px #0000000d; }
+html body.vicinify-ui .placeTopBar svg { width:19px; height:19px; stroke-width:1.8; }
+html body.vicinify-ui .placeTopBar .btn-fav.active { color:var(--ui-success-ink) !important; background:var(--ui-success-bg) !important; border-color:var(--ui-success-line); }
+.placeTopBar .btn-fav.active svg { fill:currentColor; }
+.placeTopBar .btn-fav:not(.active) svg { fill:none !important; }
+.placeTopBar .btn-fav:disabled { opacity:.6; cursor:wait; }
+/* One sizing model for the complete booking sheet, including Safari intrinsic inputs. */
+html body.vicinify-ui #bookingModal *, html body.vicinify-ui #bookingModal *::before, html body.vicinify-ui #bookingModal *::after { box-sizing:border-box; }
+html body.vicinify-ui #bookingModal .booking-date-grid { width:100%; }
+html body.vicinify-ui #bookingModal .booking-date-grid .booking-field { display:flex; flex-direction:column; align-items:stretch; }
+html body.vicinify-ui #bookingModal .booking-date-grid label { height:20px; flex:0 0 20px; }
+html body.vicinify-ui #bookingModal .booking-date-grid input { flex:0 0 46px; overflow:hidden; }
+html body.vicinify-ui #bookingModal :is(.request-choice,button[data-request-type]) { min-width:0; width:100%; margin:0; }
+html body.vicinify-ui #bookingModal .booking-choice-grid { align-items:stretch; gap:10px; }
+html body.vicinify-ui #bookingModal .request-choice { height:100%; }
+@media(max-width:640px) {
+ html body.vicinify-ui #bookingModal .booking-footer { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+ html body.vicinify-ui #bookingModal .booking-footer button { height:48px; }
+ html body.vicinify-ui #bookingModal .req-chips { display:flex; flex-wrap:wrap; align-items:stretch; }
+ html body.vicinify-ui #bookingModal .req-chip { display:inline-flex; align-items:center; justify-content:center; min-width:42px; min-height:42px; padding:9px 12px; line-height:20px; }
+}
+
+html body.vicinify-ui input[type=file] { box-sizing:border-box; max-width:100%; min-width:0; border:1px dashed var(--ui-border) !important; border-radius:12px !important; background:var(--ui-soft) !important; color:var(--ui-muted) !important; padding:10px !important; font-size:12px; color-scheme:light; }
+html body.vicinify-ui.dark-mode input[type=file] { color-scheme:dark; }
+html body.vicinify-ui input[type=file]::file-selector-button { background:var(--ui-success-bg); color:var(--ui-success-ink); border:1px solid var(--ui-success-line); border-radius:8px; padding:8px 10px; margin-right:10px; font:inherit; cursor:pointer; }
+/* Settings and mobile form rhythm. */
+html body.vicinify-ui #page-settings .dash-pro-hero { grid-column:1/-1; }
+html body.vicinify-ui #page-settings .dash-pro-icon { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; box-shadow:none !important; }
+html body.vicinify-ui #page-settings :is(h2,h3,h4,label) { color:var(--ui-ink) !important; }
+html body.vicinify-ui #page-settings p { color:var(--ui-muted) !important; }
+html body.vicinify-ui #page-settings .card { min-width:0; height:auto !important; }
+html body.vicinify-ui #page-settings #settingsAccountEmail { overflow-wrap:anywhere; }
+html body.vicinify-ui #page-settings .settings-segment button { flex:1; justify-content:center; min-width:0; min-height:44px; }
+html body.vicinify-ui #page-settings h3 svg { width:19px; height:19px; flex-shrink:0; color:var(--ui-success-ink); }
+@media(max-width:640px) {
+ html body.vicinify-ui #main-content #page-settings.active { display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:14px !important; padding:16px 14px 28px !important; }
+ html body.vicinify-ui #main-content #page-settings>.card { padding:16px !important; border-radius:14px; }
+ html body.vicinify-ui #page-settings .dash-pro-hero { padding:0 0 4px !important; margin:0 !important; }
+ html body.vicinify-ui #page-settings h2 { font-size:21px !important; }
+ html body.vicinify-ui #page-settings h3 { font-size:15px !important; }
+ html body.vicinify-ui #page-settings .field { margin-bottom:14px !important; }
+ html body.vicinify-ui #page-settings input { width:100%; min-width:0; box-sizing:border-box; min-height:46px; font-size:16px !important; border-radius:10px; }
+ html body.vicinify-ui #page-settings :is(.primaryWide,#logoutBtn,#deleteAccountBtn) { width:100% !important; margin:0 !important; min-height:46px; border-radius:10px !important; font-size:13px; }
+ html body.vicinify-ui #page-settings .settings-segment { flex-wrap:nowrap !important; gap:4px; }
+ html body.vicinify-ui #page-settings .settings-segment button { padding:8px 6px !important; gap:5px; font-size:11px; }
+ html body.vicinify-ui #page-settings .settings-segment svg { width:15px; height:15px; flex-shrink:0; }
+ html body.vicinify-ui :is(#page-add,#page-biz-edit) input:not([type=checkbox]):not([type=radio]), html body.vicinify-ui :is(#page-add,#page-biz-edit) textarea { min-width:0; max-width:100%; box-sizing:border-box; font-size:16px !important; }
+ html body.vicinify-ui :is(.card,.modalBox,.booking-sheet,.req-sheet) { overflow-wrap:anywhere; }
+}
+/* Give the map priority on phones; compact controls retain their touch targets. */
+@media(max-width:767px) {
+ html body.vicinify-ui #main-content #page-map.active .discovery-panel { display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:6px !important; padding:8px 10px !important; flex:0 0 auto !important; }
+ html body.vicinify-ui #main-content #page-map.active .askBar { min-height:42px !important; height:42px !important; margin:0 !important; padding:3px 5px 3px 10px !important; border-radius:12px !important; }
+ html body.vicinify-ui #main-content #page-map.active .askBar input { font-size:16px !important; min-height:34px !important; padding:0 6px !important; }
+ html body.vicinify-ui #main-content #page-map.active #askBtn { width:34px !important; height:34px !important; min-height:34px !important; }
+ html body.vicinify-ui #main-content #page-map.active .toolbar-modern { display:grid !important; grid-template-columns:minmax(0,1fr) 112px !important; gap:8px !important; padding:0 !important; margin:0 !important; align-items:center; }
+ html body.vicinify-ui #main-content #page-map.active .radius-wrapper { padding:5px 8px !important; gap:0 !important; border-radius:10px !important; min-width:0; }
+ html body.vicinify-ui #page-map .custom-radius-form>label { font-size:10px; margin:0 !important; }
+ html body.vicinify-ui #page-map .custom-radius-form .radius-slider { height:4px !important; min-height:4px !important; margin:12px 0 !important; border:0 !important; padding:0 !important; }
+ html body.vicinify-ui #page-map .custom-radius-form .radius-scale { display:none !important; }
+ html body.vicinify-ui #main-content #page-map.active .top-actions-modern { width:112px !important; gap:4px !important; }
+ html body.vicinify-ui #main-content #page-map.active .toggle-group { padding:2px !important; gap:0; }
+ html body.vicinify-ui #main-content #page-map.active :is(#btnMapView,#btnListView) { min-width:34px !important; height:40px !important; padding:5px !important; font-size:0 !important; }
+ html body.vicinify-ui #main-content #page-map.active :is(#btnMapView,#btnListView)::after { display:none !important; }
+ html body.vicinify-ui #main-content #page-map.active #resetMapBtn { flex:0 0 32px !important; min-width:32px !important; width:32px !important; height:40px !important; padding:4px !important; }
+ html body.vicinify-ui #main-content #page-map.active #resetMapBtn span { display:none !important; }
+ html body.vicinify-ui #main-content #page-map.active #catChips.modern-chips .chip { min-height:36px !important; padding:6px 10px !important; }
+ html body.vicinify-ui #main-content #page-map.active .mapWrap { flex:1 1 0 !important; min-height:0 !important; }
+}
+
+html body.vicinify-ui #bookingModal [data-chip-for="bookPayment"] { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+html body.vicinify-ui #bookingModal [data-chip-for="bookPayment"] .req-chip { width:100%; min-width:0; min-height:42px; white-space:normal; text-align:center; }
+/* Consistent navigation: quiet labels, clear selected icon, equal touch targets. */
+html body.vicinify-ui #main-content .bottom-nav { background:var(--ui-surface) !important; }
+html body.vicinify-ui #main-content .bottom-nav .nav-item { color:var(--ui-muted) !important; transition:background .16s,color .16s; border:0; }
+html body.vicinify-ui #main-content .bottom-nav .nav-item.active { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #main-content .bottom-nav .nav-item:focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:-2px; }
+html body.vicinify-ui #main-content .bottom-nav .navIcon svg { stroke-width:1.7; }
+html body.vicinify-ui #main-content .bottom-nav .nav-badge { min-width:15px; height:15px; padding:0 3px; font-size:9px; line-height:15px; border:2px solid var(--ui-surface); right:-7px; top:-5px; }
+@media(max-width:767px) {
+ html body.vicinify-ui:not(.on-login) #main-content .bottom-nav { height:calc(64px + env(safe-area-inset-bottom,0px)) !important; padding:4px 6px calc(4px + env(safe-area-inset-bottom,0px)) !important; gap:2px !important; box-shadow:0 -3px 18px #00000008; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-item { position:relative; display:flex !important; flex:1 1 0 !important; width:0 !important; min-width:0; min-height:54px !important; height:54px; margin:0 !important; padding:4px 1px !important; flex-direction:column !important; justify-content:center !important; gap:3px !important; border-radius:12px !important; background:transparent !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-item.active { background:transparent !important; }
+ html body.vicinify-ui #main-content .bottom-nav .navIcon { display:flex; align-items:center; justify-content:center; width:44px !important; height:29px !important; border-radius:10px; flex-shrink:0; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-item.active .navIcon { background:var(--ui-success-bg); }
+ html body.vicinify-ui #main-content .bottom-nav .navIcon svg { width:20px !important; height:20px !important; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-item .navText { display:block !important; font-size:9px !important; line-height:13px; font-weight:600; white-space:nowrap; letter-spacing:0; }
+ html body.vicinify-ui #main-content .bottom-nav .nav-badge { right:2px; top:-3px; }
+}
+@media(prefers-reduced-motion:reduce) { html body.vicinify-ui #main-content .bottom-nav .nav-item { transition:none; } }
