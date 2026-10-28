@@ -25,7 +25,9 @@
     <link rel="stylesheet" href="css/style.css?v=VICINIFY_REPAIR_20261026" />
     <link rel="stylesheet" href="css/ui.css?v=VICINIFY_UI_20261027" />
     <link rel="stylesheet" href="css/reference.css?v=20261027" />
-    <link rel="stylesheet" href="css/components.css?v=20261027_4" />
+    <link rel="stylesheet" href="css/components.css?v=20261028_5" />
+    <link rel="stylesheet" href="css/place-preview.css?v=VICINIFY_AI_WINDOW_20261028">
+    <link rel="stylesheet" href="css/vici-chat.css?v=VICINIFY_AI_WINDOW_20261028" />
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -347,6 +349,7 @@
                     <div class="field"><label>Description (optional)</label><textarea id="bizDesc" rows="3" placeholder="Short description…" maxlength="1000"></textarea></div>
                 </div>
             </section>
+            <section class="card place-features-add-card"><details><summary>About &amp; amenities <small>optional</small></summary><p class="place-features-help">Select only details you can confirm for this place.</p><div id="bizFeatures" data-place-feature-form></div></details></section>
             <section class="card">
                 <div class="cardTitle"><span class="miniIcon"><i data-lucide="image"></i></span> Photos (optional)</div>
                 <div class="uploadBox">
@@ -647,6 +650,8 @@
                     </div>
                 </div>
 
+                <h3 class="bizedit-section-title"><i data-lucide="clipboard-list"></i> About &amp; Amenities</h3>
+                <div class="card bizedit-card"><p class="place-features-help">Select only features available at your establishment. Unchecked items will not be shown as available.</p><div id="bizPortalFeatures" data-place-feature-form></div></div>
                 <h3 class="bizedit-section-title"><i data-lucide="bike"></i> Delivery &amp; Logistics</h3>
                 <div class="card bizedit-card">
                     <div class="bizedit-checks">
@@ -825,16 +830,18 @@
 
         <div id="bookingModal" class="hidden" aria-hidden="true">
             <div class="modalBackdrop" onclick="closeBookingModal()"></div>
-            <div class="modalBox booking-sheet">
-                <div class="modalHeader"><h3 id="bookingModalTitle">Send Request</h3><button type="button" onclick="closeBookingModal()" class="modalClose" aria-label="Close"><i data-lucide="x"></i></button></div>
+            <div class="modalBox booking-sheet" role="dialog" aria-modal="true" aria-labelledby="bookingModalTitle">
+                <div class="modalHeader"><div><span class="booking-eyebrow">BOOKINGS &amp; ORDERS</span><h3 id="bookingModalTitle">Send Request</h3></div><button type="button" onclick="closeBookingModal()" class="modalClose" aria-label="Close"><i data-lucide="x"></i></button></div>
                 <div class="modalBody">
+                    <div class="booking-store-summary"><span class="booking-store-icon"><i data-lucide="store"></i></span><div><span class="booking-store-label">Sending to</span><strong id="bookingStoreChip"><span>Establishment</span></strong></div></div>
+                    <p class="booking-intro-copy">Choose a booking or order, then add the details. The business will review your request.</p>
                     <input type="hidden" id="bookPlaceId" />
                     <input type="hidden" id="bookPlaceName" />
                     <input type="hidden" id="bookType" value="table_reservation" />
 
                     <div class="field booking-field">
-                        <label>Request Category *</label>
-                        <div class="booking-choice-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <label>1. What would you like to do?</label>
+                        <div id="bookingCategoryChoices" class="booking-choice-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                             <button type="button" id="reqGroupReservation" class="request-choice active" onclick="window.setRequestGroup && window.setRequestGroup('reservation')" style="border:1px solid #2563eb; background:#eff6ff; color:#1d4ed8; border-radius:14px; padding:13px; text-align:left; cursor:pointer; font-weight:900;">
                                 <div style="margin-bottom:4px;"><i data-lucide="calendar-check" style="width:22px;height:22px;"></i></div>
                                 <div>Reservation</div>
@@ -849,7 +856,7 @@
                     </div>
 
                     <div id="reservationRequestOptions" class="field booking-field">
-                        <label>Reservation Type *</label>
+                        <label>Choose your booking</label>
                         <div class="booking-choice-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                             <button type="button" data-request-type="table_reservation" onclick="window.setRequestTypeChoice && window.setRequestTypeChoice('table_reservation')" style="border:1px solid #f97316; background:#fff7ed; color:#c2410c; border-radius:14px; padding:12px; text-align:left; cursor:pointer; font-weight:800;">
                                 <i data-lucide="utensils" style="width:16px;height:16px;vertical-align:-3px;"></i> Table Reservation
@@ -863,7 +870,7 @@
                     </div>
 
                     <div id="orderRequestOptions" class="field booking-field" style="display:none;">
-                        <label>Order Type *</label>
+                        <label>Choose your order</label>
                         <div class="booking-choice-grid booking-choice-grid-single" style="display:grid; grid-template-columns:1fr; gap:10px;">
                             <button type="button" data-request-type="pickup_order" onclick="window.setRequestTypeChoice && window.setRequestTypeChoice('pickup_order')" style="border:1px solid #e2e8f0; background:#fff; color:#334155; border-radius:14px; padding:12px; text-align:left; cursor:pointer; font-weight:800;">
                                 <i data-lucide="shopping-bag" style="width:16px;height:16px;vertical-align:-3px;"></i> Pickup Pre-order
@@ -881,14 +888,14 @@
                     </div>
 
                     <div class="booking-date-grid" style="display: flex; gap: 12px; margin-bottom: 16px;">
-                        <div class="field booking-field" style="flex: 1;"><label>Date *</label><input type="date" id="bookDate" required style="font-family: inherit;" /></div>
-                        <div class="field booking-field" style="flex: 1;"><label>Time *</label><input type="time" id="bookTime" required style="font-family: inherit;" /></div>
+                        <div class="field booking-field" style="flex: 1;"><label for="bookDate">Date *</label><input type="date" id="bookDate" required style="font-family: inherit;" /></div>
+                        <div class="field booking-field" style="flex: 1;"><label for="bookTime">Time *</label><input type="time" id="bookTime" required style="font-family: inherit;" /></div>
                     </div>
 
                     <div id="requestDynamicFields"></div>
 
                     <div class="field booking-field">
-                        <label>Additional Notes</label>
+                        <label for="bookDetails">Additional Notes</label>
                         <textarea id="bookDetails" rows="3" placeholder="Add any special request or instruction..."></textarea>
                     </div>
 
@@ -931,23 +938,23 @@
 
         <div id="chatModal" class="hidden" aria-hidden="true">
             <div class="modalBackdrop" onclick="closeChatModal()"></div>
-            <div class="modalBox chat-modal-box">
+            <div class="modalBox chat-modal-box" role="dialog" aria-modal="true" aria-labelledby="chatModalTitle">
                 <div class="modalHeader chat-header">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <div class="chat-avatar" id="chatModalAvatar">S</div>
-                        <h3 id="chatModalTitle" style="margin: 0; font-size: 16px; font-weight: 600;">Send a Message</h3>
+                        <div class="chat-header-copy"><span class="chat-header-eyebrow">CONVERSATION</span><h3 id="chatModalTitle" style="margin: 0; font-size: 16px; font-weight: 600;">Send a Message</h3><p>Messages &amp; request updates</p></div>
                     </div>
-                    <button onclick="closeChatModal()" class="modalClose">✕</button>
+                    <button type="button" onclick="closeChatModal()" class="modalClose" aria-label="Close conversation"><i data-lucide="x"></i></button>
                 </div>
-                <div class="chat-body" id="chatMessageList">
+                <div class="chat-body" id="chatMessageList" role="log" aria-label="Conversation">
                     <div class="muted" style="text-align: center; padding: 20px; font-size: 12px;">Loading conversation...</div>
                 </div>
                 <div class="chat-footer">
                     <input type="hidden" id="chatPlaceId" />
                     <input type="hidden" id="chatPlaceName" />
                     <input type="hidden" id="chatCustomerUid" />
-                    <input type="text" id="chatMessageInput" placeholder="Type your message..." autocomplete="off" />
-                    <button id="sendChatBtn" onclick="sendChatMessage()">
+                    <textarea id="chatMessageInput" aria-label="Message" rows="1" placeholder="Write a message…" autocomplete="off"></textarea>
+                    <button id="sendChatBtn" aria-label="Send message" onclick="sendChatMessage()">
                         <i data-lucide="send" style="width:18px; height:18px; color: white;"></i>
                     </button>
                 </div>
@@ -1065,12 +1072,16 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
     <script src="js/data.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/common.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/map.js?v=VICINIFY_FIREBASE_20261027"></script>
-    <script src="js/add.js?v=VICINIFY_REPAIR_20261026"></script>
+    <script src="js/payment-policy.js?v=VICINIFY_PAYMENT_REVIEW_20261028"></script>
+    <script src="js/place-features.js?v=VICINIFY_AI_WINDOW_20261028"></script>
+    <script src="js/place-preview.js?v=VICINIFY_AI_WINDOW_20261028"></script>
+    <script src="js/common.js?v=VICINIFY_AI_WINDOW_20261028"></script>
+    <script src="js/vici-chat.js?v=VICINIFY_AI_WINDOW_20261028"></script>
+    <script src="js/map.js?v=VICINIFY_AI_WINDOW_20261028"></script>
+    <script src="js/add.js?v=VICINIFY_AI_WINDOW_20261028"></script>
     <script src="js/buzz.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/dashboard.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/settings.js?v=VICINIFY_REPAIR_20261026"></script>
+    <script src="js/dashboard.js?v=VICINIFY_AI_WINDOW_20261028"></script>
+    <script src="js/settings.js?v=VICINIFY_CANCELLATION_20261028"></script>
 
     <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
     <script>lucide.createIcons();</script>
@@ -1107,7 +1118,7 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js?v=VICINIFY_FIREBASE_20261027', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('sw.js?v=VICINIFY_AI_WINDOW_20261028', { updateViaCache: 'none' })
                 .then((registration) => registration.update().then(() => registration))
                 .then(() => console.log('Vicinify PWA Ready!'))
                 .catch((err) => console.log('PWA Error', err));
@@ -1136,6 +1147,6 @@ html body #page-place.active #placeUpdatesList > .place-menu-card {
 </style>
 
 <!-- build: VICINIFY_MODERN_FINAL_20261003 -->
-    <script src="js/ui.js?v=VICINIFY_UI_20261027"></script>
+    <script src="js/ui.js?v=VICINIFY_AI_WINDOW_20261028"></script>
 </body>
 </html>

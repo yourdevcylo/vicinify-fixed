@@ -1,0 +1,1 @@
+Vici AI uses the chosen large centered desktop window with recent chats sidebar. Mobile uses full-screen chat. Ask Vici remains above discovery filters. Upload source contents to GitHub and commit. Live AI requires server configuration.
