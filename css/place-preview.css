@@ -126,3 +126,21 @@ html body.vicinify-ui #main-content #page-map #listViewContainer .place-list-car
 @media(min-width:1500px) {
  html body.vicinify-ui.place-preview-docked #main-content #page-map.active #listViewContainer { padding-right:520px !important; }
 }
+/* Essential establishment details stay with the title above the content tabs. */
+html body.vicinify-ui #placeListPreview .list-preview-header { padding:18px 20px 14px; max-height:min(360px,42dvh); overflow-y:auto; }
+html body.vicinify-ui #placeListPreview .list-preview-business { margin-top:13px; }
+html body.vicinify-ui #placeListPreview .list-preview-summary { margin-top:12px; font-size:12px; }
+html body.vicinify-ui #placeListPreview .list-preview-description { margin:0 0 10px; color:var(--ui-muted); line-height:1.55; white-space:pre-line; overflow-wrap:anywhere; }
+html body.vicinify-ui #placeListPreview .list-preview-summary dl { display:grid; gap:8px; margin:0; }
+html body.vicinify-ui #placeListPreview .list-preview-summary dl>div { display:grid; grid-template-columns:78px minmax(0,1fr); gap:8px; align-items:start; }
+html body.vicinify-ui #placeListPreview .list-preview-summary dt { display:flex; gap:6px; align-items:center; color:var(--ui-muted); font-size:10px; line-height:1.5; }
+html body.vicinify-ui #placeListPreview .list-preview-summary dt svg { width:13px; height:13px; flex:0 0 13px; color:var(--ui-accent); }
+html body.vicinify-ui #placeListPreview .list-preview-summary dd { margin:0; min-width:0; color:var(--ui-ink); font-size:11px; line-height:1.5; overflow-wrap:anywhere; }
+html body.vicinify-ui #placeListPreview .list-preview-summary .list-preview-detail-button { display:inline-flex; align-items:center; gap:5px; margin:12px 0 0; min-height:30px; padding:5px 9px; font-size:10px; }
+html body.vicinify-ui #placeListPreview .list-preview-summary .list-preview-detail-button svg { width:13px; height:13px; }
+html body.vicinify-ui #placeListPreview .list-preview-tabs { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+@media(max-width:800px) {
+ html body.vicinify-ui #placeListPreview .list-preview-header { padding:14px 16px 12px; max-height:38dvh; }
+ html body.vicinify-ui #placeListPreview .list-preview-business-photo { width:46px; height:46px; flex-basis:46px; border-radius:12px; }
+ html body.vicinify-ui #placeListPreview .list-preview-business h2 { font-size:19px; }
+}

@@ -140,3 +140,31 @@
  html body.vicinify-ui #main-content #page-map.active :is(#mapFilterToggle,.map-smart-filter) { min-height:30px !important; height:30px !important; padding:4px 7px !important; font-size:10px !important; gap:5px !important; }
  html body.vicinify-ui #main-content #page-map.active :is(#mapFilterToggle,.map-smart-filter) svg { width:14px !important; height:14px !important; flex:0 0 14px; }
 }
+/* Settings uses independent columns; destructive actions follow both columns. */
+html body.vicinify-ui:not(.on-login) #main-content #page-settings.active { display:block !important; }
+html body.vicinify-ui #main-content #page-settings .settings-layout { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; width:100%; }
+html body.vicinify-ui #main-content #page-settings .settings-column { display:flex; flex-direction:column; gap:16px; min-width:0; }
+html body.vicinify-ui #main-content #page-settings .settings-column>.card { position:static !important; margin:0 !important; width:100% !important; height:auto !important; max-height:none !important; overflow:visible !important; padding:20px !important; }
+html body.vicinify-ui #main-content #page-settings .settings-account-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding-top:18px; margin-top:20px !important; border-top:1px solid var(--ui-border); }
+html body.vicinify-ui #main-content #page-settings .settings-account-actions>button { margin:0 !important; width:100% !important; }
+@media(max-width:800px), (max-width:1024px) and (max-height:500px) {
+ html body.vicinify-ui #main-content #page-settings .settings-layout { grid-template-columns:minmax(0,1fr); gap:14px; }
+ html body.vicinify-ui #main-content #page-settings .settings-column { gap:14px; }
+ html body.vicinify-ui #main-content #page-settings .settings-column>.card { padding:16px !important; }
+ html body.vicinify-ui #main-content #page-settings .settings-account-actions { grid-template-columns:minmax(0,1fr); gap:10px; }
+}
+html body.vicinify-ui #main-content #page-settings #installVicinifyCard>h3 { margin:0 0 12px !important; }
+html body.vicinify-ui #main-content #page-settings #installVicinifyHelp { margin:0 0 14px !important; }
+/* Navigation owns the map area; discovery controls must not keep relaying out above it. */
+html body.vicinify-ui.nav-active:not(.on-login) #main-content #page-map.active { position:fixed !important; inset:var(--ui-header) 0 0 var(--ui-rail) !important; display:block !important; width:auto !important; height:auto !important; min-height:0 !important; padding:0 !important; overflow:hidden !important; }
+html body.vicinify-ui.nav-active:not(.on-login) #main-content .bottom-nav,
+html body.vicinify-ui.nav-active #main-content #page-map.active .discovery-panel,
+html body.vicinify-ui.nav-active #main-content #page-map.active .map-location-label { display:none !important; }
+html body.vicinify-ui.nav-active #main-content #page-map.active .mapWrap { position:absolute !important; inset:0 !important; width:100% !important; height:100% !important; min-height:0 !important; margin:0 !important; border:0 !important; border-radius:0 !important; }
+html body.vicinify-ui.nav-active #navUI .nav-bottom { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+html body.vicinify-ui.nav-active #navUI .nav-action { display:flex; align-items:center; justify-content:center; min-width:0; min-height:44px; gap:5px; padding:8px 10px; white-space:nowrap; }
+html body.vicinify-ui.nav-active #navUI .nav-action svg { width:16px !important; height:16px !important; min-width:16px; flex:0 0 16px; }
+@media(max-width:800px) {
+ html body.vicinify-ui.nav-active #navUI .nav-bottom { left:10px; right:10px; width:auto; transform:none; }
+ html body.vicinify-ui.nav-active #navUI .nav-action { padding:8px 4px; font-size:clamp(10px,2.8vw,12px); gap:4px; }
+}

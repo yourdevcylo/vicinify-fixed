@@ -16,3 +16,18 @@ test('feature editor round-trips only allowlisted selections and safely clears u
 
 test('wide preview docks beside results and changes to a modal on narrow screens',async()=>{const {dom,w}=setup();w.document.body.insertAdjacentHTML('beforeend','<div id="listViewContainer"><div data-place-card="cafe" class="place-list-card"></div></div>');const locks=[];w.lockBodyScroll=value=>locks.push(value);w.innerWidth=1920;w.PlacePreview.open({id:'cafe',name:'Cafe'});await tick();assert(w.document.body.classList.contains('place-preview-docked'));assert.equal(w.document.querySelector('.list-preview-sheet').getAttribute('aria-modal'),'false');assert(w.document.querySelector('.place-list-card').classList.contains('is-previewed'));assert.equal(locks.length,0);w.innerWidth=390;w.dispatchEvent(new w.Event('resize'));assert.equal(w.document.querySelector('.list-preview-sheet').getAttribute('aria-modal'),'true');assert.deepEqual(locks,[true]);w.innerWidth=1920;w.dispatchEvent(new w.Event('resize'));assert.deepEqual(locks,[true,false]);w.PlacePreview.close();assert(!w.document.body.classList.contains('place-preview-docked'));assert(!w.document.querySelector('.place-list-card').classList.contains('is-previewed'));dom.window.close();});
 test('finishing a background menu read does not rerender the About section being read',async()=>{let finish;const {dom,w}=setup(()=>new Promise(resolve=>finish=resolve));w.PlacePreview.open({id:'cafe',name:'Cafe'});w.document.querySelector('[data-tab="about"]').click();const body=w.document.getElementById('listPreviewContent');finish([{id:'m',body:'Menu arrived'}]);await tick();assert.equal(w.document.getElementById('listPreviewContent'),body);assert.equal(w.document.querySelector('[data-tab="about"]').getAttribute('aria-selected'),'true');dom.window.close();});
+
+test('preview keeps escaped establishment details above three tabs without extra metadata reads',async()=>{
+ const {dom,w,reads}=setup(async()=>[]);
+ w.PlacePreview.open({id:'cafe',name:'Cafe',description:'<script>unsafe</script>',address:'Lipa City',phone:'09123456789',priceRange:'Under ₱150'});await tick();
+ assert.equal(w.document.querySelectorAll('.list-preview-tabs [role="tab"]').length,3);
+ assert.equal(w.document.querySelector('[data-tab="overview"]'),null);
+ const header=w.document.querySelector('.list-preview-header');
+ assert.match(header.textContent,/<script>unsafe<\/script>/);assert.equal(header.querySelector('script'),null);
+ assert.match(header.textContent,/Lipa City/);assert.match(header.textContent,/09123456789/);
+ const count=reads.length;w.document.querySelector('[data-tab="about"]').click();await tick();
+ assert.match(w.document.querySelector('.list-preview-header').textContent,/Lipa City/);assert.equal(reads.length,count);
+ w.document.querySelector('[data-tab="about"]').dispatchEvent(new w.KeyboardEvent('keydown',{key:'Home',bubbles:true}));
+ assert.equal(w.document.querySelector('[data-tab="menu"]').getAttribute('aria-selected'),'true');
+ dom.window.close();
+});

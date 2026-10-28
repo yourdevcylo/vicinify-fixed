@@ -19,15 +19,20 @@
 [[headers]]
   for = "/sw.js"
   [headers.values]
-    Cache-Control = "no-cache"
+    Cache-Control = "no-store, max-age=0"
 
 [[headers]]
   for = "/"
   [headers.values]
-    Cache-Control = "no-cache"
+    Cache-Control = "no-store, max-age=0"
 
 [[headers]]
   for = "/index.html"
   [headers.values]
-    Cache-Control = "no-cache"
+    Cache-Control = "no-store, max-age=0"
 
+
+[[headers]]
+  for = "/update.html"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0"

@@ -49,3 +49,7 @@ Customer quick questions send immediately while preserving any typed draft. Busi
 - Deploy updates clear only old app shell caches, preserving user/account data and the short-lived public catalog cache. Build output is cleaned before fingerprinting, so stale files cannot survive a deploy.
 - Update check runs only when the tab is visible and the browser is online; it is an HTTP service-worker update check, not Firestore polling.
 - Verified: stable build hash on unchanged code, version rotation on changed assets, obsolete output removal, old app-cache deletion and unrelated cache preservation. 16 test files passed. Live Firebase billing was not available for verification.
+
+
+## Navigation performance update
+Navigation requests reuse up to eight successful routes in memory for two minutes (rounded to four coordinate decimals). Duplicate active-destination taps do not start additional requests. Routing is an external OSRM request, not a Firestore query. GPS marker/follow rendering is throttled to one accepted movement update per second with a five-meter jitter threshold; coordinate fixes remain local. Stop cancels pending starts and stale route events are ignored. First routing response still depends on network/routing service availability.

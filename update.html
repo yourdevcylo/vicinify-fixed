@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light dark"><title>Update Vicinify</title>
+<style>*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:24px 16px;background:#eef5f2;color:#193a34;font:15px/1.6 system-ui,sans-serif}.card{width:min(100%,460px);padding:26px;border:1px solid #d4e4dd;border-radius:20px;background:#fff}small{color:#497169}h1{font-size:26px;line-height:1.2;margin:18px 0 12px}p{margin:0 0 16px;color:#58716a}code{overflow-wrap:anywhere;font-size:12px}.build{padding:12px;background:#f0f6f3;border-radius:10px;margin:20px 0}button{width:100%;padding:13px 16px;border:0;border-radius:11px;background:#237e72;color:white;font:600 15px system-ui;cursor:pointer}button:disabled{opacity:.6;cursor:wait}button:focus-visible{outline:3px solid #82cdb9;outline-offset:3px}#status{margin:12px 0 0;font-size:13px}a{color:#237e72} @media(prefers-color-scheme:dark){body{background:#10221e;color:#dfede7}.card{background:#192e27;border-color:#355246}p,small{color:#b0c9bf}.build{background:#233d32}a{color:#94d7bd}}</style></head>
+<body><main class="card"><small>VICINIFY · APP UPDATE</small><h1>Get the latest Vicinify</h1><p>Close your other Vicinify tabs and the installed app first, then update from this page.</p><p>This removes saved app files on this site. Your account, favorites and transaction records stay saved.</p><div class="build"><small>Available build</small><br><code id="build">VICINIFY_GREEN_EDITOR_20261029</code><br><small id="site"></small></div><button id="update" type="button">Update and open Vicinify</button><p id="status" role="status" aria-live="polite"></p></main>
+<script>
+(()=>{
+ const button=document.getElementById('update'),status=document.getElementById('status');
+ const appScope=new URL('./',location.href).href;
+ document.getElementById('site').textContent=location.host;
+ button.addEventListener('click',async()=>{
+  if(!navigator.onLine){status.textContent='Connect to the internet, then try again.';return;}
+  button.disabled=true;status.textContent='Getting the latest app…';
+  try{
+   const target=new URL('index.html',appScope);target.searchParams.set('update',String(Date.now()));
+   const response=await fetch(target.href,{cache:'no-store',credentials:'same-origin'});
+   if(!response.ok)throw Error('Could not download the app. Please try again.');
+   const html=await response.text(),version=document.getElementById('build').textContent.trim();
+   if(!html.includes(version))throw Error('The deployment is changing. Wait a moment, then try again.');
+   if('serviceWorker' in navigator){const registrations=await navigator.serviceWorker.getRegistrations();await Promise.all(registrations.filter(r=>r.scope===appScope).map(r=>r.unregister()));}
+   if('caches' in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('vicinify-ui-')).map(k=>caches.delete(k)));}
+   status.textContent='App files refreshed. Opening Vicinify…';location.replace(target.href);
+  }catch(error){status.textContent=error.message||'Update could not finish. Please try again.';button.disabled=false;}
+ });
+})();
+</script></body></html>

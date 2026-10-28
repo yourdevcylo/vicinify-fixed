@@ -1227,7 +1227,7 @@ html body.vicinify-ui #main-content #page-biz-edit .bizedit-topbar { padding:12p
 html body.vicinify-ui #page-biz-edit .bizedit-topbar h2 { font-size:17px; color:var(--ui-ink); }
 html body.vicinify-ui #page-biz-edit .bizedit-save { background:#237e72 !important; color:white !important; border-radius:10px; min-height:40px; padding:9px 16px; }
 html body.vicinify-ui #page-biz-edit .bizedit-back { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border:1px solid var(--ui-border); border-radius:10px; color:var(--ui-ink); background:var(--ui-soft); }
-html body.vicinify-ui #main-content #page-biz-edit .bizedit-wrap { width:100% !important; max-width:1120px !important; padding:18px 24px 40px !important; margin:0 auto !important; box-sizing:border-box; }
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-wrap { width:100% !important; max-width:none !important; padding:18px 24px 40px !important; margin:0 !important; box-sizing:border-box; }
 html body.vicinify-ui #page-biz-edit .bizedit-section-title { margin:18px 0 10px; font-size:13px; color:var(--ui-ink); }
 html body.vicinify-ui #page-biz-edit .bizedit-section-title:first-of-type { margin-top:0; }
 html body.vicinify-ui #page-biz-edit .bizedit-card { padding:18px !important; margin-bottom:16px !important; border:1px solid var(--ui-border); border-radius:14px; background:var(--ui-surface); box-shadow:none; }

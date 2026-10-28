@@ -477,7 +477,7 @@
         <main id="page-place" class="page"><div id="placeViewContent"></div></main>
 
         <main id="page-settings" class="page">
-           <section class="dash-pro-hero" style="margin-bottom: 24px; padding: 20px;">
+<section class="dash-pro-hero" style="margin-bottom: 24px; padding: 20px;">
     <div class="dash-pro-hero-left">
         <div class="dash-pro-icon" style="background: linear-gradient(135deg, #6366f1, #4338ca); box-shadow: 0 14px 25px rgba(99, 102, 241, 0.25);">
             <i data-lucide="user-cog"></i>
@@ -488,28 +488,14 @@
         </div>
     </div>
 </section>
-            <section class="card">
+<div class="settings-layout">
+<div class="settings-column settings-account-column">
+<section class="card">
                 <h3 style="margin-top:0; margin-bottom:16px; font-size:16px; color:#0f172a;" data-i18n="User Profile">User Profile</h3>
                 <div class="field"><label>Nickname (Display Name)</label><input type="text" id="profileNickname" minlength="2" maxlength="80" placeholder="e.g. Cylo"><p style="font-size:11px; color:#64748b; margin-top:4px;">This will appear on your Buzz posts and comments.</p></div>
                 <button id="saveProfileBtn" class="primaryWide" style="margin-top:10px;">Save Profile</button>
             </section>
-
-            <section class="card" style="margin-top: 16px;">
-                <h3 style="margin-top:0; margin-bottom:8px; font-size:16px; color:#0f172a; display:flex; align-items:center; gap:8px;">
-                    <i data-lucide="volume-2"></i> <span>Sounds</span>
-                </h3>
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0;">
-                    <div>
-                        <div style="font-weight:600; font-size:14px; color:#0f172a;">Navigation sounds</div>
-                        <div style="font-size:12px; color:#64748b;">Subtle clicks when navigating</div>
-                    </div>
-                    <button type="button" id="soundToggleBtn" class="toggle-btn" style="width:48px; height:28px; border-radius:14px; border:none; background:#4f46e5; position:relative; cursor:pointer;">
-                        <span style="position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:left 0.2s;" id="soundToggleKnob"></span>
-                    </button>
-                </div>
-            </section>
-            
-            <section class="card" style="margin-top: 16px;" id="passwordSecuritySection">
+<section class="card" style="margin-top: 16px;" id="passwordSecuritySection">
                 <h3 style="margin-top:0; margin-bottom:8px; font-size:16px; color:#0f172a; display: flex; align-items: center; gap: 8px;">
                     <i data-lucide="shield"></i> <span data-i18n="Password & Security">Password &amp; Security</span>
                 </h3>
@@ -524,8 +510,23 @@
                     <button type="button" id="settingsChangePasswordBtn" class="primaryWide" data-i18n="Update Password">Update Password</button>
                 </div>
             </section>
-
-            <section class="card" style="margin-top: 16px;">
+</div>
+<div class="settings-column settings-preferences-column">
+<section class="card" style="margin-top: 16px;">
+                <h3 style="margin-top:0; margin-bottom:8px; font-size:16px; color:#0f172a; display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="volume-2"></i> <span>Sounds</span>
+                </h3>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0;">
+                    <div>
+                        <div style="font-weight:600; font-size:14px; color:#0f172a;">Navigation sounds</div>
+                        <div style="font-size:12px; color:#64748b;">Subtle clicks when navigating</div>
+                    </div>
+                    <button type="button" id="soundToggleBtn" class="toggle-btn" style="width:48px; height:28px; border-radius:14px; border:none; background:#237e72; position:relative; cursor:pointer;">
+                        <span style="position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:left 0.2s;" id="soundToggleKnob"></span>
+                    </button>
+                </div>
+            </section>
+<section class="card" style="margin-top: 16px;">
                 <h3 style="margin-top:0; margin-bottom:16px; font-size:16px; color:#0f172a; display: flex; align-items: center; gap: 8px;">
                     <i data-lucide="moon"></i> Appearance
                 </h3>
@@ -555,17 +556,17 @@
                     </select>
                 </div>
             </section>
-
-            
-
-            <section class="card" id="installVicinifyCard">
+<section class="card" id="installVicinifyCard">
                 <h3>Install Vicinify</h3>
                 <p id="installVicinifyHelp" class="place-features-help">Add Vicinify to your home screen for quick access.</p>
                 <button type="button" id="installVicinifyBtn" class="primaryWide">Install app</button>
             </section>
-
-            <button id="logoutBtn" class="danger" style="margin-top: 24px; width: 100%; padding: 16px; border-radius: 12px; font-weight: bold; background: white; color: #ef4444; border: 2px solid #fee2e2; cursor: pointer;">Log Out</button>
-            <button id="deleteAccountBtn" style="margin-top: 12px; width: 100%; padding: 16px; border-radius: 12px; font-weight: bold; background: #fef2f2; color: #dc2626; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;"><i data-lucide="trash-2" style="width: 18px; height: 18px;"></i> Delete My Account</button>
+</div>
+</div>
+<div class="settings-account-actions">
+<button id="logoutBtn" class="danger" style="margin-top: 24px; width: 100%; padding: 16px; border-radius: 12px; font-weight: bold; background: white; color: #ef4444; border: 2px solid #fee2e2; cursor: pointer;">Log Out</button>
+<button id="deleteAccountBtn" style="margin-top: 12px; width: 100%; padding: 16px; border-radius: 12px; font-weight: bold; background: #fef2f2; color: #dc2626; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;"><i data-lucide="trash-2" style="width: 18px; height: 18px;"></i> Delete My Account</button>
+</div>
         </main>
 
         <main id="page-biz-edit" class="page bizedit">
@@ -1132,7 +1133,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             let registration, refreshPending=false, reloading=false;
-            const hadController=!!navigator.serviceWorker.controller;
+            let hadController=!!navigator.serviceWorker.controller;
             function refreshWhenIdle(){
                 if(!refreshPending || reloading || document.visibilityState!=='visible') return;
                 const editing=document.activeElement?.matches('input,textarea,select,[contenteditable=true]');
@@ -1141,7 +1142,7 @@
                 reloading=true; location.reload();
             }
             navigator.serviceWorker.addEventListener('controllerchange',()=>{
-                if(!hadController)return;
+                if(!hadController){hadController=true;return;}
                 refreshPending=true; refreshWhenIdle();
             });
             navigator.serviceWorker.register('sw.js', {updateViaCache:'none'})

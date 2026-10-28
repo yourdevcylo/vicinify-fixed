@@ -1591,6 +1591,22 @@ window.MapPage = (() => {
     // ---- Navigation v12: smooth fly, live follow, custom UI ----
     let navWatchId = null, navOverlay = null, navRoute = null, navDest = null, navZoomed = false;
     let navVoiceEnabled = true, navAnnouncedIdx = -1, navArrivalAnnounced = false;
+    let navGeneration=0, navStartTimer=null, navPending=false, navLastFollow=null;
+    const navRouteCache=new Map();
+    function navigationRouter(){
+        if(typeof L.Routing.osrmv1!=='function')return undefined;
+        const router=L.Routing.osrmv1({timeout:10000}), route=router.route.bind(router);
+        router.route=function(waypoints,callback,context,options){
+            const key=waypoints.map(w=>Number(w.latLng.lat).toFixed(4)+','+Number(w.latLng.lng).toFixed(4)).join('|');
+            const hit=navRouteCache.get(key);
+            if(hit&&Date.now()-hit.at<120000){queueMicrotask(()=>callback.call(context,null,hit.routes));return;}
+            return route(waypoints,function(error,routes){
+                if(!error&&routes?.length){navRouteCache.set(key,{at:Date.now(),routes});while(navRouteCache.size>8)navRouteCache.delete(navRouteCache.keys().next().value);}
+                callback.call(context,error,routes);
+            },context,options);
+        };
+        return router;
+    }
 
     // v53BC/BF: Voice navigation guidance (Web Speech API) — picks best voice
     let navBestVoice = null;
@@ -1753,6 +1769,7 @@ window.MapPage = (() => {
     function fmtTime(s) { const m = Math.round(s / 60); return m >= 60 ? Math.floor(m / 60) + " hr " + (m % 60) + " min" : m + " min"; }
 
     window.cancelNavigation = function() {
+        navGeneration++; navPending=false; clearTimeout(navStartTimer); navStartTimer=null; navLastFollow=null;
         if (routingControl) { try { map.removeControl(routingControl); } catch (e) {} routingControl = null; }
         if (navOverlay) { try { map.removeLayer(navOverlay); } catch (e) {} navOverlay = null; }
         if (navWatchId != null && navigator.geolocation) { navigator.geolocation.clearWatch(navWatchId); navWatchId = null; }
@@ -1766,7 +1783,9 @@ window.MapPage = (() => {
     };
 
     window.routeToPlace = function (destLat, destLng, destName) {
-        navDest = { lat: destLat, lng: destLng };
+        destLat=Number(destLat);destLng=Number(destLng);
+        if(!Number.isFinite(destLat)||!Number.isFinite(destLng)||Math.abs(destLat)>90||Math.abs(destLng)>180)return;
+        if(navDest?.lat===destLat&&navDest?.lng===destLng&&(navPending||navRoute))return;
         if (!AppState.userLocation || AppState.userLocation.lat == null || AppState.userLocation.lng == null) {
             window.showToast("We need your location to start navigation.", "error");
             locate().then(ok=>{if(ok)window.routeToPlace(destLat,destLng,destName);});
@@ -1778,18 +1797,25 @@ window.MapPage = (() => {
         }
         if (routingControl) { try { map.removeControl(routingControl); } catch (e) {} routingControl = null; }
         if (navOverlay) { try { map.removeLayer(navOverlay); } catch (e) {} navOverlay = null; }
-        navDest = [destLat, destLng]; navZoomed = false;
+        const ticket=++navGeneration;clearTimeout(navStartTimer);navPending=true;navRoute=null;navLastFollow=null;
+        navDest = {lat:destLat,lng:destLng}; navZoomed = false;
+        map?.stop?.();
 
         if (typeof showPage === "function") showPage("page-map");
 
-        setTimeout(() => {
-            if (!map) return;
+        ensureNavUI();
+        navStartTimer=setTimeout(() => {
+            navStartTimer=null;
+            if(ticket!==navGeneration)return;
+            if(!map){navPending=false;return;}
             map.invalidateSize();
             ensureNavUI();
             const title = document.querySelector("#navCard .nav-card-title");
             if (title && destName) title.textContent = "Navigating to " + destName;
 
+            const router=navigationRouter();
             routingControl = L.Routing.control({
+                ...(router?{router}:{}),
                 waypoints: [
                     L.latLng(AppState.userLocation.lat, AppState.userLocation.lng),
                     L.latLng(destLat, destLng)
@@ -1810,17 +1836,14 @@ window.MapPage = (() => {
             }).addTo(map);
 
             routingControl.on("routesfound", function (e) {
+                if(ticket!==navGeneration)return;
+                navPending=false;
                 navRoute = e.routes && e.routes[0];
                 if (!navRoute) return;
                 const s = navRoute.summary || {};
                 const sum = document.getElementById("navSummary");
                 if (sum) sum.textContent = fmtDist(s.totalDistance || 0) + "  ·  about " + fmtTime(s.totalTime || 0);
 
-                // Animated "marching ants" overlay on top of the route
-                if (navOverlay) { try { map.removeLayer(navOverlay); } catch (err) {} }
-                if (navRoute.coordinates?.length) {
-                    navOverlay = L.polyline(navRoute.coordinates, { color: "#93c5fd", weight: 3, dashArray: "1, 14", className: "nav-ants" }).addTo(map);
-                }
                 // Steps list
                 const stepsEl = document.getElementById("navSteps");
                 if (stepsEl && navRoute.instructions) {
@@ -1851,18 +1874,16 @@ window.MapPage = (() => {
                     navSpeak(`Starting navigation. First, ${a}.`);
                     try { window.NavSound?.action(); } catch (e) {}
                 }
-                // Smooth zoom: whole route first, then glide into your position
+                // One short route overview avoids competing zoom animations on phones.
                 if (!navZoomed && navRoute.coordinates?.length) {
                     navZoomed = true;
-                    map.flyToBounds(L.latLngBounds(navRoute.coordinates), { padding: [55, 55], duration: 1.0 });
-                    setTimeout(() => {
-                        if (navDest && AppState.userLocation?.lat != null) {
-                            map.flyTo([AppState.userLocation.lat, AppState.userLocation.lng], 17, { duration: 1.25 });
-                        }
-                    }, 1150);
+                    map.stop?.();
+                    map.fitBounds(L.latLngBounds(navRoute.coordinates), { padding: [45, 65], animate:false });
                 }
             });
             routingControl.on("routingerror", function () {
+                if(ticket!==navGeneration)return;
+                navPending=false;navRoute=null;
                 const sum = document.getElementById("navSummary");
                 if (sum) sum.textContent = "Could not find a route. Check connection.";
             });
@@ -1871,15 +1892,20 @@ window.MapPage = (() => {
             if (navigator.geolocation && navWatchId == null) {
                 navWatchId = navigator.geolocation.watchPosition(pos => {
                     const lat = pos.coords.latitude, lng = pos.coords.longitude;
+                    if(!Number.isFinite(lat)||!Number.isFinite(lng)||!navDest)return;
                     AppState.userLocation.lat = lat; AppState.userLocation.lng = lng;
+                    AppState.locationFix={timestamp:pos.timestamp||Date.now(),accuracy:pos.coords.accuracy};
+                    const now=Date.now();
+                    if(navLastFollow&&(now-navLastFollow.at<1000||navDistM(lat,lng,navLastFollow.lat,navLastFollow.lng)<5))return;
+                    navLastFollow={lat,lng,at:now};
                     if (userDot) userDot.setLatLng([lat, lng]);
                     if (radiusCircle) radiusCircle.setLatLng([lat, lng]);
-                    if (navDest) map.panTo([lat, lng], { animate: true, duration: 0.8 });
+                    if (navDest&&navRoute) map.panTo([lat, lng], { animate: false });
                     // v53BC: voice guidance for upcoming turns
                     if (navDest) checkNavVoice(lat, lng);
                 }, () => {}, { enableHighAccuracy: true, maximumAge: 3000 });
             }
-        }, 350);
+        }, 0);
     };
 
     // v53BA: show user message + typing indicator immediately (no more "disappearing" feeling)

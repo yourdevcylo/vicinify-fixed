@@ -53,6 +53,10 @@ self.addEventListener("fetch", event => {
     const url = new URL(event.request.url);
     if (url.origin !== self.location.origin) return;
     if (url.pathname.startsWith("/.netlify/functions/")) return;
+    if (url.pathname.endsWith('/update.html')) {
+        event.respondWith(fetch(event.request, {cache:'no-store'}));
+        return;
+    }
 
     const wantsFresh =
         event.request.mode === "navigate" ||
@@ -61,7 +65,7 @@ self.addEventListener("fetch", event => {
 
     if (wantsFresh) {
         event.respondWith(
-            fetch(event.request).then(response => {
+            fetch(event.request, {cache:'no-store'}).then(response => {
                 const copy = response.clone();
                 caches.open(CACHE_NAME).then(cache => response.ok && cache.put(event.request, copy));
                 return response;

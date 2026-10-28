@@ -42,3 +42,15 @@ test('shared subscription detaches only when last consumer leaves',async()=>{
  ua();assert.equal(stops,0);ub();assert.equal(stops,1);dom.window.close();
 });
 
+
+test('manual app update clears only its own cache and worker after validating the downloaded build',async()=>{
+ const html=fs.readFileSync(path.join(__dirname,'../update.html'),'utf8'),script=html.match(/<script>([\s\S]*?)<\/script>/)[1];
+ for(const mode of ['ok','offline','wrong-build']){
+  const removed=[],stopped=[],opened=[],handlers={},nodes={update:{addEventListener:(event,fn)=>handlers[event]=fn},status:{},build:{textContent:'BUILD_TEST'},site:{}};
+  const ctx={URL,Date,Promise,Error,document:{getElementById:id=>nodes[id]},location:{href:'https://app.test/update.html',host:'app.test',replace:url=>opened.push(url)},navigator:{onLine:mode!=='offline',serviceWorker:{getRegistrations:async()=>[{scope:'https://app.test/',unregister:async()=>stopped.push('own')},{scope:'https://app.test/other/',unregister:async()=>stopped.push('other')}] }},window:{caches:true},caches:{keys:async()=>['vicinify-ui-old','unrelated-cache'],delete:async key=>removed.push(key)},fetch:async()=>({ok:true,text:async()=>mode==='wrong-build'?'DIFFERENT':'BUILD_TEST'})};
+  vm.runInNewContext(script,ctx);await handlers.click();
+  if(mode==='ok'){assert.deepEqual(stopped,['own']);assert.deepEqual(removed,['vicinify-ui-old']);assert.equal(opened.length,1);assert.match(opened[0],/^https:\/\/app.test\/index.html\?update=/);}
+  else{assert.equal(stopped.length,0);assert.equal(removed.length,0);assert.equal(opened.length,0);}
+ }
+ assert(!/localStorage\.clear|indexedDB\.deleteDatabase|document\.cookie\s*=/.test(script));
+});
