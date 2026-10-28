@@ -1215,3 +1215,10 @@ html body.vicinify-ui #main-content :is(#page-add,#page-biz-edit) .place-feature
 html body.vicinify-ui #main-content :is(#page-add,#page-biz-edit) .place-feature-group label input[type=checkbox] { display:block !important; width:17px !important; height:17px !important; min-width:17px !important; min-height:17px !important; max-width:17px !important; flex:0 0 17px !important; margin:0 !important; padding:0 !important; position:static !important; }
 html body.vicinify-ui #main-content :is(#page-add,#page-biz-edit) .place-feature-group label span { display:block; flex:1; min-width:0; margin:0 !important; }
 @media(max-width:600px) { html body.vicinify-ui #main-content :is(#page-add,#page-biz-edit) [data-place-feature-form] { grid-template-columns:minmax(0,1fr) !important; } }
+
+html body.vicinify-ui .ticket-detail-list { display:grid; gap:10px; margin:12px 0 2px; font-size:12px; line-height:1.6; }
+html body.vicinify-ui .ticket-detail-list>div { display:grid; grid-template-columns:64px minmax(0,1fr); gap:10px; }
+html body.vicinify-ui .ticket-detail-list dt { color:var(--ui-muted); font-weight:400; }
+html body.vicinify-ui .ticket-detail-list dd { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; color:var(--ui-ink); }
+html body.vicinify-ui #main-content .order-ticket .status-badge.status-fulfilled { color:var(--ui-success-ink) !important; background:var(--ui-success-bg) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui .order-ticket .ticket-actions { margin-top:10px !important; padding-top:10px !important; }

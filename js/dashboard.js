@@ -67,6 +67,26 @@ window.DashboardPage = (() => {
         };
         return map[key] || map.booking;
     }
+    function renderRequestDetails(order) {
+        const legacy={}; let key='';
+        String(order.details || '').split(/\r?\n/).forEach(line=>{
+            const match=line.match(/^(Date|Time|Items \/ Order|Payment Method|Notes|Guests|Delivery Address|Seating Preference|Occasion):\s*(.*)$/i);
+            if(match){ key=match[1].toLowerCase(); legacy[key]=match[2]; }
+            else if(key) legacy[key]+=(legacy[key]?'\n':'')+line;
+        });
+        const date=order.bookingDate || legacy.date;
+        const time=order.bookingTime || legacy.time;
+        let schedule=[date,time].filter(Boolean).join(' · ');
+        if(/^\d{4}-\d{2}-\d{2}$/.test(date || '') && /^\d{2}:\d{2}$/.test(time || '')) {
+            const stamp=new Date(date+'T'+time+':00+08:00');
+            if(Number.isFinite(stamp.getTime())) schedule=stamp.toLocaleDateString('en-US',{timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric'})+' · '+stamp.toLocaleTimeString('en-US',{timeZone:'Asia/Manila',hour:'numeric',minute:'2-digit'});
+        }
+        const rows=[['Schedule',schedule],['Guests',order.guestCount || legacy.guests],['Items',order.orderItems || legacy['items / order']],['Payment',order.paymentMethod || legacy['payment method']],['Address',order.deliveryAddress || legacy['delivery address']],['Seating',order.seatingPreference || legacy['seating preference']],['Occasion',order.occasion || legacy.occasion],['Notes',order.bookingDetails || legacy.notes]];
+        const visible=rows.filter(([,value])=>value!=null && String(value).trim());
+        if(!visible.length) return '<p class="ticket-details">'+escapeHtml(order.details || 'No additional details.')+'</p>';
+        return '<dl class="ticket-detail-list">'+visible.map(([label,value])=>'<div><dt>'+label+'</dt><dd>'+escapeHtml(String(value))+'</dd></div>').join('')+'</dl>';
+    }
+
     function safeString(str) { return String(str ?? "").split("").map(c => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")).join(""); }
 
     function renderBusinessFreshnessTask(place) {
@@ -585,7 +605,7 @@ globalMessagesUnsub = [];
                         <span class="status-badge status-${status}">${status.toUpperCase()}</span>
                     </div>
                     <p class="ticket-meta"><i data-lucide="${meta.icon}" aria-hidden="true"></i> <span>${escapeHtml(meta.title)} · ${dateStr}</span></p>
-                    <details class="ticket-request-details"><summary>Request details</summary><p class="ticket-details">${escapeHtml(d.details || "No additional details.")}</p></details>
+                    <details class="ticket-request-details"><summary>Request details</summary>${renderRequestDetails(d)}</details>
                     ${
                         status === "pending" ? `
                             <div class="biz-interact-actions ticket-actions">
