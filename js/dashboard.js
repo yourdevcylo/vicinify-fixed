@@ -572,6 +572,7 @@ globalMessagesUnsub = [];
             const initial = (d.userName || "U").charAt(0).toUpperCase();
             const status = d.status || "pending";
             const meta = getRequestMeta(d.requestType);
+            const paymentFlow = window.PaymentPolicy.flow(d);
             const unreadDot = isOwnerUnreadTransaction(d, currentUserUid) ? `<span class="inbox-unread-dot" title="Unread update"></span>` : "";
 
             html += `
@@ -598,7 +599,7 @@ globalMessagesUnsub = [];
                                     <i data-lucide="check" style="width:15px; height:15px;"></i> Accept Request
                                 </button>
                             </div>
-                        ` : status === "accepted" ? `
+                        ` : status === "accepted" && !paymentFlow.canPrepare ? `<div class="payment-awaiting-note">Waiting for online payment proof. Verify the received payment before preparation.</div>` : status === "accepted" ? `
                             <div class="biz-interact-actions ticket-actions">
                                 <button class="btn-accept" style="font-size: 13px; padding: 9px; background: #ea580c; color: white; width: 100%;" onclick="window.DashboardPage.updateBookingStatus('${d.id}', 'preparing')">
                                     <i data-lucide="chef-hat" style="width:15px; height:15px;"></i> Start Preparing
@@ -606,11 +607,11 @@ globalMessagesUnsub = [];
                             </div>
                         ` : status === "preparing" ? `
                             <div class="biz-interact-actions ticket-actions">
-                                <button class="btn-accept" style="font-size: 13px; padding: 9px; background: #0d9488; color: white; width: 100%;" onclick="window.DashboardPage.updateBookingStatus('${d.id}', 'ready')">
-                                    <i data-lucide="check" style="width:15px; height:15px;"></i> Mark Ready
+                                <button class="btn-accept" style="font-size: 13px; padding: 9px; background: #0d9488; color: white; width: 100%;" onclick="window.DashboardPage.updateBookingStatus('${d.id}', '${["delivery_order", "delivery"].includes(d.requestType) ? "out_for_delivery" : "ready"}')">
+                                    <i data-lucide="check" style="width:15px; height:15px;"></i> ${["delivery_order", "delivery"].includes(d.requestType) ? "Mark Out for Delivery" : "Mark Ready"}
                                 </button>
                             </div>
-                        ` : status === "ready" ? `
+                        ` : status === "out_for_delivery" ? `<div class="ticket-actions"><button class="btn-accept" onclick="window.DashboardPage.updateBookingStatus('${d.id}', 'delivered')">Mark Delivered</button></div>` : status === "ready" ? `
                             <div class="biz-interact-actions ticket-actions">
                                 <button class="btn-accept" style="font-size: 13px; padding: 9px; background: #0f172a; color: white; width: 100%;" onclick="window.DashboardPage.updateBookingStatus('${d.id}', 'fulfilled')">
                                     <i data-lucide="check-circle" style="width:15px; height:15px;"></i> ${escapeHtml(meta.fulfillLabel)}
@@ -618,14 +619,15 @@ globalMessagesUnsub = [];
                             </div>
                         ` : status === "payment_submitted" ? `
                             <div class="ticket-proof" style="background:#fef3c7; border:1px solid #fde68a; border-radius:12px; padding:10px;">
-                                <div style="font-size:12px; font-weight:900; color:#92400e; margin-bottom:8px;">Payment proof submitted — please review</div>
-                                ${(d.paymentProofPath || d.paymentProofUrl) ? `<img ${d.paymentProofPath ? `data-proof-booking="${escapeHtml(d.id)}" data-proof-version="${escapeHtml(d.paymentProofPath)}"` : `src="${escapeHtml(window.safeImageUrl(d.paymentProofUrl))}"`} alt="Payment proof" style="width:100%; max-height:160px; object-fit:contain; border-radius:8px; border:1px solid #fde68a; margin-bottom:8px; background:#fff;" loading="lazy" />` : `<div style="font-size:12px; color:#92400e;">No image attached.</div>`}
+                                <div style="font-size:12px; font-weight:900; color:#92400e; margin-bottom:8px;">Payment details submitted — please review</div>
+                                ${d.paymentReference ? `<div class="payment-reference-review">Reference: <strong>${escapeHtml(d.paymentReference)}</strong><br>Amount submitted: ₱${escapeHtml(d.paymentAmount || "—")}</div>` : ""}
+                                ${(d.paymentProofPath || d.paymentProofUrl) ? `<img ${d.paymentProofPath ? `data-proof-booking="${escapeHtml(d.id)}" data-proof-version="${escapeHtml(d.paymentProofPath)}"` : `src="${escapeHtml(window.safeImageUrl(d.paymentProofUrl))}"`} alt="Payment proof" style="width:100%; max-height:160px; object-fit:contain; border-radius:8px; border:1px solid #fde68a; margin-bottom:8px; background:#fff;" loading="lazy" />` : `<div style="font-size:12px; color:#92400e;">No receipt image attached. Verify the submitted reference against your actual account.</div>`}
                                 <div class="biz-interact-actions" style="margin-top:0;">
                                     <button class="btn-deny" style="font-size: 13px; padding: 9px;" onclick="window.reviewPaymentProof('${d.id}', null, 'resubmit')">
-                                        <i data-lucide="x" style="width:15px; height:15px;"></i> Ask to Resubmit
+                                        <i data-lucide="x" style="width:15px; height:15px;"></i> Decline payment
                                     </button>
                                     <button class="btn-accept" style="font-size: 13px; padding: 9px;" onclick="window.reviewPaymentProof('${d.id}', null, 'confirm')">
-                                        <i data-lucide="check" style="width:15px; height:15px;"></i> Confirm Payment
+                                        <i data-lucide="check" style="width:15px; height:15px;"></i> Accept payment
                                     </button>
                                 </div>
                             </div>
@@ -644,6 +646,7 @@ globalMessagesUnsub = [];
                             </div>
                         `
                     }
+                    <button type="button" class="payment-conversation-action" onclick="window.openChatModal('${d.placeId}', '${safeString(d.placeName || "Establishment")}', '${d.userId}')"><i data-lucide="message-square"></i> Open conversation</button>
                 </article>
             `;
         });
@@ -2218,6 +2221,7 @@ if (description.length < 10) {
         document.getElementById("bizPortalName").value = place.name || "";
         document.getElementById("bizPortalCat").value = place.category || place.cat || "restaurant";
         document.getElementById("bizPortalDesc").value = place.description || place.desc || "";
+        window.PlaceFeatures?.renderForm(document.getElementById("bizPortalFeatures"), place.place_features || {});
         document.getElementById("bizPortalAddress").value = place.address || place.addr || "";
         document.getElementById("bizPortalPhone").value = place.contact_phone || place.phone || "";
         document.getElementById("bizPortalEmail").value = place.contact_email || "";
@@ -2401,6 +2405,7 @@ if (description.length < 10) {
 let updateData = {
     name,
 
+    ...(window.PlaceFeatures && document.getElementById("bizPortalFeatures") ? { place_features: window.PlaceFeatures.readForm(document.getElementById("bizPortalFeatures")) } : {}),
     // standard fields
     category,
     description,
@@ -2456,6 +2461,7 @@ let updateData = {
 
         try {
             await window.db.collection("places").doc(id).update(updateData);
+            window.invalidatePlacesCache?.();
             alert("Business Profile Updated Successfully!");
             showPage("page-dashboard");
             render();

@@ -22,14 +22,17 @@ exports.handler = async event => {
             if (!change) return;
             const cards = await transaction.get(db.collection('messages').where('bookingId', '==', bookingId).where('type', '==', 'booking_card').limit(50));
             change.updatedAt = FieldValue.serverTimestamp();
+            if (change.status === 'payment_confirmed') change.paymentVerifiedAt = FieldValue.serverTimestamp();
+            if (change.paymentReviewDecision) { change.paymentReviewedBy = user.uid; change.paymentReviewedAt = FieldValue.serverTimestamp(); }
             if (change.status === 'received') change.customerConfirmedAt = FieldValue.serverTimestamp();
             if (change.status === 'cancelled') change.cancelledAt = FieldValue.serverTimestamp();
             if (order.status === 'payment_submitted' && change.status === 'accepted') {
                 change.paymentProofPath = FieldValue.delete(); change.paymentProofUrl = FieldValue.delete();
+                // Keep the decline reason and decision supplied by the policy.
             }
             transaction.update(ref, change);
             cards.forEach(card => transaction.update(card.ref, { ...change, bookingStatus: change.status }));
-            transaction.create(ref.collection('events').doc(), { actorUid: user.uid, from: order.status, to: change.status, createdAt: FieldValue.serverTimestamp() });
+            transaction.create(ref.collection('events').doc(), { actorUid: user.uid, from: order.status, to: change.status, paymentReviewDecision: change.paymentReviewDecision || null, paymentReviewNote: change.paymentReviewNote || null, createdAt: FieldValue.serverTimestamp() });
         });
         return reply(200, { saved: true });
     } catch (error) { return reply(error.status || (error instanceof SyntaxError ? 400 : 500), { error: error.status ? error.message : 'Booking could not be updated.' }); }

@@ -348,3 +348,559 @@ html body.vicinify-ui #main-content #page-map.active .radius-segment-container .
  html body.vicinify-ui #main-content #page-map.active { grid-template-columns:300px minmax(0,1fr) !important; }
  html body.vicinify-ui #main-content #page-map.active .explore-heading h1 { font-size:30px !important; }
 }
+
+/* Establishment popup: calm green accents and a readable, bounded layout. */
+html body.vicinify-ui .vici-place-popup .leaflet-popup-content-wrapper {
+ background:var(--ui-surface) !important; color:var(--ui-ink) !important;
+ border:1px solid var(--ui-border) !important; border-radius:20px !important;
+ box-shadow:0 12px 36px #10262124 !important; padding:0 !important;
+}
+html body.vicinify-ui .vici-place-popup .leaflet-popup-content {
+ width:270px !important; max-width:calc(100vw - 64px) !important; margin:0 !important;
+}
+html body.vicinify-ui .vici-place-popup .modern-est-card {
+ box-sizing:border-box; padding:18px !important; border:0 !important;
+ background:transparent !important; color:var(--ui-ink) !important;
+ display:flex; flex-direction:column; gap:12px;
+}
+html body.vicinify-ui .vici-place-popup .mec-header { gap:10px; margin:0 !important; padding-right:16px; align-items:center; justify-content:flex-start !important; }
+html body.vicinify-ui .vici-place-popup .mec-avatar {
+ width:44px; height:44px; flex:0 0 44px; border-radius:14px;
+ background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important;
+ border:1px solid var(--ui-success-line); box-shadow:none !important;
+}
+html body.vicinify-ui .vici-place-popup .mec-title {
+ color:var(--ui-ink) !important; font-size:16px !important; line-height:1.35;
+ white-space:normal !important; overflow-wrap:anywhere; gap:5px;
+}
+html body.vicinify-ui .vici-place-popup .mec-title svg { color:var(--ui-success-ink) !important; flex-shrink:0; }
+html body.vicinify-ui .vici-place-popup .mec-sub {
+ flex-wrap:wrap; gap:4px; white-space:normal !important; font-size:11px;
+ color:var(--ui-muted) !important; line-height:1.5; overflow-wrap:anywhere;
+}
+html body.vicinify-ui .vici-place-popup .mec-cat { color:var(--ui-muted) !important; font-weight:600; }
+html body.vicinify-ui .vici-place-popup :is(.mec-suki-row,.mec-status-row,.mec-info-line,.mec-delivery-summary,.mec-actions) { margin:0 !important; }
+html body.vicinify-ui .vici-place-popup :is(.mec-suki-badge,.mec-delivery-chip) {
+ background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important;
+ border:1px solid var(--ui-success-line) !important; box-shadow:none !important;
+ display:inline-flex; align-items:center; gap:5px; padding:6px 9px; font-size:11px;
+ border-radius:9px; line-height:1.3; font-weight:600;
+}
+html body.vicinify-ui .vici-place-popup .mec-suki-badge svg { width:13px; height:13px; }
+html body.vicinify-ui .vici-place-popup .mec-status-row { display:flex; flex-wrap:wrap; gap:8px; }
+html body.vicinify-ui .vici-place-popup .mec-status { background:var(--ui-soft) !important; padding:5px 9px; }
+html body.vicinify-ui .vici-place-popup .mec-status.open { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui .vici-place-popup .mec-info-line { display:flex; flex-direction:row !important; flex-wrap:wrap; gap:8px 12px; justify-content:space-between; align-items:center; }
+html body.vicinify-ui .vici-place-popup .mec-info-dist { color:var(--ui-success-ink) !important; font-size:11px; font-weight:600; }
+html body.vicinify-ui .vici-place-popup .mec-hours-hint { color:var(--ui-muted); font-size:11px; line-height:1.5; }
+html body.vicinify-ui .vici-place-popup .mec-delivery-summary {
+ display:flex !important; flex-wrap:wrap; gap:6px; padding:10px !important;
+ border:1px solid var(--ui-border) !important; border-radius:12px;
+ background:var(--ui-soft) !important;
+}
+html body.vicinify-ui .vici-place-popup .mec-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding-top:2px; }
+html body.vicinify-ui .vici-place-popup .mec-actions button {
+ min-width:0; min-height:40px; padding:8px !important; border-radius:11px !important;
+ display:flex; align-items:center; justify-content:center; gap:6px;
+ font-size:12px !important; font-weight:700; box-shadow:none !important;
+}
+html body.vicinify-ui .vici-place-popup .mec-btn-view { background:var(--ui-surface) !important; border:1px solid var(--ui-border) !important; color:var(--ui-ink) !important; }
+html body.vicinify-ui .vici-place-popup .mec-btn-nav { background:#237e72 !important; border:1px solid #237e72 !important; color:#fff !important; }
+html body.vicinify-ui .vici-place-popup .mec-btn-nav:hover { background:#196458 !important; }
+html body.vicinify-ui .vici-place-popup button:focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:3px; }
+html body.vicinify-ui .vici-place-popup .leaflet-popup-close-button { top:8px !important; right:8px !important; color:var(--ui-muted) !important; }
+html body.vicinify-ui .vici-place-popup .leaflet-popup-tip { background:var(--ui-surface) !important; }
+html body.vicinify-ui .custom-pin-wrap .vici-marker { border:2px solid #fff; box-shadow:0 3px 10px #174c3933 !important; }
+
+html body.vicinify-ui .vici-place-popup .mec-head-text { flex:1; min-width:0; }
+
+/* Establishment detail page: one identity, calm surfaces and clear actions. */
+html body.vicinify-ui #main-content #page-place.active {
+ position:fixed !important; inset:var(--ui-header) 0 0 var(--ui-rail) !important;
+ width:auto !important; max-width:none !important; height:auto !important;
+ padding:28px 32px 40px !important; margin:0 !important; background:var(--ui-bg) !important;
+ overflow-y:auto !important; overflow-x:hidden !important; box-sizing:border-box;
+}
+html body.vicinify-ui #page-place #placeViewContent.place-detail-shell { width:100%; max-width:1160px; margin:0 auto; }
+html body.vicinify-ui #page-place .placeCover {
+ height:240px !important; min-height:0 !important; margin:0 !important;
+ border-radius:24px !important; position:relative; overflow:hidden; border:1px solid var(--ui-border);
+}
+html body.vicinify-ui #page-place .placeCover.no-cover:before {
+ content:""; position:absolute; width:370px; height:370px; border:44px solid #ffffff55;
+ border-radius:50%; right:-70px; top:-130px; transform:rotate(-25deg); pointer-events:none;
+}
+html body.vicinify-ui #page-place .placeCover.no-cover:after {
+ content:""; position:absolute; width:370px; height:70px; background:#ffffff50;
+ right:-40px; bottom:15px; transform:rotate(-28deg); pointer-events:none;
+}
+html body.vicinify-ui.dark-mode #page-place .placeCover.no-cover { background:linear-gradient(120deg,#193d30,#243c33,#294f40) !important; }
+html body.vicinify-ui.dark-mode #page-place .placeCover.no-cover:before { border-color:#ffffff08; }
+html body.vicinify-ui.dark-mode #page-place .placeCover.no-cover:after { background:#ffffff08; }
+html body.vicinify-ui #page-place .placeTopBar { position:absolute; inset:18px 18px auto; display:flex; justify-content:space-between; z-index:2; padding:0 !important; }
+html body.vicinify-ui #page-place :is(.circleBackBtn,.btn-fav) {
+ background:var(--ui-surface) !important; color:var(--ui-ink) !important;
+ border:1px solid var(--ui-border) !important; box-shadow:0 2px 8px #143c2410 !important;
+ width:42px !important; height:42px !important; border-radius:13px !important;
+}
+html body.vicinify-ui #page-place .btn-fav.active { color:var(--ui-success-ink) !important; background:var(--ui-success-bg) !important; }
+html body.vicinify-ui #page-place .placeCoverBrand { left:28px !important; right:28px !important; bottom:24px !important; display:flex; gap:14px; z-index:1; align-items:center; }
+html body.vicinify-ui #page-place .placeBrandLogo {
+ width:66px !important; height:66px !important; flex:0 0 66px !important; border-radius:18px !important;
+ background:var(--ui-surface) !important; color:var(--ui-success-ink) !important;
+ border:3px solid var(--ui-surface) !important; box-shadow:0 4px 16px #143c2414 !important; font-size:28px;
+}
+html body.vicinify-ui #page-place .placeBrandText strong { font-size:20px !important; line-height:1.3; color:#fff !important; text-shadow:0 1px 8px #0006; }
+html body.vicinify-ui #page-place .placeBrandText span { color:#fff !important; font-size:12px; text-shadow:0 1px 8px #0006; }
+html body.vicinify-ui #page-place .no-cover .placeBrandText strong { color:var(--ui-success-ink) !important; text-shadow:none; }
+html body.vicinify-ui #page-place .no-cover .placeBrandText span { color:var(--ui-success-ink) !important; text-shadow:none; opacity:.8; }
+html body.vicinify-ui #page-place.active .placeDetailsCard.place-polished-details {
+ display:grid !important; grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr) !important;
+ gap:20px !important; background:transparent !important; border:0 !important; box-shadow:none !important;
+ margin:24px 0 0 !important; padding:0 !important; border-radius:0 !important; overflow:visible !important;
+}
+html body.vicinify-ui #page-place :is(.placeProfilePanel,.place-about-panel,.place-menu-feed) {
+ padding:24px !important; margin:0 !important; border-radius:20px !important;
+ border:1px solid var(--ui-border) !important; background:var(--ui-surface) !important;
+ color:var(--ui-ink) !important; box-shadow:0 2px 8px #143c2405 !important; min-width:0;
+}
+html body.vicinify-ui #page-place .placeProfilePanel { grid-column:1; grid-row:1 / span 2; align-self:start; }
+html body.vicinify-ui #page-place .place-about-panel { grid-column:2; grid-row:1; }
+html body.vicinify-ui #page-place .place-menu-feed { grid-column:2; grid-row:2; align-self:start; }
+html body.vicinify-ui #page-place .place-profile-head { margin:0 0 18px !important; display:block; }
+html body.vicinify-ui #page-place .place-profile-eyebrow { display:block; font-size:9px; font-weight:700; letter-spacing:1.6px; color:var(--ui-success-ink); margin-bottom:10px; }
+html body.vicinify-ui #page-place .placeHeaderTitle { min-width:0; }
+html body.vicinify-ui #page-place .placeHeaderTitle h1 { font-size:30px !important; line-height:1.2 !important; letter-spacing:-1px; color:var(--ui-ink) !important; margin:0 0 8px !important; overflow-wrap:anywhere; }
+html body.vicinify-ui #page-place .placeHeaderTitle>p { color:var(--ui-muted) !important; font-size:11px; letter-spacing:1px; margin:0 0 14px !important; }
+html body.vicinify-ui #page-place .place-rating-jump { background:var(--ui-soft) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-border) !important; border-radius:9px !important; padding:7px 10px !important; }
+html body.vicinify-ui #page-place .place-rating-jump svg { color:#b77a15; fill:currentColor !important; }
+html body.vicinify-ui #page-place .place-status-pills { gap:7px !important; margin:0 0 20px !important; }
+html body.vicinify-ui #page-place .place-status-pills>span {
+ background:var(--ui-soft) !important; color:var(--ui-muted) !important; border:1px solid var(--ui-border) !important;
+ border-radius:8px !important; padding:6px 9px !important; font-size:11px !important; font-weight:600 !important; line-height:1.4;
+}
+html body.vicinify-ui #page-place .place-status-pills>:is(.place-open-status.open,.place-verified-status) { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui #page-place .place-status-pills>.place-open-status.busy { background:var(--ui-warning-bg) !important; color:var(--ui-warning-ink) !important; border-color:var(--ui-warning-line) !important; }
+html body.vicinify-ui #page-place .place-contact-grid { display:grid !important; grid-template-columns:1fr !important; gap:10px !important; margin:0 0 20px !important; }
+html body.vicinify-ui #page-place .placeContactRow { display:flex; align-items:flex-start; gap:10px; padding:12px !important; margin:0 !important; background:var(--ui-soft) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-border) !important; border-radius:11px !important; font-size:12px !important; line-height:1.5; min-width:0; }
+html body.vicinify-ui #page-place .placeContactRow span { overflow-wrap:anywhere; }
+html body.vicinify-ui #page-place .placeContactRow svg { width:16px; height:16px; color:var(--ui-success-ink) !important; flex:0 0 16px; margin-top:1px; }
+html body.vicinify-ui #page-place .placeActionBtns { display:grid !important; grid-template-columns:1fr 1fr !important; gap:8px !important; margin:0 !important; }
+html body.vicinify-ui #page-place .placeActionBtns button { min-width:0 !important; min-height:44px; padding:10px !important; border-radius:11px !important; font-size:12px !important; font-weight:700; box-shadow:none !important; background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:1px solid var(--ui-success-line) !important; }
+html body.vicinify-ui #page-place .placeActionBtns .btnNav { grid-column:1 / -1; background:#237e72 !important; color:#fff !important; border-color:#237e72 !important; }
+html body.vicinify-ui #page-place .placeActionBtns svg { width:16px; height:16px; }
+html body.vicinify-ui #page-place .place-trust-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; border-top:1px solid var(--ui-border); padding-top:16px; }
+html body.vicinify-ui #page-place .place-trust-actions button { background:transparent !important; color:var(--ui-muted) !important; border:0 !important; padding:6px !important; min-width:0 !important; min-height:36px; font-size:11px !important; font-weight:600 !important; }
+html body.vicinify-ui #page-place .place-section-title { margin:0 0 18px !important; gap:12px; align-items:center; }
+html body.vicinify-ui #page-place .place-section-title>div>span { color:var(--ui-success-ink) !important; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+html body.vicinify-ui #page-place .place-section-title h3 { color:var(--ui-ink) !important; font-size:18px !important; line-height:1.4; margin:6px 0 0 !important; gap:8px; }
+html body.vicinify-ui #page-place .place-section-title h3 svg { width:18px; color:var(--ui-success-ink); }
+html body.vicinify-ui #page-place .place-section-title button { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:1px solid var(--ui-success-line) !important; border-radius:10px; padding:9px 12px; }
+html body.vicinify-ui #page-place .place-description-text { color:var(--ui-muted) !important; font-size:14px !important; line-height:1.8 !important; margin:0 !important; overflow-wrap:anywhere; }
+html body.vicinify-ui #page-place .place-rating-panel.rating-section { margin:24px 0 0 !important; padding:18px !important; background:var(--ui-soft) !important; border:1px solid var(--ui-border) !important; border-radius:13px !important; }
+html body.vicinify-ui #page-place .place-rating-panel :is(h4,p) { color:var(--ui-ink) !important; }
+html body.vicinify-ui #page-place .place-rating-panel p { color:var(--ui-muted) !important; line-height:1.6; }
+html body.vicinify-ui #page-place .star-btn { min-width:34px; min-height:36px; }
+html body.vicinify-ui #page-place #placeSukiSection:empty { display:none; }
+html body.vicinify-ui #page-place #placeSukiSection:not(:empty) { margin-top:22px; padding-top:20px; border-top:1px solid var(--ui-border); }
+html body.vicinify-ui #page-place .place-menu-empty { background:var(--ui-soft) !important; border:1px dashed var(--ui-border) !important; color:var(--ui-muted) !important; border-radius:13px; padding:28px 16px; }
+html body.vicinify-ui #page-place .place-menu-empty svg { color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #page-place .place-menu-card { background:var(--ui-surface) !important; color:var(--ui-ink) !important; border-color:var(--ui-border) !important; box-shadow:none !important; border-radius:13px; }
+html body.vicinify-ui #page-place .place-review-modal { z-index:30000 !important; }
+html body.vicinify-ui #page-place button:focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:3px; }
+@media(max-width:1050px) {
+ html body.vicinify-ui #page-place.active .placeDetailsCard.place-polished-details { grid-template-columns:minmax(0,1fr) !important; }
+ html body.vicinify-ui #page-place :is(.placeProfilePanel,.place-about-panel,.place-menu-feed) { grid-column:1 !important; grid-row:auto !important; }
+}
+@media(max-width:767px) {
+ html body.vicinify-ui #main-content #page-place.active { inset:var(--ui-header) 0 70px 0 !important; padding:16px 14px 28px !important; }
+ html body.vicinify-ui #page-place .placeCover { height:190px !important; border-radius:18px !important; }
+ html body.vicinify-ui #page-place .placeCoverBrand { left:18px !important; right:18px !important; bottom:18px !important; gap:10px; }
+ html body.vicinify-ui #page-place .placeBrandLogo { width:54px !important; height:54px !important; flex-basis:54px !important; border-radius:15px !important; }
+ html body.vicinify-ui #page-place .placeBrandText strong { font-size:16px !important; }
+ html body.vicinify-ui #page-place.active .placeDetailsCard.place-polished-details { margin-top:16px !important; gap:16px !important; }
+ html body.vicinify-ui #page-place :is(.placeProfilePanel,.place-about-panel,.place-menu-feed) { padding:20px !important; border-radius:17px !important; }
+ html body.vicinify-ui #page-place .placeHeaderTitle h1 { font-size:27px !important; }
+}
+html body.vicinify-ui #page-place .placeCover.no-cover:after { inset:auto -40px 15px auto !important; background:#ffffff50 !important; }
+html body.vicinify-ui.dark-mode #page-place .placeCover.no-cover:after { background:#ffffff08 !important; }
+html body.vicinify-ui #page-place .placeCoverBrand { width:auto !important; align-items:center !important; }
+html body.vicinify-ui #page-place .placeBrandText { display:block !important; }
+html body.vicinify-ui #page-place .placeHeaderTitle>p { display:block !important; padding:0 !important; background:transparent !important; }
+html body.vicinify-ui #page-place .place-section-title h3 span { color:var(--ui-ink) !important; text-transform:none !important; font-size:18px !important; letter-spacing:-.3px !important; }
+html body.vicinify-ui #page-place .place-section-title h3 svg { color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #page-place .place-about-panel { align-self:start; }
+html body.vicinify-ui #page-place .place-status-pills>span { white-space:normal !important; }
+
+html body.vicinify-ui #page-place .placeProfilePanel { grid-row:1 !important; }
+html body.vicinify-ui #page-place .place-secondary-column { min-width:0; display:flex; flex-direction:column; gap:20px; }
+@media(max-width:1050px) { html body.vicinify-ui #page-place .place-secondary-column { grid-column:1; } }
+
+/* Booking and order request composer. */
+html body.vicinify-ui #bookingModal .booking-sheet { width:600px !important; max-width:calc(100vw - 32px) !important; max-height:calc(100dvh - 32px) !important; padding:0 !important; border-radius:22px !important; display:flex; flex-direction:column; overflow:hidden !important; }
+html body.vicinify-ui #bookingModal .modalHeader { padding:20px 24px !important; margin:0 !important; border-bottom:1px solid var(--ui-border); align-items:center; flex-shrink:0; background:var(--ui-surface) !important; }
+html body.vicinify-ui #bookingModal .booking-eyebrow { display:block; font-size:9px; letter-spacing:1.5px; color:var(--ui-success-ink); font-weight:700; margin-bottom:5px; }
+html body.vicinify-ui #bookingModal .modalHeader h3 { font-size:22px !important; letter-spacing:-.5px; margin:0 !important; color:var(--ui-ink) !important; }
+html body.vicinify-ui #bookingModal .modalBody { padding:22px 24px !important; overflow-y:auto !important; min-height:0; background:var(--ui-surface) !important; }
+html body.vicinify-ui #bookingModal .booking-store-summary { display:flex; align-items:center; gap:12px; padding:14px; border:1px solid var(--ui-success-line); background:var(--ui-success-bg); border-radius:13px; }
+html body.vicinify-ui #bookingModal .booking-store-icon { display:grid; place-items:center; color:var(--ui-success-ink); width:38px; height:38px; flex:0 0 38px; border:1px solid var(--ui-success-line); border-radius:11px; }
+html body.vicinify-ui #bookingModal .booking-store-icon svg { width:20px; height:20px; }
+html body.vicinify-ui #bookingModal .booking-store-label { display:block; color:var(--ui-success-ink); font-size:10px; margin-bottom:3px; }
+html body.vicinify-ui #bookingModal #bookingStoreChip { color:var(--ui-success-ink) !important; font-size:14px; overflow-wrap:anywhere; }
+html body.vicinify-ui #bookingModal .booking-intro-copy { margin:12px 0 22px; font-size:12px; line-height:1.6; color:var(--ui-muted) !important; }
+html body.vicinify-ui #bookingModal .field { margin:0 0 18px !important; min-width:0; }
+html body.vicinify-ui #bookingModal label { display:block; font-size:12px !important; font-weight:650; margin-bottom:9px; color:var(--ui-ink) !important; }
+html body.vicinify-ui #bookingModal :is(.request-choice,[data-request-type]) { display:flex !important; align-items:center; gap:10px; padding:13px !important; min-width:0; min-height:76px; border:1px solid var(--ui-border) !important; background:var(--ui-surface) !important; color:var(--ui-ink) !important; box-shadow:none !important; border-radius:12px !important; text-align:left; }
+html body.vicinify-ui #bookingModal :is(.request-choice,[data-request-type]).active { background:var(--ui-success-bg) !important; border-color:var(--ui-success-ink) !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #bookingModal .request-choice-icon { width:34px; height:34px; flex:0 0 34px; display:grid; place-items:center; background:var(--ui-soft) !important; color:var(--ui-success-ink) !important; border-radius:10px; box-shadow:none !important; }
+html body.vicinify-ui #bookingModal .request-choice-icon svg { width:18px; height:18px; }
+html body.vicinify-ui #bookingModal .request-choice-text { min-width:0; display:block; }
+html body.vicinify-ui #bookingModal .request-choice-title { display:block; font-size:12px !important; font-weight:700; color:inherit !important; }
+html body.vicinify-ui #bookingModal .request-choice-copy { display:block; font-size:10px !important; line-height:1.5; color:var(--ui-muted) !important; font-weight:400; margin-top:4px; white-space:normal; }
+html body.vicinify-ui #bookingModal .booking-choice-grid { gap:9px !important; }
+html body.vicinify-ui #bookingModal .booking-date-grid { display:grid !important; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px !important; margin:20px 0 0 !important; }
+html body.vicinify-ui #bookingModal :is(input:not([type=hidden]),textarea) { width:100%; box-sizing:border-box; min-width:0; border-radius:10px !important; padding:12px !important; font-size:13px !important; }
+html body.vicinify-ui #bookingModal .req-card { margin:0 0 18px; border:1px solid var(--ui-border) !important; background:var(--ui-surface) !important; border-radius:14px !important; box-shadow:none !important; overflow:hidden; }
+html body.vicinify-ui #bookingModal .req-card-head { display:flex; align-items:center; gap:10px; padding:14px 16px !important; background:var(--ui-soft) !important; border-bottom:1px solid var(--ui-border); }
+html body.vicinify-ui #bookingModal .req-card-icon { display:grid; place-items:center; width:34px; height:34px; border-radius:10px; background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #bookingModal .req-card-head b { display:block; color:var(--ui-ink) !important; font-size:13px; }
+html body.vicinify-ui #bookingModal .req-card-head>div>span { display:block; color:var(--ui-muted) !important; font-size:11px; margin-top:3px; }
+html body.vicinify-ui #bookingModal .req-card-body { padding:16px !important; }
+html body.vicinify-ui #bookingModal .req-card-body>.field:last-child { margin-bottom:0 !important; }
+html body.vicinify-ui #bookingModal .req-chips { display:flex; flex-wrap:wrap; gap:7px; margin:0 0 9px; }
+html body.vicinify-ui #bookingModal .req-chip { background:var(--ui-soft) !important; color:var(--ui-muted) !important; border:1px solid var(--ui-border) !important; box-shadow:none !important; padding:8px 11px !important; min-height:34px; border-radius:9px !important; font-size:11px; }
+html body.vicinify-ui #bookingModal .req-chip.active { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui #bookingModal .req-note { padding:12px !important; margin:0 0 16px; background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:1px solid var(--ui-success-line) !important; border-radius:10px; font-size:11px; line-height:1.6; }
+html body.vicinify-ui #bookingModal .booking-policy-note { display:flex; gap:10px; padding:14px !important; background:var(--ui-soft) !important; color:var(--ui-muted) !important; border:1px solid var(--ui-border) !important; border-radius:12px; }
+html body.vicinify-ui #bookingModal .booking-policy-note svg { width:18px; height:18px; flex:0 0 18px; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #bookingModal .booking-policy-note b { color:var(--ui-ink) !important; font-size:11px; }
+html body.vicinify-ui #bookingModal .booking-policy-note p { font-size:11px !important; line-height:1.6; margin:5px 0 0; }
+html body.vicinify-ui #bookingModal .booking-footer { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:16px 24px !important; margin:0 !important; background:var(--ui-surface) !important; border-top:1px solid var(--ui-border); flex-shrink:0; }
+html body.vicinify-ui #bookingModal .booking-footer button { min-width:0; min-height:44px; border-radius:11px !important; padding:10px !important; font-size:12px !important; }
+html body.vicinify-ui #bookingModal button:focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:3px; }
+@media(max-width:420px) {
+ html body.vicinify-ui #bookingModal .booking-sheet { max-width:calc(100vw - 20px) !important; max-height:calc(100dvh - 20px) !important; }
+ html body.vicinify-ui #bookingModal :is(.modalHeader,.modalBody,.booking-footer) { padding:16px !important; }
+ html body.vicinify-ui #bookingModal :is(.request-choice,[data-request-type]) { flex-direction:column; align-items:flex-start; gap:8px; padding:11px !important; }
+}
+html body.vicinify-ui #bookingModal .modalHeader h3::before { content:none !important; display:none !important; }
+html body.vicinify-ui #bookingModal .booking-footer { display:grid !important; grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important; }
+html body.vicinify-ui #bookingModal .booking-footer .ghost { order:0 !important; background:var(--ui-surface) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-border) !important; box-shadow:none !important; }
+html body.vicinify-ui #bookingModal #confirmBookingBtn { order:1 !important; background:#237e72 !important; color:#fff !important; border:1px solid #237e72 !important; box-shadow:none !important; }
+html body.vicinify-ui #bookingModal .booking-choice-grid { grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important; }
+html body.vicinify-ui #bookingModal .booking-choice-grid-single { grid-template-columns:minmax(0,1fr) !important; }
+html body.vicinify-ui #bookingModal .booking-date-grid { grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important; }
+html body.vicinify-ui #bookingModal .booking-choice-grid { display:grid !important; }
+html body.vicinify-ui #bookingModal :is(.request-choice,[data-request-type]) { grid-column:auto !important; text-align:left !important; }
+html body.vicinify-ui #bookingModal .request-choice-text { text-align:left !important; }
+html body.vicinify-ui #bookingModal :is(.request-choice,[data-request-type]).active::after { background:#237e72 !important; }
+html body.vicinify-ui #bookingModal .active .request-choice-icon { border-color:var(--ui-success-line) !important; }
+/* Request spacing: compact category tiles, full-width order rows, steady field rhythm. */
+html body.vicinify-ui #bookingModal .modalHeader { padding:18px 22px !important; }
+html body.vicinify-ui #bookingModal .modalClose { width:36px !important; height:36px !important; min-height:36px !important; padding:0 !important; flex:0 0 36px; border-radius:11px !important; }
+html body.vicinify-ui #bookingModal .modalBody { padding:20px 22px 24px !important; }
+html body.vicinify-ui #bookingModal .booking-intro-copy { margin:12px 0 20px !important; }
+html body.vicinify-ui #bookingModal .modalBody>.field { margin-bottom:20px !important; }
+html body.vicinify-ui #bookingModal #reqGroupReservation,
+html body.vicinify-ui #bookingModal #reqGroupOrder { display:flex !important; flex-direction:row !important; align-items:flex-start !important; justify-content:flex-start !important; text-align:left !important; min-height:82px !important; padding:13px 26px 13px 12px !important; gap:9px !important; }
+html body.vicinify-ui #bookingModal #reservationRequestOptions .booking-choice-grid { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:10px !important; }
+html body.vicinify-ui #bookingModal #orderRequestOptions .booking-choice-grid { display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:8px !important; }
+html body.vicinify-ui #bookingModal #orderRequestOptions [data-request-type],
+html body.vicinify-ui #bookingModal #reservationRequestOptions [data-request-type] { display:flex !important; flex-direction:row !important; align-items:center !important; justify-content:flex-start !important; min-height:66px !important; padding:12px 34px 12px 12px !important; gap:10px !important; }
+html body.vicinify-ui #bookingModal .request-choice-text { flex:1; text-align:left !important; align-self:center !important; }
+html body.vicinify-ui #bookingModal .request-choice-icon { margin:0 !important; }
+html body.vicinify-ui #bookingModal :is(.request-choice,[data-request-type]).active::after { width:16px !important; height:16px !important; font-size:10px !important; top:10px !important; right:9px !important; }
+html body.vicinify-ui #bookingModal .booking-date-grid { margin-top:0 !important; margin-bottom:20px !important; }
+html body.vicinify-ui #bookingModal .booking-date-grid>.field { margin-bottom:0 !important; }
+html body.vicinify-ui #bookingModal .req-card { animation:none !important; opacity:1 !important; transform:none !important; margin-bottom:20px !important; }
+html body.vicinify-ui #bookingModal .req-card-head { padding:14px !important; }
+html body.vicinify-ui #bookingModal .req-card-body { padding:16px !important; }
+html body.vicinify-ui #bookingModal .req-card-body>.field { margin-bottom:20px !important; }
+html body.vicinify-ui #bookingModal .req-card-body>.field:last-child { margin-bottom:0 !important; }
+html body.vicinify-ui #bookingModal .booking-policy-note { margin:0 !important; }
+html body.vicinify-ui #bookingModal .booking-footer { padding:14px 22px !important; gap:10px !important; }
+@media(max-width:420px) {
+ html body.vicinify-ui #bookingModal .modalHeader { padding:16px !important; }
+ html body.vicinify-ui #bookingModal .modalBody { padding:16px 16px 20px !important; }
+ html body.vicinify-ui #bookingModal #reqGroupReservation,
+ html body.vicinify-ui #bookingModal #reqGroupOrder { flex-direction:column !important; min-height:104px !important; gap:8px !important; padding:12px 24px 12px 12px !important; }
+ html body.vicinify-ui #bookingModal #reservationRequestOptions .booking-choice-grid { grid-template-columns:minmax(0,1fr) !important; }
+ html body.vicinify-ui #bookingModal .booking-footer { padding:14px 16px !important; }
+ html body.vicinify-ui #bookingModal .request-choice-title { line-height:1.4 !important; }
+}
+html body.vicinify-ui #bookingModal #bookingCategoryChoices { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:10px !important; }
+html body.vicinify-ui #bookingModal #bookingCategoryChoices .request-choice-text { margin:0 !important; width:100%; align-self:stretch !important; }
+
+/* Owner/customer transaction requirements share one readable sheet. */
+html body.vicinify-ui .req-modal { align-items:center !important; padding:16px !important; box-sizing:border-box; }
+html body.vicinify-ui .req-modal .req-sheet {
+ display:flex !important; flex-direction:column; padding:0 !important;
+ width:560px !important; max-width:100% !important; max-height:calc(100dvh - 32px) !important;
+ overflow:hidden !important; border-radius:22px !important; border:1px solid var(--ui-border);
+ background:var(--ui-surface) !important; color:var(--ui-ink) !important;
+}
+html body.vicinify-ui .req-modal .req-head { padding:20px 22px; margin:0 !important; gap:12px; border-bottom:1px solid var(--ui-border); flex-shrink:0; align-items:flex-start; }
+html body.vicinify-ui .req-modal .req-head-icon { width:40px; height:40px; flex:0 0 40px; border-radius:12px; background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:1px solid var(--ui-success-line); box-shadow:none !important; }
+html body.vicinify-ui .req-modal .req-head-text h3 { font-size:19px !important; line-height:1.35; letter-spacing:-.4px; margin:0 0 5px !important; }
+html body.vicinify-ui .req-modal .req-head-text p { font-size:11px !important; line-height:1.6; color:var(--ui-muted) !important; }
+html body.vicinify-ui .req-modal .req-close { width:34px; height:34px; flex:0 0 34px; border-radius:10px; border-color:var(--ui-border) !important; background:var(--ui-soft) !important; color:var(--ui-muted) !important; }
+html body.vicinify-ui .req-modal .req-body { min-height:0; overflow-y:auto; padding:20px 22px 24px; overscroll-behavior:contain; }
+html body.vicinify-ui .req-modal .req-options { gap:9px; margin:0; }
+html body.vicinify-ui .req-modal .req-option { gap:10px; padding:13px !important; border-radius:12px !important; border:1px solid var(--ui-border) !important; background:var(--ui-surface) !important; box-shadow:none !important; }
+html body.vicinify-ui .req-modal .req-option:has(input:checked) { background:var(--ui-success-bg) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui .req-modal .req-opt-icon { width:34px; height:34px; flex:0 0 34px; border-radius:10px; background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:0 !important; }
+html body.vicinify-ui .req-modal .req-opt-text { flex:1; min-width:0; }
+html body.vicinify-ui .req-modal .req-opt-text b { display:block; font-size:12px !important; line-height:1.4; color:var(--ui-ink) !important; }
+html body.vicinify-ui .req-modal .req-opt-text small { display:block; font-size:10px !important; line-height:1.5; margin-top:3px; color:var(--ui-muted) !important; }
+html body.vicinify-ui .req-modal .req-opt-check { width:20px; height:20px; flex:0 0 20px; border-color:var(--ui-border); }
+html body.vicinify-ui .req-modal .req-fields { gap:18px; margin-top:22px; padding-top:20px; border-top:1px solid var(--ui-border); }
+html body.vicinify-ui .req-modal .req-field { display:block; margin:0; min-width:0; }
+html body.vicinify-ui .req-modal .req-field[hidden] { display:none !important; }
+html body.vicinify-ui .req-modal .req-field>span { color:var(--ui-ink) !important; font-size:11px; font-weight:650; line-height:1.5; margin-bottom:7px; }
+html body.vicinify-ui .req-modal .req-field em { color:var(--ui-muted) !important; font-size:10px; font-weight:400; }
+html body.vicinify-ui .req-modal :is(.req-input,.req-amount-wrap) { width:100%; box-sizing:border-box; border-radius:10px !important; background:var(--ui-soft) !important; border:1px solid var(--ui-border) !important; color:var(--ui-ink) !important; box-shadow:none !important; }
+html body.vicinify-ui .req-modal .req-input { padding:11px 12px !important; font-size:12px !important; min-height:42px; margin:0 !important; }
+html body.vicinify-ui .req-modal .req-amount-wrap input { background:transparent !important; border:0 !important; font-size:12px !important; min-width:0; padding:11px !important; }
+html body.vicinify-ui .req-modal .req-amount-wrap>span { color:var(--ui-success-ink); padding-left:12px; }
+html body.vicinify-ui .req-modal .req-textarea { min-height:90px !important; resize:vertical; }
+html body.vicinify-ui .req-modal .req-section { padding:16px !important; margin:0 0 16px !important; border-radius:14px !important; background:var(--ui-surface) !important; border:1px solid var(--ui-border) !important; }
+html body.vicinify-ui .req-modal .req-section:last-child { margin-bottom:0 !important; }
+html body.vicinify-ui .req-modal .req-section-head { gap:10px; margin-bottom:16px; }
+html body.vicinify-ui .req-modal .req-section-head b { font-size:13px; color:var(--ui-ink) !important; }
+html body.vicinify-ui .req-modal .req-section>.req-field { margin-top:14px; }
+html body.vicinify-ui .req-modal .req-note { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:1px solid var(--ui-success-line); padding:12px; margin:0 0 16px; font-size:11px; line-height:1.6; border-radius:11px; }
+html body.vicinify-ui .req-modal .req-loc-btn { min-height:42px; padding:10px; background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:1px solid var(--ui-success-line); border-radius:10px; font-size:11px; }
+html body.vicinify-ui .req-modal .req-footer { position:static !important; flex-shrink:0; display:grid !important; grid-template-columns:1fr 1fr; gap:10px; margin:0 !important; padding:14px 22px !important; border-top:1px solid var(--ui-border); background:var(--ui-surface) !important; }
+html body.vicinify-ui .req-modal .req-btn { min-width:0; min-height:44px; border-radius:11px; font-size:12px !important; box-shadow:none !important; padding:10px; }
+html body.vicinify-ui .req-modal .req-btn.primary { background:#237e72 !important; color:#fff !important; border:1px solid #237e72 !important; }
+html body.vicinify-ui .req-modal .req-btn.ghost { background:var(--ui-soft) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-border) !important; }
+html body.vicinify-ui .req-modal :is(button,input,textarea,select):focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:3px; }
+html body.vicinify-ui .req-modal .req-option:has(input:focus-visible) { outline:2px solid var(--ui-success-ink); outline-offset:3px; }
+@media(max-width:420px) {
+ html body.vicinify-ui .req-modal { padding:10px !important; }
+ html body.vicinify-ui .req-modal .req-sheet { max-height:calc(100dvh - 20px) !important; border-radius:18px !important; }
+ html body.vicinify-ui .req-modal .req-head { padding:16px; gap:9px; }
+ html body.vicinify-ui .req-modal .req-body { padding:16px; }
+ html body.vicinify-ui .req-modal .req-footer { padding:14px 16px !important; }
+ html body.vicinify-ui .req-modal .req-head-icon { width:34px; height:34px; flex-basis:34px; }
+ html body.vicinify-ui .req-modal .req-head-text h3 { font-size:17px !important; }
+}
+html body.vicinify-ui .req-modal .req-sheet .req-amount-wrap input { border:0 !important; border-radius:0 !important; box-shadow:none !important; background:transparent !important; }
+
+/* Conversation: readable bubbles, restrained transaction cards and a roomy composer. */
+html body.vicinify-ui #main-content #chatModal .chat-modal-box { width:680px !important; max-width:calc(100vw - 32px) !important; height:min(760px,calc(100dvh - 32px)) !important; border:1px solid var(--ui-border); border-radius:22px !important; }
+html body.vicinify-ui #main-content #chatModal .chat-header { padding:18px 20px !important; margin:0 !important; border-bottom:1px solid var(--ui-border); background:var(--ui-surface) !important; }
+html body.vicinify-ui #chatModal .chat-header>div { min-width:0; }
+html body.vicinify-ui #chatModal .chat-header-copy { min-width:0; }
+html body.vicinify-ui #chatModal #chatModalTitle { font-size:16px !important; line-height:1.4; color:var(--ui-ink) !important; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+html body.vicinify-ui #chatModal .chat-header-copy p { margin:3px 0 0; color:var(--ui-muted) !important; font-size:10px; line-height:1.5; }
+html body.vicinify-ui #chatModal #chatModalAvatar { width:42px; height:42px; flex:0 0 42px; border-radius:13px; background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:1px solid var(--ui-success-line); box-shadow:none !important; }
+html body.vicinify-ui #chatModal .modalClose { flex:0 0 34px; width:34px !important; height:34px !important; min-height:34px; padding:0; border-radius:10px; }
+html body.vicinify-ui #main-content #chatModal #chatMessageList { padding:22px 20px !important; background:var(--ui-soft) !important; overscroll-behavior:contain; overflow-x:hidden !important; }
+html body.vicinify-ui #chatModal .chat-message-row { display:flex; width:100%; margin-bottom:12px; }
+html body.vicinify-ui #chatModal .chat-message-row.is-mine { justify-content:flex-end; }
+html body.vicinify-ui #chatModal .chat-message-row.is-other { justify-content:flex-start; }
+html body.vicinify-ui #chatModal .chat-bubble { max-width:82% !important; min-width:0; padding:11px 14px !important; margin:0 !important; font-size:13px !important; line-height:1.65; box-shadow:0 1px 3px #143c2406 !important; }
+html body.vicinify-ui #chatModal .chat-bubble.me { background:#237e72 !important; color:#fff !important; border:1px solid #237e72 !important; border-radius:16px 16px 5px 16px !important; }
+html body.vicinify-ui #chatModal .chat-bubble.other { background:var(--ui-surface) !important; color:var(--ui-ink) !important; border:1px solid var(--ui-border) !important; border-radius:16px 16px 16px 5px !important; }
+html body.vicinify-ui #chatModal .chat-message-text { white-space:pre-wrap; overflow-wrap:anywhere; }
+html body.vicinify-ui #chatModal .chat-message-sender { display:block; font-size:10px; font-weight:700; color:var(--ui-success-ink); margin-bottom:4px; }
+html body.vicinify-ui #chatModal .chat-message-meta { font-size:9px; line-height:1.4; margin-top:6px; text-align:right; color:var(--ui-muted); }
+html body.vicinify-ui #chatModal .me .chat-message-meta { color:#e0f5ec !important; }
+html body.vicinify-ui #chatModal .msg-receipt { color:inherit !important; font-size:9px; }
+html body.vicinify-ui #chatModal .chat-transaction-card { width:100% !important; max-width:94% !important; min-width:0 !important; border:1px solid var(--ui-border) !important; border-radius:15px !important; box-shadow:0 2px 6px #143c2408 !important; background:var(--ui-surface) !important; color:var(--ui-ink) !important; overflow-wrap:anywhere; }
+html body.vicinify-ui #chatModal .chat-transaction-card>div:first-child { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; font-size:12px; font-weight:700 !important; padding:12px 14px !important; border-bottom:1px solid var(--ui-success-line); }
+html body.vicinify-ui #chatModal .chat-transaction-card>div:not(:first-child) { color:var(--ui-ink) !important; font-size:12px !important; line-height:1.6; }
+html body.vicinify-ui #chatModal .chat-transaction-card img { max-width:100%; }
+html body.vicinify-ui #main-content #chatModal .chat-footer { display:flex !important; flex-wrap:wrap !important; gap:10px !important; padding:14px 18px !important; background:var(--ui-surface) !important; border-top:1px solid var(--ui-border); }
+html body.vicinify-ui #chatModal #chatQuickActions { flex:0 0 100%; display:flex; flex-wrap:wrap; gap:8px; padding-bottom:4px; }
+html body.vicinify-ui #chatModal #chatQuickActions[hidden] { display:none !important; }
+html body.vicinify-ui #chatModal #chatQuickActions button { min-width:34px; width:34px !important; height:34px !important; border-radius:10px !important; background:var(--ui-success-bg) !important; border:1px solid var(--ui-success-line) !important; box-shadow:none !important; }
+html body.vicinify-ui #main-content #chatModal #chatMessageInput { min-height:44px; border:1px solid var(--ui-border) !important; background:var(--ui-soft) !important; border-radius:12px !important; padding:11px 13px !important; font-size:13px; box-sizing:border-box; }
+html body.vicinify-ui #main-content #chatModal #sendChatBtn { width:44px !important; height:44px !important; flex:0 0 44px; border-radius:12px !important; box-shadow:none !important; }
+html body.vicinify-ui #chatModal button:focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:3px; }
+@media(max-width:420px) {
+ html body.vicinify-ui #main-content #chatModal .chat-modal-box { max-width:calc(100vw - 20px) !important; height:calc(100dvh - 20px) !important; border-radius:18px !important; }
+ html body.vicinify-ui #main-content #chatModal .chat-header { padding:14px !important; }
+ html body.vicinify-ui #main-content #chatModal #chatMessageList { padding:18px 14px !important; }
+ html body.vicinify-ui #main-content #chatModal .chat-footer { padding:12px 14px !important; }
+ html body.vicinify-ui #chatModal .chat-bubble { max-width:88% !important; }
+}
+html body.vicinify-ui #chatModal:not(.hidden) { position:fixed !important; inset:0 !important; display:flex !important; align-items:center !important; justify-content:center !important; padding:10px !important; box-sizing:border-box; }
+html body.vicinify-ui #main-content #chatModal .chat-modal-box { position:relative !important; inset:auto !important; transform:none !important; margin:0 !important; }
+html body.vicinify-ui #chatModal #chatQuickActions button { color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #chatModal #chatQuickActions svg { width:16px; height:16px; }
+
+/* Suggested questions draft a message; the customer sends it explicitly. */
+html body.vicinify-ui #chatModal #chatSuggestions { flex:0 0 100%; display:flex; flex-wrap:wrap; gap:7px; padding:0 0 3px; }
+html body.vicinify-ui #chatModal #chatSuggestions[hidden] { display:none !important; }
+html body.vicinify-ui #chatModal .chat-suggestions-label { flex:0 0 100%; font-size:10px; font-weight:600; color:var(--ui-muted); margin-bottom:1px; }
+html body.vicinify-ui #chatModal #chatSuggestions button { flex:0 1 auto; min-height:32px; padding:7px 10px; font-size:11px; font-weight:600; line-height:1.4; border:1px solid var(--ui-success-line); background:var(--ui-success-bg); color:var(--ui-success-ink); border-radius:10px; box-shadow:none; cursor:pointer; }
+html body.vicinify-ui #chatModal #chatSuggestions button:hover { border-color:var(--ui-success-ink); }
+
+/* Quick questions use full-width tiles, independent of the square Send button. */
+html body.vicinify-ui #chatModal #chatSuggestions { display:block !important; width:100%; min-width:0; padding:2px 0 4px; }
+html body.vicinify-ui #chatModal #chatSuggestions[hidden] { display:none !important; }
+html body.vicinify-ui #chatModal #chatSuggestions .chat-suggestions-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+html body.vicinify-ui #chatModal #chatSuggestions .chat-suggestions-label { flex:0 1 auto; font-size:11px; font-weight:600; margin:0; }
+html body.vicinify-ui #chatModal #chatSuggestions .chat-suggestions-toggle { flex:0 0 auto !important; width:auto !important; height:auto !important; min-height:28px !important; min-width:40px !important; padding:4px 7px !important; background:transparent !important; border:0 !important; border-radius:7px; font-size:10px !important; color:var(--ui-success-ink) !important; box-shadow:none !important; }
+html body.vicinify-ui #chatModal #chatSuggestions .chat-suggestion-choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+html body.vicinify-ui #chatModal #chatSuggestions .chat-suggestion-choices[hidden] { display:none !important; }
+html body.vicinify-ui #chatModal #chatSuggestions .chat-suggestion { display:flex !important; align-items:center; justify-content:space-between; flex:none !important; width:100% !important; height:auto !important; min-width:0 !important; min-height:38px !important; padding:9px 11px !important; border-radius:10px !important; font-size:11px !important; line-height:1.5; text-align:left; white-space:normal !important; overflow-wrap:normal; background:var(--ui-soft) !important; border:1px solid var(--ui-border) !important; color:var(--ui-success-ink) !important; box-shadow:none !important; }
+html body.vicinify-ui #chatModal #chatSuggestions .chat-suggestion:hover { background:var(--ui-success-bg) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui #chatModal #chatSuggestions .chat-suggestion::after { content:"↗"; flex:0 0 auto; margin-left:6px; font-size:12px; opacity:.65; }
+html body.vicinify-ui #chatModal #chatSuggestions .chat-suggestion::after { content:none; }
+
+/* Conversation refinement: quieter hierarchy, grouped messages and multiline writing. */
+html body.vicinify-ui #main-content #chatModal .chat-modal-box { width:720px !important; border-radius:24px !important; box-shadow:0 24px 90px #0c2c253b !important; }
+html body.vicinify-ui #main-content #chatModal .chat-header { padding:18px 22px !important; align-items:center; }
+html body.vicinify-ui #chatModal .chat-header-eyebrow { display:block; color:var(--ui-success-ink); font-size:8px; font-weight:700; letter-spacing:1.8px; line-height:1.5; margin-bottom:3px; }
+html body.vicinify-ui #chatModal #chatModalTitle { font-size:17px !important; letter-spacing:-.35px; }
+html body.vicinify-ui #chatModal .chat-header-copy p { margin-top:3px; font-size:10px; }
+html body.vicinify-ui #main-content #chatModal #chatMessageList { background:var(--ui-bg) !important; padding:18px 24px 24px !important; }
+html body.vicinify-ui #chatModal .chat-date-divider { display:flex; align-items:center; justify-content:center; gap:12px; margin:4px 0 20px; color:var(--ui-muted); font-size:10px; }
+html body.vicinify-ui #chatModal .chat-date-divider::before,
+html body.vicinify-ui #chatModal .chat-date-divider::after { content:""; width:32px; height:1px; background:var(--ui-border); }
+html body.vicinify-ui #chatModal .chat-date-divider span { background:var(--ui-surface); padding:5px 12px; border:1px solid var(--ui-border); border-radius:20px; }
+html body.vicinify-ui #chatModal .chat-message-row { align-items:flex-end; gap:8px; margin-bottom:16px; }
+html body.vicinify-ui #chatModal .chat-message-row.is-grouped { margin-top:-11px; }
+html body.vicinify-ui #chatModal .chat-sender-avatar { display:grid; place-items:center; flex:0 0 25px; width:25px; height:25px; background:var(--ui-success-bg); color:var(--ui-success-ink); font-size:10px; font-weight:700; border:1px solid var(--ui-success-line); border-radius:9px; margin-bottom:2px; }
+html body.vicinify-ui #chatModal .is-grouped .chat-sender-avatar { visibility:hidden; }
+html body.vicinify-ui #chatModal .chat-bubble { max-width:78% !important; padding:11px 14px !important; font-size:13px !important; line-height:1.7; }
+html body.vicinify-ui #chatModal .chat-body .chat-bubble.other { border-radius:17px 17px 17px 5px !important; }
+html body.vicinify-ui #chatModal .chat-body .chat-bubble.me { border-radius:17px 17px 5px 17px !important; background:#23796d !important; border-color:#23796d !important; }
+html body.vicinify-ui #chatModal .chat-message-sender { font-size:10px; font-weight:650; margin-bottom:4px; }
+html body.vicinify-ui #chatModal .chat-message-meta { margin-top:6px; font-size:9px; font-weight:400; }
+html body.vicinify-ui #chatModal .chat-empty { display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center; min-height:230px; padding:24px; max-width:300px; margin:0 auto; }
+html body.vicinify-ui #chatModal .chat-empty-icon { display:grid; place-items:center; width:54px; height:54px; background:var(--ui-success-bg); color:var(--ui-success-ink); border-radius:18px; margin-bottom:16px; }
+html body.vicinify-ui #chatModal .chat-empty-icon svg { width:25px; height:25px; }
+html body.vicinify-ui #chatModal .chat-empty h4 { font-size:17px; margin:0 0 8px; color:var(--ui-ink) !important; }
+html body.vicinify-ui #chatModal .chat-empty p { font-size:12px; line-height:1.8; margin:0; color:var(--ui-muted) !important; }
+html body.vicinify-ui #chatModal .vtx-system { padding:0 !important; margin:16px auto !important; max-width:90%; text-align:center; background:none !important; border:0 !important; box-shadow:none !important; }
+html body.vicinify-ui #chatModal .vtx-system span { color:var(--ui-muted) !important; background:var(--ui-soft) !important; font-size:10px; line-height:1.7; border:1px solid var(--ui-border); border-radius:10px; padding:7px 11px; display:inline-block; }
+html body.vicinify-ui #chatModal .vtx-inline-progress { width:100% !important; background:var(--ui-soft) !important; color:var(--ui-ink) !important; border-color:var(--ui-border) !important; border-radius:12px; padding:12px; }
+html body.vicinify-ui #chatModal .vtx-mini { background:var(--ui-surface) !important; color:var(--ui-ink) !important; border-color:var(--ui-border) !important; box-shadow:none !important; }
+html body.vicinify-ui #chatModal .vtx-progress-fill { background:#237e72 !important; }
+html body.vicinify-ui #main-content #chatModal .chat-footer { gap:10px !important; padding:14px 20px 16px !important; align-items:flex-end !important; }
+html body.vicinify-ui #chatModal #chatQuickActions { padding-bottom:4px; border-bottom:1px solid var(--ui-border); padding-bottom:10px; }
+html body.vicinify-ui #main-content #chatModal #chatMessageInput { resize:none !important; max-height:112px; min-height:44px !important; line-height:1.6; overflow-y:auto; font-family:inherit; padding:11px 13px !important; border-radius:13px !important; }
+html body.vicinify-ui #main-content #chatModal #sendChatBtn { border-radius:13px !important; margin-bottom:0 !important; }
+@media(max-width:420px) {
+ html body.vicinify-ui #main-content #chatModal .chat-modal-box { border-radius:20px !important; }
+ html body.vicinify-ui #main-content #chatModal .chat-header { padding:14px 16px !important; }
+ html body.vicinify-ui #main-content #chatModal #chatMessageList { padding:16px 14px 20px !important; }
+ html body.vicinify-ui #main-content #chatModal .chat-footer { padding:12px 14px 14px !important; }
+ html body.vicinify-ui #chatModal .chat-bubble { max-width:84% !important; }
+}
+html body.vicinify-ui #chatModal .chat-bubble { isolation:isolate; }
+html body.vicinify-ui #chatModal .chat-bubble>:is(.chat-message-text,.chat-message-meta,.chat-message-sender) { position:relative; z-index:1; }
+html body.vicinify-ui #chatModal .chat-bubble.me .chat-message-text { color:#fff !important; }
+
+/* Clear cancellation review; refund processing remains with the business. */
+html body.vicinify-ui .cancellation-modal { position:fixed; inset:0; z-index:32000; display:flex; align-items:center; justify-content:center; padding:16px; box-sizing:border-box; }
+html body.vicinify-ui .cancellation-sheet { position:relative; width:420px; max-width:100%; max-height:calc(100dvh - 32px); overflow-y:auto; background:var(--ui-surface); color:var(--ui-ink); border:1px solid var(--ui-border); border-radius:22px; padding:24px; box-shadow:var(--ui-dialog-shadow); box-sizing:border-box; }
+html body.vicinify-ui .cancellation-sheet header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+html body.vicinify-ui .cancel-review-icon { display:grid; place-items:center; width:44px; height:44px; border:1px solid var(--ui-success-line); border-radius:13px; background:var(--ui-success-bg); color:var(--ui-success-ink); }
+html body.vicinify-ui .cancel-review-icon svg { width:22px; height:22px; }
+html body.vicinify-ui .cancel-review-close { display:grid; place-items:center; width:32px; height:32px; border:0; border-radius:10px; background:var(--ui-soft); color:var(--ui-muted); cursor:pointer; }
+html body.vicinify-ui .cancel-review-close svg { width:17px; height:17px; }
+html body.vicinify-ui .cancel-review-eyebrow { color:var(--ui-success-ink); letter-spacing:1.4px; font-size:9px; font-weight:700; }
+html body.vicinify-ui .cancellation-sheet h3 { color:var(--ui-ink) !important; font-size:24px; line-height:1.3; letter-spacing:-.6px; margin:8px 0 12px; }
+html body.vicinify-ui .cancellation-sheet p { color:var(--ui-muted) !important; font-size:12px; line-height:1.8; margin:0 0 18px; overflow-wrap:anywhere; }
+html body.vicinify-ui .cancellation-sheet strong { color:var(--ui-ink) !important; }
+html body.vicinify-ui .cancel-policy-summary { padding:16px; background:var(--ui-success-bg); border:1px solid var(--ui-success-line); border-radius:13px; margin-bottom:16px; }
+html body.vicinify-ui .cancel-policy-summary>span { display:block; font-size:10px; margin-bottom:5px; color:var(--ui-success-ink); }
+html body.vicinify-ui .cancel-policy-summary>strong { display:block; font-size:17px; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui .cancel-policy-summary p { color:var(--ui-success-ink) !important; margin:7px 0 0; font-size:11px; }
+html body.vicinify-ui .cancellation-sheet .cancel-manual-note { font-size:11px; margin-bottom:22px; }
+html body.vicinify-ui .cancellation-sheet footer { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+html body.vicinify-ui .cancellation-sheet footer button { min-width:0; min-height:44px; padding:10px; border-radius:11px; font-size:12px; font-weight:650; cursor:pointer; }
+html body.vicinify-ui .cancel-review-keep { background:var(--ui-soft); color:var(--ui-ink); border:1px solid var(--ui-border); }
+html body.vicinify-ui .cancel-review-confirm { background:var(--ui-danger-bg); color:var(--ui-danger-ink); border:1px solid var(--ui-danger-line); }
+html body.vicinify-ui .cancellation-sheet button:focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:3px; }
+html body.vicinify-ui .transaction-cancel-note { flex-basis:100%; color:var(--ui-success-ink); background:var(--ui-success-bg); border:1px solid var(--ui-success-line); padding:10px 12px; border-radius:10px; font-size:11px; line-height:1.6; }
+html body.vicinify-ui .transaction-cancel-note.is-closed { color:var(--ui-muted); background:var(--ui-soft); border-color:var(--ui-border); }
+html body.vicinify-ui .transaction-cancel-button { color:var(--ui-danger-ink); background:var(--ui-danger-bg); border:1px solid var(--ui-danger-line); border-radius:10px; padding:10px 12px; font-size:12px; cursor:pointer; }
+@media(max-width:420px) { html body.vicinify-ui .cancellation-sheet { padding:20px; } }
+
+/* Payment status is separate from requirement confirmation and preparation. */
+html body.vicinify-ui #chatModal .payment-flow-card { padding:14px; border:1px solid var(--ui-success-line); border-radius:12px; margin-top:14px; background:var(--ui-success-bg); color:var(--ui-success-ink); }
+html body.vicinify-ui #chatModal .payment-flow-eyebrow { display:block; font-size:9px; font-weight:650; letter-spacing:.7px; margin-bottom:7px; overflow-wrap:anywhere; }
+html body.vicinify-ui #chatModal .payment-flow-card h4 { font-size:13px; line-height:1.5; color:var(--ui-success-ink) !important; margin:0 0 6px; }
+html body.vicinify-ui #chatModal .payment-flow-card p { font-size:11px; line-height:1.7; color:var(--ui-success-ink) !important; margin:0 !important; }
+html body.vicinify-ui #chatModal .payment-flow-steps { display:flex; flex-wrap:wrap; gap:6px 10px; border-top:1px solid var(--ui-success-line); margin-top:12px; padding-top:10px; font-size:9px; line-height:1.5; }
+html body.vicinify-ui #chatModal :is(.payment-proof-upload,.payment-stage-action) { display:flex; align-items:center; justify-content:center; gap:7px; width:100%; min-height:40px; padding:10px; font-size:12px; font-weight:650; border:1px solid #237e72; background:#237e72; color:#fff; border-radius:10px; margin-top:12px; cursor:pointer; }
+html body.vicinify-ui #chatModal .payment-proof-upload svg { width:16px; height:16px; }
+html body.vicinify-ui .payment-awaiting-note { background:var(--ui-success-bg); color:var(--ui-success-ink); border:1px solid var(--ui-success-line); padding:12px; border-radius:11px; font-size:12px; line-height:1.7; margin-top:12px; }
+html body.vicinify-ui .payment-conversation-action { width:100%; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:12px; padding:10px; min-height:40px; border:1px solid var(--ui-success-line); border-radius:10px; background:var(--ui-success-bg); color:var(--ui-success-ink); font-size:12px; font-weight:600; cursor:pointer; }
+html body.vicinify-ui .payment-conversation-action svg { width:16px; height:16px; }
+html body.vicinify-ui #chatModal .payment-flow-card .payment-balance-note { margin-top:10px !important; font-weight:600; }
+
+/* Manual transaction references are review evidence, never automatic payment confirmation. */
+html body.vicinify-ui .manual-payment-fields { display:grid; gap:18px; margin-bottom:18px; }
+html body.vicinify-ui .manual-payment-help { display:block; font-size:10px !important; line-height:1.7; color:var(--ui-muted) !important; margin:7px 0 0; }
+html body.vicinify-ui .manual-payment-error { color:var(--ui-danger-ink); background:var(--ui-danger-bg); padding:10px 12px; border-radius:10px; border:1px solid var(--ui-danger-line); font-size:11px; line-height:1.6; }
+html body.vicinify-ui .manual-payment-error[hidden],html body.vicinify-ui .manual-receipt-preview[hidden] { display:none !important; }
+html body.vicinify-ui .manual-receipt-preview { background:var(--ui-soft); border:1px solid var(--ui-border); border-radius:12px; padding:10px; }
+html body.vicinify-ui .manual-receipt-preview img { display:block; width:100%; max-height:180px; object-fit:contain; border-radius:8px; }
+html body.vicinify-ui .remove-payment-receipt { margin-top:10px; background:transparent; color:var(--ui-danger-ink); border:0; padding:6px; font-size:11px; cursor:pointer; }
+html body.vicinify-ui .req-modal .payment-receipt-file { font-size:11px !important; padding:10px !important; border-style:dashed !important; }
+html body.vicinify-ui .payment-reference-summary { margin:12px 0 0; border-top:1px solid var(--ui-success-line); padding-top:10px; display:grid; gap:7px; }
+html body.vicinify-ui .payment-reference-summary>div { display:flex; flex-wrap:wrap; justify-content:space-between; gap:5px 12px; font-size:11px; }
+html body.vicinify-ui .payment-reference-summary dt { opacity:.8; }
+html body.vicinify-ui .payment-reference-summary dd { margin:0; font-weight:650; overflow-wrap:anywhere; }
+html body.vicinify-ui .payment-reference-review { padding:10px; margin-bottom:10px; font-size:12px; line-height:1.7; background:var(--ui-soft); color:var(--ui-ink); border:1px solid var(--ui-border); border-radius:9px; overflow-wrap:anywhere; }
+
+html body.vicinify-ui #paymentCorrectionModal .payment-review-decline { background:var(--ui-danger-bg) !important; color:var(--ui-danger-ink) !important; border:1px solid var(--ui-danger-line) !important; }
+html body.vicinify-ui #chatModal .payment-flow-card .payment-review-reason { margin-top:12px !important; padding:10px; border:1px solid var(--ui-warning-line); background:var(--ui-warning-bg); color:var(--ui-warning-ink) !important; border-radius:9px; white-space:pre-wrap; overflow-wrap:anywhere; }
+html body.vicinify-ui #chatModal .payment-review-reason strong { color:inherit !important; }
+html body.vicinify-ui #chatModal .payment-owner-review { background:var(--ui-soft) !important; border-color:var(--ui-border) !important; }
+html body.vicinify-ui #chatModal .payment-owner-review>div { color:var(--ui-ink) !important; font-size:11px !important; line-height:1.6; }
+html body.vicinify-ui #chatModal .payment-review-actions { display:grid !important; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px !important; margin-top:12px; }
+html body.vicinify-ui #chatModal .payment-review-actions button { min-width:0; min-height:42px; border-radius:10px !important; padding:9px !important; font-size:11px; }
+html body.vicinify-ui #chatModal .payment-review-actions button:first-child { background:var(--ui-danger-bg) !important; color:var(--ui-danger-ink) !important; border:1px solid var(--ui-danger-line) !important; }
+html body.vicinify-ui #chatModal .payment-review-actions button:last-child { background:#237e72 !important; color:#fff !important; border:1px solid #237e72 !important; }
+
+/* List view spacing: remove the unused map-label gap and nested card margins. */
+html body.vicinify-ui #main-content #page-map.active #listViewContainer {
+ padding:20px !important; box-sizing:border-box; container-type:inline-size; container-name:place-results;
+ background:var(--ui-bg) !important; overflow-x:hidden !important; scroll-padding:20px;
+}
+html body.vicinify-ui #main-content #page-map #listViewContainer .place-list-card {
+ width:100% !important; max-width:1120px !important; box-sizing:border-box; margin:0 auto 12px !important;
+ padding:16px !important; display:grid !important; grid-template-columns:minmax(0,1fr); align-items:center;
+ gap:14px !important; background:var(--ui-surface) !important; color:var(--ui-ink) !important;
+ border:1px solid var(--ui-border) !important; border-radius:15px !important; box-shadow:0 2px 6px #143c2404 !important;
+}
+html body.vicinify-ui #page-map #listViewContainer .place-list-summary { min-width:0; gap:14px !important; align-items:flex-start; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-thumbnail { width:64px !important; height:64px !important; flex:0 0 64px; border:0 !important; border-radius:12px !important; margin-top:2px; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-thumbnail>div { background:var(--ui-soft) !important; border-radius:12px !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-thumbnail>div>svg { color:var(--ui-success-ink) !important; opacity:.65; width:24px !important; height:24px !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-thumbnail img { border-radius:12px !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-heading { gap:10px; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-heading h3 { color:var(--ui-ink) !important; font-size:16px !important; line-height:1.4; white-space:normal !important; overflow-wrap:anywhere; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-heading h3 svg { flex:0 0 15px; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-meta { flex-wrap:wrap; gap:6px !important; margin-top:5px !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-meta>div:first-child { color:var(--ui-muted) !important; font-size:12px !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-badges { flex-wrap:wrap; gap:7px 10px !important; margin-top:9px !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-badges>span { font-size:11px !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-status.is-open { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-status.is-busy { background:var(--ui-warning-bg) !important; color:var(--ui-warning-ink) !important; border-color:var(--ui-warning-line) !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-status.is-closed { background:var(--ui-soft) !important; color:var(--ui-muted) !important; border-color:var(--ui-border) !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-address { color:var(--ui-muted) !important; font-size:11px !important; line-height:1.6; white-space:normal !important; text-transform:none !important; letter-spacing:0 !important; margin-top:7px !important; overflow-wrap:anywhere; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-actions { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)); width:min(100%,440px); justify-self:end; gap:8px !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-actions button { display:flex; align-items:center; justify-content:center; gap:6px; min-width:0 !important; min-height:40px; padding:9px 10px !important; border-radius:10px !important; background:var(--ui-surface) !important; border:1px solid var(--ui-border) !important; color:var(--ui-ink) !important; font-size:12px !important; font-weight:600; box-shadow:none !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-actions [data-action="route"] { background:#237e72 !important; color:#fff !important; border-color:#237e72 !important; }
+html body.vicinify-ui #page-map #listViewContainer .place-list-actions button:focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:3px; }
+@container place-results (min-width:740px) {
+ html body.vicinify-ui #main-content #page-map #listViewContainer .place-list-card { grid-template-columns:minmax(0,1fr) 310px; gap:22px !important; }
+ html body.vicinify-ui #page-map #listViewContainer .place-list-actions { width:100%; }
+}
+@media(max-width:767px) {
+ html body.vicinify-ui #main-content #page-map.active #listViewContainer { padding:12px !important; }
+ html body.vicinify-ui #main-content #page-map #listViewContainer .place-list-card { padding:14px !important; gap:12px !important; }
+ html body.vicinify-ui #page-map #listViewContainer .place-list-summary { gap:12px !important; }
+ html body.vicinify-ui #page-map #listViewContainer .place-list-thumbnail { width:54px !important; height:54px !important; flex-basis:54px; }
+ html body.vicinify-ui #page-map #listViewContainer .place-list-actions { width:100%; }
+ html body.vicinify-ui #page-map #listViewContainer .place-list-actions button { padding:8px 6px !important; font-size:11px !important; gap:5px; }
+}

@@ -481,6 +481,7 @@ if (desc.length < 10) {
     phone,
     desc,
 
+    ...(window.PlaceFeatures && document.getElementById("bizFeatures") ? { place_features: window.PlaceFeatures.readForm(document.getElementById("bizFeatures")) } : {}),
     // new/standard field names
     category: cat,
     address: addr,
@@ -502,6 +503,7 @@ owner_uid: null,
 });
 
             // Reset Form
+            window.PlaceFeatures?.renderForm(document.getElementById("bizFeatures"));
             document.getElementById("bizName").value = "";
             document.getElementById("bizCat").value = "";
             if (document.getElementById("bizPriceRange")) document.getElementById("bizPriceRange").value = "";

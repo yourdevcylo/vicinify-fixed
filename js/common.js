@@ -1364,12 +1364,20 @@ if (!chatInput || !chatInput.parentElement) return;
     if (oldBtn) oldBtn.remove();
 });
 
+let actionBar = document.getElementById("chatQuickActions");
+if (!actionBar) {
+    actionBar = document.createElement("div");
+    actionBar.id = "chatQuickActions";
+    actionBar.hidden = true;
+    chatInput.parentElement.insertBefore(actionBar, chatInput);
+}
 const makeActionBtn = (id, label, title, bg, color) => {
     const btn = document.createElement("button");
     btn.id = id;
     btn.type = "button";
     btn.innerHTML = label;
     btn.title = title;
+    btn.setAttribute("aria-label", title);
     btn.style.cssText = `
         width:38px;
         height:38px;
@@ -1392,20 +1400,21 @@ const makeActionBtn = (id, label, title, bg, color) => {
             window.alert("No active delivery/details request yet. Wait for the business to accept or request details.");
         }
     };
-    chatInput.parentElement.insertBefore(btn, chatInput);
+    actionBar.appendChild(btn);
     return btn;
 };
 
-makeActionBtn("chatAddressBtn", "🏠", "Submit delivery address", "#fff7ed", "#c2410c");
-makeActionBtn("chatShareLocationBtn", "📍", "Submit current location", "#ecfdf5", "#047857");
-makeActionBtn("chatPaymentBtn", "💳", "Submit payment details", "#eff6ff", "#1d4ed8");
-makeActionBtn("chatOrderBtn", "📝", "Submit order details", "#f8fafc", "#0f172a");
+makeActionBtn("chatAddressBtn", '<i data-lucide="home"></i>', "Submit delivery address", "#fff7ed", "#c2410c");
+makeActionBtn("chatShareLocationBtn", '<i data-lucide="map-pin"></i>', "Submit current location", "#ecfdf5", "#047857");
+makeActionBtn("chatPaymentBtn", '<i data-lucide="credit-card"></i>', "Submit payment details", "#eff6ff", "#1d4ed8");
+makeActionBtn("chatOrderBtn", '<i data-lucide="clipboard-pen"></i>', "Submit order details", "#f8fafc", "#0f172a");
 
 const reqBtn = document.createElement("button");
 reqBtn.id = "chatRequirementBtn";
 reqBtn.type = "button";
-reqBtn.innerHTML = "📋";
+reqBtn.innerHTML = '<i data-lucide="clipboard-list"></i>';
 reqBtn.title = "Request transaction requirements";
+reqBtn.setAttribute("aria-label", reqBtn.title);
 reqBtn.style.cssText = `
     width:40px;
     height:40px;
@@ -1422,7 +1431,7 @@ reqBtn.style.cssText = `
 `;
 
 reqBtn.onclick = () => window.openRequirementRequestModal();
-chatInput.parentElement.insertBefore(reqBtn, chatInput);
+actionBar.appendChild(reqBtn);
 
 }
 
@@ -1449,6 +1458,93 @@ Object.entries(buttonMap).forEach(([id, shouldShow]) => {
     const btn = document.getElementById(id);
     if (btn) btn.style.display = showCustomerQuick && shouldShow ? "inline-flex" : "none";
 });
+const actionBar = document.getElementById("chatQuickActions");
+if (actionBar) actionBar.hidden = !isOwner && !(showCustomerQuick && Object.values(buttonMap).some(Boolean));
+}
+
+function setupChatSuggestions(isOwnerView) {
+    const input = document.getElementById("chatMessageInput");
+    if (!input?.parentElement) return;
+    let group = document.getElementById("chatSuggestions");
+    if (!group) {
+        group = document.createElement("div");
+        group.id = "chatSuggestions";
+        group.className = "chat-suggestions";
+        group.setAttribute("role", "group");
+        group.setAttribute("aria-label", "Suggested questions");
+        const label = document.createElement("span");
+        label.className = "chat-suggestions-label";
+        label.textContent = "Quick questions";
+        const heading = document.createElement("div");
+        heading.className = "chat-suggestions-heading";
+        heading.appendChild(label);
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "chat-suggestions-toggle";
+        toggle.textContent = "Hide";
+        toggle.setAttribute("aria-expanded", "true");
+        toggle.setAttribute("aria-controls", "chatSuggestionChoices");
+        heading.appendChild(toggle);
+        group.appendChild(heading);
+        const choices = document.createElement("div");
+        choices.id = "chatSuggestionChoices";
+        choices.className = "chat-suggestion-choices";
+        toggle.addEventListener("click", () => {
+            choices.hidden = !choices.hidden;
+            toggle.textContent = choices.hidden ? "Show" : "Hide";
+            toggle.setAttribute("aria-expanded", String(!choices.hidden));
+        });
+        group.appendChild(choices);
+        const questions = [
+            ["View menu", "Hi! Can I see your menu, please?"],
+            ["Opening hours", "Hi! What are your opening hours?"],
+            ["Delivery options", "Hi! Do you offer delivery, and which areas do you cover?"],
+            ["Book a table", "Hi! Can I reserve a table? What details do you need?"]
+        ];
+        questions.forEach(([title, message]) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = title;
+            button.className = "chat-suggestion";
+            button.setAttribute("aria-label", "Draft message: " + message);
+            button.addEventListener("click", () => {
+                if (group.dataset.customer !== "true") return;
+                // Draft only; sending still requires the customer's Send action.
+                const draft = input.value.trim();
+                input.value = draft ? draft + " " + message : message;
+                input.dispatchEvent(new Event("input", { bubbles: true }));
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+            });
+            choices.appendChild(button);
+        });
+        input.parentElement.insertBefore(group, input);
+        input.addEventListener("input", () => {
+            group.hidden = group.dataset.customer !== "true" || !!input.value.trim();
+        });
+    }
+    group.dataset.customer = String(!isOwnerView);
+    group.hidden = isOwnerView || !!input.value.trim();
+}
+
+function setupChatComposer() {
+    const input = document.getElementById("chatMessageInput");
+    if (!input) return;
+    const resize = () => {
+        input.style.height = "auto";
+        input.style.height = Math.max(44, Math.min(input.scrollHeight, 112)) + "px";
+    };
+    if (!input.dataset.composerReady) {
+        input.dataset.composerReady = "true";
+        input.addEventListener("input", resize);
+        input.addEventListener("keydown", event => {
+            if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+                event.preventDefault();
+                window.sendChatMessage();
+            }
+        });
+    }
+    resize();
 }
 
 function splitPaymentMethods(raw) {
@@ -1962,26 +2058,27 @@ function getTransactionState(docs) {
     const requestType = booking?.requestType || req?.requestType || resp?.requestType || "booking";
     const meta = getRequestMeta(requestType);
     const bookingStatus = booking?.bookingStatus || booking?.status || "pending";
-    const txStatus = completion?.transactionStatus || "";
+    const txStatus = ["preparing", "out_for_delivery", "delivered", "received"].includes(bookingStatus) ? bookingStatus : completion?.transactionStatus || "";
 
-    const accepted = isDone(bookingStatus, ["accepted", "fulfilled", "received"]) || !!req || !!resp || !!completion || !!feedbackReq || !!feedbackResp;
+    const accepted = isDone(bookingStatus, ["accepted", "payment_submitted", "payment_confirmed", "preparing", "ready", "out_for_delivery", "delivered", "fulfilled", "received"]) || !!req || !!resp || !!completion || !!feedbackReq || !!feedbackResp;
     const rejected = normalizeStatusText(bookingStatus) === "rejected";
     const detailsSubmitted = !!resp;
-    const paymentConfirmed = normalizeStatusText(resp?.paymentStatus) === "confirmed" || normalizeStatusText(resp?.requirementStatus) === "confirmed";
+    const paymentConfirmed = booking ? window.PaymentPolicy.flow(booking).verified : false;
+    const onlinePayment = booking ? window.PaymentPolicy.isOnline(booking) : false;
     const preparing = normalizeStatusText(txStatus) === "preparing";
     const outForDelivery = normalizeStatusText(txStatus) === "out_for_delivery";
-    const delivered = isDone(txStatus, ["delivered", "received"]) || isDone(bookingStatus, ["fulfilled", "received"]);
+    const delivered = isDone(txStatus, ["delivered", "received"]) || isDone(bookingStatus, ["delivered", "fulfilled", "received"]);
     const received = normalizeStatusText(txStatus) === "received" || normalizeStatusText(bookingStatus) === "received" || !!feedbackReq || !!feedbackResp;
     const feedbackDone = !!feedbackResp || normalizeStatusText(feedbackReq?.feedbackStatus) === "feedback_submitted";
 
-    return { booking, req, resp, completion, feedbackReq, feedbackResp, requestType, meta, bookingStatus, txStatus, accepted, rejected, detailsSubmitted, paymentConfirmed, preparing, outForDelivery, delivered, received, feedbackDone };
+    return { booking, req, resp, completion, feedbackReq, feedbackResp, requestType, meta, bookingStatus, txStatus, accepted, rejected, detailsSubmitted, paymentConfirmed, onlinePayment, preparing, outForDelivery, delivered, received, feedbackDone };
 }
 
 function progressPercent(state) {
     if (state.rejected) return 100;
     const isDelivery = state.meta.key === "delivery_order";
     const items = isDelivery
-        ? [!!state.booking, state.accepted, state.detailsSubmitted, state.paymentConfirmed, state.delivered || state.outForDelivery || state.received, state.feedbackDone]
+        ? [!!state.booking, state.accepted, state.detailsSubmitted, !state.onlinePayment || state.paymentConfirmed, state.delivered || state.outForDelivery || state.received, state.feedbackDone]
         : [!!state.booking, state.accepted, state.delivered || state.received, state.feedbackDone];
     const done = items.filter(Boolean).length;
     return Math.max(10, Math.round((done / items.length) * 100));
@@ -2015,7 +2112,7 @@ function renderOrderSummaryMini(state) {
         `;
     }
 
-    const paymentRelevantTypes = ["pickup_preorder", "advance_order", "delivery_order"];
+    const paymentRelevantTypes = ["pickup_order", "advance_order", "delivery_order"];
     const hasRealPaymentInfo = paymentRelevantTypes.includes(state.meta.key) && (pay || amount || source.paymentReference || state.paymentConfirmed || source.paymentStatus);
 
     if (hasRealPaymentInfo) {
@@ -2060,12 +2157,13 @@ function buildVisibleTransactionSteps(state) {
 
         steps.push(renderTimelineStep(true, false, "📍", "Delivery Details", "Customer submitted delivery information", meta.color));
 
-        if (!state.paymentConfirmed) {
+        if (state.onlinePayment && !state.paymentConfirmed) {
             steps.push(renderTimelineStep(false, true, "💳", "Payment Verification", "Waiting for business to confirm payment/reference", meta.color));
             return steps.join("");
         }
 
-        steps.push(renderTimelineStep(true, false, "💳", "Payment Verified", "Business confirmed payment/details", meta.color));
+        if (state.onlinePayment) steps.push(renderTimelineStep(true, false, "💳", "Payment Verified", "Business verified the received payment", meta.color));
+        else steps.push(renderTimelineStep(true, false, "💵", "Cash / COD", "Pay the business at pickup or delivery", meta.color));
 
         if (!state.preparing && !state.outForDelivery && !state.delivered && !state.received) {
             steps.push(renderTimelineStep(false, true, "🍳", "Preparing", "Waiting for business to prepare the order", meta.color));
@@ -2093,7 +2191,7 @@ function buildVisibleTransactionSteps(state) {
             return steps.join("");
         }
     } else if (meta.key === "pickup_order") {
-        if (!state.paymentConfirmed && state.detailsSubmitted) {
+        if (state.onlinePayment && !state.paymentConfirmed) {
             steps.push(renderTimelineStep(false, true, "💳", "Payment / Order Check", "Waiting for business confirmation", meta.color));
             return steps.join("");
         }
@@ -2109,7 +2207,7 @@ function buildVisibleTransactionSteps(state) {
 
         steps.push(renderTimelineStep(true, false, "🛍️", "Picked Up / Completed", "Customer pickup completed", meta.color));
     } else if (meta.key === "advance_order") {
-        if (!state.paymentConfirmed && state.detailsSubmitted) {
+        if (state.onlinePayment && !state.paymentConfirmed) {
             steps.push(renderTimelineStep(false, true, "💳", "Payment Required", "Waiting for business to verify payment/reference", meta.color));
             return steps.join("");
         }
@@ -2157,6 +2255,37 @@ function getTransactionCurrentLabel(state) {
     if (state.detailsSubmitted) return state.meta.key === "delivery_order" ? "Details Submitted" : "Order Details Submitted";
     if (state.accepted) return "Accepted";
     return "Pending";
+}
+
+function renderPaymentFlowCard(order, isOwner) {
+    const flow = window.PaymentPolicy.flow(order);
+    const status = order.bookingStatus || order.status || "pending";
+    let title = "Confirm payment details in chat";
+    let copy = "Agree on the final amount, delivery fee and payment method with the business before paying.";
+    if (flow.closed) { title = "Payment flow closed"; copy = "If you already paid, contact the business to arrange any applicable refund."; }
+    else if (status === "pending") { title = "Wait for acceptance"; copy = "The business needs to accept your request and confirm the final total before you pay."; }
+    else if (order.paymentReviewDecision === "declined" && status === "accepted") { title = "Payment details declined · Correction needed"; copy = "Your order is still accepted. Check the business note below and resubmit corrected details. Do not pay again unless you have agreed it is necessary."; }
+    else if (flow.verified) { title = "Payment accepted by business"; copy = "The business manually checked your payment. Preparation and fulfillment are tracked separately."; }
+    else if (flow.reviewing) { title = isOwner ? "Check payment before confirming" : "Payment details · Under review"; copy = isOwner ? "Match the amount and reference against money received in your account. A screenshot alone is not confirmation." : "The business will verify the payment against its account. Do not pay again while it is under review."; }
+    else if (flow.online && ["preparing", "ready", "out_for_delivery", "delivered", "fulfilled", "received"].includes(status)) { title = "Check the recorded payment"; copy = "Confirm the payment status with the business. Do not make a second payment unless you have agreed it is needed."; }
+    else if (flow.online) { title = "Pay directly to the business"; copy = "Confirm the total and recipient account in chat, pay using the agreed method, then upload your receipt. Vicinify does not collect the payment."; }
+    else if (order.paymentMethod) { title = "Cash / pay on pickup or delivery"; copy = "Pay the agreed amount directly to the business at pickup or delivery. No online payment proof is needed."; }
+    return `<section class="payment-flow-card"><span class="payment-flow-eyebrow">PAYMENT · ${order.paymentType ? escapeHtml(order.paymentType) + " · " : ""}${escapeHtml(order.paymentMethod || "Not yet agreed")}</span><h4>${title}</h4><p>${copy}</p>
+        ${!isOwner && flow.awaitingProof ? `<button type="button" class="payment-proof-upload" onclick="window.uploadPaymentProof('${order.bookingId}', '${order.id}')"><i data-lucide="receipt"></i> Add payment reference / receipt</button>` : ""}
+        ${order.paymentReviewDecision === "declined" && order.paymentReviewNote ? `<p class="payment-review-reason"><strong>Business note:</strong> ${escapeHtml(order.paymentReviewNote)}</p>` : ""}
+        ${order.paymentReference ? `<dl class="payment-reference-summary"><div><dt>Reference</dt><dd>${escapeHtml(order.paymentReference)}</dd></div><div><dt>Amount submitted</dt><dd>₱${escapeHtml(order.paymentAmount || "—")}</dd></div></dl>` : ""}
+        ${order.paymentType === "Downpayment" && !flow.closed ? `<p class="payment-balance-note">This is a downpayment. Agree on any remaining balance with the business; it is not marked paid in full.</p>` : ""}
+        ${flow.online && !flow.closed ? `<div class="payment-flow-steps"><span>1. Pay business</span><span>2. Submit proof</span><span>3. Business verifies</span></div>` : ""}
+    </section>`;
+}
+function renderBookingNextAction(order) {
+    const status = order.bookingStatus || order.status || "pending";
+    const delivery = ["delivery_order", "delivery"].includes(order.requestType);
+    const next = window.PaymentPolicy.flow(order).canPrepare ? ["preparing", "Start preparing"]
+        : status === "preparing" ? (delivery ? ["out_for_delivery", "Mark out for delivery"] : ["ready", "Mark ready"])
+        : status === "ready" ? ["fulfilled", "Mark fulfilled"]
+        : status === "out_for_delivery" ? ["delivered", "Mark delivered"] : null;
+    return next ? `<button type="button" class="payment-stage-action" onclick="window.updateBookingFromChat('${order.bookingId}', '${order.id}', '${next[0]}')">${next[1]}</button>` : "";
 }
 
 function renderInlineTransactionProgress(docs) {
@@ -2274,6 +2403,8 @@ document.getElementById("chatModalAvatar").innerText = getInitial(provisionalTit
 
 const chatInput = document.getElementById("chatMessageInput");
 if (chatInput) chatInput.value = "";
+setupChatSuggestions(isOwnerView);
+setupChatComposer();
 
 const reqBtn = document.getElementById("chatRequirementBtn");
 if (reqBtn) {
@@ -2283,6 +2414,7 @@ if (reqBtn) {
 injectPremiumChatStyles();
 updateChatQuickActions(isOwnerView, null);
 document.getElementById("chatModal").classList.remove("hidden");
+document.getElementById("chatModal").setAttribute("aria-hidden", "false");
 if (!window.__chatScrollLocked) { window.__chatScrollLocked = true; window.lockBodyScroll?.(true); }
 listenToChatRoom(placeId, targetUid);
 
@@ -2322,6 +2454,7 @@ listenToChatRoom(placeId, targetUid);
 
 window.closeChatModal = function() {
 document.getElementById("chatModal").classList.add("hidden");
+document.getElementById("chatModal").setAttribute("aria-hidden", "true");
 if (window.__chatScrollLocked) { window.__chatScrollLocked = false; window.lockBodyScroll?.(false); }
 
 if (currentChatUnsub) {
@@ -2345,6 +2478,7 @@ if (!text) return;
 
 // Clear right away (chat-style); the text is restored below if the send fails.
 input.value = "";
+input.dispatchEvent(new Event("input", { bubbles: true }));
 
 const isOwner = user.uid !== customerUid;
 const customerName = isOwner
@@ -2376,96 +2510,178 @@ try {
 } catch (error) {
     console.error("sendChatMessage failed:", error);
     input.value = text;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
     if (window.vicinifyToast) window.vicinifyToast("Message not sent: " + error.message, "error");
     else window.alert("Error sending message: " + error.message);
 }
 
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-document.getElementById("chatMessageInput")?.addEventListener("keypress", function(event) {
-if (event.key === "Enter") {
-event.preventDefault();
-window.sendChatMessage();
-}
-});
-});
+document.addEventListener("DOMContentLoaded", setupChatComposer);
 
-// v53Y — Customer uploads GCash/Maya/Bank payment proof for an accepted order.
-// No Firebase Storage needed (new projects require Blaze billing for Storage).
-// The image is compressed client-side and saved as a data URL on the booking.
-// Fine for capstone scale; move to Cloudinary/Storage on Blaze for production.
-window.uploadPaymentProof = async function (bookingId, messageId) {
+// Receipt images are optional; reference and amount are always reviewed manually.
+async function compressPaymentReceipt(file) {
+    if (!file.type.startsWith("image/") || file.size > 8 * 1024 * 1024) throw new Error("Choose an image under 8 MB.");
+    return new Promise((resolve, reject) => {
+        const img = new Image(), objectUrl = URL.createObjectURL(file);
+        img.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            const scale = Math.min(1, 900 / Math.max(img.width, img.height));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(img.width * scale));
+            canvas.height = Math.max(1, Math.round(img.height * scale));
+            canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+            const data = canvas.toDataURL("image/jpeg", .72);
+            if (data.length > 900 * 1024) reject(new Error("Receipt is too large. Try a smaller screenshot."));
+            else resolve(data);
+        };
+        img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error("Could not read the receipt image.")); };
+        img.src = objectUrl;
+    });
+}
+window.uploadPaymentProof = async function(bookingId, messageId) {
     const user = window.auth?.currentUser;
     if (!user) return window.showToast?.("Please log in first.", "error");
-
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = async () => {
-        const file = input.files && input.files[0];
-        if (!file) return;
-        if (!file.type.startsWith("image/")) {
-            window.showToast?.("Please choose an image file.", "error");
-            return;
-        }
-        window.showToast?.("Processing proof...", "info");
+    const existing = document.getElementById("paymentProofModal");
+    if (existing) return existing.querySelector("input")?.focus();
+    let order = currentChatDocsCache.find(d => d.bookingId === bookingId && d.type === "booking_card");
+    if (!order) {
         try {
-            // Compress: max 900px, JPEG 0.72 — keeps each proof ~80-180KB,
-            // well under the 1MB Firestore document limit.
-            const dataUrl = await new Promise((resolve, reject) => {
-                const img = new Image();
-                const objUrl = URL.createObjectURL(file);
-                img.onload = () => {
-                    URL.revokeObjectURL(objUrl);
-                    const maxDim = 900;
-                    let w = img.width, h = img.height;
-                    if (Math.max(w, h) > maxDim) {
-                        const k = maxDim / Math.max(w, h);
-                        w = Math.round(w * k); h = Math.round(h * k);
-                    }
-                    const c = document.createElement("canvas");
-                    c.width = w; c.height = h;
-                    c.getContext("2d").drawImage(img, 0, 0, w, h);
-                    resolve(c.toDataURL("image/jpeg", 0.72));
-                };
-                img.onerror = () => { URL.revokeObjectURL(objUrl); reject(new Error("Could not read image.")); };
-                img.src = objUrl;
-            });
-            // ~1.37x overhead for base64; guard the 1MB doc limit.
-            if (dataUrl.length > 900 * 1024) {
-                window.showToast?.("Image is still too large after compression. Try a smaller screenshot.", "error");
-                return;
-            }
-
-            await window.ViciData.command("proof", { bookingId, image: dataUrl });
-            window.showToast?.("Payment proof uploaded. Waiting for business confirmation.", "success");
-        } catch (e) {
-            console.error("[uploadPaymentProof]", e);
-            window.showToast?.("Upload failed: " + (e.message || "unknown error"), "error");
+            const doc = await window.db.collection("bookings").doc(bookingId).get();
+            if (doc.exists) order = doc.data();
+        } catch (error) { return window.showToast?.("Could not load payment details. Try again.", "error"); }
+    }
+    if (!order || !window.PaymentPolicy.flow(order).awaitingProof && !window.PaymentPolicy.flow(order).reviewing)
+        return window.showToast?.("This request is not awaiting online payment details.", "info");
+    if (document.getElementById("paymentProofModal")) return;
+    const modal = document.createElement("div");
+    modal.id = "paymentProofModal";
+    modal.className = "req-modal manual-payment-modal";
+    modal.innerHTML = `<div class="modalBackdrop req-backdrop"></div>
+        <form class="req-sheet" role="dialog" aria-modal="true" aria-labelledby="manualPaymentTitle">
+            <header class="req-head"><span class="req-head-icon"><i data-lucide="receipt"></i></span><div class="req-head-text"><h3 id="manualPaymentTitle">Payment details</h3><p>Enter your reference number. A receipt image is optional.</p></div><button type="button" class="req-close" aria-label="Close payment details"><i data-lucide="x"></i></button></header>
+            <div class="req-body">
+                <div class="req-note"><span>Paid directly to <strong>${escapeHtml(order.placeName || "the business")}</strong> via ${escapeHtml(order.paymentMethod)}. Submit only after you have made the payment.</span></div>
+                <div class="manual-payment-fields">
+                    <label class="req-field"><span>Reference / transaction number *</span><input class="req-input" name="reference" required minlength="3" maxlength="80" autocomplete="off" placeholder="Enter the number from your payment receipt"></label>
+                    <label class="req-field"><span>Amount paid (₱) *</span><input class="req-input" name="amount" required inputmode="decimal" autocomplete="off" placeholder="e.g. 588.00" value="${escapeHtml(order.paymentAmount || "")}"></label>
+                    <label class="req-field"><span>Receipt image <em>optional</em></span><input class="req-input payment-receipt-file" name="receipt" type="file" accept="image/*"><small class="manual-payment-help">JPEG, PNG or WebP · up to 8 MB</small></label>
+                    <div class="manual-receipt-preview" hidden><img alt="Your selected payment receipt"><button type="button" class="remove-payment-receipt">Remove image</button></div>
+                </div>
+                <p class="manual-payment-help">Submitting a reference number does not mark your request paid. The business checks the amount and reference against funds actually received.</p>
+                <p class="manual-payment-error" role="alert" hidden></p>
+            </div>
+            <footer class="req-footer"><button type="button" class="req-btn ghost payment-details-cancel">Cancel</button><button type="submit" class="req-btn primary">Submit for review</button></footer>
+        </form>`;
+    const previousFocus = document.activeElement;
+    let busy = false, previewUrl = null;
+    const form = modal.querySelector("form"), error = modal.querySelector(".manual-payment-error");
+    const close = () => {
+        if (busy) return;
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        document.removeEventListener("keydown", onKey); modal.remove();
+        const chat = document.getElementById("chatModal");
+        if (!chat || chat.classList.contains("hidden")) window.lockBodyScroll?.(false);
+        previousFocus?.focus?.();
+    };
+    const onKey = event => {
+        if (event.key === "Escape") close();
+        if (event.key === "Tab") {
+            const items = [...form.querySelectorAll("button,input")].filter(el => !el.disabled && el.getClientRects().length);
+            if (event.shiftKey && document.activeElement === items[0]) { event.preventDefault(); items.at(-1)?.focus(); }
+            else if (!event.shiftKey && document.activeElement === items.at(-1)) { event.preventDefault(); items[0]?.focus(); }
         }
     };
-    input.click();
+    modal.querySelector(".req-close").onclick = close;
+    modal.querySelector(".payment-details-cancel").onclick = close;
+    modal.querySelector(".modalBackdrop").onclick = close;
+    const receipt = form.elements.receipt, preview = modal.querySelector(".manual-receipt-preview");
+    receipt.onchange = () => {
+        if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+        preview.hidden = true; error.hidden = true;
+        const file = receipt.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/") || file.size > 8 * 1024 * 1024) {
+            receipt.value = ""; error.textContent = "Choose an image under 8 MB."; error.hidden = false; return;
+        }
+        previewUrl = URL.createObjectURL(file); preview.querySelector("img").src = previewUrl; preview.hidden = false;
+    };
+    modal.querySelector(".remove-payment-receipt").onclick = () => { receipt.value = ""; receipt.onchange(); };
+    form.onsubmit = async event => {
+        event.preventDefault();
+        if (busy || !form.reportValidity()) return;
+        error.hidden = true;
+        let payment;
+        try { payment = window.PaymentPolicy.details(form.elements.reference.value, form.elements.amount.value); }
+        catch (err) { error.textContent = err.message; error.hidden = false; return; }
+        busy = true;
+        const submit = form.querySelector('[type="submit"]'); submit.disabled = true; submit.textContent = "Submitting…";
+        try {
+            const payload = { bookingId, reference: payment.paymentReference, amount: payment.paymentAmount };
+            if (receipt.files[0]) payload.image = await compressPaymentReceipt(receipt.files[0]);
+            await window.ViciData.command("proof", payload);
+            busy = false; close();
+            window.showToast?.("Payment details submitted. Waiting for business verification.", "success");
+        } catch (err) {
+            error.textContent = "Could not submit payment details. " + err.message; error.hidden = false;
+        } finally { busy = false; submit.disabled = false; submit.textContent = "Submit for review"; }
+    };
+    document.body.appendChild(modal); window.lockBodyScroll?.(true); document.addEventListener("keydown", onKey);
+    window.debouncedIcons?.(); form.elements.reference.focus();
 };
 
-// v53X — Owner confirms or asks to resubmit a payment proof.
-// messageId is optional; when omitted the booking_card message is found via bookingId.
-window.reviewPaymentProof = async function (bookingId, messageId, action) {
-    const user = window.auth?.currentUser;
-    if (!user) return window.showToast?.("Please log in first.", "error");
+function requestPaymentCorrectionNote() {
+    if (document.getElementById("paymentCorrectionModal")) return Promise.resolve(null);
+    return new Promise(resolve => {
+        const modal = document.createElement("div");
+        modal.id = "paymentCorrectionModal"; modal.className = "req-modal";
+        modal.innerHTML = `<div class="modalBackdrop req-backdrop"></div><form class="req-sheet" role="dialog" aria-modal="true" aria-labelledby="paymentCorrectionTitle">
+            <header class="req-head"><span class="req-head-icon"><i data-lucide="receipt-text"></i></span><div class="req-head-text"><h3 id="paymentCorrectionTitle">Decline payment details?</h3><p>The order stays accepted. The customer can correct and resubmit their payment details.</p></div><button type="button" class="req-close" aria-label="Close payment review"><i data-lucide="x"></i></button></header>
+            <div class="req-body"><label class="req-field"><span>Reason for declining *</span><textarea class="req-input req-textarea" name="reason" required minlength="5" maxlength="500" placeholder="For example: reference not found, amount does not match, or receipt is unclear."></textarea></label><p class="manual-payment-help">Explain what needs correcting. Do not ask the customer to pay again if you have already received the payment.</p></div>
+            <footer class="req-footer"><button type="button" class="req-btn ghost">Keep reviewing</button><button type="submit" class="req-btn payment-review-decline">Decline payment</button></footer></form>`;
+        const previousFocus = document.activeElement;
+        const finish = value => {
+            document.removeEventListener("keydown", onKey); modal.remove();
+            const chat = document.getElementById("chatModal");
+            if (!chat || chat.classList.contains("hidden")) window.lockBodyScroll?.(false);
+            previousFocus?.focus?.(); resolve(value);
+        };
+        const form = modal.querySelector("form");
+        const onKey = event => {
+            if (event.key === "Escape") finish(null);
+            if (event.key === "Tab") {
+                const inputs = [...form.querySelectorAll("button,textarea")];
+                if (event.shiftKey && document.activeElement === inputs[0]) { event.preventDefault(); inputs.at(-1).focus(); }
+                else if (!event.shiftKey && document.activeElement === inputs.at(-1)) { event.preventDefault(); inputs[0].focus(); }
+            }
+        };
+        modal.querySelector(".req-close").onclick = () => finish(null);
+        modal.querySelector(".ghost").onclick = () => finish(null);
+        modal.querySelector(".modalBackdrop").onclick = () => finish(null);
+        form.onsubmit = event => { event.preventDefault(); if (!form.reportValidity()) return; const note = form.elements.reason.value.trim(); if (note.length < 5) { form.elements.reason.setCustomValidity("Explain the issue in at least 5 characters."); form.elements.reason.reportValidity(); return; } finish(note); };
+        form.elements.reason.oninput = () => form.elements.reason.setCustomValidity("");
+        document.body.appendChild(modal); window.lockBodyScroll?.(true); document.addEventListener("keydown", onKey); window.debouncedIcons?.(); form.elements.reason.focus();
+    });
+}
+const paymentReviewsInFlight = new Set();
+window.reviewPaymentProof = async function(bookingId, messageId, action) {
+    if (!window.auth?.currentUser) return window.showToast?.("Please log in first.", "error");
+    if (!["confirm", "resubmit"].includes(action) || paymentReviewsInFlight.has(bookingId)) return;
+    paymentReviewsInFlight.add(bookingId);
     try {
-        const ts = firebase.firestore.FieldValue.serverTimestamp();
-        const nextStatus = action === "confirm" ? "payment_confirmed" : "accepted";
-        const patch = { status: nextStatus, updatedAt: ts };
-        if (action === "resubmit") patch.paymentProofUrl = firebase.firestore.FieldValue.delete();
-
-        await window.ViciData.command("booking", { bookingId: bookingId, patch: patch });
-
-        window.showToast?.(action === "confirm" ? "Payment confirmed." : "Customer asked to resubmit proof.", "success");
-    } catch (e) {
-        console.error("[reviewPaymentProof]", e);
-        window.showToast?.("Could not update: " + (e.message || "unknown error"), "error");
-    }
+        let note = null;
+        if (action === "confirm") {
+            if (!await window.vConfirm("Accept this payment?", "Check the actual money received, amount and reference in your account. Accepting confirms the payment only; preparation is a separate step.", "Accept payment")) return;
+        } else {
+            note = await requestPaymentCorrectionNote();
+            if (!note) return;
+        }
+        const patch = { status: action === "confirm" ? "payment_confirmed" : "accepted" };
+        if (note) patch.paymentReviewNote = note;
+        await window.ViciData.command("booking", { bookingId, patch });
+        window.showToast?.(action === "confirm" ? "Payment accepted. You can now start preparation." : "Payment declined. The customer can see your reason and resubmit.", "success");
+    } catch (error) { window.showToast?.("Payment review was not saved. " + error.message, "error"); }
+    finally { paymentReviewsInFlight.delete(bookingId); }
 };
 
 window.updateBookingFromChat = async function(bookingId, messageId, status) {
@@ -2660,6 +2876,7 @@ const html = `
                 <button type="button" id="closeX_${modalId}" class="req-close" aria-label="Close"><i data-lucide="x"></i></button>
             </div>
 
+            <div class="req-body">
             <div class="req-options">
                 <label class="req-option">
                     <input id="reqAddress_${modalId}" type="checkbox" checked>
@@ -2670,7 +2887,7 @@ const html = `
                 <label class="req-option">
                     <input id="reqLocation_${modalId}" type="checkbox">
                     <span class="req-opt-icon green"><i data-lucide="map-pin"></i></span>
-                    <span class="req-opt-text"><b>Current Location</b><small>Customer attaches their live location</small></span>
+                    <span class="req-opt-text"><b>Current Location</b><small>Customer attaches their current location</small></span>
                     <span class="req-opt-check"><i data-lucide="check"></i></span>
                 </label>
                 <label class="req-option">
@@ -2691,16 +2908,17 @@ const html = `
 
             <div class="req-fields">
                 <label class="req-field"><span>Amount to pay <em>optional</em></span>
-                    <div class="req-amount-wrap"><span>₱</span><input id="reqAmount_${modalId}" inputmode="decimal" placeholder="e.g. 588"></div>
+                    <div class="req-amount-wrap"><span>₱</span><input id="reqAmount_${modalId}" inputmode="decimal" aria-label="Amount to pay" placeholder="e.g. 588"></div>
                 </label>
                 <label class="req-field"><span>Accepted payment methods <em>optional</em></span>
                     <input id="reqMops_${modalId}" class="req-input" placeholder="e.g. GCash, Maya, Cash, Bank Transfer">
                 </label>
-                <label class="req-field"><span>Message to customer <em>optional</em></span>
-                    <textarea id="reqNotes_${modalId}" class="req-input req-textarea" placeholder="Anything the customer should know…"></textarea>
+                <label class="req-field"><span>Payment instructions / message <em>optional</em></span>
+                    <textarea id="reqNotes_${modalId}" class="req-input req-textarea" placeholder="Confirm the total, delivery fee, payment recipient and account details. Never ask for a PIN or OTP."></textarea>
                 </label>
             </div>
 
+            </div>
             <div class="req-footer">
                 <button type="button" id="cancel_${modalId}" class="req-btn ghost">Cancel</button>
                 <button type="button" id="send_${modalId}" class="req-btn primary"><i data-lucide="send"></i> Send Request</button>
@@ -2733,6 +2951,9 @@ document.getElementById(`send_${modalId}`).onclick = async () => {
     }
 
     const amount = document.getElementById(`reqAmount_${modalId}`).value.trim();
+    if (amount && (!/^\d+(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0)) {
+        return window.alert("Enter a valid amount greater than zero, with up to two decimal places.");
+    }
     const mops = document.getElementById(`reqMops_${modalId}`).value.trim();
     const notes = document.getElementById(`reqNotes_${modalId}`).value.trim();
 
@@ -2806,6 +3027,7 @@ window.lockBodyScroll(true);
                     <button type="button" id="closeX_${modalId}" class="req-close" aria-label="Close"><i data-lucide="x"></i></button>
                 </div>
 
+                <div class="req-body">
                 ${req.notes ? `
                     <div class="req-note"><i data-lucide="message-square-text"></i><span>${escapeHtml(req.notes)}</span></div>
                 ` : ""}
@@ -2813,10 +3035,10 @@ window.lockBodyScroll(true);
                 ${requirements.address ? `
                     <div class="req-section">
                         <div class="req-section-head"><span class="req-opt-icon orange"><i data-lucide="home"></i></span><b>Delivery Address</b></div>
-                        <input id="resHouse_${modalId}" value="${escapeHtml(req.prefillAddress || "")}" placeholder="House no. / Street / Subdivision" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:10px;">
-                        <input id="resBarangay_${modalId}" placeholder="Barangay" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;">
-                        <input id="resCity_${modalId}" placeholder="City / Municipality" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;">
-                        <input id="resLandmark_${modalId}" placeholder="Landmark / Location notes e.g., tabi ng red na bahay, malapit sa kanto, blue gate" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;">
+                        <label class="req-field"><span>House number, street or subdivision *</span><input id="resHouse_${modalId}" value="${escapeHtml(req.prefillAddress || "")}" placeholder="House no. / Street / Subdivision" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:10px;"></label>
+                        <label class="req-field"><span>Barangay *</span><input id="resBarangay_${modalId}" placeholder="Barangay" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;"></label>
+                        <label class="req-field"><span>City / municipality *</span><input id="resCity_${modalId}" placeholder="City / Municipality" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;"></label>
+                        <label class="req-field"><span>Landmark or location notes *</span><input id="resLandmark_${modalId}" placeholder="Landmark / Location notes e.g., tabi ng red na bahay, malapit sa kanto, blue gate" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;"></label>
                     </div>
                 ` : ""}
 
@@ -2836,23 +3058,24 @@ window.lockBodyScroll(true);
 
                         ${req.amount ? `<div style="margin-top:8px; font-size:13px;"><b>Amount Requested:</b> ₱${escapeHtml(req.amount)}</div>` : ""}
 
-                        <select id="resPaymentMethod_${modalId}" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:10px;">
+                        <label class="req-field"><span>Payment method</span><select id="resPaymentMethod_${modalId}" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:10px;">
                             ${methodOptions}
-                        </select>
+                        </select></label>
 
-                        <input id="resCustomMop_${modalId}" placeholder="If Other, type mode of payment" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;">
-                        <input id="resAmount_${modalId}" placeholder="Amount paid" value="${escapeHtml(req.amount || "")}" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;">
-                        <input id="resRef_${modalId}" placeholder="Reference no. / Notes, optional for Cash/COD" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;">
+                        <label class="req-field" id="customMopField_${modalId}" hidden><span>Other payment method</span><input id="resCustomMop_${modalId}" placeholder="If Other, type mode of payment" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;"></label>
+                        <label class="req-field"><span>Amount paid</span><input id="resAmount_${modalId}" inputmode="decimal" placeholder="Amount paid" value="${escapeHtml(req.amount || "")}" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;"></label>
+                        <label class="req-field"><span>Reference number / payment notes</span><input id="resRef_${modalId}" placeholder="Reference no. / Notes, optional for Cash/COD" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;"></label>
                     </div>
                 ` : ""}
 
                 ${requirements.orderDetails ? `
                     <div class="req-section">
                         <div class="req-section-head"><span class="req-opt-icon purple"><i data-lucide="clipboard-pen"></i></span><b>Additional Details</b></div>
-                        <textarea id="resOrder_${modalId}" placeholder="Example: items, quantity, special instructions" class="req-input req-textarea" style="width:100%; box-sizing:border-box; min-height:80px; padding:10px; border:1px solid #cbd5e1; border-radius:10px; resize:none; margin-top:10px;">${escapeHtml(req.prefillOrderItems || "")}</textarea>
+                        <label class="req-field"><span>Items, quantity and instructions *</span><textarea id="resOrder_${modalId}" placeholder="Example: items, quantity, special instructions" class="req-input req-textarea" style="width:100%; box-sizing:border-box; min-height:80px; padding:10px; border:1px solid #cbd5e1; border-radius:10px; resize:none; margin-top:10px;">${escapeHtml(req.prefillOrderItems || "")}</textarea></label>
                     </div>
                 ` : ""}
 
+                </div>
                 <div class="req-footer">
                     <button type="button" id="cancel_${modalId}" class="req-btn ghost">Cancel</button>
                     <button type="button" id="submit_${modalId}" class="req-btn primary"><i data-lucide="check"></i> Submit</button>
@@ -2870,6 +3093,14 @@ window.lockBodyScroll(true);
     const _closeX2 = document.getElementById(`closeX_${modalId}`); if (_closeX2) _closeX2.onclick = close;
     modal.querySelector(".modalBackdrop").onclick = close;
     window.debouncedIcons?.();
+
+    if (requirements.payment) {
+        const method = document.getElementById(`resPaymentMethod_${modalId}`);
+        const customField = document.getElementById(`customMopField_${modalId}`);
+        const syncMethod = () => { customField.hidden = method.value !== "Other"; };
+        method.addEventListener("change", syncMethod);
+        syncMethod();
+    }
 
     if (requirements.location) {
         document.getElementById(`getLoc_${modalId}`).onclick = () => {
@@ -2962,7 +3193,7 @@ window.lockBodyScroll(true);
             const selectedMethod = document.getElementById(`resPaymentMethod_${modalId}`).value;
             const customMop = document.getElementById(`resCustomMop_${modalId}`).value.trim();
 
-            payload.paymentMethod = customMop || selectedMethod;
+            payload.paymentMethod = selectedMethod === "Other" ? customMop : selectedMethod;
             payload.paymentAmount = document.getElementById(`resAmount_${modalId}`).value.trim();
             payload.paymentReference = document.getElementById(`resRef_${modalId}`).value.trim();
             payload.paymentStatus = "pending_confirmation";
@@ -2975,7 +3206,7 @@ window.lockBodyScroll(true);
                 return window.alert("Please enter the amount paid.");
             }
 
-            const onlinePayment = !String(payload.paymentMethod).toLowerCase().includes("cash") && !String(payload.paymentMethod).toLowerCase().includes("pay at store");
+            const onlinePayment = window.PaymentPolicy.isOnline({ paymentMethod: payload.paymentMethod });
             if (onlinePayment && !payload.paymentReference) {
                 return window.alert("Please enter your online payment reference number so the business can verify it.");
             }
@@ -3017,7 +3248,7 @@ window.confirmRequirementResponse = async function(responseMessageId) {
 
     const ans = await window.vConfirm(
         "Confirm Requirements",
-        "Confirm that the submitted transaction requirements are valid and the transaction is ready to be fulfilled?",
+        "Confirm that the submitted details are correct? This does not confirm payment or mark the order as fulfilled.",
         "Confirm",
         false
     );
@@ -3032,47 +3263,15 @@ window.confirmRequirementResponse = async function(responseMessageId) {
         }
 
         const responseData = responseDoc.data();
-        if (responseData.bookingId) await window.ViciData.command("booking", { bookingId: responseData.bookingId, patch: { status: String(responseData.requestType || "").toLowerCase() === "delivery_order" ? "preparing" : "fulfilled" } });
         const transactionId = responseData.transactionId || responseData.bookingId || responseMessageId;
-
         await window.db.collection("messages").doc(responseMessageId).update({
             requirementStatus: "confirmed",
-            paymentStatus: "confirmed",
             confirmedAt: firebase.firestore.FieldValue.serverTimestamp(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-
-        const existingCompletion = await window.db.collection("messages").where("placeId", "==", responseData.placeId)
-            .where("type", "==", "completion_request")
-            .where("linkedRequirementId", "==", responseMessageId)
-            .limit(1)
-            .get();
-
-        if (existingCompletion.empty) {
-            await window.db.collection("messages").add({
-                placeId: responseData.placeId,
-                placeName: responseData.placeName,
-                userId: responseData.userId,
-                userName: responseData.userName || "Customer",
-                type: "completion_request",
-                transactionId,
-                linkedRequirementId: responseMessageId,
-                bookingId: responseData.bookingId || null,
-                requestType: responseData.requestType || "booking",
-                transactionStatus: String(responseData.requestType || "").toLowerCase() === "delivery_order" ? "preparing" : "fulfilled_waiting_customer",
-                text: String(responseData.requestType || "").toLowerCase() === "delivery_order" ? "Business confirmed the delivery details. Preparing the order." : "Business marked this transaction as fulfilled. Waiting for customer confirmation.",
-                senderUid: user.uid,
-                senderRole: "owner",
-                senderName: responseData.placeName || "Business",
-                createdBy: user.uid,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                reply: null
-            });
-        }
-
-        await addSystemUpdate(responseData.placeId, responseData.placeName, responseData.userId, responseData.userName, String(responseData.requestType || "").toLowerCase() === "delivery_order" ? "Payment/details confirmed. Business is preparing the delivery." : "Requirements confirmed by business.", "confirmed", "💳", transactionId, responseData.bookingId || null);
-
-        window.alert(String(responseData.requestType || "").toLowerCase() === "delivery_order" ? "Requirements confirmed. Delivery is now in Preparing stage." : "Requirements confirmed. Customer can now confirm received.");
+        await addSystemUpdate(responseData.placeId, responseData.placeName, responseData.userId, responseData.userName,
+            "Requirements confirmed. Payment verification and order preparation are separate steps.", "confirmed", "📋", transactionId, responseData.bookingId || null);
+        window.alert("Requirements confirmed. Verify online payment proof before starting preparation.");
     } catch (error) {
         window.alert("Error confirming requirements: " + error.message);
     }
@@ -3102,17 +3301,9 @@ window.updateTransactionStage = async function(completionMessageId, nextStatus) 
         const doc = await ref.get();
         const data = doc.exists ? doc.data() : {};
 
-        await ref.update({
-            transactionStatus: nextStatus,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        if (nextStatus === "delivered" && data.bookingId) {
-            await window.ViciData.command("booking", { bookingId: data.bookingId, patch: {
-                status: "fulfilled",
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            } });
-        }
+        if (!data.bookingId) throw new Error("No linked booking was found. Open the booking transaction instead.");
+        await window.ViciData.command("booking", { bookingId: data.bookingId, patch: { status: nextStatus } });
+        await ref.update({ transactionStatus: nextStatus, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
 
         const text = nextStatus === "out_for_delivery"
             ? "Order is now out for delivery."
@@ -3537,69 +3728,37 @@ async function markIncomingSeen(docs, uid) {
 window.markIncomingDelivered = markIncomingDelivered;
 window.markIncomingSeen = markIncomingSeen;
 
-function renderTextBubble(d, currentUid, dateStr) {
-const isMine = d.senderUid === currentUid;
-
-const justify = isMine ? "flex-end" : "flex-start";
-const bg = isMine ? "#3b82f6" : "#ffffff";
-const color = isMine ? "white" : "#0f172a";
-const border = isMine ? "none" : "1px solid #e2e8f0";
-const timeColor = isMine ? "#bfdbfe" : "#94a3b8";
-const radius = isMine ? "18px 18px 4px 18px" : "18px 18px 18px 4px";
-
-return `
-    <div style="display:flex; justify-content:${justify}; width:100%;">
-        <div class="chat-bubble ${isMine ? "me" : "other"}"
-            style="background:${bg}; color:${color}; border:${border}; padding:10px 14px; border-radius:${radius}; max-width:80%; font-size:14px; margin-bottom:12px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
-            ${escapeHtml(d.text)}
-            <div style="font-size:10px; color:${timeColor}; margin-top:4px; text-align:${isMine ? "right" : "left"};">
-                ${isMine ? receiptHtml(d, currentUid, { time: dateStr }) : dateStr}
-            </div>
+function renderTextBubble(d, currentUid, dateStr, options = {}) {
+    const isMine = d.senderUid === currentUid;
+    return `<div class="chat-message-row ${isMine ? "is-mine" : "is-other"}${options.grouped ? " is-grouped" : ""}">
+        ${!isMine ? `<span class="chat-sender-avatar" aria-hidden="true">${escapeHtml(String(d.senderName || "B").charAt(0).toUpperCase())}</span>` : ""}
+        <div class="chat-bubble ${isMine ? "me" : "other"}">
+            ${!isMine && !options.grouped && d.senderName ? `<span class="chat-message-sender">${escapeHtml(d.senderName)}</span>` : ""}
+            <div class="chat-message-text">${escapeHtml(d.text || "")}</div>
+            <div class="chat-message-meta">${isMine ? receiptHtml(d, currentUid, { time: dateStr }) : escapeHtml(dateStr)}</div>
         </div>
-    </div>
-`;
-
+    </div>`;
 }
 
 function renderLegacyMessage(d, isOwner, dateStr, replyDateStr) {
-let html = "";
-
-if (d.text) {
-    const customerSide = isOwner ? "flex-start" : "flex-end";
-    const customerBg = isOwner ? "#ffffff" : "#3b82f6";
-    const customerColor = isOwner ? "#0f172a" : "white";
-    const customerBorder = isOwner ? "1px solid #e2e8f0" : "none";
-    const customerTime = isOwner ? "#94a3b8" : "#bfdbfe";
-
-    html += `
-        <div style="display:flex; justify-content:${customerSide}; width:100%;">
-            <div style="background:${customerBg}; color:${customerColor}; border:${customerBorder}; padding:10px 14px; border-radius:18px; max-width:80%; font-size:14px; margin-bottom:12px;">
-                ${escapeHtml(d.text)}
-                <div style="font-size:10px; color:${customerTime}; margin-top:4px;">${dateStr}</div>
-            </div>
-        </div>
-    `;
+    let html = "";
+    // Legacy customer text and owner reply use the same presentation, without
+    // inventing delivery/seen receipts that are absent on these older records.
+    const bubble = (text, mine, time) => `<div class="chat-message-row ${mine ? "is-mine" : "is-other"}"><div class="chat-bubble ${mine ? "me" : "other"}"><div class="chat-message-text">${escapeHtml(text)}</div><div class="chat-message-meta">${escapeHtml(time)}</div></div></div>`;
+    if (d.text) html += bubble(d.text, !isOwner, dateStr);
+    if (d.reply) html += bubble(d.reply, isOwner, replyDateStr);
+    return html;
 }
 
-if (d.reply) {
-    const ownerSide = isOwner ? "flex-end" : "flex-start";
-    const ownerBg = isOwner ? "#3b82f6" : "#ffffff";
-    const ownerColor = isOwner ? "white" : "#0f172a";
-    const ownerBorder = isOwner ? "none" : "1px solid #e2e8f0";
-    const ownerTime = isOwner ? "#bfdbfe" : "#94a3b8";
-
-    html += `
-        <div style="display:flex; justify-content:${ownerSide}; width:100%;">
-            <div style="background:${ownerBg}; color:${ownerColor}; border:${ownerBorder}; padding:10px 14px; border-radius:18px; max-width:80%; font-size:14px; margin-bottom:12px;">
-                ${escapeHtml(d.reply)}
-                <div style="font-size:10px; color:${ownerTime}; margin-top:4px;">${replyDateStr}</div>
-            </div>
-        </div>
-    `;
-}
-
-return html;
-
+function chatDayInfo(message, now = new Date()) {
+    const stamp = message.createdAt?.toDate?.();
+    const date = stamp instanceof Date && Number.isFinite(stamp.getTime()) ? stamp : now;
+    const key = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate();
+    const midnight = value => new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
+    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const label = midnight(date) === midnight(now) ? "Today" : midnight(date) === midnight(yesterday) ? "Yesterday"
+        : date.toLocaleDateString([], { month: "short", day: "numeric", ...(date.getFullYear() !== now.getFullYear() ? { year: "numeric" } : {}) });
+    return { key, label };
 }
 
 function listenToChatRoom(placeId, targetUid) {
@@ -3648,7 +3807,8 @@ currentChatUnsub = window.db.collection("messages")
 
 const renderChatSnap = (snap) => {
         if (snap.empty) {
-            listWrap.innerHTML = `<div class="muted" style="text-align:center; padding:20px; font-size:12px;" data-i18n="No messages yet. Send an inquiry!">No messages yet. Send an inquiry!</div>`;
+            listWrap.innerHTML = `<div class="chat-empty"><span class="chat-empty-icon"><i data-lucide="messages-square"></i></span><h4>Start a conversation</h4><p>Ask about the menu, availability, or your request. Choose a quick question below to get started.</p></div>`;
+            window.debouncedIcons?.();
             return;
         }
 
@@ -3659,7 +3819,8 @@ const renderChatSnap = (snap) => {
         currentChatDocsCache = docs;
 
         if (docs.length === 0) {
-            listWrap.innerHTML = `<div class="muted" style="text-align:center; padding:20px; font-size:12px;" data-i18n="No messages yet. Send an inquiry!">No messages yet. Send an inquiry!</div>`;
+            listWrap.innerHTML = `<div class="chat-empty"><span class="chat-empty-icon"><i data-lucide="messages-square"></i></span><h4>Start a conversation</h4><p>Ask about the menu, availability, or your request. Choose a quick question below to get started.</p></div>`;
+            window.debouncedIcons?.();
             return;
         }
 
@@ -3677,8 +3838,13 @@ const renderChatSnap = (snap) => {
         updateChatQuickActions(isOwner, pendingRequirement);
 
         let html = "";
-
-        docs.forEach(d => {
+        let previousDay = "";
+        docs.forEach((d, index) => {
+            const day = chatDayInfo(d);
+            if (day.key !== previousDay) {
+                html += `<div class="chat-date-divider"><span>${escapeHtml(day.label)}</span></div>`;
+                previousDay = day.key;
+            }
             const dateStr = d.createdAt && d.createdAt.toDate
                 ? d.createdAt.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
                 : "Just now";
@@ -3701,7 +3867,7 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div style="background:#ffffff; border:1px solid ${meta.light}; border-radius:18px; overflow:hidden; max-width:88%; min-width:285px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                        <div class="chat-transaction-card" style="background:#ffffff; border:1px solid ${meta.light}; border-radius:18px; overflow:hidden; max-width:88%; min-width:285px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
                             <div style="background:${meta.color}; color:white; padding:12px 14px; font-weight:900; display:flex; align-items:center; justify-content:space-between; gap:10px;">
                                 <span>${meta.icon} ${escapeHtml(meta.title)}</span>
                                 <span style="background:white; color:${meta.color}; border-radius:999px; padding:3px 8px; font-size:10px; white-space:nowrap;">${escapeHtml(meta.shortLabel)}</span>
@@ -3722,61 +3888,28 @@ const renderChatSnap = (snap) => {
                                     </div>
                                 ` : ""}
 
-                                ${isOwner && status === "accepted" ? `
-                                    <button onclick="window.updateBookingFromChat('${d.bookingId}', '${d.id}', 'fulfilled')" style="margin-top:14px; width:100%; border:none; background:${meta.light}; color:${meta.dark}; padding:10px; border-radius:10px; font-weight:900; cursor:pointer;">${escapeHtml(meta.fulfillLabel)}</button>
-                                ` : ""}
+                                ${isOwner ? renderBookingNextAction(d) : ""}
+
+                                ${renderPaymentFlowCard(d, isOwner)}
 
                                 ${isOwner && status === "payment_submitted" ? `
-                                    <div style="margin-top:12px; background:#fef3c7; border:1px solid #fde68a; border-radius:12px; padding:12px;">
-                                        <div style="font-size:13px; font-weight:900; color:#92400e; margin-bottom:8px;">Payment proof submitted — please review</div>
-                                        ${(d.paymentProofPath || d.paymentProofUrl) ? `<img ${d.paymentProofPath ? `data-proof-booking="${escapeHtml(d.bookingId || "")}" data-proof-version="${escapeHtml(d.paymentProofPath || "")}"` : `src="${escapeHtml(safeImageUrl(d.paymentProofUrl))}"`} alt="Payment proof" style="width:100%; border-radius:8px; border:1px solid #fde68a; margin-bottom:10px;" loading="lazy" />` : `<div style="font-size:12px; color:#92400e;">No image attached.</div>`}
-                                        <div style="display:flex; gap:8px;">
-                                            <button onclick="window.reviewPaymentProof('${d.bookingId}', '${d.id}', 'resubmit')" style="flex:1; border:1px solid #fca5a5; background:#fff; color:#991b1b; padding:9px; border-radius:10px; font-weight:800; cursor:pointer;">Ask to Resubmit</button>
-                                            <button onclick="window.reviewPaymentProof('${d.bookingId}', '${d.id}', 'confirm')" style="flex:1; border:none; background:#16a34a; color:#fff; padding:9px; border-radius:10px; font-weight:800; cursor:pointer;">Confirm Payment</button>
+                                    <div class="payment-owner-review" style="margin-top:12px; background:#fef3c7; border:1px solid #fde68a; border-radius:12px; padding:12px;">
+                                        <div style="font-size:13px; font-weight:900; color:#92400e; margin-bottom:8px;">Payment details submitted — please review</div>
+                                        ${(d.paymentProofPath || d.paymentProofUrl) ? `<img ${d.paymentProofPath ? `data-proof-booking="${escapeHtml(d.bookingId || "")}" data-proof-version="${escapeHtml(d.paymentProofPath || "")}"` : `src="${escapeHtml(safeImageUrl(d.paymentProofUrl))}"`} alt="Payment proof" style="width:100%; border-radius:8px; border:1px solid #fde68a; margin-bottom:10px;" loading="lazy" />` : `<div style="font-size:12px; color:#92400e;">Receipt image is optional. Verify the submitted reference against your actual account.</div>`}
+                                        <div class="payment-review-actions" style="display:flex; gap:8px;">
+                                            <button onclick="window.reviewPaymentProof('${d.bookingId}', '${d.id}', 'resubmit')" style="flex:1; border:1px solid #fca5a5; background:#fff; color:#991b1b; padding:9px; border-radius:10px; font-weight:800; cursor:pointer;">Decline payment</button>
+                                            <button onclick="window.reviewPaymentProof('${d.bookingId}', '${d.id}', 'confirm')" style="flex:1; border:none; background:#16a34a; color:#fff; padding:9px; border-radius:10px; font-weight:800; cursor:pointer;">Accept payment</button>
                                         </div>
                                     </div>
                                 ` : ""}
 
-                                ${isOwner && status === "payment_confirmed" ? `
-                                    <button onclick="window.updateBookingFromChat('${d.bookingId}', '${d.id}', 'fulfilled')" style="margin-top:14px; width:100%; border:none; background:${meta.light}; color:${meta.dark}; padding:10px; border-radius:10px; font-weight:900; cursor:pointer;">${escapeHtml(meta.fulfillLabel)}</button>
-                                ` : ""}
-
-                                ${!isOwner && status === "pending" ? `
-                                    <div style="margin-top:12px; font-size:12px; color:#64748b; font-weight:600;">Waiting for business confirmation.</div>
-                                ` : ""}
-
-                                ${!isOwner && status === "accepted" && meta.key === "delivery_order" ? `
-                                    <div style="margin-top:12px; font-size:12px; color:#0369a1; font-weight:800; background:#e0f2fe; padding:9px; border-radius:10px;">
-                                        Delivery accepted. Submit the Delivery Details card below if it appears.
-                                    </div>
-                                ` : ""}
-
-                                ${!isOwner && status === "accepted" && ["advance_order", "pickup_order", "food_reservation", "delivery_order"].includes(meta.key) && !/cash/i.test(d.paymentMethod || "") ? `
-                                    <button onclick="window.uploadPaymentProof('${d.bookingId}', '${d.id}')" style="margin-top:12px; width:100%; border:none; background:linear-gradient(135deg,#2563eb,#3b82f6); color:#fff; padding:11px; border-radius:10px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
-                                        <i data-lucide="receipt" style="width:16px; height:16px;"></i> Upload ${escapeHtml(d.paymentMethod || "GCash")} Payment Proof
-                                    </button>
-                                    <div style="margin-top:6px; font-size:11px; color:#64748b; text-align:center;">Screenshot of your ${escapeHtml(d.paymentMethod || "GCash")} payment</div>
-                                ` : ""}
-
-                                ${!isOwner && status === "payment_submitted" ? `
-                                    <div style="margin-top:12px; font-size:12px; color:#92400e; font-weight:800; background:#fef3c7; padding:9px; border-radius:10px; text-align:center;">
-                                        Payment proof submitted. Waiting for business confirmation.
-                                    </div>
-                                ` : ""}
-
-                                ${!isOwner && status === "payment_confirmed" ? `
-                                    <div style="margin-top:12px; font-size:12px; color:#166534; font-weight:800; background:#dcfce7; padding:9px; border-radius:10px; text-align:center;">
-                                        Payment confirmed by business. Your order is being prepared.
-                                    </div>
-                                ` : ""}
-
-                                ${d.paymentProofUrl ? `
+                                ${!isOwner && (d.paymentProofPath || d.paymentProofUrl) ? `
                                     <div style="margin-top:10px;">
                                         <img ${d.paymentProofPath ? `data-proof-booking="${escapeHtml(d.bookingId || "")}" data-proof-version="${escapeHtml(d.paymentProofPath || "")}"` : `src="${escapeHtml(safeImageUrl(d.paymentProofUrl))}"`} alt="Payment proof" style="width:100%; border-radius:10px; border:1px solid #e2e8f0;" loading="lazy" />
                                     </div>
                                 ` : ""}
 
-                                ${!isOwner && status === "fulfilled" ? `
+                                ${!isOwner && ["fulfilled", "delivered"].includes(status) ? `
                                     <button onclick="window.confirmReceivedFromChat('${d.bookingId}', '${d.id}', '${d.placeId}')" style="margin-top:14px; width:100%; border:none; background:#dcfce7; color:#166534; padding:10px; border-radius:10px; font-weight:900; cursor:pointer;">${escapeHtml(meta.confirmLabel)}</button>
                                 ` : ""}
 
@@ -3799,7 +3932,7 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div style="background:#ffffff; border:1px solid #c7d2fe; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                        <div class="chat-transaction-card" style="background:#ffffff; border:1px solid #c7d2fe; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
                             <div style="background:${d.requestType === 'delivery_order' ? '#0ea5e9' : '#4f46e5'}; color:white; padding:12px 14px; font-weight:800;">${d.requestType === 'delivery_order' ? '🛵 Delivery Details Ready' : '📋 Requirements Needed'}</div>
 
                             <div style="padding:14px; font-size:13px; color:#334155;">
@@ -3844,7 +3977,7 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div style="background:#ffffff; border:1px solid #bbf7d0; border-radius:18px; overflow:hidden; max-width:90%; min-width:290px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                        <div class="chat-transaction-card" style="background:#ffffff; border:1px solid #bbf7d0; border-radius:18px; overflow:hidden; max-width:90%; min-width:290px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
                             <div style="background:#16a34a; color:white; padding:12px 14px; font-weight:800;">✅ Requirements Submitted</div>
                             <div style="padding:14px; font-size:13px; color:#334155;">
                                 <div><b>Status:</b> ${makeBadge(status)}</div>
@@ -3867,7 +4000,7 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div style="background:#ffffff; border:1px solid #bfdbfe; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                        <div class="chat-transaction-card" style="background:#ffffff; border:1px solid #bfdbfe; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
                             <div style="background:${isDeliveryCompletion ? "#0ea5e9" : "#2563eb"}; color:white; padding:12px 14px; font-weight:900;">
                                 ${header}
                             </div>
@@ -3909,7 +4042,7 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div style="background:#ffffff; border:1px solid #fde68a; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                        <div class="chat-transaction-card" style="background:#ffffff; border:1px solid #fde68a; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
                             <div style="background:#facc15; color:#713f12; padding:12px 14px; font-weight:900;">⭐ Rate & Feedback</div>
 
                             <div style="padding:14px; font-size:13px; color:#334155;">
@@ -3947,7 +4080,7 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div style="background:#ffffff; border:1px solid #fde68a; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                        <div class="chat-transaction-card" style="background:#ffffff; border:1px solid #fde68a; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
                             <div style="background:#f59e0b; color:white; padding:12px 14px; font-weight:900;">🌟 Customer Feedback</div>
 
                             <div style="padding:14px; font-size:13px; color:#334155; display:grid; gap:8px;">
@@ -3964,7 +4097,10 @@ const renderChatSnap = (snap) => {
             }
 
             if (d.type === "text" && d.senderUid) {
-                html += renderTextBubble(d, user.uid, dateStr);
+                const previous = docs[index - 1];
+                const grouped = previous?.type === "text" && previous.senderUid === d.senderUid
+                    && chatDayInfo(previous).key === day.key && msgMillis(d) - msgMillis(previous) < 120000;
+                html += renderTextBubble(d, user.uid, dateStr, { grouped });
                 return;
             }
 
@@ -4694,32 +4830,33 @@ window.renderListView = function(filteredPlaces) {
 
         // FIX ONLY: never show a raw ID/number or the literal word "ADDRESS" as the address
         const rawAddr = String(place.address || place.brgy || place.barangay || "").trim();
-        const addrLooksId = /^[a-zA-Z0-9_-]{9,}$/.test(rawAddr) && !/\s/.test(rawAddr);
+        const addrLooksId = /^[a-zA-Z0-9_-]{20,}$/.test(rawAddr) && /[0-9_-]/.test(rawAddr);
         const addrText = (!rawAddr || addrLooksId || rawAddr.toLowerCase() === "address") ? "Lipa City" : rawAddr;
 
         html += `
-        <div class="est-card ${freshness.className}" style="background: white; border: 1px solid #fde047; border-radius: 12px; padding: 16px; margin: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 16px; cursor: pointer;" data-place-card="${escapeHtml(place.id)}">
-            <div style="display: flex; gap: 16px; position: relative;">
-                <div style="position: relative; width: 72px; height: 72px; flex-shrink: 0; border-radius: 8px; border: 1px solid #f1f5f9;">
+        <div class="est-card place-list-card ${freshness.className}" style="background: white; border: 1px solid #fde047; border-radius: 12px; padding: 16px; margin: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 16px; cursor: pointer;" data-place-card="${escapeHtml(place.id)}">
+            <div class="place-list-summary" style="display: flex; gap: 16px; position: relative;">
+                <div class="place-list-thumbnail" style="position: relative; width: 72px; height: 72px; flex-shrink: 0; border-radius: 8px; border: 1px solid #f1f5f9;">
                     ${imgHtml}
                     <button type="button" class="place-list-action" data-action="favorite" data-place-id="${escapeHtml(place.id)}" aria-label="Save establishment" style="position: absolute; top: -6px; right: -6px; background: #facc15; border: 2px solid white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         <i data-lucide="star" style="width: 12px; height: 12px; fill: white; color: white;"></i>
                     </button>
                 </div>
-                <div style="flex: 1; min-width: 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div class="place-list-info" style="flex: 1; min-width: 0;">
+                    <div class="place-list-heading" style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${escapeHtml(place.name)} ${place.is_verified ? `<i data-lucide="badge-check" style="width: 16px; height: 16px; color: #3b82f6;"></i>` : ''}
                         </h3>
                         <i data-lucide="chevron-right" style="width: 18px; height: 18px; color: #cbd5e1; flex-shrink: 0;"></i>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                    <div class="place-list-meta" style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
                         <div style="font-size: 13px; color: #64748b; text-transform: capitalize;">${escapeHtml(place.category || place.cat || "")}</div>
                         <div style="width: 3px; height: 3px; border-radius: 50%; background: #cbd5e1;"></div>
                         ${ratingHtml}
+                        <button type="button" class="place-list-action place-list-menu-trigger" data-action="menu" data-place-id="${escapeHtml(place.id)}"><i data-lucide="book-open"></i> Menu</button>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
-                        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid ${statusBorder}; color: ${statusColor}; background: ${statusBg};">
+                    <div class="place-list-badges" style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
+                        <span class="place-list-status is-${place.status === 'open' ? 'open' : place.status === 'busy' ? 'busy' : 'closed'}" style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid ${statusBorder}; color: ${statusColor}; background: ${statusBg};">
                             <span style="width: 6px; height: 6px; border-radius: 50%; background: ${statusDot};"></span>
                             <span data-i18n="${statusText}">${statusText}</span>
                         </span>
@@ -4731,12 +4868,12 @@ window.renderListView = function(filteredPlaces) {
                             ${escapeHtml(freshness.shortLabel)}
                         </span>
                     </div>
-                    <div style="font-size: 11px; color: #94a3b8; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+                    <div class="place-list-address" style="font-size: 11px; color: #94a3b8; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
                         ${escapeHtml(addrText)}
                     </div>
                 </div>
             </div>
-            <div style="display: flex; gap: 8px;">
+            <div class="place-list-actions" style="display: flex; gap: 8px;">
                 <button type="button" class="place-list-action" data-action="chat" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background: white; border: 1px solid #e2e8f0; color: #0f172a; font-size: 13px; font-weight: 600; cursor: pointer;">
                     <i data-lucide="message-square" style="width: 14px; height: 14px;"></i> <span data-i18n="Chat">Chat</span>
                 </button>
@@ -4752,6 +4889,7 @@ window.renderListView = function(filteredPlaces) {
     });
 
     listContainer.innerHTML = html;
+    window.PlacePreview?.syncSelection?.();
     if (!listContainer.dataset.actionsBound) {
         listContainer.dataset.actionsBound = "true";
         listContainer.addEventListener("click", (event) => {
@@ -4761,12 +4899,17 @@ window.renderListView = function(filteredPlaces) {
             event.stopPropagation();
             if (!place) return;
             if (!button) { window.viewPlace(place.id); return; }
+            if (button.dataset.action === "menu") window.PlacePreview?.open(place);
             if (button.dataset.action === "favorite") window.toggleFavorite(place.id, button);
             if (button.dataset.action === "chat") window.openChatModal(place.id, place.name || "Establishment");
             if (button.dataset.action === "booking") window.openBookingModal(place.id, place.name || "Establishment");
             if (button.dataset.action === "route") {
                 const latitude = Number(place.lat), longitude = Number(place.lng);
-                if (Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) window.routeToPlace(latitude, longitude, place.name || "Establishment");
+                if (Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) {
+                    window.PlacePreview?.close?.();
+                    window.toggleView?.("map");
+                    window.routeToPlace(latitude, longitude, place.name || "Establishment");
+                }
                 else window.showToast?.("This establishment has no valid map location.", "error");
             }
         });

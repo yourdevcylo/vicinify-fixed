@@ -71,7 +71,7 @@ test('fresh service-worker install serves the versioned local UI assets offline'
    assert.ok(saved.has(target.href),'Not precached with its version query: '+target.href);
   }
  } finally {html.window.close();}
- for(const asset of ['css/ui.css?v=VICINIFY_UI_20261027','css/reference.css?v=20261027','js/ui.js?v=VICINIFY_UI_20261027']){
+ for(const asset of [...read('index.html').matchAll(/(?:src|href)="((?:css|js)\/[^"]+)"/g)].map(match=>match[1])){
   let pending;listeners.fetch({request:{method:'GET',url:new URL(asset,origin).href,destination:asset.startsWith('css/')?'style':'script',mode:'same-origin'},respondWith:promise=>pending=promise});
   const response=await pending;assert.equal(response.status,200);assert.equal(await response.text(),read(asset.split('?')[0]));
  }

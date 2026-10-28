@@ -73,37 +73,62 @@ async function deleteCustomerBooking(bookingId) {
     window.alert("Transaction history is kept for records and cannot be deleted.");
 }
 
-// Customer cancellation (status-based, manual flow):
-// pending -> 100% refund; accepted/payment_submitted -> the establishment's
-// refundPercent (snapshotted at order time); preparing or later -> closed.
+// Eligibility remains enforced by the server transaction, including races with preparation.
+function cancellationInfo(booking) {
+    const status = getStatusTone(booking.status || booking.bookingStatus || "pending");
+    const raw = Number(booking.refundPercent ?? 50);
+    const rate = status === "pending" ? 100 : (Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) : 50);
+    const isBooking = ["booking", "table", "table_reservation", "food", "food_reservation"].includes(String(booking.requestType || "booking"));
+    return { status, rate, label: isBooking ? "booking" : "order", allowed: ["pending", "accepted", "payment_submitted"].includes(status) };
+}
+function reviewCancellation(booking) {
+    const info = cancellationInfo(booking);
+    return new Promise(resolve => {
+        const modal = document.createElement("div");
+        modal.className = "cancellation-modal";
+        modal.innerHTML = `<div class="modalBackdrop"></div><section class="cancellation-sheet" role="dialog" aria-modal="true" aria-labelledby="cancelReviewTitle">
+            <header><span class="cancel-review-icon"><i data-lucide="calendar-x"></i></span><button type="button" class="cancel-review-close" aria-label="Close cancellation"><i data-lucide="x"></i></button></header>
+            <span class="cancel-review-eyebrow">REVIEW CANCELLATION</span><h3 id="cancelReviewTitle">Cancel this ${info.label}?</h3>
+            <p>Your request with <strong>${escapeHtml(booking.placeName || "this establishment")}</strong> will be cancelled. This cannot be undone.</p>
+            <div class="cancel-policy-summary"><span>${info.status === "pending" ? "Not accepted yet" : "Accepted by the business"}</span><strong>${info.status === "pending" ? "Free cancellation" : info.rate + "% refund policy"}</strong><p>${info.status === "pending" ? "No cancellation fee applies while your request is pending." : "The refund rate saved when you placed this request applies before preparation starts."}</p></div>
+            <p class="cancel-manual-note">If you have already paid, arrange any refund with the business in chat. Vicinify does not automatically transfer a refund.</p>
+            <footer><button type="button" class="cancel-review-keep">Keep ${info.label}</button><button type="button" class="cancel-review-confirm">Cancel ${info.label}</button></footer>
+        </section>`;
+        const previousFocus = document.activeElement;
+        const finish = answer => { document.removeEventListener("keydown", onKey); modal.remove(); window.lockBodyScroll?.(false); previousFocus?.focus?.(); resolve(answer); };
+        const onKey = event => {
+            if (event.key === "Escape") finish(false);
+            if (event.key === "Tab") {
+                const buttons = [...modal.querySelectorAll("button")];
+                if (event.shiftKey && document.activeElement === buttons[0]) { event.preventDefault(); buttons.at(-1).focus(); }
+                else if (!event.shiftKey && document.activeElement === buttons.at(-1)) { event.preventDefault(); buttons[0].focus(); }
+            }
+        };
+        modal.querySelector(".modalBackdrop").onclick = () => finish(false);
+        modal.querySelector(".cancel-review-close").onclick = () => finish(false);
+        modal.querySelector(".cancel-review-keep").onclick = () => finish(false);
+        modal.querySelector(".cancel-review-confirm").onclick = () => finish(true);
+        document.body.appendChild(modal); window.lockBodyScroll?.(true);
+        document.addEventListener("keydown", onKey); window.debouncedIcons?.();
+        modal.querySelector(".cancel-review-keep").focus();
+    });
+}
+const cancellingBookings = new Set();
 async function cancelCustomerBooking(bookingId) {
+    if (cancellingBookings.has(bookingId)) return;
     const d = (currentTransactionDocs || []).find(x => x.id === bookingId);
     if (!d) return;
-    const status = String(d.status || "pending").toLowerCase();
-    if (!["pending", "accepted", "payment_submitted"].includes(status)) return;
-
-    const refundPercent = status === "pending" ? 100 : (d.refundPercent ?? 50);
-    const placeName = d.placeName || "The establishment";
-    const msg = status === "pending"
-        ? `${placeName} hasn't accepted your order yet — cancelling now gives you a 100% refund.`
-        : `${placeName} has accepted your order and is about to prepare it. If you cancel now, you'll get a ${refundPercent}% refund — they keep ${100 - refundPercent}% as compensation for their effort.`;
-
-    const ans = await window.vConfirm("Cancel this order?", msg, "Yes, cancel", true);
-    if (!ans) return;
-
+    if (!cancellationInfo(d).allowed) return window.showToast?.("Cancellation is no longer available at this stage.", "info");
+    cancellingBookings.add(bookingId);
     try {
-        await window.ViciData.command("booking", { bookingId: bookingId, patch: {
-            status: "cancelled",
-            refundPercent,
-            cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        } });
-
-
-        window.showToast("Order cancelled.", "info");
+        if (!await reviewCancellation(d)) return;
+        // The server reads the current status and original refund policy; the
+        // browser never supplies a refund rate or marks money as refunded.
+        await window.ViciData.command("booking", { bookingId, patch: { status: "cancelled" } });
+        window.showToast?.("Request cancelled. Any refund must be arranged with the business.", "info");
     } catch (error) {
-        alert("Error cancelling: " + error.message);
-    }
+        window.showToast?.("Could not cancel this request. " + error.message, "error");
+    } finally { cancellingBookings.delete(bookingId); }
 }
 
 async function confirmReceivedBooking(bookingId, placeId) {
@@ -269,6 +294,7 @@ function listenToCustomerActivities(user) {
             docs.forEach(d => {
                 const status = getStatusTone(d.status || d.bookingStatus || "pending");
                 const meta = getRequestMeta(d.requestType);
+                const cancellation = cancellationInfo(d);
                 const dateStr = formatDateTime(d.createdAt);
                 const summary = getTransactionSummary(d);
                 const txId = d.transactionId || d.id;
@@ -298,23 +324,10 @@ function listenToCustomerActivities(user) {
                                 </button>
                             ` : ""}
 
-                            ${status === "pending" ? `
-                                <div style="font-size:11px; color:#16a34a; flex-basis:100%;">You can still cancel this order — free while it is pending.</div>
-                            ` : ""}
-
-                            ${["accepted", "payment_submitted"].includes(status) ? `
-                                <div style="font-size:11px; color:#d97706; flex-basis:100%;">You can still cancel this order — a ${d.refundPercent ?? 50}% refund applies.</div>
-                            ` : ""}
-
-                            ${["pending", "accepted", "payment_submitted"].includes(status) ? `
-                                <button class="transaction-action-chat" style="color:#dc2626;" onclick="window.SettingsPage.cancelCustomerBooking('${d.id}')">
-                                    Cancel Order
-                                </button>
-                            ` : ""}
-
-                            ${["preparing", "ready", "payment_confirmed"].includes(status) ? `
-                                <div style="font-size:11px; color:#94a3b8; flex-basis:100%;">Preparation has started — this order can no longer be cancelled. No refund.</div>
-                            ` : ""}
+                            ${cancellation.allowed ? `
+                                <div class="transaction-cancel-note">${status === "pending" ? "Free cancellation while pending." : `Cancellation available · ${cancellation.rate}% refund policy if paid.`}</div>
+                                <button class="transaction-cancel-button" onclick="window.SettingsPage.cancelCustomerBooking('${d.id}')">Cancel ${cancellation.label}</button>
+                            ` : status === "cancelled" ? `<div class="transaction-cancel-note">Cancelled · If paid, contact the business to arrange your refund.</div>` : ["preparing", "ready", "ready_for_pickup", "payment_confirmed", "out_for_delivery", "delivered", "fulfilled", "received"].includes(status) ? `<div class="transaction-cancel-note is-closed">Cancellation is closed at this stage. Contact the business if you need help.</div>` : ""}
 
                             <button class="transaction-action-chat" onclick="window.openChatModal('${d.placeId}', '${safeString(d.placeName || "Establishment")}')">
                                 Open Chat

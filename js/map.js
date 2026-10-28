@@ -753,6 +753,7 @@ window.MapPage = (() => {
     }
 
     function ensureSmartAnswerPanel() {
+        if (window.ViciChat) return window.ViciChat.panel();
         const mapWrap = document.querySelector("#page-map .mapWrap");
         const askBar = document.querySelector(".askBar");
         if (!mapWrap && !askBar) return null;
@@ -845,7 +846,7 @@ window.MapPage = (() => {
     const VICI_AI_ERROR = "Vici AI is currently unavailable. Please try again later.";
 
 
-    async function getViciAIReply(intent, recommendations) {
+    async function getViciAIReply(intent, recommendations, context = {}) {
         // Deployed AI ONLY (PLUS43): the Netlify Function answers, or an
         // error is shown. No local keyword finder, no client-side key path.
         const endpoint = window.VICINIFY_AI_ENDPOINT || window.ViciAI?.endpoint || "";
@@ -855,9 +856,10 @@ window.MapPage = (() => {
                 const response = await fetch(endpoint, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", Authorization: `Bearer ${await window.auth.currentUser.getIdToken()}` },
-                    signal: AbortSignal.timeout(20000),
+                    signal: context.signal && AbortSignal.any ? AbortSignal.any([context.signal, AbortSignal.timeout(20000)]) : AbortSignal.timeout(20000),
                     body: JSON.stringify({
                         query: intent.query,
+                        history: context.history || [],
                         radius: AppState.radius,
                         userLocation: AppState.userLocation || null,
                         recommendations: allPlaces.map(place => ({ id: place.id })),
@@ -866,12 +868,46 @@ window.MapPage = (() => {
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.answer) return { answer: data.answer, source: "ai" };
+                    if (data.answer) return { answer: data.answer, source: data.source === "guard" ? "guard" : "ai", placeIds: Array.isArray(data.placeIds) ? data.placeIds : [] };
                 }
             } catch (e) { console.warn("Vici AI endpoint unavailable.", e); }
         }
         return { answer: VICI_AI_ERROR, source: "error", error: true };
     }
+
+    window.ViciChat?.configure({
+        ask: async (query, context) => {
+            if (!window.auth?.currentUser?.emailVerified) return { answer: "Sign in with a verified email to use Vici AI.", error: true, picks: [] };
+            await getAcceptedPlaces();
+            const intent = inferSmartIntent(query);
+            const recommendations = getSmartRecommendations(intent);
+            const reply = await getViciAIReply(intent, recommendations, context);
+            const ids = new Set(reply.placeIds || []);
+            return { ...reply, picks: reply.error ? [] : recommendations.filter(p => ids.has(p.id)).slice(0,3).map(p => ({
+                id:p.id,name:p.name,category:p.cat || p.category,rating:p.avgRating || 0,reviewCount:p.reviewCount || 0,
+                distance:p._distance != null ? formatDistance(p._distance) : "",photo:getSafeImageUrl(p.coverPhoto || p.photos?.[0]) || ""
+            })) };
+        },
+        viewOnMap: async id => {
+            await getAcceptedPlaces();
+            const place = cloudPlaces.find(p => p.id === id);
+            if (!place || place.lat == null || place.lng == null || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) {
+                window.showToast?.("This place is no longer available on the map.", "info"); return false;
+            }
+            window.PlacePreview?.close?.();
+            window.toggleView?.("map");
+            showPage("page-map");
+            setTimeout(() => {
+                if (!map) return;
+                map.invalidateSize(); map.flyTo([place.lat, place.lng], 16, { duration:.7 });
+                const marker = markerMap.get(id)?.marker;
+                if (marker) marker.openPopup();
+                else L.popup({className:"vici-place-popup",maxWidth:300}).setLatLng([place.lat,place.lng]).setContent(buildPlaceCard(place)).openOn(map);
+                window.debouncedIcons?.();
+            },100);
+            return true;
+        }
+    });
 
     function renderViciAIHeader(sourceLabel) {
         return `
@@ -922,6 +958,7 @@ window.MapPage = (() => {
     }
 
     function renderViciAIWelcome() {
+        if (window.ViciChat) { window.ViciChat.open(); return; }
         const panel = ensureSmartAnswerPanel();
         if (!panel) return;
         panel.classList.remove("hidden");
@@ -944,6 +981,7 @@ window.MapPage = (() => {
     }
 
     window.toggleViciAI = function(forceOpen) {
+        if (window.ViciChat) { const open = forceOpen == null ? !window.ViciChat.isOpen() : !!forceOpen; open ? window.ViciChat.open() : window.ViciChat.close(); return; }
         const panel = ensureSmartAnswerPanel();
         if (!panel) return;
         const shouldOpen = forceOpen == null ? panel.classList.contains("hidden") : Boolean(forceOpen);
@@ -1121,11 +1159,11 @@ window.MapPage = (() => {
             : "";
         // Place line: never show a raw ID/hash as the address (screenshot: aadcafa56756756)
         const rawPlace = String(p.brgy || p.barangay || p.address || p.addr || "").trim();
-        const looksLikeId = /^[a-zA-Z0-9_-]{10,}$/.test(rawPlace) && !/\s/.test(rawPlace);
+        const looksLikeId = /^[a-zA-Z0-9_-]{20,}$/.test(rawPlace) && /[0-9_-]/.test(rawPlace);
         const catCfg = (typeof CAT_CONFIG !== "undefined" && CAT_CONFIG[normalizeCategoryKey(p.cat || p.category || "")]) || (typeof CAT_CONFIG !== "undefined" ? CAT_CONFIG["default"] : null);
         const catLabel = catCfg?.label || String(p.cat || p.category || "Local business").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
         const placeLine = (!rawPlace || looksLikeId) ? "Lipa City" : rawPlace;
-        const avatarHtml = catCfg ? `<div class="mec-avatar" style="background:${catCfg.color}"><i data-lucide="${catCfg.icon}"></i></div>` : "";
+        const avatarHtml = catCfg ? `<div class="mec-avatar"><i data-lucide="${catCfg.icon}"></i></div>` : "";
 
         // Ayusin ang rating text
         const ratingHtml = p.avgRating
@@ -1139,7 +1177,7 @@ window.MapPage = (() => {
                 <div class="mec-head-text">
                     <h3 class="mec-title">
                         ${escapeHtml(p.name || "ESTABLISHMENT")}
-                        ${p.is_verified ? `<i data-lucide="badge-check" style="width:16px; height:16px; color:#3b82f6;"></i>` : ''}
+                        ${p.is_verified ? `<i data-lucide="badge-check" style="width:16px; height:16px; color:var(--ui-accent, #237e72);"></i>` : ''}
                     </h3>
                     <div class="mec-sub"><span class="mec-cat">${escapeHtml(catLabel)}</span><span class="mec-dot-sep">•</span><span>${escapeHtml(placeLine)}</span></div>
                 </div>
@@ -1154,9 +1192,8 @@ window.MapPage = (() => {
                     <i data-lucide="${freshness.isInactive ? 'pause-circle' : freshness.level === 'active' ? 'check-circle-2' : 'alert-triangle'}"></i>
                     ${escapeHtml(freshness.shortLabel)}
                 </div>` : ''}
-                ${distText ? `<div class="mec-distance">${distText}</div>` : ''}
             </div>
-            ${openState.hint ? `<div style="margin-top:6px; font-size:11px; color:#64748b; font-weight:700;"><i data-lucide="clock" style="width:12px; height:12px; vertical-align:-2px;"></i> ${escapeHtml(openState.hint)}</div>` : ''}
+            ${openState.hint ? `<div class="mec-hours-hint"><i data-lucide="clock" style="width:12px; height:12px; vertical-align:-2px;"></i> ${escapeHtml(openState.hint)}</div>` : ''}
             
             <div class="mec-info-line">
                 <span class="mec-rating">${ratingHtml}</span>
@@ -1229,7 +1266,7 @@ window.MapPage = (() => {
         // v53BK #2: build single marker (used by diffAcceptedMarkers)
         function buildMarker(p, freshness) {
             const config = CAT_CONFIG[p.cat] || CAT_CONFIG["default"];
-            const markerColor = freshness.markerColor || config.color;
+            const markerColor = "#e1f1e9";
             
             const isPremium = p.is_featured || p.is_premium;
             const premiumClass = isPremium && !freshness.isInactive ? "premium-pulse" : "";
@@ -1241,7 +1278,7 @@ window.MapPage = (() => {
                     ${starBadgeHtml}
                     ${staleBadgeHtml}
                     <div class="vici-marker" style="background-color: ${markerColor}; ${freshness.isInactive ? 'filter:grayscale(1); opacity:.78;' : ''}">
-                        <i data-lucide="${config.icon}" style="color: white; width: 16px; height: 16px;"></i>
+                        <i data-lucide="${config.icon}" style="color: #17633f; width: 18px; height: 18px;"></i>
                         <div class="vici-marker-tail" style="border-top-color: ${markerColor};"></div>
                     </div>
                 </div>
@@ -1250,7 +1287,7 @@ window.MapPage = (() => {
             const customIcon = L.divIcon({ className: 'custom-pin-wrap', html: customHtml, iconSize: [36, 44], iconAnchor: [18, 44], popupAnchor: [0, -46] });
             const m = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(map);
             // v53BK #7: lazy popup — build card HTML only when opened, not for all markers upfront
-            m.bindPopup(() => buildPlaceCard(p));
+            m.bindPopup(() => buildPlaceCard(p), { className: "vici-place-popup", maxWidth: 300, minWidth: 240 });
             m.on('popupopen', (e) => { 
                 try {
                     const popupEl = e.popup?.getElement();
@@ -1809,7 +1846,12 @@ window.MapPage = (() => {
         const btnEl = document.getElementById("askBtn");
         if (!inputEl || !btnEl) return;
 
-        const query = inputEl.value.trim().toLowerCase();
+        const query = inputEl.value.trim();
+        if (window.ViciChat && query) {
+            const submitted = await window.ViciChat.send(query);
+            if (submitted !== false && inputEl.value.trim() === query) inputEl.value = "";
+            return;
+        }
 
         const suggDropdown = document.querySelector('.ai-suggestions');
         if (suggDropdown) suggDropdown.classList.remove('show');
@@ -1871,6 +1913,7 @@ window.MapPage = (() => {
     }
 
     window.viciAskQuick = function(query) {
+        if (window.ViciChat) { window.ViciChat.send(query); return; }
         const inputEl = document.getElementById("askInput");
         if (!inputEl) return;
         inputEl.value = query || "";
@@ -1879,6 +1922,7 @@ window.MapPage = (() => {
 
     window.viciSubmitChat = function(event) {
         event?.preventDefault?.();
+        if (window.ViciChat) { window.ViciChat.send(document.getElementById("viciAiChatInput")?.value); return; }
         const chatInput = document.getElementById("viciAiChatInput");
         const askInput = document.getElementById("askInput");
         const query = (chatInput?.value || "").trim();
@@ -2025,7 +2069,7 @@ window.MapPage = (() => {
 
         const coverStyle = finalCoverImg
             ? `background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0) 100%), url("${finalCoverImg}") center/cover no-repeat;`
-            : `background: linear-gradient(180deg, #64748b 0%, #cbd5e1 100%);`;
+            : `background: linear-gradient(120deg, #dceee5 0%, #edf5f0 55%, #c9e3d7 100%);`;
         const logoUrl = getSafeImageUrl(p.logoUrl || p.logoURL || p.logo || p.brandLogo || p.brand_logo || p.profileLogo || p.avatarUrl);
         const placeInitial = escapeHtml((p.name || "V").charAt(0).toUpperCase());
         const brandLogoHtml = logoUrl
@@ -2035,7 +2079,7 @@ window.MapPage = (() => {
         let adminPostBtnHtml = "";
 
         const trustActionsHtml = !isOwnerOrAdmin ? `
-            <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;">
+            <div class="place-trust-actions">
                 <button onclick="window.openClaimBusiness('${p.id}', '${safeName}')" style="flex:1; min-width:150px; border:1px solid #bfdbfe; background:#eff6ff; color:#1d4ed8; border-radius:12px; padding:11px 12px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
                     <i data-lucide="store" style="width:16px;"></i> ${p.owner_uid ? "Request Access" : "Claim Business"}
                 </button>
@@ -2046,16 +2090,17 @@ window.MapPage = (() => {
         ` : "";
 
         const rawPlaceAddr = String(p.address || p.brgy || p.addr || "").trim();
-        const placeAddrText = (!rawPlaceAddr || (/^[a-zA-Z0-9_-]{9,}$/.test(rawPlaceAddr) && !/\s/.test(rawPlaceAddr)) || rawPlaceAddr.toLowerCase() === "address") ? "Lipa City" : rawPlaceAddr;
+        const placeAddrText = (!rawPlaceAddr || (/^[a-zA-Z0-9_-]{20,}$/.test(rawPlaceAddr) && /[0-9_-]/.test(rawPlaceAddr)) || rawPlaceAddr.toLowerCase() === "address") ? "Lipa City" : rawPlaceAddr;
+        wrap.classList.add("place-detail-shell");
         wrap.innerHTML = `
-            <div class="placeCover" style="${coverStyle}">
+            <div class="placeCover ${finalCoverImg ? 'has-cover' : 'no-cover'}" style="${coverStyle}">
                 <div class="placeTopBar">
-                    <button class="circleBackBtn" onclick="showPage('page-map')"><i data-lucide="arrow-left"></i></button>
+                    <button class="circleBackBtn" aria-label="Back to map" onclick="showPage('page-map')"><i data-lucide="arrow-left"></i></button>
                     
                     <div style="display: flex; gap: 10px; align-items: center;">
                         ${p.is_featured ? `<div class="featuredBadge"><i data-lucide="star"></i> Featured</div>` : ''}
                         
-                        <button id="favBtn_${p.id}" class="btn-fav ${isFavorited ? 'active' : ''}" onclick="window.toggleFavorite('${p.id}', this)">
+                        <button id="favBtn_${p.id}" class="btn-fav ${isFavorited ? 'active' : ''}" aria-label="Save establishment" onclick="window.toggleFavorite('${p.id}', this)">
                             <i data-lucide="heart" style="${isFavorited ? 'fill: currentColor;' : ''}"></i>
                         </button>
                     </div>
@@ -2063,8 +2108,8 @@ window.MapPage = (() => {
                 <div class="placeCoverBrand">
                     <div class="placeBrandLogo">${brandLogoHtml}</div>
                     <div class="placeBrandText">
-                        <strong>${escapeHtml(p.name || "Establishment")}</strong>
-                        <span>${escapeHtml((p.cat || p.category || "Local business"))}</span>
+                        <strong>Your neighborhood, discovered.</strong>
+                        <span>Lipa City · Local guide</span>
                     </div>
                 </div>
             </div>
@@ -2072,6 +2117,7 @@ window.MapPage = (() => {
                 <section class="placeProfilePanel">
                 <div class="placeHeaderRow place-profile-head">
                     <div class="placeHeaderTitle">
+                        <span class="place-profile-eyebrow">LOCAL FAVORITES · LIPA CITY</span>
                         <h1>${escapeHtml(p.name)}</h1>
                         <p style="margin-bottom: 8px;">${escapeHtml((p.cat || p.category || "Establishment").toUpperCase())}</p>
                         
@@ -2090,11 +2136,11 @@ window.MapPage = (() => {
 
                 <!-- 🔥 DITO ANG DELIVERY BADGES 🔥 -->
                 <div class="delivery-info-container place-status-pills" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
-                    <span style="${statusBadgeStyle} padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                    <span class="place-open-status ${openState.className}" style="${statusBadgeStyle} padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="clock" style="width:14px;"></i> ${escapeHtml(openState.label)}${openState.hint ? ` - ${escapeHtml(openState.hint)}` : ''}
                     </span>
                     ${p.is_verified ? `
-                    <span style="background:#dbeafe; color:#1d4ed8; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                    <span class="place-verified-status" style="background:#dbeafe; color:#1d4ed8; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="badge-check" style="width:14px;"></i> Verified
                     </span>` : ''}
                     ${p.delivery_grab ? `
@@ -2127,10 +2173,10 @@ window.MapPage = (() => {
                     <button class="btnBook" style="background:#eef2ff; color:#3b82f6; border:none; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="window.openChatModal('${p.id}', '${safeName}')"><i data-lucide="message-square"></i> <span data-i18n="Message">Message</span></button>
                 </div>
                 ${trustActionsHtml}
+                <div id="placeSukiSection"></div>
                 </section>
 
-                <div id="placeSukiSection"></div>
-
+                <div class="place-secondary-column">
                 <section class="placeContent place-about-panel">
                     <div class="place-section-title compact">
                         <div>
@@ -2150,6 +2196,7 @@ window.MapPage = (() => {
                         <div class="stars-input" id="starInputContainer" style="display: flex; gap: 8px; margin: 12px 0;">
                             ${[1, 2, 3, 4, 5].map(num => `
                                 <button class="star-btn ${num <= userRating ? 'active' : ''}" 
+                                        aria-label="Rate ${num} ${num === 1 ? 'star' : 'stars'}"
                                         onclick="window.submitRating('${p.id}', ${num})" 
                                         style="background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center;">
                                     <i data-lucide="star" style="width:30px; height:30px; display:block;"></i>
@@ -2188,6 +2235,7 @@ window.MapPage = (() => {
                     <div id="placeUpdatesList">
                         <div class="muted" style="text-align:center; padding: 20px; font-size: 13px;">Checking menu and store posts...</div>
                     </div>
+                </div>
                 </div>
             </div>
             `;
@@ -2774,12 +2822,12 @@ window.MapPage = (() => {
     }
 
     const bookingChoiceContent = {
-        reqGroupReservation: { icon: "calendar-check", title: "Reservation", copy: "Table or food reservation" },
+        reqGroupReservation: { icon: "calendar-check", title: "Booking", copy: "Reserve a table or food" },
         reqGroupOrder: { icon: "shopping-bag", title: "Order", copy: "Pickup, delivery, or advance" },
         table_reservation: { icon: "utensils", title: "Table Reservation", copy: "Reserve seats or table" },
         food_reservation: { icon: "package-check", title: "Food Reservation", copy: "Reserve food/item" },
         pickup_order: { icon: "shopping-basket", title: "Pickup Pre-order", copy: "Order now, pick up at the store" },
-        delivery_order: { icon: "bike", title: "Delivery Order", copy: "Address, landmark, payment/reference after owner accepts" },
+        delivery_order: { icon: "bike", title: "Delivery Order", copy: "Order for delivery; add your address after acceptance" },
         advance_order: { icon: "calendar-days", title: "Advance Order", copy: "Future, bulk, cake, bilao, or event orders" }
     };
 
@@ -2802,9 +2850,9 @@ window.MapPage = (() => {
 
     function styleRequestButton(btn, active, meta) {
         if (!btn) return;
-        const color = meta?.color || "#2563eb";
-        const light = meta?.light || "#eff6ff";
-        const dark = meta?.dark || "#1d4ed8";
+        const color = "#237e72";
+        const light = "#e6f4ed";
+        const dark = "#17633f";
         btn.classList.toggle("active", !!active);
         btn.setAttribute("aria-pressed", String(!!active));
         btn.style.borderColor = active ? color : "#e2e8f0";
@@ -2870,7 +2918,7 @@ window.MapPage = (() => {
 
         const chipRow = (id, options, def) => `
             <div class="req-chips" data-chip-for="${id}">
-                ${options.map(o => `<button type="button" class="req-chip${o === def ? " active" : ""}" data-val="${o}">${o}</button>`).join("")}
+                ${options.map(o => `<button type="button" class="req-chip${o === def ? " active" : ""}" aria-pressed="${o === def}" data-val="${o}">${o}</button>`).join("")}
             </div>`;
 
         let fields = "";
@@ -2956,8 +3004,9 @@ window.MapPage = (() => {
             const targetId = row.getAttribute("data-chip-for");
             row.querySelectorAll(".req-chip").forEach(chip => {
                 chip.addEventListener("click", () => {
-                    row.querySelectorAll(".req-chip").forEach(c => c.classList.remove("active"));
+                    row.querySelectorAll(".req-chip").forEach(c => { c.classList.remove("active"); c.setAttribute("aria-pressed", "false"); });
                     chip.classList.add("active");
+                    chip.setAttribute("aria-pressed", "true");
                     const val = chip.getAttribute("data-val");
                     const target = document.getElementById(targetId);
                     if (target) {
@@ -2970,9 +3019,25 @@ window.MapPage = (() => {
         // typing in guests number clears chip selection
         const g = document.getElementById("bookGuests");
         if (g) g.addEventListener("input", () => {
-            document.querySelector('[data-chip-for="bookGuests"]')?.querySelectorAll(".req-chip").forEach(c => c.classList.remove("active"));
+            document.querySelector('[data-chip-for="bookGuests"]')?.querySelectorAll(".req-chip").forEach(c => { c.classList.remove("active"); c.setAttribute("aria-pressed", "false"); });
         });
     };
+
+    function syncBookingSchedule() {
+        const date = document.getElementById("bookDate");
+        const time = document.getElementById("bookTime");
+        if (!date || !time) return;
+        const now = new Date();
+        const today = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+        const nextMinute = new Date(now.getTime() + 60000);
+        const minTime = String(nextMinute.getHours()).padStart(2, "0") + ":" + String(nextMinute.getMinutes()).padStart(2, "0");
+        date.min = today;
+        date.setCustomValidity(date.value && date.value < today ? "Please choose today or a future date." : "");
+        time.min = date.value === today ? minTime : "";
+        const chosen = date.value && time.value ? new Date(date.value + "T" + time.value) : null;
+        time.setCustomValidity(chosen && (!Number.isFinite(chosen.getTime()) || chosen.getTime() <= now.getTime())
+            ? "Please choose a future time. Past bookings are not allowed." : "");
+    }
 
     window.openBookingModal = async function (placeId, placeName) {
         const user = await requireVerifiedUser("send a request");
@@ -2999,7 +3064,7 @@ window.MapPage = (() => {
         window.lockBodyScroll(true);
         document.getElementById("bookPlaceId").value = placeId;
         document.getElementById("bookPlaceName").value = placeName;
-        document.getElementById("bookingModalTitle").textContent = "Send Request to " + placeName;
+        document.getElementById("bookingModalTitle").textContent = "Send a request";
         const storeChip = document.getElementById("bookingStoreChip");
         if (storeChip) {
             const chipText = storeChip.querySelector("span");
@@ -3008,17 +3073,9 @@ window.MapPage = (() => {
         document.getElementById("bookDate").value = "";
         document.getElementById("bookTime").value = "";
         document.getElementById("bookDetails").value = "";
-        // Smart default: today (speeds up fill-up)
-        try {
-            const t = new Date();
-            const iso = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
-            document.getElementById("bookDate").value = iso;
-            document.getElementById("bookDate").min = iso;
-            // If booking for today, the earliest time is right now.
-            const hh = String(t.getHours()).padStart(2, "0");
-            const mm = String(t.getMinutes()).padStart(2, "0");
-            document.getElementById("bookTime").min = hh + ":" + mm;
-        } catch (e) {}
+        const today = new Date();
+        document.getElementById("bookDate").value = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+        syncBookingSchedule();
 
         const typeSelect = document.getElementById("bookType");
         if (typeSelect) typeSelect.value = "table_reservation";
@@ -3026,27 +3083,20 @@ window.MapPage = (() => {
         updateRequestPickerUI("table_reservation");
         window.updateRequestTypeFields();
         modal.classList.remove("hidden");
-        // Keep the time picker honest when the user changes the date:
-        // today -> earliest time is now; future date -> any time allowed.
+        modal.setAttribute("aria-hidden", "false");
+        // Recompute limits on edits and focus, including when the form stays
+        // open across midnight. Submission checks again before any write.
         const dateEl = document.getElementById("bookDate");
         if (dateEl && !dateEl.dataset.timeGuardAttached) {
             dateEl.dataset.timeGuardAttached = "1";
-            dateEl.addEventListener("change", () => {
-                const timeEl = document.getElementById("bookTime");
-                if (!timeEl) return;
-                const now = new Date();
-                const iso = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
-                if (dateEl.value === iso) {
-                    timeEl.min = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
-                } else {
-                    timeEl.min = "";
-                }
+            [dateEl, document.getElementById("bookTime")].forEach(input => {
+                ["input", "change", "focus"].forEach(event => input.addEventListener(event, syncBookingSchedule));
             });
         }
         window.debouncedIcons?.();
     };
 
-    window.closeBookingModal = () => { window.lockBodyScroll(false); document.getElementById("bookingModal")?.classList.add("hidden"); };
+    window.closeBookingModal = () => { window.lockBodyScroll(false); const modal = document.getElementById("bookingModal"); modal?.classList.add("hidden"); modal?.setAttribute("aria-hidden", "true"); };
 
     window.confirmBookingSubmit = async function () {
         const user = await requireVerifiedUser("send a request");
@@ -3072,10 +3122,19 @@ window.MapPage = (() => {
 
         if (!placeId || !placeName) return window.showToast("Missing establishment details.", "error");
         if (!date || !time) return window.showToast("Please select a Date and Time.", "error");
+        syncBookingSchedule();
+        for (const id of ["bookDate", "bookTime"]) {
+            const input = document.getElementById(id);
+            if (input && !input.checkValidity()) {
+                input.reportValidity();
+                input.focus();
+                return;
+            }
+        }
         // Past bookings are not allowed: today or a future date/time only.
         {
             const chosen = new Date(date + "T" + time);
-            if (isNaN(chosen.getTime()) || chosen.getTime() < Date.now()) {
+            if (isNaN(chosen.getTime()) || chosen.getTime() <= Date.now()) {
                 return window.showToast("Please choose today or a future date and time.", "error");
             }
         }
