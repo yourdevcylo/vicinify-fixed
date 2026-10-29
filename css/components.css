@@ -1299,3 +1299,175 @@ html body.vicinify-ui #locationPermissionNotice { display:flex; align-items:cent
 html body.vicinify-ui #locationPermissionNotice[hidden] { display:none !important; }
 #locationPermissionNotice span { flex:1; min-width:0; }
 #locationPermissionNotice button { flex-shrink:0; border:0; border-radius:8px; background:#237e72; color:white; padding:8px; min-height:38px; font-size:11px; }
+/* Admin workspace: shared green surfaces in light, dark and system modes. */
+html body.vicinify-ui #main-content #adminReviewCard .dash-stats-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:12px; margin:0 0 18px; }
+html body.vicinify-ui #main-content #adminReviewCard .stat-card { background:var(--ui-surface) !important; border:1px solid var(--ui-border) !important; color:var(--ui-ink) !important; box-shadow:none !important; padding:18px !important; min-width:0; gap:14px; border-radius:14px !important; }
+html body.vicinify-ui #main-content #adminReviewCard .stat-icon-wrap { width:44px; height:44px; flex:0 0 44px; border-radius:12px; display:grid; place-items:center; background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .stat-card:nth-child(2) .stat-icon-wrap { background:var(--ui-warning-bg) !important; color:var(--ui-warning-ink) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .stat-icon-wrap svg { width:25px !important; height:25px !important; }
+html body.vicinify-ui #main-content #adminReviewCard .stat-label { color:var(--ui-muted) !important; font-size:12px !important; line-height:1.4; margin:0 0 4px; }
+html body.vicinify-ui #main-content #adminReviewCard .stat-value { color:var(--ui-ink) !important; font-size:26px !important; margin:0; line-height:1.2; }
+html body.vicinify-ui #main-content #adminReviewCard .biz-portal-tabs { display:flex !important; flex-wrap:nowrap !important; max-width:100%; width:max-content; overflow-x:auto !important; border:1px solid var(--ui-border) !important; margin:0 0 16px !important; gap:3px !important; }
+html body.vicinify-ui #main-content #adminReviewCard .biz-tab { flex:0 0 auto; white-space:nowrap; min-height:38px; padding:8px 12px !important; font-size:11px !important; }
+html body.vicinify-ui #main-content #adminReviewCard .biz-tab.active { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-db-container { background:var(--ui-surface) !important; border:1px solid var(--ui-border) !important; border-radius:14px !important; box-shadow:none !important; margin:0; min-width:0; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-db-header { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; padding:12px !important; border-color:var(--ui-border) !important; background:var(--ui-soft) !important; border-radius:14px 14px 0 0; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-db-search { display:flex; width:100%; max-width:380px; min-width:0; min-height:42px; padding:0 11px !important; gap:8px; border:1px solid var(--ui-border) !important; border-radius:10px; background:var(--ui-surface) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-db-search input { flex:1; width:0 !important; min-width:0; min-height:40px; padding:8px 0 !important; font-size:13px !important; color:var(--ui-ink) !important; background:transparent !important; border:0 !important; box-shadow:none !important; outline:0 !important; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-db-search:focus-within { outline:2px solid var(--ui-success-line); border-color:var(--ui-accent) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-db-search svg { flex:0 0 16px; width:16px !important; height:16px !important; color:var(--ui-muted) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .dash-action-btn { display:flex; align-items:center; gap:6px; min-height:40px; border:1px solid var(--ui-border) !important; border-radius:10px; padding:8px 12px !important; background:var(--ui-surface) !important; color:var(--ui-ink) !important; font-size:12px !important; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-table-scroll { width:100%; max-width:100%; overflow-x:auto; border-radius:0 0 14px 14px; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-db-table { min-width:600px; background:var(--ui-surface) !important; color:var(--ui-ink) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-db-table th { background:var(--ui-soft) !important; color:var(--ui-muted) !important; padding:12px 14px; border-color:var(--ui-border) !important; font-size:10px; letter-spacing:.05em; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-db-table td { color:var(--ui-ink) !important; background:transparent !important; border-color:var(--ui-border) !important; padding:13px 14px; font-size:12px; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-db-table tbody tr:hover { background:var(--ui-soft) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .status-approved { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:1px solid var(--ui-success-line) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .status-pending { background:var(--ui-warning-bg) !important; color:var(--ui-warning-ink) !important; border:1px solid var(--ui-warning-line) !important; }
+html body.vicinify-ui #main-content #adminReviewCard :is(.filter-popover,.filter-popover-top,.filter-popover-body,.filter-popover-footer,.filter-sidebar,.filter-content) { background:var(--ui-surface) !important; color:var(--ui-ink) !important; border-color:var(--ui-border) !important; }
+@media(max-width:800px) {
+ html body.vicinify-ui #main-content #adminReviewCard { padding:12px !important; }
+ html body.vicinify-ui #main-content #adminReviewCard .dash-stats-grid { gap:6px; }
+ html body.vicinify-ui #main-content #adminReviewCard .stat-card { padding:10px 7px !important; flex-direction:column; align-items:flex-start; gap:8px; }
+ html body.vicinify-ui #main-content #adminReviewCard .stat-icon-wrap { width:30px; height:30px; flex-basis:30px; border-radius:9px; }
+ html body.vicinify-ui #main-content #adminReviewCard .stat-icon-wrap svg { width:19px !important; height:19px !important; }
+ html body.vicinify-ui #main-content #adminReviewCard .stat-label { font-size:10px !important; }
+ html body.vicinify-ui #main-content #adminReviewCard .stat-value { font-size:22px !important; }
+ html body.vicinify-ui #main-content #adminReviewCard .admin-db-header { gap:6px; padding:8px !important; }
+ html body.vicinify-ui #main-content #adminReviewCard .admin-db-search input { font-size:16px !important; }
+}
+html body.vicinify-ui.dark-mode #main-content #adminReviewCard .biz-panel { background:transparent !important; }
+html body.vicinify-ui.dark-mode #main-content #adminReviewCard #adminFilterBtn { background:var(--ui-soft) !important; color:var(--ui-ink) !important; border-color:var(--ui-border) !important; }
+html body.vicinify-ui.dark-mode #main-content #adminReviewCard .biz-tab.active { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #main-content #page-dashboard .business-empty-state { width:100%; text-align:center; padding:28px 12px !important; }
+html body.vicinify-ui #main-content #page-dashboard .business-empty-state .business-empty-icon { width:64px !important; height:64px !important; background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border:1px solid var(--ui-success-line); }
+html body.vicinify-ui #main-content #page-dashboard .business-empty-icon svg { width:30px !important; height:30px !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #main-content #page-dashboard .business-empty-state>div:not(.business-empty-icon) { color:var(--ui-ink) !important; font-size:17px !important; }
+html body.vicinify-ui #main-content #page-dashboard .business-empty-state .dash-action-btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:42px; max-width:100%; padding:10px 16px !important; font-size:13px !important; background:var(--ui-accent) !important; color:white !important; border:1px solid var(--ui-accent) !important; border-radius:11px; box-shadow:none !important; }
+/* Language follows the selected UI language, including generated control labels. */
+html body.vicinify-ui[data-lang="ph"] #main-content #btnMapView::after { content:'Mapa'; }
+html body.vicinify-ui[data-lang="ph"] #main-content #btnListView::after { content:'Listahan'; }
+html body.vicinify-ui #main-content #dashboardKpiGrid .dash-kpi-card.accent-blue .dash-kpi-icon { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #main-content #dashboardKpiGrid .dash-kpi-card.accent-blue .dash-kpi-icon svg { color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #main-content #adminReviewCard.dark-mode #adminFilterBtn { background:var(--ui-soft) !important; }
+html body.vicinify-ui #main-content .vici-photo-picker { position:relative; display:flex; align-items:center; flex-wrap:wrap; gap:10px; min-width:0; max-width:100%; padding:10px; border:1px dashed var(--ui-border); border-radius:10px; background:var(--ui-soft); }
+html body.vicinify-ui #main-content .vici-photo-picker>input[type=file] { position:absolute !important; width:1px !important; height:1px !important; min-width:0 !important; min-height:0 !important; margin:0 !important; padding:0 !important; border:0 !important; opacity:0; overflow:hidden; clip-path:inset(50%); pointer-events:none; }
+html body.vicinify-ui #main-content .vici-photo-picker>button { flex:0 0 auto; min-height:38px; max-width:100%; padding:8px 11px; border:1px solid var(--ui-success-line); border-radius:8px; background:var(--ui-success-bg); color:var(--ui-success-ink); font-family:inherit; font-size:12px; font-weight:600; line-height:1.4; }
+html body.vicinify-ui #main-content .vici-photo-selection { min-width:0; flex:1 1 100px; font-size:11px; line-height:1.5; overflow-wrap:anywhere; color:var(--ui-muted); }
+html body.vicinify-ui #main-content #page-dashboard .business-empty-state .dash-action-btn { background:#237e72 !important; border-color:#237e72 !important; color:#fff !important; }
+
+/* Request details and review share one sheet; only the body scrolls. */
+html body.vicinify-ui #bookingModal .booking-step-label { margin:5px 0 0; font-size:11px; line-height:1.4; color:var(--ui-muted); }
+html body.vicinify-ui #bookingModal #bookingModalTitle:focus { outline:none; }
+html body.vicinify-ui #bookingModal .booking-review-place { display:grid; grid-template-columns:38px minmax(0,1fr); column-gap:11px; align-items:center; margin-bottom:16px; }
+html body.vicinify-ui #bookingModal .booking-review-place .booking-store-icon { grid-row:1 / 3; }
+html body.vicinify-ui #bookingModal .booking-review-place p { margin:0 0 3px; font-size:11px; color:var(--ui-muted); }
+html body.vicinify-ui #bookingModal .booking-review-place h4 { margin:0; font-size:17px; overflow-wrap:anywhere; }
+html body.vicinify-ui #bookingModal .booking-review-unsent { grid-column:2; justify-self:start; margin-top:6px; font-size:10px; line-height:1.5; color:var(--ui-success-ink); }
+html body.vicinify-ui #bookingModal .booking-review-summary { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0; margin:0 0 16px; border:1px solid var(--ui-border); border-radius:12px; overflow:hidden; background:var(--ui-soft); }
+html body.vicinify-ui #bookingModal .booking-review-row { min-width:0; grid-column:1 / -1; padding:11px 13px; border-top:1px solid var(--ui-border); }
+html body.vicinify-ui #bookingModal .booking-review-row:nth-child(-n+2) { grid-column:auto; border-top:0; }
+html body.vicinify-ui #bookingModal .booking-review-row dt { font-size:10px; line-height:1.5; color:var(--ui-muted); margin:0 0 3px; }
+html body.vicinify-ui #bookingModal .booking-review-row dd { margin:0; font-size:13px; font-weight:600; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; color:var(--ui-ink); }
+html body.vicinify-ui #bookingModal .booking-review-next { display:flex; align-items:flex-start; gap:9px; background:var(--ui-success-bg); border:1px solid var(--ui-success-line); border-radius:11px; padding:12px; color:var(--ui-success-ink); }
+html body.vicinify-ui #bookingModal .booking-review-next svg { width:17px; height:17px; flex:0 0 17px; margin-top:1px; }
+html body.vicinify-ui #bookingModal .booking-review-next b { font-size:12px; }
+html body.vicinify-ui #bookingModal .booking-review-next p { margin:5px 0 0; font-size:11px; line-height:1.6; }
+html body.vicinify-ui #bookingModal .booking-review-policy { margin:14px 0 0; font-size:11px; color:var(--ui-muted); line-height:1.6; }
+html body.vicinify-ui #bookingModal .booking-review-policy summary { cursor:pointer; font-weight:600; color:var(--ui-ink); padding:5px 0; }
+html body.vicinify-ui #bookingModal .booking-review-policy p { margin:6px 0; }
+html body.vicinify-ui #bookingModal button:disabled { opacity:.6; cursor:wait; }
+@media(max-width:600px) {
+ html body.vicinify-ui #bookingModal .booking-intro-copy { margin:10px 0 14px !important; }
+ html body.vicinify-ui #bookingModal #bookingCategoryChoices .request-choice { min-height:70px !important; padding:10px 23px 10px 10px !important; gap:7px !important; flex-direction:row !important; }
+ html body.vicinify-ui #bookingModal #bookingCategoryChoices .request-choice-icon { width:26px !important; height:26px !important; flex-basis:26px !important; }
+ html body.vicinify-ui #bookingModal #bookingCategoryChoices .request-choice-copy { display:none; }
+ html body.vicinify-ui #bookingModal #reservationRequestOptions .booking-choice-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+ html body.vicinify-ui #bookingModal :is(.modalHeader,.booking-footer) { padding:13px 14px !important; }
+ html body.vicinify-ui #bookingModal .modalBody { padding:15px 14px !important; }
+ html body.vicinify-ui #bookingModal .modalHeader h3 { font-size:19px !important; }
+ html body.vicinify-ui #bookingModal .booking-footer button { font-size:12px !important; min-height:44px; }
+ html body.vicinify-ui #bookingModal :is(input:not([type=hidden]),textarea,select) { font-size:16px !important; }
+}
+html body.vicinify-ui #bookingModal .req-card-head { display:none !important; }
+html body.vicinify-ui #bookingModal .request-choice-title { overflow-wrap:normal !important; word-break:normal !important; }
+@media(max-width:600px) {
+ html body.vicinify-ui #bookingModal #reservationRequestOptions [data-request-type] { flex-direction:column !important; align-items:flex-start !important; padding:10px 25px 10px 10px !important; min-height:91px !important; gap:7px !important; }
+ html body.vicinify-ui #bookingModal #reservationRequestOptions .request-choice-text { align-self:stretch !important; }
+ html body.vicinify-ui #bookingModal #reservationRequestOptions .request-choice-copy { display:none; }
+ html body.vicinify-ui #bookingModal #reservationRequestOptions .request-choice-icon { width:26px; height:26px; flex-basis:26px; }
+}
+
+/* The same structured request output is used in chat, activity and the owner inbox. */
+html body.vicinify-ui .request-output-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0; margin:0; padding:0; border:1px solid var(--ui-border); border-radius:11px; background:var(--ui-soft); overflow:hidden; white-space:normal; }
+html body.vicinify-ui .request-output-field { grid-column:1 / -1; min-width:0; padding:10px 12px; border-top:1px solid var(--ui-border); }
+html body.vicinify-ui .request-output-field:first-child { border-top:0; }
+html body.vicinify-ui .request-output-field:is([data-request-field=date],[data-request-field=time]) { grid-column:auto; border-top:0; }
+html body.vicinify-ui .request-output-field dt { margin:0 0 3px; font-size:10px; font-weight:400; line-height:1.5; color:var(--ui-muted); }
+html body.vicinify-ui .request-output-field dd { margin:0; font-size:12px; font-weight:600; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; color:var(--ui-ink); }
+html body.vicinify-ui .request-output-fallback { margin:0; font-size:12px; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; color:var(--ui-muted); }
+html body.vicinify-ui .request-output-store { font-size:14px; font-weight:700; line-height:1.5; margin:0 0 11px; color:var(--ui-ink); overflow-wrap:anywhere; }
+html body.vicinify-ui #chatModal .request-output-header { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+html body.vicinify-ui #chatModal .request-output-kind { display:flex; align-items:center; gap:8px; min-width:0; line-height:1.5; }
+html body.vicinify-ui #chatModal .request-output-kind svg { width:17px; height:17px; flex:0 0 17px; }
+html body.vicinify-ui #chatModal .request-output-header>:last-child { flex:0 0 auto; max-width:46%; font-size:10px; line-height:1.5; white-space:normal; overflow-wrap:anywhere; }
+html body.vicinify-ui .request-output-history { white-space:normal !important; }
+html body.vicinify-ui .ticket-request-details .request-output-grid { margin-top:11px; }
+/* A single current transaction desk stays above the scrolling chat history. */
+html body.vicinify-ui #chatModal .transaction-desk { flex:0 0 auto; min-height:0; max-height:44dvh; overflow-y:auto; overscroll-behavior:contain; padding:12px 15px; background:var(--ui-surface); border-bottom:1px solid var(--ui-border); font-size:12px; color:var(--ui-ink); }
+.transaction-desk-top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.transaction-desk-top span { font-size:10px; color:var(--ui-success-ink); text-transform:capitalize; }
+.transaction-desk-next { margin:7px 0; line-height:1.5; color:var(--ui-muted); }
+.transaction-desk select { width:100%; min-width:0; margin-top:8px; border:1px solid var(--ui-border); border-radius:8px; padding:6px; color:var(--ui-ink); background:var(--ui-soft); }
+.transaction-desk-money { display:flex; flex-wrap:wrap; gap:8px 16px; margin:8px 0; }
+.transaction-desk dt { font-size:10px; color:var(--ui-muted); }
+.transaction-desk dd { margin:2px 0 0; color:var(--ui-ink); font-weight:600; overflow-wrap:anywhere; }
+.transaction-desk-details { font-size:11px; line-height:1.5; margin:7px 0; }
+.transaction-desk-details summary { cursor:pointer; font-weight:600; color:var(--ui-success-ink); padding:4px 0; }
+.transaction-desk-details p { white-space:pre-wrap; overflow-wrap:anywhere; }
+.transaction-desk-details>dl>div { margin:6px 0; }
+.transaction-desk-actions { display:flex; flex-wrap:wrap; gap:7px; }
+.transaction-desk-actions button { flex:1 1 120px; min-width:0; min-height:38px; padding:8px 10px; border:1px solid var(--ui-success-line); border-radius:9px; background:var(--ui-success-bg); color:var(--ui-success-ink); font:inherit; font-size:11px; font-weight:600; line-height:1.4; cursor:pointer; }
+.transaction-desk-actions [data-tx-action=cancel],.transaction-desk-actions [data-tx-action=reject] { background:var(--ui-soft); color:var(--ui-muted); border-color:var(--ui-border); }
+html body.vicinify-ui .legacy-payment-note { margin-top:10px; background:var(--ui-soft); border:1px solid var(--ui-border); border-radius:10px; padding:11px; font-size:12px; }
+.legacy-payment-note dl { margin:8px 0; }.legacy-payment-note dl>div { margin:5px 0; }.legacy-payment-note dd { margin:0; overflow-wrap:anywhere; }.legacy-payment-note p,.requirement-detail-status { color:var(--ui-muted); font-size:11px; line-height:1.6; }
+html body.vicinify-ui #transactionActionModal .req-field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; font-size:12px; }
+html body.vicinify-ui #transactionActionModal .req-input { width:100%; box-sizing:border-box; font:inherit; padding:12px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-soft); color:var(--ui-ink); }
+@media(max-width:600px){html body.vicinify-ui #chatModal .transaction-desk { padding:10px 12px; max-height:40dvh; }html body.vicinify-ui #transactionActionModal .req-input,.transaction-desk select { font-size:16px; }}
+html body.vicinify-ui #chatModal .transaction-desk-payto { margin:8px 0; padding:9px 11px; background:var(--ui-soft); border:1px solid var(--ui-border); border-radius:8px; white-space:pre-wrap; overflow-wrap:anywhere; font-size:11px; line-height:1.5; }
+html body.vicinify-ui #chatModal .transaction-desk-actions button { font-family:inherit; font-size:11px; font-weight:600; line-height:1.4; }
+html body.vicinify-ui .manual-payment-instructions { margin:12px 0; padding:12px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-soft); color:var(--ui-ink); font-size:12px; line-height:1.6; }
+.manual-payment-instructions p { white-space:pre-wrap; overflow-wrap:anywhere; }
+.transaction-desk-proof img { display:block; max-width:100%; max-height:220px; object-fit:contain; margin:10px 0; border-radius:8px; }
+/* Request milestones and requirements live in the pinned transaction summary. */
+.transaction-process { display:flex; align-items:flex-start; gap:8px; margin:9px 0 10px; padding:0 0 4px; list-style:none; overflow-x:auto; overscroll-behavior-x:contain; scrollbar-width:thin; }
+.transaction-process li { display:flex; flex-direction:column; align-items:center; gap:3px; flex:0 0 auto; min-width:54px; font-size:10px; line-height:1.3; color:var(--ui-muted); }
+.transaction-process li>span { display:grid; place-items:center; width:20px; height:20px; border:1px solid var(--ui-border); border-radius:50%; font-size:10px; background:var(--ui-soft); }
+.transaction-process li.is-done>span { background:var(--ui-success-bg); color:var(--ui-success-ink); border-color:var(--ui-success-line); }
+.transaction-process li.is-current { color:var(--ui-success-ink); font-weight:700; }
+.transaction-process li.is-current>span { background:var(--ui-success-ink); color:white; border-color:var(--ui-success-ink); }
+.transaction-requirements { margin:8px 0; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-soft); padding:9px 10px; font-size:11px; }
+.transaction-requirements>summary { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:4px 7px; cursor:pointer; color:var(--ui-ink); }
+.transaction-requirements>summary>span { font-size:10px; color:var(--ui-success-ink); }
+.transaction-requirements>summary>small { grid-column:1 / -1; font-size:10px; line-height:1.5; color:var(--ui-muted); }
+.transaction-requirements ul { list-style:none; margin:9px 0 0; padding:0; }
+.transaction-requirements li { padding:8px 0; border-top:1px solid var(--ui-border); }
+.transaction-requirements li>div { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.transaction-requirements p { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.5; margin:6px 0; color:var(--ui-ink); }
+.requirement-state { font-size:10px; font-weight:500; color:var(--ui-muted); }
+.requirement-state.state-submitted { color:#936409; }.requirement-state.state-confirmed { color:var(--ui-success-ink); }
+.requirements-only [hidden] { display:none !important; }
+.transaction-desk-actions { position:sticky; bottom:-10px; z-index:2; padding:7px 0 2px; background:var(--ui-surface); }
+
+/* Admin palette only: preserve the existing markup, controls and behavior. */
+html body.vicinify-ui #main-content #adminReviewCard .status-badge { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .status-badge.status-pending { background:var(--ui-warning-bg) !important; color:var(--ui-warning-ink) !important; border-color:var(--ui-warning-line) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .status-badge:is(.status-rejected,.status-cancelled) { background:var(--ui-danger-bg) !important; color:var(--ui-danger-ink) !important; border-color:var(--ui-danger-line) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-db-table :is(a,a:visited),html body.vicinify-ui #main-content #adminReviewCard .admin-db-table td[onclick*="manualAssignOwner"] { color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #main-content #adminReviewCard :is(input[type=checkbox],input[type=radio]) { accent-color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #main-content #adminReviewCard :is(.filter-tab.active,.filter-tab:hover,.filter-checkbox-label:has(input:checked)) { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui #main-content #adminReviewCard :is(#adminFilterBtn,button[onclick*="loadAdminMore"]) { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .btn-clear-group { color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #main-content #adminReviewCard :is(input,select,button):focus-visible { outline-color:var(--ui-success-ink) !important; }
+html body.vicinify-ui #main-content #adminReviewCard :is(input,select,textarea):focus,html body.vicinify-ui #adminSidePanelOverlay :is(input,select,textarea):focus { border-color:var(--ui-success-ink) !important; box-shadow:0 0 0 3px var(--ui-success-bg) !important; }
+html body.vicinify-ui #main-content #adminReviewCard .admin-db-search input:focus { border:0 !important; box-shadow:none !important; }

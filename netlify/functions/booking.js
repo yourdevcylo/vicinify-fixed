@@ -1,5 +1,6 @@
 const { services, authenticate, identifier, limit, reply } = require('./lib/admin');
 const { createBooking } = require('./lib/booking-create');
+const PaymentPolicy = require('../../js/payment-policy');
 const { transition } = require('./lib/booking-policy');
 exports.handler = async event => {
     if (event.httpMethod !== 'POST') return reply(405, { error: 'POST only' });
@@ -27,7 +28,7 @@ exports.handler = async event => {
             });
             return reply(200, {saved:true,bookingId:ref.id});
         }
-        if (body.action && body.action !== 'update') return reply(400,{error:'Unknown booking action.'});
+        if (body.action && !['update','import_payment'].includes(body.action)) return reply(400,{error:'Unknown booking action.'});
         const bookingId = identifier(body.bookingId);
         const ref = db.collection('bookings').doc(bookingId);
         await db.runTransaction(async transaction => {
@@ -39,10 +40,38 @@ exports.handler = async event => {
             const admin = profile.data()?.role === 'admin' || user.uid === 'Z45NZhQTgsTUX79WJ5ksCH8N3c02';
             const actor = place.data()?.owner_uid === user.uid || admin ? 'owner' : order.userId === user.uid ? 'customer' : null;
             if (!actor) throw Object.assign(new Error('Not authorized for this booking.'), { status: 403 });
-            const change = transition(order, actor, body.patch || {});
+            let requirementMessage=null,requirementRequest=null,requirementResponse=null;
+            let inputPatch=body.patch || {};
+            if(inputPatch.requirements){
+                inputPatch={...inputPatch,requirements:{...inputPatch.requirements}};
+                const action=inputPatch.requirements.action;
+                if(action==='request'){requirementMessage=db.collection('messages').doc();inputPatch.requirements.requestId=requirementMessage.id;}
+                else {
+                    inputPatch.requirements.requestId=identifier(inputPatch.requirements.requestId);
+                    requirementRequest=db.collection('messages').doc(inputPatch.requirements.requestId);
+                    const request=await transaction.get(requirementRequest);
+                    if(!request.exists||request.data().bookingId!==bookingId)throw Object.assign(new Error('Requirements do not belong to this transaction.'),{status:403});
+                    if(action==='submit'){requirementMessage=db.collection('messages').doc();inputPatch.requirements.responseId=requirementMessage.id;}
+                    else if(order.requirementsState?.responseId){requirementResponse=db.collection('messages').doc(order.requirementsState.responseId);await transaction.get(requirementResponse);}
+                }
+            }
+            let change;
+            if(body.action==='import_payment') {
+                if(order.status!=='accepted'||!PaymentPolicy.isOnline(order))throw Object.assign(new Error('This request is not awaiting online payment.'),{status:409});
+                const legacy=await transaction.get(db.collection('messages').doc(identifier(body.messageId)));
+                const data=legacy.data();
+                if(!legacy.exists||data.type!=='requirement_response'||data.userId!==order.userId||data.placeId!==order.placeId||(![data.bookingId,data.transactionId].includes(bookingId)&&!(actor==='owner'&&body.confirmLink===true&&!data.bookingId&&data.createdAt?.toMillis?.()>=order.createdAt?.toMillis?.())))throw Object.assign(new Error('This payment is not linked to this transaction.'),{status:403});
+                const payment=PaymentPolicy.details(data.paymentReference,String(data.paymentAmount ?? ''));
+                if(order.paymentFlowVersion===2&&(!order.paymentAmountDue||!order.paymentInstructions||order.paymentTermsNeedReview||!PaymentPolicy.flow(order).requirementsReady))throw Object.assign(new Error('Set payment instructions first.'),{status:409});
+                if(order.paymentAmountDue&&Number(payment.paymentAmount)!==Number(order.paymentAmountDue))throw Object.assign(new Error('Check the agreed amount before using this payment.'),{status:409});
+                change={...payment,status:'payment_submitted',paymentStatus:'pending_confirmation',paymentReviewDecision:'pending',legacyPaymentMessageId:legacy.id};
+            } else change = transition(order, actor, inputPatch);
             if (!change) return;
             const cards = await transaction.get(db.collection('messages').where('bookingId', '==', bookingId).where('type', '==', 'booking_card').limit(50));
             change.updatedAt = FieldValue.serverTimestamp();
+            if(change.paymentTermsVersion){change.paymentTermsUpdatedAt=FieldValue.serverTimestamp();change.paymentTermsUpdatedBy=user.uid;}
+            if(change.refundStatus){change.refundUpdatedAt=FieldValue.serverTimestamp();change.refundUpdatedBy=user.uid;if(change.refundStatus==='sent')change.refundSentAt=FieldValue.serverTimestamp();if(change.refundStatus==='received')change.refundReceivedAt=FieldValue.serverTimestamp();}
+            const nextStatus=change.status || order.status;
             if (change.status === 'payment_confirmed') change.paymentVerifiedAt = FieldValue.serverTimestamp();
             if (change.paymentReviewDecision) { change.paymentReviewedBy = user.uid; change.paymentReviewedAt = FieldValue.serverTimestamp(); }
             if (change.status === 'received') change.customerConfirmedAt = FieldValue.serverTimestamp();
@@ -51,9 +80,18 @@ exports.handler = async event => {
                 change.paymentProofPath = FieldValue.delete(); change.paymentProofUrl = FieldValue.delete();
                 // Keep the decline reason and decision supplied by the policy.
             }
+            if(change.requirementsState){
+                const state=change.requirementsState,action=inputPatch.requirements.action;
+                if(requirementMessage){
+                    const common={bookingId,transactionId:bookingId,canonicalRequirements:true,placeId:order.placeId,placeName:order.placeName||place.data()?.name||'',userId:order.userId,userName:order.userName||'Customer',requirements:state.required,createdAt:FieldValue.serverTimestamp(),createdBy:user.uid,senderUid:user.uid,senderRole:actor,senderName:actor==='owner'?(order.placeName||'Business'):(order.userName||'Customer'),reply:null,requirementStatus:state.status};
+                    transaction.create(requirementMessage,action==='request'?{...common,type:'requirement_request',notes:state.notes,text:'Business requested transaction details.'}:{...common,...state.data,type:'requirement_response',requestMessageId:state.requestId,text:'Customer submitted the requested transaction details.'});
+                }
+                if(requirementRequest)transaction.update(requirementRequest,{requirementStatus:state.status,updatedAt:FieldValue.serverTimestamp()});
+                if(requirementResponse)transaction.update(requirementResponse,{requirementStatus:state.status,updatedAt:FieldValue.serverTimestamp()});
+            }
             transaction.update(ref, change);
-            cards.forEach(card => transaction.update(card.ref, { ...change, bookingStatus: change.status }));
-            transaction.create(ref.collection('events').doc(), { actorUid: user.uid, from: order.status, to: change.status, paymentReviewDecision: change.paymentReviewDecision || null, paymentReviewNote: change.paymentReviewNote || null, createdAt: FieldValue.serverTimestamp() });
+            cards.forEach(card => transaction.update(card.ref, { ...change, bookingStatus: nextStatus }));
+            transaction.create(ref.collection('events').doc(), { actorUid: user.uid, from: order.status, to: nextStatus, action:body.action || (body.patch?.paymentTerms?'payment_terms':body.patch?.requirements?'requirements_'+body.patch.requirements.action:body.patch?.deliveryDetails?'delivery_details':body.patch?.refundStatus?'refund_update':'status_update'), paymentAmountDue:change.paymentAmountDue || null, refundAmount:change.refundAmount || order.refundAmount || null, refundStatus:change.refundStatus || null, paymentReviewDecision: change.paymentReviewDecision || null, paymentReviewNote: change.paymentReviewNote || null, createdAt: FieldValue.serverTimestamp() });
         });
         return reply(200, { saved: true });
     } catch (error) { return reply(error.status || (error instanceof SyntaxError ? 400 : 500), { error: error.status ? error.message : 'Booking could not be updated.' }); }

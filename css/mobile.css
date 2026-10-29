@@ -168,3 +168,7 @@ html body.vicinify-ui.nav-active #navUI .nav-action svg { width:16px !important;
  html body.vicinify-ui.nav-active #navUI .nav-bottom { left:10px; right:10px; width:auto; transform:none; }
  html body.vicinify-ui.nav-active #navUI .nav-action { padding:8px 4px; font-size:clamp(10px,2.8vw,12px); gap:4px; }
 }
+@media(max-width:800px), (max-width:1024px) and (max-height:500px) {
+ html body.vicinify-ui #main-content #page-biz-edit.active { padding-top:0 !important; }
+ html body.vicinify-ui #main-content #page-biz-edit.active .bizedit-topbar { top:0 !important; margin-top:0 !important; }
+}

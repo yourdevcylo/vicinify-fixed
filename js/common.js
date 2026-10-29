@@ -52,244 +52,1498 @@ window.ThemeManager.init();
 // 🌍 GLOBAL TRANSLATION ENGINE (i18n) - BULLETPROOF
 // =========================================
 window.LangManager = (() => {
-    // Ang ating Built-in Tagalog Dictionary!
+    // Explicit application UI translations; never translate stored user content.
     const phDictionary = {
-        "Welcome to Vicinify": "Maligayang pagdating sa Vicinify",
-        "Sign in to continue": "Mag-log in para magpatuloy",
-        "Create your account": "Gumawa ng account",
-        "Full Name": "Buong Pangalan",
-        "Email": "Email Address",
-        "Password": "Password",
-        "Sign in": "Mag-log in",
-        "Sign up": "Gumawa ng Account",
-        "Map": "Mapa",
-        "Add": "Magdagdag",
-        "Buzz": "Balita",
-        "Dashboard": "Dashboard",
-        "Business Hub": "Business Hub",
-        "Settings": "Settings",
-        "Radius:": "Layo:",
-        "All": "Lahat",
-        "Add Establishment": "Magdagdag ng Tindahan",
-        "Pin location, fill details, then submit for approval.": "I-pin ang lokasyon at punan ang detalye.",
-        "Nearby Buzz": "Mga Balita Dito",
-        "News in your area": "Mga kaganapan sa paligid mo",
-        "Manage your establishments": "Pamahalaan ang iyong mga tindahan",
-        "Profile & Settings": "Profile at Settings",
-        "Manage your account and preferences": "Ayusin ang iyong account at app",
-        "User Profile": "Impormasyon Mo",
-        "Appearance & Language": "Hitsura at Wika",
-        "Theme Preference": "Tema ng App",
-        "System Default": "System Default",
-        "Light Mode": "Maliwanag (Light Mode)",
-        "Dark Mode": "Madilim (Dark Mode)",
-        "Language": "Wika / Language",
-        "My Activities": "Aking Aktibidad",
-        "My Bookings": "Mga Request Ko",
-        "My Requests": "Mga Request Ko",
-        "My Chats": "Mga Chat Ko",
-        "Favorites": "Paborito",
-        "Log Out": "Mag-log Out",
-        "Delete My Account": "Burahin ang Account",
-        "Send Request": "Magpadala ng Request",
-        "Customer Requests": "Mga Request ng Customer",
-        "Ask Vicinify": "Magtanong (hal. 'Saan may murang kape?')"
-        ,"Theme Preference": "Tema ng App"
-        ,"System Default": "System Default"
-        ,"Light Mode": "Light Mode"
-        ,"Dark Mode": "Dark Mode"
-        ,"Language": "Wika / Language"
-        ,"Transactions": "Mga Transaksyon"
-        ,"Chat History": "Kasaysayan ng Chat"
-        ,"Save Profile": "I-save ang Profile"
-        ,"Post": "Mag-post"
-        ,"View Map": "Tingnan ang Mapa"
-        ,"Add Establishment": "Magdagdag ng Establisyimento"
-        ,"System": "System"
-        ,"Light": "Maliwanag"
-        ,"Dark": "Madilim"
-        ,"English": "English"
-        ,"Tagalog": "Tagalog"
-        ,"Post Now": "Mag-post Ngayon"
-        ,"Reviews": "Mga Review"
-        ,"Feedback Insights": "Feedback Insights"
+  "Reserve your seats": "Magpareserba ng puwesto",
+  "Reserve food or items": "Magpareserba ng pagkain o paninda",
+  "Order now, pick up later": "Bumili ngayon at kunin mamaya",
+  "Delivered to your door": "Ihahatid sa iyong tirahan",
+  "Bulk, cakes, events": "Maramihang bilin, keyk, o pagdiriwang",
+  "Items / Order": "Mga pagkain o bilin",
+  "Seating": "Puwesto",
+  "Request sent. Opening your transaction chat...": "Naipadala na ang kahilingan. Binubuksan ang usapan ng iyong transaksiyon...",
+  "Review request": "Suriin ang kahilingan",
+  "Review your request": "Suriin ang iyong kahilingan",
+  "1 of 2 · Request details": "1 sa 2 · Detalye ng kahilingan",
+  "2 of 2 · Review and send": "2 sa 2 · Suriin at ipadala",
+  "Back to edit": "Bumalik at baguhin",
+  "Not sent yet": "Hindi pa naipadala",
+  "What happens next": "Ano ang susunod",
+  "The business will accept or decline your request. Follow updates in your transaction chat.": "Tatanggapin o tatanggihan ng negosyo ang iyong kahilingan. Subaybayan ang mga pagbabago sa usapan ng transaksiyon.",
+  "Send payment details only after the business accepts.": "Ipadala lamang ang detalye ng bayad matapos tanggapin ng negosyo.",
+  "Free cancellation before preparation if no payment is recorded. Paid cancellations use the saved refund rate. Refund transfers are manual and must be confirmed separately.": "Walang bayad ang pagkansela bago maghanda kung wala pang naitalang bayad. Ang kinanselang may bayad ay susunod sa nakatalang bahagdan ng ibabalik. Kailangang ipadala at kumpirmahin nang hiwalay ang ibinalik na halaga.",
+  "Refund rate on paid cancellations": "Bahagdan ng ibabalik sa kinanselang may bayad",
+  "Premium": "Natatangi",
+  "Welcome to Vicinify": "Maligayang pagdating sa Vicinify",
+  "Sign in to continue": "Pumasok para magpatuloy",
+  "Create your account": "Gumawa ng akawnt",
+  "Full Name": "Buong Pangalan",
+  "Email": "Adres ng sulatroniko",
+  "Password": "Kontrasenyas",
+  "Sign in": "Pumasok",
+  "Sign up": "Magparehistro",
+  "Map": "Mapa",
+  "Add": "Magdagdag",
+  "Buzz": "Balita",
+  "Dashboard": "Pamahalaan",
+  "Business Hub": "Sentro ng Negosyo",
+  "Settings": "Mga Pagpipilian",
+  "Radius:": "Layo:",
+  "All": "Lahat",
+  "Add Establishment": "Magdagdag ng Establisyimento",
+  "Pin location, fill details, then submit for approval.": "I-pananda ang lokasyon at punan ang detalye.",
+  "Nearby Buzz": "Balita sa Paligid",
+  "News in your area": "Balita sa lugar mo",
+  "Manage your establishments": "Pamahalaan ang iyong mga tindahan",
+  "Profile & Settings": "Pagkakakilanlan at mga Pagpipilian",
+  "Manage your account and preferences": "Ayusin ang iyong akawnt at aplikasyon",
+  "User Profile": "Impormasyon ng Gumagamit",
+  "Appearance & Language": "Hitsura at Wika",
+  "Theme Preference": "Tema ng Aplikasyon",
+  "System Default": "Batay sa aparato",
+  "Light Mode": "Maliwanag na tema",
+  "Dark Mode": "Madilim na tema",
+  "Language": "Wika",
+  "My Activities": "Aking Aktibidad",
+  "My Bookings": "Mga Kahilingan Ko",
+  "My Requests": "Mga Kahilingan Ko",
+  "My Chats": "Mga Usapan Ko",
+  "Favorites": "Mga Paborito",
+  "Log Out": "Lumabas",
+  "Delete My Account": "Burahin ang aking akawnt",
+  "Send Request": "Ipadala ang kahilingan",
+  "Customer Requests": "Mga Kahilingan ng Mamimili",
+  "Ask Vicinify": "Magtanong sa Vicinify",
+  "Transactions": "Mga Transaksyon",
+  "Chat History": "Kasaysayan ng usapan",
+  "Save Profile": "Ilagak ang pagkakakilanlan",
+  "Post": "Magpaskil",
+  "View Map": "Tingnan ang Mapa",
+  "System": "Batay sa aparato",
+  "Light": "Maliwanag",
+  "Dark": "Madilim",
+  "English": "Ingles",
+  "Tagalog": "Tagalog",
+  "Post Now": "Magpaskil Ngayon",
+  "Reviews": "Mga pagsusuri",
+  "Feedback Insights": "Pagsusuri ng puna",
+  "New Listing": "Bagong tala",
+  "My Establishments": "Aking mga Establisyimento",
+  "Customer Inbox": "Kahon ng mensahe ng mga Mamimili",
+  "Database Management": "Pamamahala ng Imbakan ng datos",
+  "Forgot password?": "Nakalimutan ang kontrasenyas?",
+  "Password & Security": "Kontrasenyas at Seguridad",
+  "Signed in as": "Nakapasok bilang",
+  "Send Password Reset Email": "Magpadala ng Sulatroniko para Ibalik ang Kontrasenyas",
+  "We will email you a secure link so you can create a new password.": "Padadalhan ka namin ng ligtas ugnay para gumawa ng bagong kontrasenyas.",
+  "Change password now": "Palitan ang kontrasenyas ngayon",
+  "Current Password": "Kasalukuyang kontrasenyas",
+  "New Password": "Bagong kontrasenyas",
+  "Confirm New Password": "Ulitin ang bagong kontrasenyas",
+  "Update Password": "Palitan ang kontrasenyas",
+  "Reset your password": "Ibalik ang iyong kontrasenyas",
+  "Cancel": "Kanselahin",
+  "Send reset link": "Ipadala ang reset ugnay",
+  "Basic Info": "Pangunahing impormasyon",
+  "Operating Hours": "Oras ng Operasyon",
+  "Create Post": "Gumawa ng paskil",
+  "Send a Message": "Magpadala ng Mensahe",
+  "Edit Establishment": "Baguhin ang Tindahan",
+  "Account History": "Kasaysayan ng Akawnt",
+  "Appearance": "Hitsura",
+  "Restaurant": "Restawran",
+  "Café": "Kapihan",
+  "Bakery": "Panaderya",
+  "Milk Tea": "Tsaa na may gatas",
+  "Snack House": "Meryendahan",
+  "Food Stall": "Puwesto ng pagkain",
+  "Eatery": "Karinderya",
+  "Dessert Shop": "Tindahan ng panghimagas",
+  "Fast-Food": "Mabilisang kainan",
+  "Filters": "Mga sala",
+  "Open": "Bukas",
+  "Closed": "Sarado",
+  "Busy": "Abala",
+  "Fresh": "Bagong impormasyon",
+  "Inactive": "Hindi Aktibo",
+  "Nearby": "Malapit",
+  "No ratings yet": "Wala pang marka",
+  "Chat": "Usapan",
+  "Request": "Kahilingan",
+  "Navigate": "Mag-navigate",
+  "Message": "Mensahe",
+  "View": "Tingnan",
+  "Comment": "Komento",
+  "No comments yet. Start the conversation.": "Wala pang komento. Simulan ang usapan.",
+  "Write a comment...": "Sumulat ng komento...",
+  "Loading conversation...": "Inihahanda ng usapan...",
+  "No messages yet. Send an inquiry!": "Wala pang mensahe. Magtanong na!",
+  "No establishments found. Try adjusting the search radius or category.": "Walang nakitang tindahan. Baguhin ang layo o kategorya.",
+  "About this place": "Tungkol dito",
+  "Menu & Store Posts": "Pagkain at mga paskil ng tindahan",
+  "Rate this establishment": "Markahan ang tindahang ito",
+  "Verified Reviews": "Mga Napatunayan Pagsusuri",
+  "No menu posts yet": "Wala pang talaan ng pagkain paskil",
+  "away": "ang layo",
+  "Send": "Ipadala",
+  "Search places...": "Maghanap ng lugar...",
+  "Load more": "Mag-paghahanda pa",
+  "Claims": "Mga Pag-angkin",
+  "Reports": "Mga ulat",
+  "Audit": "Talaan ng mga aksyon",
+  "Sounds": "Mga Tunog",
+  "Navigation sounds": "Tunog sa paglipat",
+  "Subtle clicks when navigating": "Mahinang tunog habang lumilipat ng pahina",
+  "Manage your account and preferences.": "Pamahalaan ang iyong akawnt at mga kagustuhan.",
+  "Nickname (Display Name)": "Palayaw (Pangalang ipinapakita)",
+  "Date *": "Petsa *",
+  "Time *": "Oras *",
+  "Send a request": "Magpadala ng kahilingan",
+  "Choose your booking": "Piliin ang pagpapareserba",
+  "Table Reservation": "Reserbasyon ng Mesa",
+  "Food Reservation": "Reserbasyon ng Pagkain",
+  "Number of Guests *": "Bilang ng Bisita *",
+  "Additional Notes": "Karagdagang Pahayag",
+  "Payment Method": "Paraan ng Pagbabayad",
+  "Payment Method *": "Paraan ng pagbabayad *",
+  "Needs your reply": "Kailangang sagutin",
+  "Conversations": "Mga Pag-uusap",
+  "Add post / photo": "Magdagdag ng paskil / larawan",
+  "Store Suki QR": "Suki QR ng Tindahan",
+  "My Activity": "Aking Gawain",
+  "Back": "Bumalik",
+  "Save": "Ilagak",
+  "Save changes": "Ilagak ang pagbabago",
+  "View page": "Tingnan ang pahina",
+  "Manage Listing": "Ayusin ang Impormasyon",
+  "Messages": "Mga Mensahe",
+  "Suki Cards": "Mga Kard ng Suki",
+  "Open conversation": "Buksan ang pag-uusap",
+  "Hide record": "Itago ang rekord",
+  "Request details": "Detalye ng kahilingan",
+  "No posts yet": "Wala pang mga paskil",
+  "More filters": "Iba pang sala",
+  "Show less": "Ipakita ang mas kaunti",
+  "Open now": "Bukas ngayon",
+  "Verified": "Beripikado",
+  "Bookable": "Tumatanggap ng pagpapareserba",
+  "Delivery": "Paghahatid",
+  "Fresh info": "Bagong impormasyon",
+  "View menu": "Tingnan ang talaan ng pagkain",
+  "Opening hours": "Oras ng pagbubukas",
+  "Delivery options": "Mga paraan ng paghahatid",
+  "Book a table": "Magpareserba ng mesa",
+  "Quick questions": "Mga madalas itanong",
+  "Hide": "Itago",
+  "Automatic reply": "Awtomatikong sagot",
+  "Booking": "Reserbasyon",
+  "Order": "Bilin",
+  "Reserve a table or food": "Magpareserba ng mesa o pagkain",
+  "Pickup, delivery, or advance": "Pagkuha, paghahatid, o paunang bilin",
+  "Reserve seats or table": "Magpareserba ng upuan o mesa",
+  "Reserve food/item": "Magpareserba ng pagkain",
+  "Seating Preference": "Gustong Upuan",
+  "No preference": "Kahit saan",
+  "Window": "Malapit sa bintana",
+  "Quiet": "Tahimik",
+  "Outdoor": "Sa labas",
+  "Occasion": "Okasyon",
+  "None": "Wala",
+  "Food Items to Reserve *": "Mga pagkaing ipapareserba *",
+  "Order Details *": "Detalye ng bilin *",
+  "Fulfillment": "Paraan ng pagtanggap",
+  "Dine-in": "Kakain sa tindahan",
+  "Send Table Reservation": "Ipadala ang Reserbasyon",
+  "Send Food Reservation": "Ipadala ang Pagkain Reservation",
+  "Send Pickup Pre-order": "Ipadala ang Pagkuha Bilin",
+  "Send Delivery Order": "Ipadala ang Paghahatid Bilin",
+  "Submit for Approval": "Ipadala para sa Pag-apruba",
+  "Scan store QR": "I-pagbasa ng kodigo ang QR ng tindahan",
+  "Stamp request pending": "Naghihintay ng tatak approval",
+  "Cancel request": "Kanselahin ang kahilingan",
+  "Edit caption / photo": "Baguhin ang paliwanag sa larawan / larawan",
+  "Delete": "Burahin",
+  "Share to Buzz": "Ibahagi sa Balita",
+  "Search distance": "Layo ng paghahanap",
+  "Write a message...": "Sumulat ng mensahe...",
+  "Search places or ask Vici…": "Maghanap ng lugar o magtanong kay Vicinify…",
+  "Establishments": "Mga establisyimento",
+  "Total Establishments": "Kabuuang establisyimento",
+  "Pending Approvals": "Mga naghihintay ng pag-apruba",
+  "Pending Approval": "Naghihintay ng pag-apruba",
+  "Registered Owners": "Mga rehistradong may-ari",
+  "Open Now": "Bukas ngayon",
+  "Unread Updates": "Mga hindi pa nababasang pagbabago",
+  "Unread update": "Hindi pa nababasang pagbabago",
+  "Admin Panel": "Lupon ng Tagapangasiwa",
+  "Administrator tools": "Mga kagamitan ng tagapangasiwa",
+  "Review establishments, users, posts, transactions, messages, claims, and reports.": "Suriin ang mga establisyimento, gumagamit, paskil, transaksyon, mensahe, pag-angkin, at ulat.",
+  "Owner Email": "Sulatroniko ng may-ari",
+  "Approval Status": "Katayuan ng pag-apruba",
+  "Approval status": "Katayuan ng pag-apruba",
+  "Category": "Kategorya",
+  "Category *": "Kategorya *",
+  "Name": "Pangalan",
+  "Users": "Mga gumagamit",
+  "Admin": "Tagapangasiwa",
+  "Business": "Negosyo",
+  "Standard": "Karaniwang gumagamit",
+  "Customer": "Mamimili",
+  "Role": "Tungkulin",
+  "Actions": "Mga aksyon",
+  "Action": "Aksyon",
+  "Author": "May-akda",
+  "Sender": "Nagpadala",
+  "Place": "Lugar",
+  "Status": "Katayuan",
+  "Pending": "Naghihintay",
+  "Approved": "Naaprubahan",
+  "Rejected": "Tinanggihan",
+  "Accepted": "Tinanggap",
+  "Preparing": "Inihahanda",
+  "Ready": "Handa na",
+  "Fulfilled": "Natupad",
+  "Received": "Natanggap",
+  "Cancelled": "Kinansela",
+  "Delivered": "Naihatid",
+  "Out for delivery": "Papasok na sa paghahatid",
+  "Payment submitted": "Naisumite ang bayad",
+  "Payment confirmed": "Nakumpirma ang bayad",
+  "Unclaimed": "Wala pang may-ari",
+  "Approve": "Aprubahan",
+  "Reject": "Tanggihan",
+  "Assign Owner": "Magtalaga ng may-ari",
+  "Assign": "Italaga",
+  "Resolve": "Lutasin",
+  "Clear": "I-clear",
+  "Clear filter": "Alisin ang sala",
+  "Clear all": "Alisin lahat",
+  "Clear recent chats": "Burahin ang mga nakaraang usapan",
+  "No establishments yet": "Wala pang establisyimento",
+  "No transaction history yet.": "Wala pang kasaysayan ng transaksyon.",
+  "Transaction history is kept for records. Business or admin dashboard cleanup will not remove it here.": "Iniingatan ang kasaysayan ng transaksyon. Hindi ito mawawala rito kapag naglinis ng pamahalaan ang negosyo o tagapangasiwa.",
+  "Chat history is separate from official transactions.": "Hiwalay ang kasaysayan ng usapan sa mga opisyal na transaksyon.",
+  "No saved favorite establishments yet.": "Wala pang nakalagak na paboritong establisyimento.",
+  "No Suki Card requests yet.": "Wala pang kahilingan para sa Suki Kard.",
+  "No pending stamp requests.": "Walang naghihintay na tatak kahilingan.",
+  "No admin actions logged yet.": "Wala pang naitalang aksyon ng tagapangasiwa.",
+  "No business claims yet.": "Wala pang pag-angkin sa negosyo.",
+  "No claims waiting.": "Walang naghihintay na pag-angkin.",
+  "No reports yet.": "Wala pang ulat.",
+  "No requests yet.": "Wala pang kahilingan.",
+  "No requests yet, or they have been deleted.": "Wala pang kahilingan o nabura na ang mga ito.",
+  "No messages yet.": "Wala pang mensahe.",
+  "No messages yet, or they have been deleted.": "Wala pang mensahe o nabura na ang mga ito.",
+  "No additional details.": "Walang karagdagang detalye.",
+  "Loading...": "Inihahanda...",
+  "Loading dashboard...": "Inihahanda ang pamahalaan...",
+  "Loading your establishments...": "Inihahanda ang iyong mga establisyimento...",
+  "Loading transactions...": "Inihahanda ang mga transaksyon...",
+  "Loading chats...": "Inihahanda ang mga usapan...",
+  "Loading favorites...": "Inihahanda ang mga paborito...",
+  "Loading posts...": "Inihahanda ang mga paskil...",
+  "Loading Suki Cards...": "Inihahanda ang mga Suki Kard...",
+  "Loading Suki Card…": "Inihahanda ang Suki Kard…",
+  "Loading QR…": "Inihahanda ang QR…",
+  "Loading verified reviews...": "Inihahanda ang mga napatunayang pagsusuri...",
+  "Fetching users...": "Kinukuha ang mga gumagamit...",
+  "Fetching users from database...": "Kinukuha ang mga gumagamit mula sa imbakan ng datos...",
+  "Fetching buzz posts...": "Kinukuha ang mga Balita paskil...",
+  "Fetching live posts...": "Kinukuha ang mga kasalukuyang paskil...",
+  "Fetching transactions...": "Kinukuha ang mga transaksyon...",
+  "Fetching messages...": "Kinukuha ang mga mensahe...",
+  "Fetching claims...": "Kinukuha ang mga pag-angkin...",
+  "Fetching reports...": "Kinukuha ang mga ulat...",
+  "Fetching audit log...": "Kinukuha ang talaan ng mga aksyon...",
+  "Issue": "Isyu",
+  "Issue type": "Uri ng isyu",
+  "Content": "Nilalaman",
+  "Target": "Pinatutungkulan",
+  "When": "Kailan",
+  "User": "Gumagamit",
+  "New": "Bago",
+  "NEW": "BAGO",
+  "Current": "Kasalukuyan",
+  "Default": "Paunang pili",
+  "Other": "Iba pa",
+  "Details": "Mga detalye",
+  "Address": "Tirahan",
+  "Contact": "Kontak",
+  "Contact Phone": "Numero ng telepono",
+  "Contact Email": "Sulatroniko para sa pakikipag-ugnayan",
+  "Contact Number (optional)": "Numero ng kontak (opsyonal)",
+  "Description": "Paglalarawan",
+  "Description (optional)": "Paglalarawan (opsyonal)",
+  "Budget": "Badyet",
+  "Budget per person (optional)": "Badyet bawat tao (opsyonal)",
+  "Establishment": "Establisyimento",
+  "Establishment Name": "Pangalan ng establisyimento",
+  "Establishment name": "Pangalan ng establisyimento",
+  "Establishment information": "Impormasyon ng establisyimento",
+  "Establishment Posts": "Mga paskil ng establisyimento",
+  "Business Name *": "Pangalan ng negosyo *",
+  "Business name": "Pangalan ng negosyo",
+  "Business owner email": "Sulatroniko ng may-ari ng negosyo",
+  "Business workspace": "Lugar-gawaan ng negosyo",
+  "Live customer activity": "Kasalukuyang aktibidad ng mamimili",
+  "Live Store Status": "Kasalukuyang katayuan ng tindahan",
+  "Update status, edit details, and monitor activity.": "Baguhin ang katayuan, baguhin ang mga detalye, at subaybayan ang aktibidad.",
+  "Unread badges clear when checked, history remains protected.": "Nawawala ang hindi nabasa pananda kapag nabasa na; nananatiling ligtas ang kasaysayan.",
+  "Your orders, chats, Suki cards, and saved places.": "Ang iyong mga bilin, usapan, kard ng suki, at nakalagak na lugar.",
+  "Manage your daily operations, listings, and customer messages.": "Pamahalaan ang operasyon, mga listing, at mensahe ng mga mamimili.",
+  "Requests & Cancellation": "Mga kahilingan at pagkansela",
+  "Accepting Requests": "Tumatanggap ng mga kahilingan",
+  "Allow customers to book": "Payagang mag-book ang mga mamimili",
+  "Cancellation Refund (before preparation starts)": "Ibabalik na bayad sa pagkansela (bago simulan ang paghahanda)",
+  "50% refund — you keep 50% as compensation": "50% ibabalik na bayad — sa iyo ang 50% bilang kabayaran",
+  "70% refund — you keep 30% as compensation": "70% ibabalik na bayad — sa iyo ang 30% bilang kabayaran",
+  "If a customer cancels after you accept but before you tap Start Preparing, they get this much back. Once preparation starts, cancellation is closed (no refund).": "Kung magkansela ang mamimili matapos mong tanggapin ngunit bago simulan ang paghahanda, ito ang halagang ibabalik. Kapag nagsimula na ang paghahanda, bawal nang magkansela at walang ibabalik na bayad.",
+  "Automatic replies": "Mga awtomatikong sagot",
+  "Reply automatically to customer quick questions": "Awtomatikong sagutin ang mga mabilis na tanong ng mamimili",
+  "Replies are labeled automatic. Leave an answer blank to use your saved business details. Bookings and payments still need your confirmation.": "May label na awtomatiko ang mga sagot. Iwang blangko ang sagot para gamitin ang nakalagak na detalye ng negosyo. Kailangan pa rin ng kumpirmasyon mo ang mga pagpapareserba at bayad.",
+  "Menu answer": "Sagot tungkol sa talaan ng pagkain",
+  "Opening hours answer": "Sagot tungkol sa oras ng pagbubukas",
+  "Delivery answer": "Sagot tungkol sa paghahatid",
+  "Booking answer": "Sagot tungkol sa pagpapareserba",
+  "Custom answers: 3–500 characters, up to 100 words.": "Pasadyang sagot: 3–500 tanda, hanggang 100 salita.",
+  "Use the menu button and store posts by default.": "Gamitin bilang paunang pili ang talaan ng pagkain pindutan at mga paskil ng tindahan.",
+  "Use your saved opening hours by default.": "Gamitin bilang paunang pili ang nakalagak mong oras ng pagbubukas.",
+  "Use your saved delivery options by default.": "Gamitin bilang paunang pili ang nakalagak mong mga paraan ng paghahatid.",
+  "Tell customers how to request a booking.": "Sabihin sa mamimili kung paano mag-kahilingan ng pagpapareserba.",
+  "Store Cover Photo": "Pabalat larawan ng tindahan",
+  "Profile Picture / Store Logo (optional)": "Larawan sa pagkakakilanlan / sagisag ng tindahan (opsyonal)",
+  "This large photo appears when a customer taps your store on the map.": "Lalabas ang malaking larawang ito kapag pinindot ng mamimili ang iyong tindahan sa mapa.",
+  "Your logo appears beside your store name in the list view. Square images work best.": "Lalabas ang sagisag sa tabi ng pangalan ng tindahan sa listahan. Pinakamainam ang parisukat na larawan.",
+  "Remove logo": "Alisin ang sagisag",
+  "Remove image": "Alisin ang larawan",
+  "Remove selected photo": "Alisin ang napiling larawan",
+  "Add a photo": "Magdagdag ng larawan",
+  "Add Photo (Menu/Product)": "Magdagdag ng larawan (talaan ng pagkain/produkto)",
+  "After approval, edit your profile picture, logo and cover from Business Hub. Manage posts and menu photos on your establishment page.": "Pagkatapos maaprubahan, ayusin ang larawan sa pagkakakilanlan, sagisag, at pabalat sa Sentro ng Negosyo. Pamahalaan ang mga paskil at larawan ng talaan ng pagkain sa pahina ng establisyimento.",
+  "About & amenities": "Tungkol at mga pasilidad",
+  "About & Amenities": "Tungkol at mga pasilidad",
+  "optional": "opsyonal",
+  "(optional)": "(opsyonal)",
+  "Select only features available at your establishment. Unchecked items will not be shown as available.": "Piliin lang ang mga katangiang mayroon sa iyong establisyimento. Hindi ipapakitang mayroon ang mga hindi naka-check.",
+  "Select only details you can confirm for this place.": "Piliin lamang ang mga detalyeng matitiyak mo para sa lugar na ito.",
+  "Delivery & Logistics": "Paghahatid at pag-aayos ng paghahatid",
+  "In-house Delivery": "Sariling paghahatid",
+  "Has in-house delivery": "May sariling paghahatid",
+  "Available on Grab/Foodpanda": "Mayroon sa Grab/Foodpanda",
+  "Delivery Radius (km)": "Layo ng paghahatid (km)",
+  "Delivery distance in km (e.g. 5)": "Layo ng paghahatid sa km (hal. 5)",
+  "Opening Hours": "Oras ng pagbubukas",
+  "Monday": "Lunes",
+  "Tuesday": "Martes",
+  "Wednesday": "Miyerkules",
+  "Thursday": "Huwebes",
+  "Friday": "Biyernes",
+  "Saturday": "Sabado",
+  "Sunday": "Linggo",
+  "e.g. 8AM - 9PM or Closed": "Hal. 8AM - 9PM o Sarado",
+  "No price range yet": "Wala pang saklaw ng presyo",
+  "Under ₱150": "Mas mababa sa ₱150",
+  "Over ₱1,000": "Higit sa ₱1,000",
+  "Pin Location *": "I-pananda ang lokasyon *",
+  "Click/tap the mini map to move the pin.": "Pindutin ang maliit na mapa para ilipat ang pananda.",
+  "Reset pin to my location": "Ibalik ang pananda sa aking lokasyon",
+  "Reset map": "Ibalik ang mapa",
+  "Reset": "Ibalik",
+  "House number, street or subdivision *": "Numero ng bahay, kalye, o subdibisyon *",
+  "House no. / Street / Subdivision": "Numero ng bahay / kalye / subdibisyon",
+  "Barangay *": "Barangay *",
+  "City / Municipality": "Lungsod / munisipalidad",
+  "City / municipality *": "Lungsod / munisipalidad *",
+  "Short description…": "Maikling paglalarawan…",
+  "Short description": "Maikling paglalarawan",
+  "e.g., Aling Nena Sari-sari Store": "Hal. Tindahan ni Aling Nena",
+  "e.g., 123 Rizal St., Brgy. Sabang": "Hal. 123 Rizal St., Brgy. Sabang",
+  "Submit": "Isumite",
+  "Submit Changes": "Isumite ang mga pagbabago",
+  "Submit for review": "Isumite para masuri",
+  "Upload": "Maglakip",
+  "Back to Business Hub": "Bumalik sa Sentro ng Negosyo",
+  "Back to map": "Bumalik sa mapa",
+  "Save establishment": "Ilagak ang establisyimento",
+  "Remove from Favorites": "Alisin sa mga paborito",
+  "You own this establishment": "Ikaw ang may-ari ng establisyimentong ito",
+  "This will appear on your Buzz posts and comments.": "Lalabas ito sa iyong mga Balita paskil at komento.",
+  "Install Vicinify": "Idagdag ang Vicinify",
+  "Install app": "Idagdag sa aparato",
+  "Add Vicinify to your home screen for quick access.": "Idagdag ang Vicinify sa pangunahing tabing ng iyong aparato para madaling mabuksan.",
+  "Your account": "Iyong akawnt",
+  "Your preferences": "Iyong mga kagustuhan",
+  "Open profile and settings": "Buksan ang pagkakakilanlan at mga setting",
+  "Main navigation": "Pangunahing nabigasyon",
+  "Skip to content": "Lumaktaw sa nilalaman",
+  "Vicinify home": "Home ng Vicinify",
+  "WORKSPACE": "Lugar-gawaan",
+  "YOUR LOCAL COMPANION": "IYONG KASAMA SA KOMUNIDAD",
+  "Rooted in Lipa.": "Nag-ugat sa Lipa.",
+  "Connected to your community.": "Konektado sa iyong komunidad.",
+  "GO SOMEWHERE GOOD": "TUKLASIN ANG MAGAGANDANG LUGAR",
+  "Around the": "Sa ating",
+  "neighborhood.": "komunidad.",
+  "Good food. Local favorites. New discoveries.": "Masarap na pagkain. Mga paborito rito. Mga bagong tuklas.",
+  "Explore Lipa": "Tuklasin ang Lipa",
+  "Your neighborhood map": "Mapa ng iyong komunidad",
+  "Search within this distance": "Maghanap sa loob ng layong ito",
+  "Search radius in kilometers": "Layo ng paghahanap sa kilometro",
+  "30 km max": "Hanggang 30 km",
+  "Map view": "Tingnan ang mapa",
+  "List view": "Tingnan ang listahan",
+  "Menu": "Pagkain",
+  "4+ Rating": "Marka na 4 pataas",
+  "A little help from Vici": "Kaunting tulong mula kay Vicinify",
+  "Try “coffee nearby” or choose a category to start exploring.": "Subukan ang “kape sa malapit” o pumili ng kategorya para magsimulang tumuklas.",
+  "View full establishment": "Tingnan ang buong establisyimento",
+  "EXPLORE THIS PLACE": "TUKLASIN ANG LUGAR NA ITO",
+  "About this establishment": "Tungkol sa establisyimentong ito",
+  "Details not provided yet": "Wala pang ibinigay na detalye",
+  "The establishment has not added accessibility, amenities or service details.": "Wala pang idinagdag na detalye tungkol sa daling mapuntahan, pasilidad, o serbisyo ang establisyimento.",
+  "Confirm accessibility and service availability with the business before visiting.": "Kumpirmahin sa negosyo ang daling mapuntahan at mga serbisyong mayroon bago bumisita.",
+  "Ask the business": "Magtanong sa negosyo",
+  "Menu & store posts": "Pagkain at mga paskil ng tindahan",
+  "Shared by the business. Confirm current prices and availability before ordering.": "Ibinahagi ng negosyo. Kumpirmahin ang kasalukuyang presyo at pagkakaroon bago umorder.",
+  "Showing up to 30 available posts.": "Ipinapakita ang hanggang 30 mayroon na paskil.",
+  "Store post": "Paskil ng tindahan",
+  "Read post": "Basahin ang paskil",
+  "View image": "Tingnan ang larawan",
+  "All menu posts": "Lahat ng talaan ng pagkain paskil",
+  "Open full-size image": "Buksan ang buong laki ng larawan",
+  "No menu uploaded yet": "Wala pang nailakip na talaan ng pagkain",
+  "This business has not shared menu or store posts here. Ask them in chat for their current menu.": "Wala pang ibinahaging talaan ng pagkain o paskil ang negosyong ito. Magtanong sa usapan tungkol sa kasalukuyang talaan ng pagkain.",
+  "Ask about the menu": "Magtanong tungkol sa talaan ng pagkain",
+  "Checking menu and store posts...": "Tinitingnan ang talaan ng pagkain at mga paskil ng tindahan...",
+  "Could not load this section": "Hindi maihanda ang seksyong ito",
+  "This image could not be loaded. You can still read the post below. Close and reopen the preview to retry.": "Hindi maihanda ang larawan. Mababasa pa rin ang paskil sa ibaba. Isara at buksan muli ang paunang tanaw para subukan ulit.",
+  "No public reviews yet": "Wala pang pampublikong pagsusuri",
+  "Public customer feedback will appear here when shared.": "Lalabas dito ang pampublikong puna ng mamimili kapag ibinahagi.",
+  "Verified transaction": "Beripikadong transaksyon",
+  "Verified reviews": "Mga napatunayang pagsusuri",
+  "Verified feedback": "Beripikadong puna",
+  "Public Reviews": "Mga pampublikong pagsusuri",
+  "Public feedback": "Pampublikong puna",
+  "Rating": "Marka",
+  "No ratings": "Wala pang marka",
+  "New · No ratings yet": "Bago · Wala pang marka",
+  "Close": "Isara",
+  "Close establishment preview": "Isara ang paunang tanaw ng establisyimento",
+  "Close menu preview": "Isara ang paunang tanaw ng talaan ng pagkain",
+  "View menu or store post": "Tingnan ang talaan ng pagkain o paskil ng tindahan",
+  "Close reviews": "Isara ang mga pagsusuri",
+  "View full image": "Tingnan ang buong larawan",
+  "Open menu photo in full size": "Buksan ang buong laki ng larawan ng talaan ng pagkain",
+  "Navigating to destination": "Papunta sa destinasyon",
+  "Finding best route…": "Hinahanap ang pinakamainam na ruta…",
+  "Could not find a route. Check connection.": "Walang mahanap na ruta. Suriin ang koneksyon.",
+  "Steps": "Mga hakbang",
+  "Recenter": "Igitna muli",
+  "Voice": "Boses",
+  "Stop": "Itigil",
+  "Tap to hear": "Pindutin para marinig",
+  "Show whole route": "Ipakita ang buong ruta",
+  "Find my location": "Hanapin ang aking lokasyon",
+  "Current Location": "Kasalukuyang lokasyon",
+  "Use my location": "Gamitin ang aking lokasyon",
+  "Nearby places": "Mga kalapit na lugar",
+  "Use of the Platform": "Paggamit ng plataporma",
+  "Sign In": "Pumasok",
+  "Sign Up": "Magparehistro",
+  "Log in": "Pumasok",
+  "Sign in to continue to Lipa’s local guide": "Pumasok para magpatuloy sa lokal na gabay ng Lipa",
+  "Don't have an account?": "Wala ka pang akawnt?",
+  "Already have an account?": "May akawnt ka na?",
+  "Create Account": "Magparehistro",
+  "Enter your password": "Ilagay ang iyong kontrasenyas",
+  "At least 8 characters": "Hindi bababa sa 8 tanda",
+  "Repeat new password": "Ulitin ang bagong kontrasenyas",
+  "8+ characters": "8 o higit pang tanda",
+  "1 Number": "1 numero",
+  "1 Special Character (!@#$%)": "1 espesyal na tanda (!@#$%)",
+  "1 Uppercase & 1 Lowercase": "1 malaking titik at 1 maliit na titik",
+  "Password Strength": "Lakas ng kontrasenyas",
+  "Show password": "Ipakita ang kontrasenyas",
+  "Enter the email you used for Vicinify. We will send you a secure link to reset your password.": "Ilagay ang sulatroniko na ginamit mo sa Vicinify. Padadalhan ka namin ng ligtas ugnay para ibalik ang kontrasenyas.",
+  "Check your inbox and spam folder. The link expires after a short time for your security.": "Tingnan ang kahon ng mensahe at spam folder. May maikling bisa ang ugnay para sa iyong seguridad.",
+  "By clicking Create Account, you agree to the": "Sa pagpindot ng Gumawa ng akawnt, sumasang-ayon ka sa",
+  "Terms and Conditions": "Mga Tuntunin at Kondisyon",
+  "of Vicinify.": "ng Vicinify.",
+  "Your neighborhood starts here.": "Dito nagsisimula ang iyong komunidad.",
+  "Your neighborhood, discovered.": "Tuklasin ang iyong komunidad.",
+  "YOUR NEIGHBORHOOD, DISCOVERED": "TUKLASIN ANG IYONG KOMUNIDAD",
+  "A little closer to your community.": "Mas malapit sa iyong komunidad.",
+  "Discover Vicinify": "Tuklasin ang Vicinify",
+  "Discover local": "Tuklasin ang lokal",
+  "Support local": "Suportahan ang lokal",
+  "Go somewhere": "Pumunta sa",
+  "good.": "magandang lugar.",
+  "Your local food guide": "Iyong lokal na gabay sa pagkain",
+  "Find somewhere good, close to home.": "Humanap ng magandang lugar malapit sa tahanan.",
+  "Find local food spots, compare saved ratings, and discover places around Lipa.": "Maghanap ng lokal na kainan, ihambing ang mga marka, at tumuklas ng mga lugar sa Lipa.",
+  "From your morning kapeng barako to a new neighborhood find. Discover the local places that make Lipa, Lipa.": "Mula sa kapeng barako sa umaga hanggang sa bagong tuklas sa komunidad. Kilalanin ang mga lokal na lugar na nagbibigay-buhay sa Lipa.",
+  "BOOKINGS & ORDERS": "MGA Pagpapareserba AT Bilin",
+  "Booking Purpose": "Layunin ng pagpapareserba",
+  "Choose your order": "Piliin ang iyong bilin",
+  "Choose a booking or order, then add the details. The business will review your request.": "Pumili ng pagpapareserba o bilin at ilagay ang mga detalye. Susuriin ng negosyo ang iyong kahilingan.",
+  "General booking": "Karaniwang pagpapareserba",
+  "Reservation": "Reserbasyon",
+  "Advance Order": "Paunang bilin",
+  "Pickup Pre-order": "Paunang bilin para sa pagkuha",
+  "Delivery Order": "Bilin para sa paghahatid",
+  "Order Details": "Mga detalye ng bilin",
+  "Delivery Address": "Tirahan ng paghahatid",
+  "Items, quantity & special instructions": "Mga item, dami, at espesyal na tagubilin",
+  "Items, quantity and instructions *": "Mga item, dami, at tagubilin *",
+  "Example: items, quantity, special instructions": "Halimbawa: mga item, dami, at espesyal na tagubilin",
+  "Add any special request or instruction...": "Magdagdag ng espesyal na kahilingan o tagubilin...",
+  "House no., barangay, city & landmark": "Numero ng bahay, barangay, lungsod, at palatandaan",
+  "Landmark or location notes *": "Palatandaan o detalye ng lokasyon *",
+  "Date, time, and service notes": "Petsa, oras, at mga tala tungkol sa serbisyo",
+  "Or type a number": "O maglagay ng bilang",
+  "Table or food reservation": "Reserbasyon ng mesa o pagkain",
+  "Order now, pick up at the store": "Umorder ngayon at kunin sa tindahan",
+  "Future, bulk, cake, bilao, or event orders": "Mga bilin para sa hinaharap, maramihan, cake, bilao, o kaganapan",
+  "Advance orders are for future, bulk, cakes, bilao, or events. The business may require downpayment first.": "Ang mga paunang bilin ay para sa hinaharap, maramihan, cake, bilao, o kaganapan. Maaaring humingi muna ng paunang bayad ang negosyo.",
+  "Order first — after the business accepts, Vicinify will ask for your address, landmark, and payment reference.": "Umorder muna. Kapag tinanggap ng negosyo, hihingin ng Vicinify ang tirahan, palatandaan, at sanggunian ng bayad.",
+  "Address (optional)": "Tirahan (opsyonal)",
+  "Address, landmark, payment/reference after owner accepts": "Tirahan, palatandaan, at sanggunian ng bayad matapos tanggapin ng may-ari",
+  "Fill out the information the business requested.": "Punan ang impormasyong hinihingi ng negosyo.",
+  "Request Requirements": "Mga kailangang isumite",
+  "Choose what the customer needs to submit for this transaction.": "Piliin ang kailangang isumite ng mamimili para sa transaksyong ito.",
+  "Confirm Requirements": "Kumpirmahin ang mga kailangan",
+  "Submit Requirements": "Isumite ang mga kailangan",
+  "Confirm Received": "Kumpirmahing natanggap",
+  "Accept Request": "Tanggapin ang kahilingan",
+  "Start Preparing": "Simulan ang paghahanda",
+  "Mark Out for Delivery": "Markahang nasa paghahatid na",
+  "Mark Delivered": "Markahang naihatid na",
+  "Send request": "Ipadala ang kahilingan",
+  "Send Feedback": "Magpadala ng puna",
+  "Request sent": "Naipadala",
+  "Sending...": "Ipinapadala...",
+  "Saving...": "Inilalagak...",
+  "Saving to Cloud...": "Inilalagak sa imbakan sa internet...",
+  "Updating...": "Binabago...",
+  "Saved": "Nailagak",
+  "Payment Details": "Mga detalye ng bayad",
+  "Payment details": "Mga detalye ng bayad",
+  "Payment method": "Paraan ng pagbabayad",
+  "Payment Type *": "Uri ng bayad *",
+  "Accepted payment methods": "Mga tinatanggap na paraan ng pagbabayad",
+  "Other payment method": "Iba pang paraan ng pagbabayad",
+  "If Other, type mode of payment": "Kung Iba pa, ilagay ang paraan ng pagbabayad",
+  "Amount paid": "Halagang ibinayad",
+  "Amount paid (₱) *": "Halagang ibinayad (₱) *",
+  "Amount to pay": "Halagang babayaran",
+  "Amount submitted": "Halagang isinumite",
+  "Reference": "Sanggunian",
+  "Reference / transaction number *": "Sanggunian / numero ng transaksyon *",
+  "Reference number / payment notes": "Sanggunian number / tala sa bayad",
+  "Reference no. / Notes, optional for Cash/COD": "Sanggunian / tala, opsyonal para sa Salapi/COD",
+  "Receipt image": "Larawan ng resibo",
+  "Enter your reference number. A receipt image is optional.": "Ilagay ang sanggunian number. Opsyonal ang larawan ng resibo.",
+  "Enter the number from your payment receipt": "Ilagay ang numero sa iyong resibo",
+  "Add payment reference / receipt": "Magdagdag ng sanggunian ng bayad / resibo",
+  "Accept payment": "Tanggapin ang bayad",
+  "Decline payment": "Tanggihan ang bayad",
+  "Decline payment details?": "Tanggihan ang mga detalye ng bayad?",
+  "Reason for declining *": "Dahilan ng pagtanggi *",
+  "Keep reviewing": "Ipagpatuloy ang pagsusuri",
+  "Payment details submitted — please review": "Naisumite na ang detalye ng bayad — pakisuri",
+  "Payment instructions / message": "Tagubilin sa pagbabayad / mensahe",
+  "Submitting a reference number does not mark your request paid. The business checks the amount and reference against funds actually received.": "Hindi awtomatikong ituturing na bayad ang kahilingan kapag nagsumite ng sanggunian number. Susuriin ng negosyo ang halaga at sanggunian batay sa aktuwal na natanggap na pera.",
+  "No receipt image attached. Verify the submitted reference against your actual account.": "Walang kalakip na larawan ng resibo. Ihambing ang sanggunian sa aktuwal mong akawnt.",
+  "Receipt image is optional. Verify the submitted reference against your actual account.": "Opsyonal ang larawan ng resibo. Ihambing ang sanggunian sa aktuwal mong akawnt.",
+  "Confirm the total, delivery fee, payment recipient and account details. Never ask for a PIN or OTP.": "Kumpirmahin ang kabuuang halaga, paghahatid fee, tatanggap ng bayad, at detalye ng akawnt. Huwag humingi ng Pananda o Minsang kodigo.",
+  "The order stays accepted. The customer can correct and resubmit their payment details.": "Mananatiling tanggap ang bilin. Maaaring itama at muling isumite ng mamimili ang detalye ng bayad.",
+  "For example: reference not found, amount does not match, or receipt is unclear.": "Halimbawa: hindi makita ang sanggunian, hindi tugma ang halaga, o malabo ang resibo.",
+  "Explain what needs correcting. Do not ask the customer to pay again if you have already received the payment.": "Ipaliwanag ang kailangang itama. Huwag pagbayarin muli ang mamimili kung natanggap mo na ang bayad.",
+  "1. Pay business": "1. Bayaran ang negosyo",
+  "2. Submit proof": "2. Isumite ang patunay",
+  "3. Business verifies": "3. Susuriin ng negosyo",
+  "Close payment details": "Isara ang mga detalye ng bayad",
+  "Close payment review": "Isara ang pagsusuri ng bayad",
+  "Cancellation policy": "Patakaran sa pagkansela",
+  "Cancellation is closed at this stage. Contact the business if you need help.": "Hindi na maaaring magkansela sa yugtong ito. Makipag-ugnayan sa negosyo kung kailangan ng tulong.",
+  "Close cancellation": "Isara ang pagkansela",
+  "REVIEW CANCELLATION": "SURIIN ANG PAGKANSELA",
+  "If you already paid, follow the refund steps in the transaction summary. Vicinify does not automatically transfer a refund.": "Kung nakapagbayad na, sundan ang mga hakbang sa pagbabalik ng bayad sa buod ng transaksiyon. Hindi kusang nagpapadala ng ibinalik na bayad ang Vicinify.",
+  "Cancelled · If paid, contact the business to arrange your refund.": "Kinansela · Kung nakabayad na, kausapin ang negosyo tungkol sa ibabalik na bayad.",
+  "will be cancelled. This cannot be undone.": "ay kakanselahin. Hindi na ito maibabalik.",
+  "CONVERSATION": "PAG-UUSAP",
+  "Conversation": "Pag-uusap",
+  "Messages & request updates": "Mga mensahe at pagbabago sa kahilingan",
+  "Start a conversation": "Magsimula ng pag-uusap",
+  "Your conversations will appear here.": "Lalabas dito ang iyong mga pag-uusap.",
+  "Sending to": "Ipapadala kay",
+  "Business closed": "Sarado ang negosyo",
+  "Open Chat": "Buksan ang usapan",
+  "Close conversation": "Isara ang pag-uusap",
+  "Send message": "Ipadala ang mensahe",
+  "Write a message…": "Sumulat ng mensahe…",
+  "Write a comment": "Sumulat ng komento",
+  "Write something...": "Sumulat ng mensahe...",
+  "Reply": "Sumagot",
+  "Hide conversation": "Itago ang pag-uusap",
+  "Check details with the business before visiting.": "Kumpirmahin ang mga detalye sa negosyo bago bumisita.",
+  "Ask about the menu, availability, or your request. Choose a quick question below to get started.": "Magtanong tungkol sa talaan ng pagkain, pagkakaroon, o iyong kahilingan. Pumili ng mabilis na tanong sa ibaba para magsimula.",
+  "Date": "Petsa",
+  "Time": "Oras",
+  "Guests": "Mga bisita",
+  "Notes": "Mga tala",
+  "Items": "Mga item",
+  "Payment": "Bayad",
+  "Delivery address": "Tirahan ng paghahatid",
+  "Transaction progress": "Usad ng transaksyon",
+  "Progress": "Usad",
+  "Transaction completed. Feedback can now be submitted.": "Tapos na ang transaksyon. Maaari nang magbigay ng puna.",
+  "Transaction completed. Please rate your experience and send feedback.": "Tapos na ang transaksyon. Markahan ang iyong karanasan at magbigay ng puna.",
+  "Requirements confirmed by business.": "Kinumpirma ng negosyo ang mga kailangan.",
+  "Submitted. Waiting for business confirmation.": "Naisumite na. Naghihintay ng kumpirmasyon ng negosyo.",
+  "Rate Your Experience": "Markahan ang iyong karanasan",
+  "Rate & Send Feedback": "Markahan at magpadala ng puna",
+  "Feedback / Comment": "Puna / komento",
+  "Satisfaction": "Kasiyahan",
+  "Not satisfied": "Hindi nasiyahan",
+  "Satisfied": "Nasiyahan",
+  "Very satisfied": "Lubos na nasiyahan",
+  "Neutral": "Katamtaman",
+  "Needs improvement": "Kailangan pang pagbutihin",
+  "How was your transaction? Your feedback helps improve local establishments.": "Kumusta ang iyong transaksyon? Nakatutulong ang puna mo para mapabuti ang mga lokal na establisyimento.",
+  "Write your feedback here, optional but recommended": "Isulat dito ang iyong puna, opsyonal ngunit hinihikayat",
+  "Post publicly as a Verified Review": "Ibahagi sa publiko bilang napatunayang pagsusuri",
+  "This helps the business build trust. You can uncheck this to keep the feedback inside the transaction only.": "Nakatutulong ito sa tiwala sa negosyo. Alisin ang check kung nais mong manatili lamang sa transaksyon ang puna.",
+  "Feedback already submitted. Thank you!": "Naisumite na ang puna. Salamat!",
+  "You can't rate your own place.": "Hindi mo maaaring markahan ang sarili mong establisyimento.",
+  "Positive Rate": "Bahagdan ng positibong marka",
+  "Top Feedback": "Pangunahing puna",
+  "Verified Transaction": "Beripikadong transaksyon",
+  "Post type": "Uri ng paskil",
+  "Post content / text": "Nilalaman / teksto ng paskil",
+  "Post details": "Mga detalye ng paskil",
+  "General": "Pangkalahatan",
+  "Promo": "Alok",
+  "Event": "Kaganapan",
+  "Tip": "Payo",
+  "Announcement": "Anunsyo",
+  "Publish": "Ilathala",
+  "Add Post": "Magdagdag ng paskil",
+  "Add Photo or Video": "Magdagdag ng larawan",
+  "Post as Business": "Magpaskil bilang negosyo",
+  "Business to post as": "Negosyong gagamitin sa paskil",
+  "Share an update, promo, event, or local tip…": "Magbahagi ng pagbabago, alok, kaganapan, o lokal na payo…",
+  "Select establishment...": "Pumili ng establisyimento...",
+  "Select barangay...": "Pumili ng barangay...",
+  "Select Barangay": "Pumili ng barangay",
+  "Choose a barangay (optional)": "Pumili ng barangay (opsyonal)",
+  "Barangay/area this post belongs to": "Barangay/lugar para sa paskil na ito",
+  "No posts for this establishment yet. Click \"Add Post\" to upload a menu or promo!": "Wala pang paskil para sa establisyimentong ito. Pindutin ang \"Magdagdag ng paskil\" para maglakip ng talaan ng pagkain o alok!",
+  "Menu board": "Talaan ng pagkain board",
+  "Post Menu": "Magpaskil ng talaan ng pagkain",
+  "Post Menu / Store Update": "Magpaskil ng talaan ng pagkain / pagbabago ng tindahan",
+  "Menu / Promo Details": "Mga detalye ng talaan ng pagkain / alok",
+  "Businesses can post best sellers, promos, menus, and new items here.": "Maaaring magpaskil dito ang negosyo ng pinakamahusay seller, alok, talaan ng pagkain, at mga bagong item.",
+  "Example: Bestseller milktea - P89 today, or upload your menu photo.": "Halimbawa: Bestseller na tsaa na may gatas - ₱89 ngayon, o ilakip ang larawan ng talaan ng pagkain.",
+  "Post actions": "Mga aksyon sa paskil",
+  "Share as Promo": "Ibahagi bilang alok",
+  "Share as Announcement": "Ibahagi bilang anunsyo",
+  "Post update": "Magpaskil ng pagbabago",
+  "Shared to Buzz": "Naibahagi sa Balita",
+  "Send comment": "Ipadala ang komento",
+  "Delete Post": "Burahin ang paskil",
+  "Delete Record": "Burahin ang rekord",
+  "Delete Establishment": "Burahin ang establisyimento",
+  "Delete Account": "Burahin ang akawnt",
+  "Delete Data": "Burahin ang datos",
+  "Hide Message from Admin": "Itago ang mensahe sa tagapangasiwa",
+  "Hide Request from Admin": "Itago ang kahilingan sa tagapangasiwa",
+  "Suki Card": "Kard ng Suki",
+  "Suki Card Available": "May Suki Kard",
+  "Suki Card Studio": "Disenyo ng Kard ng Suki",
+  "Enable Suki Card": "Paganahin ang Suki Kard",
+  "Your card preview": "Paunang tanaw ng iyong kard",
+  "Card details": "Mga detalye ng kard",
+  "Cardholder": "May-ari ng kard",
+  "Card ID": "Pagkakakilanlan ng kard",
+  "Number of stamps": "Bilang ng tatak",
+  "Stamp icon": "Sagisag ng tatak",
+  "Reward": "Gantimpala",
+  "Reward text": "Teksto ng gantimpala",
+  "Template": "Padron",
+  "(choose a style, then customize)": "(pumili ng estilo, saka baguhin ayon sa gusto)",
+  "Color mode": "Paraan ng pagkulay",
+  "Solid": "Solidong kulay",
+  "Solid color": "Solidong kulay",
+  "Gradient": "Unti-unting kulay",
+  "Gradient presets": "Mga preset na unti-unting kulay",
+  "Custom": "Pasadya",
+  "Custom gradient": "Pasadyang unti-unting kulay",
+  "Pattern overlay": "Disenyo sa ibabaw",
+  "Auto (category)": "Awtomatiko (kategorya)",
+  "Flip": "Baligtarin",
+  "Flip card": "Baligtarin ang kard",
+  "Flip card back": "Ibalik ang kard",
+  "Show customer QR": "Ipakita ang QR ng mamimili",
+  "Customer QR": "QR ng mamimili",
+  "Vicinify Scan": "Vicinify Pagbasa ng kodigo",
+  "Claim reward": "Kunin ang gantimpala",
+  "Mark as claimed": "Markahang nakuha na",
+  "Point the camera at the store's Suki QR. You must be at the establishment — your location will be verified.": "Itutok ang camera sa Suki QR ng tindahan. Kailangang nasa establisyimento ka dahil ibe-verify ang iyong lokasyon.",
+  "Let customers scan this code to request a stamp. Review requests before approving.": "Ipa-pagbasa ng kodigo ang kodigo sa mamimili para humiling ng tatak. Suriin ang kahilingan bago aprubahan.",
+  "This store has a Suki Card! Log in to see your card and request a stamp.": "May Suki Kard ang tindahang ito! Pumasok para makita ang iyong kard at humiling ng tatak.",
+  "You don't have a Suki Card yet.": "Wala ka pang Suki Kard.",
+  "You don't have a Suki Card yet. Visit a store and scan with Vicinify!": "Wala ka pang Suki Kard. Bumisita sa tindahan at mag-pagbasa ng kodigo gamit ang Vicinify!",
+  "Flip the card to see the reward and claim status. Show the QR or tap Scan with Vicinify on the store page to request a stamp.": "Baligtarin ang kard para makita ang gantimpala at katayuan ng pagkuha. Ipakita ang QR o pindutin ang Pagbasa ng kodigo with Vicinify sa pahina ng tindahan para humiling ng tatak.",
+  "Could not load Suki Cards right now.": "Hindi maihanda ang mga Suki Kard sa ngayon.",
+  "Could not load the Suki Card right now.": "Hindi maihanda ang Suki Kard sa ngayon.",
+  "Could not load the QR library.": "Hindi maihanda ang QR library.",
+  "Ask Vici": "Magtanong sa Vicinify",
+  "Ask Vici AI": "Magtanong sa Vicinify",
+  "Ask Vici AI...": "Magtanong kay Vicinify Katulong...",
+  "Ask about food, places, or your next coffee…": "Magtanong tungkol sa pagkain, mga lugar, o susunod mong kape…",
+  "AI conversation": "Pag-uusap sa Katulong",
+  "Recent chats": "Mga nakaraang usapan",
+  "Recent AI chats": "Mga nakaraang Katulong usapan",
+  "New chat": "Bagong usapan",
+  "On this device": "Sa aparato na ito",
+  "Show recent chats": "Ipakita ang mga nakaraang usapan",
+  "Close recent chats": "Isara ang mga nakaraang usapan",
+  "Minimize Vici AI": "Paliitin ang Vicinify Katulong",
+  "Close Vici AI": "Isara ang Vicinify Katulong",
+  "Send to Vici AI": "Ipadala kay Vicinify Katulong",
+  "No strong match yet": "Wala pang tugmang resulta",
+  "Try asking": "Subukang magtanong",
+  "Try again": "Subukan muli",
+  "Later": "Mamaya",
+  "Looking through local places": "Tinitingnan ang mga lokal na lugar",
+  "Try widening the radius or using another food/category word.": "Subukang palawakin ang layo o gumamit ng ibang pagkain/kategorya sa paghahanap.",
+  "Ranked by location, ratings, food match, freshness, and availability.": "Inayos ayon sa lokasyon, marka, tugma sa pagkain, pagiging bago ng impormasyon, at pagkakaroon.",
+  "View on Map": "Tingnan sa mapa",
+  "View on map": "Tingnan sa mapa",
+  "Hide Vici AI": "Itago ang Vicinify Katulong",
+  "Hide smart picks": "Itago ang mga napiling lugar",
+  "Vici AI is currently unavailable. Please try again later.": "Hindi magamit ngayon ang katulong ng Vicinify. Pakisubukan muli mamaya.",
+  "AI timed out. Please try again.": "Naubos ang oras ng Katulong. Pakisubukan muli.",
+  "Search": "Maghanap",
+  "Search Vicinify": "Maghanap sa Vicinify",
+  "Open store": "Buksan ang tindahan",
+  "Title": "Pamagat",
+  "Enter title": "Ilagay ang pamagat",
+  "Type": "Uri",
+  "Report Info": "Iulat ang impormasyon",
+  "Wrong hours": "Maling oras",
+  "Wrong location": "Maling lokasyon",
+  "Wrong contact": "Maling kontak",
+  "Report submitted": "Naisumite ang ulat",
+  "Add details so admin can verify quickly": "Magdagdag ng detalye para masuri agad ng tagapangasiwa",
+  "Permanent admin — role is locked": "Permanenteng tagapangasiwa — hindi mababago ang tungkulin",
+  "Verified by admin": "Beripikado ng tagapangasiwa",
+  "Accepted MOP:": "Tinatanggap na paraan ng pagbabayad:",
+  "Is featured": "Naka-gamit",
+  "Is premium": "Natatangi",
+  "Is verified": "Beripikado",
+  "Accepts booking": "Tumatanggap ng pagpapareserba",
+  "Premium business listing": "Natatangi na listing ng negosyo",
+  "Featured on map": "Naka-gamit sa mapa",
+  "No changes": "Walang pagbabago",
+  "Dismiss": "Alisin",
+  "Remove": "Alisin",
+  "Attach My Current Location": "Ilakip ang aking lokasyon",
+  "Customer attaches their current location": "Ilalakip ng mamimili ang kasalukuyan niyang lokasyon",
+  "Location not attached yet.": "Wala pang kalakip na lokasyon.",
+  "Amount, mode of payment & reference": "Halaga, paraan ng pagbabayad, at sanggunian",
+  "Date:": "Petsa:",
+  "Time:": "Oras:",
+  "Items / Order:": "Mga item / bilin:",
+  "Payment Method:": "Paraan ng pagbabayad:",
+  "Notes:": "Mga tala:",
+  "Delivery Address:": "Tirahan ng paghahatid:",
+  "Feedback:": "Puna:",
+  "Rating:": "Marka:",
+  "Satisfaction:": "Kasiyahan:",
+  "Business note:": "Tala ng negosyo:",
+  "Address:": "Tirahan:",
+  "Barangay:": "Barangay:",
+  "City:": "Lungsod:",
+  "Reference:": "Sanggunian:",
+  "Amount:": "Halaga:",
+  "Method:": "Paraan:",
+  "Mode of Payment:": "Paraan ng pagbabayad:",
+  "Payment details submitted": "Naisumite na ang detalye ng bayad",
+  "Waiting for online payment proof. Verify the received payment before preparation.": "Naghihintay ng patunay ng sa internet na bayad. Patunayan ang natanggap na bayad bago maghanda.",
+  "Please log in to view.": "Pumasok para makita.",
+  "Please select at least one requirement above.": "Pumili ng kahit isang kailangan sa itaas.",
+  "You’re offline. Some features need an internet connection.": "Walang koneksiyon ka. Nangangailangan ng internet ang ilang gamit.",
+  "Accessibility": "Daling mapuntahan",
+  "Service options": "Mga paraan ng serbisyo",
+  "Amenities": "Mga pasilidad",
+  "Highlights": "Mga tampok",
+  "Dining options": "Mga paraan ng pagkain",
+  "Offerings": "Mga iniaalok",
+  "Payments": "Mga paraan ng pagbabayad",
+  "Parking": "Paradahan",
+  "Wheelchair-accessible entrance": "Pasukang naa-pahintulot ng wheelchair",
+  "Wheelchair-accessible parking": "Paradahang naa-pahintulot ng wheelchair",
+  "Wheelchair-accessible restroom": "Palikurang naa-pahintulot ng wheelchair",
+  "Wheelchair-accessible seating": "Upuang naa-pahintulot ng wheelchair",
+  "Takeout": "Pag-uuwi ng pagkain",
+  "Outdoor seating": "Upuan sa labas",
+  "Wi-Fi": "Wi-Fi",
+  "Restroom": "Palikuran",
+  "Air conditioning": "Pagpapalamig ng hangin",
+  "Coffee specialty": "Espesyalidad sa kape",
+  "Fresh pastries": "Mga bagong tinapay",
+  "Live music": "Agad na musika",
+  "Live sports": "Agad na palakasan",
+  "Breakfast": "Almusal",
+  "Lunch": "Tanghalian",
+  "Dinner": "Hapunan",
+  "Groups": "Mga grupo",
+  "Solo dining": "Kainan para sa mag-isa",
+  "Coffee": "Kape",
+  "Tea": "Tsaa",
+  "Desserts": "Mga panghimagas",
+  "Vegetarian options": "Mga pagkaing walang karne",
+  "Cash": "Salapi",
+  "Bank transfer": "Paglilipat sa bangko",
+  "Credit cards": "Mga kredito kard",
+  "Debit cards": "Mga debito kard",
+  "Free parking": "Libreng paradahan",
+  "Paid parking": "May bayad na paradahan",
+  "Street parking": "Paradahan sa kalye",
+  "Admin Hub": "Sentro ng Tagapangasiwa",
+  "Admin workspace": "Sentro ng Tagapangasiwa",
+  "Your workspace": "Iyong lugar-gawaan",
+  "Community Buzz": "Balita ng komunidad",
+  "Add a place": "Magdagdag ng lugar",
+  "Place details": "Mga detalye ng lugar",
+  "Edit establishment": "Baguhin ang establisyimento",
+  "Business posts": "Mga paskil ng negosyo",
+  "Welcome": "Maligayang pagdating",
+  "Local explorer": "Lokal na tagatuklas",
+  "Your neighborhood": "Iyong komunidad",
+  "Manage establishments, users, posts, claims, and reports in one place.": "Pamahalaan sa iisang lugar ang mga establisyimento, gumagamit, paskil, pag-angkin, at ulat.",
+  "Manage your listings, daily operations, and customer messages.": "Pamahalaan ang mga listing, araw-araw na operasyon, at mensahe ng mamimili.",
+  "Buzz Posts": "Mga Balita paskil",
+  "Additional Details": "Karagdagang detalye",
+  "Amount Requested:": "Hinihinging halaga:",
+  "Assigning owner for:": "Itinatakda ang may-ari para sa:",
+  "Authentication": "Pagpapatunay ng pagkakakilanlan",
+  "Barangay location": "Lokasyon sa barangay",
+  "Business requested:": "Hiniling ng negosyo:",
+  "Choose category": "Pumili ng kategorya",
+  "Claimant": "Naghahabol ng pagmamay-ari",
+  "Click to manually assign owner": "Pindutin para magtalaga ng may-ari",
+  "Click to view on map": "Pindutin para makita sa mapa",
+  "Consultation, inquiry, appointment...": "Konsultasyon, pagtatanong, appointment...",
+  "Could not load. Please try again later.": "Hindi maihanda. Pakisubukan muli mamaya.",
+  "Design your store's loyalty stamp card. The preview is live — drag to rotate, tap": "Idisenyo ang loyalty tatak kard ng tindahan. Agad ang paunang tanaw — i-hilahin para paikutin, pindutin",
+  "(drag to rotate, tap": "(i-hilahin para paikutin, pindutin",
+  "Display name of poster": "Pangalang ipapakita ng nagpaskil",
+  "Display name of the sender": "Pangalang ipapakita ng nagpadala",
+  "Enter user's email...": "Ilagay ang sulatroniko ng gumagamit...",
+  "Enter user's registered email address:": "Ilagay ang rehistradong sulatroniko ng gumagamit:",
+  "Filipino (Tagalog)": "Filipino (Tagalog)",
+  "Food finder for Vicinify": "Tagahanap ng pagkain sa Vicinify",
+  "Hi, I can help you find food places, compare ratings, check distance, and suggest what fits your location.": "Kumusta! Matutulungan kitang maghanap ng kainan, maghambing ng marka, tumingin ng layo, at pumili ng bagay sa lokasyon mo.",
+  "House/Street:": "Bahay/kalye:",
+  "Landmark / Notes:": "Palatandaan / mga tala:",
+  "Landmark / Location notes e.g., tabi ng red na bahay, malapit sa kanto, blue gate": "Palatandaan / tala sa lokasyon, hal. katabi ng pulang bahay, malapit sa kanto, asul na gate",
+  "Message text from customer": "Teksto ng mensahe ng mamimili",
+  "No public reviews yet. Completed transactions will appear here as verified reviews when customers choose public posting.": "Wala pang pampublikong pagsusuri. Lalabas dito ang mga pagsusuri mula sa natapos na transaksyon kapag piniling ibahagi ng mamimili sa publiko.",
+  "Paid directly to": "Direktang binayaran kay",
+  "Places from this search": "Mga lugar mula sa paghahanap na ito",
+  "Public feedback signal": "Palatandaan ng pampublikong puna",
+  "Recommended": "Inirerekomenda",
+  "Reference / Notes:": "Sanggunian / mga tala:",
+  "Reply from the business owner": "Sagot mula sa may-ari ng negosyo",
+  "Status:": "Katayuan:",
+  "Street address in Lipa City": "Tirahan ng kalye sa Lipa City",
+  "Type of establishment": "Uri ng establisyimento",
+  "Type of post": "Uri ng paskil",
+  "Unable to load reviews.": "Hindi maihanda ang mga pagsusuri.",
+  "What are you craving?": "Ano ang gusto mong kainin?",
+  "Your request with": "Ang kahilingan mo sa",
+  "accepted / confirmed": "tinanggap / kinumpirma",
+  "e.g. Free coffee": "Hal. libreng kape",
+  "e.g. GCash, Maya, Cash, Bank Transfer": "Hal. GCash, Maya, salapi, paglilipat sa bangko",
+  "e.g., 5": "Hal. 5",
+  "to flip)": "para baligtarin)",
+  "to flip. Works even without internet or quota.": "para baligtarin. Gumagana kahit walang internet o natitirang hangganan ng paggamit.",
+  "✅ Requirements Submitted": "✅ Naisumite ang mga kailangan",
+  "✓ Verified Transaction": "✓ Beripikadong transaksyon",
+  "⭐ Rate & Feedback": "⭐ Marka at puna",
+  "⭐ 1 - Bad Experience": "⭐ 1 - Hindi magandang karanasan",
+  "⭐⭐ 2 - Not Satisfied": "⭐⭐ 2 - Hindi nasiyahan",
+  "⭐⭐⭐ 3 - Okay": "⭐⭐⭐ 3 - Katamtaman",
+  "⭐⭐⭐⭐ 4 - Satisfied": "⭐⭐⭐⭐ 4 - Nasiyahan",
+  "⭐⭐⭐⭐⭐ 5 - Very Satisfied": "⭐⭐⭐⭐⭐ 5 - Lubos na nasiyahan",
+  "🌟 Customer Feedback": "🌟 Puna ng mamimili",
+  "🏠 Delivery Address": "🏠 Tirahan ng paghahatid",
+  "💳 Payment Details": "💳 Mga detalye ng bayad",
+  "💳 Payment Summary": "💳 Buod ng bayad",
+  "📍 Delivery Card": "📍 Kard ng paghahatid",
+  "📍 Shared Location": "📍 Ibinahaging lokasyon",
+  "📝 Order Details": "📝 Mga detalye ng bilin",
+  "🧾 Order Summary": "🧾 Buod ng bilin",
+  "1. What would you like to do?": "1. Ano ang nais mong gawin?",
+  "1. Use of the Platform": "1. Paggamit ng plataporma",
+  "2. Account Responsibilities": "2. Mga pananagutan sa akawnt",
+  "3. System Limitations": "3. Mga limitasyon ng sistema",
+  "4. Data Accuracy": "4. Katumpakan ng datos",
+  "5. General User Obligations": "5. Mga pangkalahatang tungkulin ng gumagamit",
+  "6. Terms of Participating Food Establishments": "6. Mga tuntunin para sa mga kalahok na kainan",
+  "Welcome to Vicinify: An AI-Assisted Food Establishment Locator and Recommendation System in Lipa City. By creating an account and using Vicinify, you agree to the following terms. Please read them carefully.": "Maligayang pagdating sa Vicinify, isang sistema na may tulong ng Katulong para maghanap at magrekomenda ng mga kainan sa Lipa City. Sa paggawa ng akawnt at paggamit ng Vicinify, sumasang-ayon ka sa mga sumusunod na tuntunin. Pakibasa nang mabuti.",
+  "Vicinify may update these terms from time to time. Continued use of the platform after an update means the user accepts the updated terms.": "Maaaring baguhin ng Vicinify ang mga tuntuning ito paminsan-minsan. Ang patuloy na paggamit matapos ang pagbabago ay nangangahulugang tinatanggap ng gumagamit ang nabago na mga tuntunin.",
+  "You may cancel for free while your request is still pending. Once the establishment accepts it, cancelling refunds the establishment's stated rate (shown on your order card). Once preparation starts, cancellation is no longer available.": "Maaari kang magkansela nang libre habang naghihintay pa ang kahilingan. Kapag tinanggap na ng establisyimento, ang ibabalik na bayad ay ayon sa nakasaad nitong rate sa iyong bilin kard. Hindi na maaaring magkansela kapag nagsimula ang paghahanda.",
+  "Success": "Tagumpay",
+  "Something went wrong": "May nagkaproblema",
+  "Heads up": "Paalala",
+  "Info": "Impormasyon",
+  "Confirm": "Kumpirmahin",
+  "Accept this payment?": "Tanggapin ang bayad na ito?",
+  "Account Not Verified": "Hindi pa napatunayan ang akawnt",
+  "Account created successfully! A verification link has been sent to your email. Please verify to access all features.": "Nagawa na ang akawnt! Naipadala sa sulatroniko mo ang pagpapatunay ugnay. Magpa-verify para magamit ang lahat ng gamit.",
+  "Admin access is required for this action.": "Kailangan ang pahintulot ng tagapangasiwa para sa aksyong ito.",
+  "Business Profile Updated Successfully!": "Nabago na ang pagkakakilanlan ng negosyo!",
+  "Business info confirmed. Freshness status updated.": "Nakumpirma ang detalye ng negosyo. Nabago ang katayuan ng impormasyon.",
+  "Business name must be at least 3 characters.": "Kailangang may hindi bababa sa 3 tanda ang pangalan ng negosyo.",
+  "Business name must be at most 120 characters.": "Hanggang 120 tanda lamang ang pangalan ng negosyo.",
+  "Cancellation is no longer available at this stage.": "Hindi na maaaring magkansela sa yugtong ito.",
+  "Change Role": "Palitan ang tungkulin",
+  "Claim Business": "I-pag-angkin ang negosyo",
+  "Claim approved. The claimant is now the establishment owner.": "Naaprubahan ang pag-angkin. Ang nag-pag-angkin na ang may-ari ng establisyimento.",
+  "Claim not found.": "Hindi makita ang pag-angkin.",
+  "Claim request sent! Show the card to the owner.": "Naipadala ang pag-angkin kahilingan! Ipakita ang kard sa may-ari.",
+  "Claim request submitted for admin review.": "Naisumite ang pag-angkin kahilingan para suriin ng tagapangasiwa.",
+  "Clear recent AI chats?": "Burahin ang mga nakaraang Katulong usapan?",
+  "Confirm Completed": "Kumpirmahing tapos na",
+  "Could not load payment details. Try again.": "Hindi maihanda ang detalye ng bayad. Subukan muli.",
+  "Could not load the scanner. Please check your connection and try again.": "Hindi maihanda ang pambasa ng kodigo. Suriin ang koneksyon at subukan muli.",
+  "Could not open post. Please try again.": "Hindi mabuksan ang paskil. Pakisubukan muli.",
+  "Could not open the camera. Please allow camera access and try again.": "Hindi mabuksan ang camera. Payagan ang pahintulot sa camera at subukan muli.",
+  "Could not open this conversation. Please try again.": "Hindi mabuksan ang pag-uusap. Pakisubukan muli.",
+  "Could not update status. Please try again.": "Hindi mabago ang katayuan. Pakisubukan muli.",
+  "Current password is incorrect.": "Mali ang kasalukuyang kontrasenyas.",
+  "Delete Update": "Burahin ang pagbabago",
+  "Delivery request accepted. Delivery details card is now ready for the customer.": "Tinanggap ang kahilingan sa paghahatid. Handa na ang kard ng detalye para sa mamimili.",
+  "Delivery status updated.": "Nabago ang katayuan ng paghahatid.",
+  "Description must be at least 10 characters.": "Kailangang may hindi bababa sa 10 tanda ang paglalarawan.",
+  "Description must be at most 1000 characters.": "Hanggang 1000 tanda lamang ang paglalarawan.",
+  "Enter a valid amount greater than zero, with up to two decimal places.": "Maglagay ng wastong halagang higit sa zero, hanggang dalawang decimal place.",
+  "Error updating favorites. Please try again later.": "Hindi mabago ang mga paborito. Pakisubukan muli mamaya.",
+  "Error: No user found with that email. Make sure they registered in the app first.": "Walang gumagamit na may sulatroniko na iyon. Tiyaking nakarehistro muna siya sa aplikasyon.",
+  "Establishment Submitted to Cloud! (Pending Admin Approval)": "Naisumite na ang establisyimento sa imbakan sa internet! Naghihintay ng pag-apruba ng tagapangasiwa.",
+  "Establishment approved and published!": "Naaprubahan at nailathala ang establisyimento!",
+  "Establishment name must be at least 3 characters.": "Kailangang may hindi bababa sa 3 tanda ang pangalan ng establisyimento.",
+  "Free database quota is exhausted for today. Please try again later.": "Naubos na ang libreng imbakan ng datos hangganan ng paggamit ngayong araw. Pakisubukan muli mamaya.",
+  "Getting your location...": "Kinukuha ang iyong lokasyon...",
+  "Give Feedback": "Magbigay ng puna",
+  "Hide Chat": "Itago ang usapan",
+  "Hide Conversation": "Itago ang pag-uusap",
+  "Hide Record": "Itago ang rekord",
+  "Location is not supported on this device.": "Hindi suportado ng aparato na ito ang lokasyon.",
+  "Location sharing is not supported on this device.": "Hindi suportado ng aparato na ito ang pagbabahagi ng lokasyon.",
+  "Log in to comment!": "Pumasok para magkomento!",
+  "Map reset to defaults.": "Naibalik ang paunang pili na ayos ng mapa.",
+  "Marked as claimed. 🎁": "Namarkahang nakuha na. 🎁",
+  "Maximum 5 photos only": "Hanggang 5 larawan lamang",
+  "Menu/store post published.": "Nailathala na ang talaan ng pagkain/paskil ng tindahan.",
+  "Mini map not ready.": "Hindi pa handa ang maliit na mapa.",
+  "Mini map not ready. Paki-refresh ang page.": "Hindi pa handa ang maliit na mapa. Paki-muling buksan ang pahina.",
+  "Missing establishment details.": "Kulang ang detalye ng establisyimento.",
+  "Navigation is still loading. Check your connection.": "Inihahanda pa ang paglalakbay. Suriin ang koneksyon.",
+  "Navigation stopped.": "Itinigil ang paglalakbay.",
+  "New password and confirmation do not match.": "Hindi magkatugma ang bagong kontrasenyas at kumpirmasyon.",
+  "New password must be at least 8 characters with uppercase, lowercase, a number, and a special character (!@#$%).": "Kailangang may hindi bababa sa 8 tanda ang bagong kontrasenyas, na may malaking titik, maliit na titik, numero, at espesyal na tanda (!@#$%).",
+  "No active delivery/details request yet. Wait for the business to accept or request details.": "Wala pang aktibong kahilingan sa paghahatid/detalye. Hintaying tanggapin ito ng negosyo o humingi sila ng detalye.",
+  "No establishment selected.": "Walang napiling establisyimento.",
+  "Only the approved business owner can post as this establishment.": "Ang naaprubahang may-ari lamang ang maaaring magpaskil bilang establisyimentong ito.",
+  "Only the approved owner or an admin can share this post.": "Ang naaprubahang may-ari o tagapangasiwa lamang ang maaaring magbahagi ng paskil na ito.",
+  "Only the business owner can request requirements from a customer.": "Ang may-ari lamang ng negosyo ang maaaring humingi ng mga kailangan mula sa mamimili.",
+  "Only the owner or an admin can delete this update.": "Ang may-ari o tagapangasiwa lamang ang maaaring magbura ng pagbabago na ito.",
+  "Only the owner or an admin can edit the Suki Card.": "Ang may-ari o tagapangasiwa lamang ang maaaring magbago ng Suki Kard.",
+  "Only the owner or an admin can edit this business profile.": "Ang may-ari o tagapangasiwa lamang ang maaaring magbago ng pagkakakilanlan ng negosyo.",
+  "Only the owner or an admin can edit this post.": "Ang may-ari o tagapangasiwa lamang ang maaaring magbago ng paskil na ito.",
+  "Only the owner or an admin can post updates for this establishment.": "Ang may-ari o tagapangasiwa lamang ang maaaring magpaskil ng pagbabago para sa establisyimentong ito.",
+  "Open a customer conversation from Business Hub → Messages.": "Buksan ang pag-uusap ng mamimili sa Sentro ng Negosyo → Mga Mensahe.",
+  "Open the Map page once to load the post modal.": "Buksan muna ang Mapa para maihanda ang paskil pormularyo.",
+  "Password cannot be empty.": "Hindi maaaring walang laman ang kontrasenyas.",
+  "Password reset email sent! Please check your inbox or spam folder.": "Naipadala ang sulatroniko para sa pagbabalik ng kontrasenyas! Tingnan ang kahon ng mensahe o spam folder.",
+  "Password updated successfully!": "Napalitan na ang kontrasenyas!",
+  "Payment details submitted. Waiting for business verification.": "Naisumite ang detalye ng bayad. Naghihintay ng pagpapatunay ng negosyo.",
+  "Photos only. Please choose an image.": "Mga larawan lamang. Pumili ng larawan.",
+  "Pin moved to your location.": "Nailipat ang pananda sa iyong lokasyon.",
+  "Please add a caption or upload a photo!": "Maglagay ng paliwanag sa larawan o maglakip ng larawan!",
+  "Please add a short detail for admin.": "Maglagay ng maikling detalye para sa tagapangasiwa.",
+  "Please agree to the Terms and Conditions to create your account.": "Sumang-ayon muna sa Mga Tuntunin at Kondisyon para gumawa ng akawnt.",
+  "Please attach your current location.": "Ilakip ang iyong kasalukuyang lokasyon.",
+  "Please choose today or a future date and time.": "Piliin ang kasalukuyan o darating na petsa at oras.",
+  "Please complete the delivery address, city, and landmark/location notes.": "Kumpletuhin ang tirahan ng paghahatid, lungsod, at palatandaan/tala ng lokasyon.",
+  "Please create a Strong Password based on the requirements below.": "Gumawa ng malakas na kontrasenyas ayon sa mga kailangan sa ibaba.",
+  "Please enter additional details.": "Ilagay ang karagdagang detalye.",
+  "Please enter the amount paid.": "Ilagay ang halagang ibinayad.",
+  "Please enter the delivery address.": "Ilagay ang tirahan ng paghahatid.",
+  "Please enter the number of guests.": "Ilagay ang bilang ng mga bisita.",
+  "Please enter the order/items details.": "Ilagay ang detalye ng bilin/mga item.",
+  "Please enter your email and password.": "Ilagay ang iyong sulatroniko at kontrasenyas.",
+  "Please enter your full name.": "Ilagay ang iyong buong pangalan.",
+  "Please enter your online payment reference number so the business can verify it.": "Ilagay ang sanggunian number ng sa internet na bayad para ma-verify ito ng negosyo.",
+  "Please fill Business Name, Category, Address, Barangay, and Description.": "Punan ang pangalan ng negosyo, kategorya, tirahan, barangay, at paglalarawan.",
+  "Please fill Business Name, Category, Description, and Address.": "Punan ang pangalan ng negosyo, kategorya, paglalarawan, at tirahan.",
+  "Please fill Name, Category, Description, Address, and Barangay.": "Punan ang pangalan, kategorya, paglalarawan, tirahan, at barangay.",
+  "Please fill in current, new, and confirm password fields.": "Punan ang kasalukuyang kontrasenyas, bagong kontrasenyas, at kumpirmasyon ng kontrasenyas.",
+  "Please log in first to access the chat.": "Pumasok muna para magamit ang usapan.",
+  "Please log in first.": "Pumasok muna.",
+  "Please log in to like!": "Pumasok para mag-like!",
+  "Please log in to save favorites.": "Pumasok para mag-save ng mga paborito.",
+  "Please open the Map page at least once to load the Modal system.": "Buksan muna ang Mapa para maihanda ang mga kahon ng usapan.",
+  "Please select a Date and Time.": "Pumili ng petsa at oras.",
+  "Please select a payment method.": "Pumili ng paraan ng pagbabayad.",
+  "Please select a valid rating.": "Pumili ng wastong marka.",
+  "Please select an establishment!": "Pumili ng establisyimento!",
+  "Please select at least one requirement.": "Pumili ng kahit isang kailangan.",
+  "Please verify your email address first.": "Patunayan muna ang iyong sulatroniko tirahan.",
+  "Post content is empty!": "Walang laman ang paskil!",
+  "Post deleted successfully.": "Nabura na ang paskil.",
+  "Post no longer exists.": "Wala na ang paskil.",
+  "Post published.": "Nailathala na ang paskil.",
+  "Profile saved successfully to Cloud!": "Nailagak na sa imbakan sa internet ang iyong pagkakakilanlan!",
+  "Question sent. Automatic reply is unavailable right now; the business can still respond.": "Naipadala ang tanong. Hindi mayroon ngayon ang awtomatikong sagot; maaari pa ring sumagot ang negosyo.",
+  "Rating saved.": "Nailagak na ang marka.",
+  "Record successfully updated!": "Nabago na ang rekord!",
+  "Remove Favorite": "Alisin sa mga paborito",
+  "Removed from favorites.": "Naalis sa mga paborito.",
+  "Report submitted. Admin can review it.": "Naisumite na ang ulat. Maaari na itong suriin ng tagapangasiwa.",
+  "Request cancelled. Any refund must be arranged with the business.": "Kinansela ang kahilingan. Kausapin ang negosyo tungkol sa anumang ibabalik na bayad.",
+  "Requirement request no longer exists.": "Wala na ang kahilingan para sa mga kailangan.",
+  "Requirement request sent.": "Naipadala ang kahilingan para sa mga kailangan.",
+  "Requirement response no longer exists.": "Wala na ang sagot sa mga kailangan.",
+  "Requirements confirmed. Verify online payment proof before starting preparation.": "Nakumpirma ang mga kailangan. Patunayan ang patunay ng sa internet na bayad bago maghanda.",
+  "Requirements submitted.": "Naisumite ang mga kailangan.",
+  "Reset Password": "Ibalik ang kontrasenyas",
+  "Role updated successfully!": "Nabago na ang tungkulin!",
+  "Send this request?": "Ipadala ang kahilingan na ito?",
+  "Showing a limited catalog. Some establishments may not appear.": "Limitadong katalogo ang ipinapakita. Maaaring may mga establisyimentong hindi kasama.",
+  "Something went wrong. Check console.": "May nagkaproblema. Tingnan ang console.",
+  "Stamp approved! 🎉": "Naaprubahan ang tatak! 🎉",
+  "Stamp request cancelled.": "Kinansela ang tatak kahilingan.",
+  "Stamp request rejected.": "Tinanggihan ang tatak kahilingan.",
+  "Store not found.": "Hindi makita ang tindahan.",
+  "Success! Establishment Submitted for Admin Approval.": "Tagumpay! Naisumite ang establisyimento para sa pag-apruba ng tagapangasiwa.",
+  "Success! Establishment approved and published.": "Tagumpay! Naaprubahan at nailathala ang establisyimento.",
+  "Successfully added to favorites!": "Naidagdag sa mga paborito!",
+  "Suki Card saved!": "Nailagak na ang Suki Kard!",
+  "Thank you! Your rating and feedback were submitted.": "Salamat! Naisumite ang iyong marka at puna.",
+  "That password is too weak.": "Masyadong mahina ang kontrasenyas.",
+  "This establishment has no valid map location.": "Walang wastong lokasyon sa mapa ang establisyimentong ito.",
+  "This establishment is unavailable.": "Hindi mayroon ang establisyimentong ito.",
+  "This is the permanent admin account. Its role can never be changed.": "Ito ang permanenteng tagapangasiwa akawnt. Hindi mababago ang tungkulin nito.",
+  "This is your own establishment. You cannot send a request to yourself.": "Sarili mong establisyimento ito. Hindi ka maaaring magpadala ng kahilingan sa sarili mo.",
+  "This menu/store post no longer exists.": "Wala na ang talaan ng pagkain/paskil ng tindahang ito.",
+  "This place is no longer available on the map.": "Hindi na mayroon sa mapa ang lugar na ito.",
+  "This request is not awaiting online payment details.": "Hindi naghihintay ng detalye ng sa internet na bayad ang kahilingan na ito.",
+  "This store has no Suki Card.": "Walang Suki Kard ang tindahang ito.",
+  "This update cannot be deleted because its record ID is missing.": "Hindi mabura ang pagbabago dahil walang tala Pagkakakilanlan.",
+  "This update was already deleted.": "Nabura na ang pagbabago na ito.",
+  "Too many failed attempts. Please try again later.": "Masyadong maraming bigong pagsubok. Pakisubukan muli mamaya.",
+  "Too many failed attempts. Please wait a few minutes.": "Masyadong maraming bigong pagsubok. Maghintay ng ilang minuto.",
+  "Transaction completed. Please leave a rating and feedback.": "Tapos na ang transaksyon. Magbigay ng marka at puna.",
+  "Transaction confirmed. Please leave a rating and feedback.": "Nakumpirma ang transaksyon. Magbigay ng marka at puna.",
+  "Transaction history is kept for records and cannot be deleted.": "Iniingatan ang kasaysayan ng transaksyon at hindi ito maaaring burahin.",
+  "Unable to get location. Please allow location permission.": "Hindi makuha ang lokasyon. Payagan ang pahintulot sa lokasyon.",
+  "Unable to get your location. Please allow location permission.": "Hindi makuha ang iyong lokasyon. Payagan ang pahintulot sa lokasyon.",
+  "Unable to load this establishment.": "Hindi maihanda ang establisyimentong ito.",
+  "Unable to verify the establishment for this post.": "Hindi ma-verify ang establisyimento para sa paskil na ito.",
+  "Verification email sent! Please check your inbox or spam folder.": "Naipadala na ang pagpapatunay sulatroniko! Tingnan ang kahon ng mensahe o spam folder.",
+  "We need your location to start navigation.": "Kailangan ang iyong lokasyon para simulan ang paglalakbay.",
+  "You already have a pending claim for this establishment.": "May naghihintay ka nang pag-angkin para sa establisyimentong ito.",
+  "You already submitted feedback for this transaction.": "Nakapagbigay ka na ng puna para sa transaksyong ito.",
+  "You cannot favorite your own establishment.": "Hindi mo maaaring gawing paborito ang sarili mong establisyimento.",
+  "You cannot open another customer’s conversation.": "Hindi mo maaaring buksan ang pag-uusap ng ibang mamimili.",
+  "You must be logged in to add an establishment.": "Kailangang nakapasok para magdagdag ng establisyimento.",
+  "You must be logged in to change your password.": "Kailangang nakapasok para palitan ang kontrasenyas.",
+  "You must be logged in to reset your password.": "Kailangang nakapasok para ibalik ang kontrasenyas.",
+  "You must be logged in to save your profile.": "Kailangang nakapasok para i-save ang pagkakakilanlan.",
+  "You need to log in to post!": "Kailangan mong pumasok para magpaskil!",
+  "Your account has been removed from the system. You will be logged out.": "Inalis na ang iyong akawnt sa sistema. Ilalabas ka.",
+  "Your account is already verified or you are not logged in.": "Beripikado na ang akawnt mo o hindi ka nakapasok.",
+  "Your account is unverified. Please check your email to verify your account.": "Hindi pa napatunayan ang akawnt mo. Tingnan ang sulatroniko para patunayan ito.",
+  "Your sign-in account and profile were deleted. Related history records may remain for business and transaction records.": "Nabura na ang iyong sign-in akawnt at pagkakakilanlan. Maaaring manatili ang kaugnay na kasaysayan para sa mga rekord ng negosyo at transaksyon.",
+  "❌ INCORRECT PASSWORD! Account deletion failed.": "❌ MALI ANG Kontrasenyas! Hindi nabura ang akawnt.",
+  "Error:": "Suliranin:",
+  "Error saving:": "Hindi nailagak:",
+  "Error sending request:": "Hindi naipadala ang kahilingan:",
+  "Error sending message:": "Hindi naipadala ang mensahe:",
+  "Error sending email:": "Hindi naipadala ang sulatroniko:",
+  "Error saving profile:": "Hindi nailagak ang pagkakakilanlan:",
+  "Error deleting post:": "Hindi nabura ang paskil:",
+  "Error deleting conversation:": "Hindi nabura ang pag-uusap:",
+  "Error logging out:": "Hindi makapag-talaan out:",
+  "Error loading more:": "Hindi maihanda ang karagdagan:",
+  "Error adding establishment:": "Hindi naidagdag ang establisyimento:",
+  "Error confirming completed:": "Hindi nakumpirma ang pagkumpleto:",
+  "Error confirming received:": "Hindi nakumpirma ang pagtanggap:",
+  "Error confirming requirements:": "Hindi nakumpirma ang mga kailangan:",
+  "Error updating delivery status:": "Hindi nabago ang katayuan ng paghahatid:",
+  "Error updating record:": "Hindi nabago ang rekord:",
+  "Error updating request:": "Hindi nabago ang kahilingan:",
+  "Error submitting feedback:": "Hindi naisumite ang puna:",
+  "Error submitting requirements:": "Hindi naisumite ang mga kailangan:",
+  "Error opening requirement form:": "Hindi mabuksan ang pormularyo ng mga kailangan:",
+  "Unable to confirm info:": "Hindi makumpirma ang impormasyon:",
+  "Unable to share to Buzz:": "Hindi maibahagi sa Balita:",
+  "Unable to submit claim:": "Hindi maisumite ang pag-angkin:",
+  "Unable to submit report:": "Hindi maisumite ang ulat:",
+  "Could not cancel this request.": "Hindi makansela ang kahilingan na ito.",
+  "Payment review was not saved.": "Hindi nailagak ang pagsusuri ng bayad.",
+  "Vegan options": "Mga pagkaing mula lamang sa halaman",
+  "Late-night food": "Pagkain sa gabi",
+  "Updated today": "Nabago ngayong araw",
+  "Needs confirmation": "Kailangang kumpirmahin",
+  "Unconfirmed": "Hindi pa nakumpirma",
+  "List": "Listahan",
+  "View full-size image": "Tingnan ang buong laki ng larawan",
+  "No written feedback.": "Walang nakasulat na puna.",
+  "Just now": "Ngayon lang",
+  "Sent": "Naipadala",
+  "Seen": "Nabasa",
+  "Expired": "Nag-expire",
+  "Payment Submitted": "Naisumite ang bayad",
+  "Payment Confirmed": "Nakumpirma ang bayad",
+  "Out for Delivery": "Papasok na sa paghahatid",
+  "Unverified": "Hindi napatunayan",
+  "Stamp request sent! Please wait for the owner's approval.": "Naipadala ang tatak kahilingan! Hintaying aprubahan ng may-ari.",
+  "You already have a pending stamp request — waiting for the owner's approval.": "May naghihintay ka nang tatak kahilingan — hinihintay ang pag-apruba ng may-ari.",
+  "This is your own store — you can't request a stamp from yourself.": "Sarili mong tindahan ito — hindi ka maaaring humiling ng tatak sa sarili mo.",
+  "stamps": "mga tatak",
+  "All Barangays": "Lahat ng barangay",
+  "No establishments found.": "Walang nakitang establisyimento.",
+  "Your local companion": "Iyong kasama sa komunidad",
+  "Vicinify helps users discover, locate, and learn about food establishments in Lipa City through an interactive map, a list view, AI-assisted recommendations (Vici AI), reservations and order requests, real-time chat, the Buzz community feed, and the Suki Card loyalty feature. The platform may be used only for lawful, personal, and non-commercial purposes related to these features.": "Tinutulungan ng Vicinify ang mga gumagamit na tumuklas at makilala ang mga kainan sa Lipa City sa pamamagitan ng mapa, listahan, mga rekomendasyon ng Vicinify Katulong, reserbasyon at bilin kahilingan, agad usapan, Balita, at Suki Kard. Gamitin lamang ang plataporma para sa legal, personal, at di-komersyal na layuning kaugnay ng mga gamit na ito.",
+  "Users must provide true and accurate information when registering and are responsible for keeping their password confidential and for all activities performed under their account. A verified email address is required before an account can post content, send requests, or perform other write actions in the system. Users must immediately stop using an account that is not theirs.": "Dapat magbigay ang gumagamit ng totoo at tamang impormasyon sa pagpaparehistro. Pananagutan niya ang pagiging lihim ng kontrasenyas at lahat ng aktibidad sa akawnt. Kailangan ang napatunayang sulatroniko bago makapagpapaskil, makapagpadala ng kahilingan, o makapagsulat ng datos sa sistema. Itigil agad ang paggamit sa akawnt na hindi sa iyo.",
+  "Vicinify is a locator and recommendation platform. Distances and locations depend on the accuracy of the device's GPS and on available map data, and recommendations given by Vici AI are suggestions based on listed information, not guarantees of quality, price, or availability. Vicinify does not process payments inside the application and does not operate delivery services; some features may also be unavailable during maintenance or connectivity problems.": "Ang Vicinify ay plataporma para sa paghahanap at rekomendasyon. Nakadepende ang layo at lokasyon sa GPS ng aparato at mayroon na mapa. Ang rekomendasyon ng Vicinify Katulong ay batay sa nakalistang impormasyon at hindi garantiya ng kalidad, presyo, o pagkakaroon. Hindi nagpoproseso ng bayad o nagpapatakbo ng paghahatid ang Vicinify. Maaaring hindi mayroon ang ilang gamit habang may maintenance o problema sa koneksyon.",
+  "Establishment information such as addresses, operating hours, menus, prices, and availability is provided and maintained by the establishments and contributing users, and may change without notice. Users are encouraged to verify important details with the establishment and to report incorrect information through the Report feature so it can be reviewed by the administrators.": "Ang tirahan, oras, talaan ng pagkain, presyo, at pagkakaroon ay inilalagay at pinananatili ng mga establisyimento at nag-aambag na gumagamit. Maaaring magbago ang mga ito nang walang abiso. Kumpirmahin ang mahahalagang detalye sa establisyimento at gamitin ang pag-uulat para maitama ng tagapangasiwa ang maling impormasyon.",
+  "Users must not submit false establishments, false reviews, spam, or abusive content in any part of the platform, including Buzz posts and chat messages. Reviews may be submitted only after a completed transaction with the establishment. Administrators may remove content or restrict accounts that violate these terms.": "Bawal ang pekeng establisyimento, pekeng pagsusuri, spam, o mapang-abusong nilalaman, kabilang ang Balita at usapan. Maaari lamang mag-pagsusuri matapos ang natapos na transaksyon sa establisyimento. Maaaring alisin ng tagapangasiwa ang nilalaman o limitahan ang akawnt na lumalabag sa mga tuntunin.",
+  "Participating food establishments may set their own terms regarding reservations, bookings, pre-orders, cancellations and refund percentages, pickup arrangements, and delivery arrangements, which are shown in the request process, including the cancellation policy notice. Payment is arranged directly between the user and the establishment. Users are responsible for reviewing and following the applicable establishment terms before proceeding with any request.": "Maaaring magtakda ang kalahok na kainan ng sariling tuntunin para sa reserbasyon, pagpapareserba, paunang bilin, pagkansela, ibabalik na bayad, pagkuha, at paghahatid. Ipinapakita ang mga ito sa pag-kahilingan, kasama ang patakaran sa pagkansela. Direktang inaayos ng gumagamit at establisyimento ang bayad. Pananagutan ng gumagamit na basahin at sundin ang naaangkop na tuntunin bago mag-kahilingan.",
+  "Location is approximate. Enable precise location for better nearby results.": "Tinatayang lokasyon pa ito. Paganahin ang eksaktong lokasyon para mas tumpak ang mga kalapit na resulta.",
+  "Try location": "Hanapin muli",
+  "Enable location": "Paganahin ang lokasyon",
+  "Locating…": "Kinukuha ang lokasyon…",
+  "Finding your location. Allow access when your browser asks.": "Hinahanap ang iyong lokasyon. Payagan ang pahintulot kapag hiniling ng pantingin sa internet.",
+  "Location ready": "Nakuha na ang lokasyon",
+  "Location is not supported in this browser. Use Safari, Chrome or Edge.": "Hindi suportado ng pantingin sa internet na ito ang lokasyon. Gumamit ng Safari, Chrome, o Edge.",
+  "Location requires a secure HTTPS connection.": "Kailangan ng ligtas na HTTPS connection para sa lokasyon.",
+  "Could not get a valid location. Please try again.": "Hindi makakuha ng wastong lokasyon. Pakisubukan muli.",
+  "Location blocked. Open browser site settings and allow Location. On iPhone, also enable Location Services and Precise Location.": "Naka-block ang lokasyon. Payagan ang Lokasyon sa mga setting ng site sa pantingin sa internet. Sa iPhone, paganahin rin ang Lokasyon Services at Precise Lokasyon.",
+  "Location unavailable. Turn on device Location Services and try again.": "Hindi mayroon ang lokasyon. Paganahin ang Lokasyon Services ng aparato at subukan muli.",
+  "Location timed out. Check GPS or move near a window, then retry.": "Naubos ang oras sa pagkuha ng lokasyon. Suriin ang GPS o lumapit sa bintana at subukan muli.",
+  "Could not find your location. Please retry.": "Hindi makita ang iyong lokasyon. Pakisubukan muli.",
+  "cafe": "Kapihan",
+  "restaurant": "Restawran",
+  "bakery": "Panaderya",
+  "milktea": "Tsaa na may gatas",
+  "snackhouse": "Meryendahan",
+  "foodstall": "Puwesto ng pagkain",
+  "eatery": "Karinderya",
+  "dessert": "Panghimagas",
+  "fastfood": "Mabilisang kainan",
+  "Error": "Suliranin",
+  "No details provided.": "Walang ibinigay na detalye.",
+  "Freshness": "Pagiging bago ng impormasyon",
+  "Vici AI": "Katulong ng Vicinify",
+  "Choose photo": "Pumili ng larawan",
+  "Choose photos": "Pumili ng mga larawan",
+  "No photo selected": "Walang napiling larawan",
+  "Cheap coffee nearby": "Murang kape sa malapit",
+  "Milk tea open now": "Tsaa na may gatas na bukas ngayon",
+  "Best food near me": "Masarap na pagkain sa malapit",
+  "Delivery nearby": "Paghahatid sa malapit",
+  "Could not get an answer": "Hindi makakuha ng sagot",
+  "Vici AI is unavailable. Please try again.": "Hindi magamit ngayon ang katulong ng Vicinify. Pakisubukan muli.",
+  "Vici AI could not connect. Please try again.": "Hindi makakonekta ang katulong ng Vicinify. Pakisubukan muli.",
+  "Overview": "Pangkalahatang tanaw",
+  "Feedback": "Puna",
+  "Review": "Pagsusuri",
+  "Choose File": "Pumili ng larawan",
+  "No file chosen": "Walang napiling larawan",
+  "true": "Oo",
+  "false": "Hindi",
+  "Forest": "Kagubatan",
+  "Mint Linen": "Telang lunti",
+  "Kraft": "Kayumangging papel",
+  "Minimal White": "Payak na puti",
+  "Midnight": "Hatinggabi",
+  "Sorbetes Pastel": "Mapusyaw na sorbetes",
+  "Sunset": "Takipsilim",
+  "Ocean": "Karagatan",
+  "Matcha": "Luntiang tsaa",
+  "Berry": "Munting bungang-kahoy",
+  "No file selected": "Walang napiling larawan",
+  "Current transaction": "Kasalukuyang transaksiyon",
+  "Choose transaction": "Pumili ng transaksiyon",
+  "Accept or decline this request.": "Tanggapin o tanggihan ang kahilingang ito.",
+  "Wait for the business to accept your request.": "Hintaying tanggapin ng negosyo ang iyong kahilingan.",
+  "Waiting for the customer to submit payment details.": "Hinihintay ang detalye ng bayad mula sa mamimili.",
+  "Pay the agreed amount once, then submit your reference.": "Bayaran nang isang beses ang napagkasunduang halaga, saka isumite ang sanggunian ng bayad.",
+  "The business must set the amount and payment instructions first.": "Kailangang ilagay muna ng negosyo ang halaga at paraan ng pagbabayad.",
+  "Edit payment instructions": "Baguhin ang tagubilin sa pagbabayad",
+  "Set payment instructions": "Ilagay ang tagubilin sa pagbabayad",
+  "Correct payment details": "Iwasto ang detalye ng bayad",
+  "Submit payment reference": "Isumite ang sanggunian ng bayad",
+  "Use earlier payment details": "Gamitin ang naunang detalye ng bayad",
+  "Check the reference and money received before verifying payment.": "Suriin ang sanggunian at perang natanggap bago kumpirmahin ang bayad.",
+  "Payment is under review. Do not pay again.": "Sinusuri ang bayad. Huwag magbayad muli.",
+  "Verify payment": "Kumpirmahin ang bayad",
+  "Request correction": "Humiling ng pagwawasto",
+  "Payment and preparation are separate steps.": "Magkahiwalay ang pagkumpirma ng bayad at paghahanda.",
+  "The business is preparing your request.": "Inihahanda ng negosyo ang iyong kahilingan.",
+  "Your request is ready.": "Handa na ang iyong kahilingan.",
+  "Your order is on the way.": "Papunta na ang iyong bilin.",
+  "Confirm only after you receive the order or service.": "Kumpirmahin lamang kapag natanggap na ang bilin o serbisyo.",
+  "Verify the actual payment received before calculating the refund.": "Tiyakin muna ang perang natanggap bago kwentahin ang ibabalik.",
+  "Verify received payment": "Tiyakin ang perang natanggap",
+  "Payment not found": "Hindi makita ang bayad",
+  "Refund due. The business must transfer it manually.": "May halagang dapat ibalik. Kailangang ipadala ito ng negosyo.",
+  "Record refund transfer": "Itala ang pagpapadala ng ibinalik na bayad",
+  "The business recorded a refund transfer. Confirm after checking your account.": "Naitala ng negosyo na naipadala na ang ibinalik na bayad. Kumpirmahin matapos suriin ang iyong kuwenta.",
+  "Confirm refund received": "Kumpirmahing natanggap ang ibinalik na bayad",
+  "The customer confirmed the refund was received.": "Kinumpirma ng mamimili na natanggap ang ibinalik na bayad.",
+  "The business could not find this payment. Check the reference before requesting a recheck.": "Hindi nakita ng negosyo ang bayad. Suriin ang sanggunian bago humiling ng muling pagsusuri.",
+  "Request payment recheck": "Ipasuri muli ang bayad",
+  "Cancelled. No refund is due.": "Kinansela. Walang halagang kailangang ibalik.",
+  "Cancelled. Ask the business to review any earlier payment.": "Kinansela. Ipasuri sa negosyo ang anumang naunang bayad.",
+  "This request is closed.": "Sarado na ang kahilingang ito.",
+  "Amount due": "Halagang dapat bayaran",
+  "Submitted payment": "Isinumiteng bayad",
+  "Refund amount": "Halagang ibabalik",
+  "Payment and request details": "Detalye ng bayad at kahilingan",
+  "Refund reference": "Sanggunian ng ibinalik na bayad",
+  "Business note": "Paalala ng negosyo",
+  "Vicinify records manual payments and refunds. It does not transfer money.": "Itinatala ng Vicinify ang mga direktang bayad at ibinalik na halaga. Hindi ito nagpapadala ng pera.",
+  "Amount due now (₱)": "Halagang dapat bayaran ngayon (₱)",
+  "Payment recipient and instructions": "Tatanggap ng bayad at mga tagubilin",
+  "Include the recipient name, account number and agreed amount. This does not confirm a payment.": "Ilagay ang pangalan ng tatanggap, bilang ng kuwenta at napagkasunduang halaga. Hindi nito kinukumpirma na may natanggap na bayad.",
+  "Amount actually received (₱)": "Halagang talagang natanggap (₱)",
+  "Check your account first. The refund will be calculated using the saved cancellation rate.": "Suriin muna ang iyong kuwenta. Gagamitin sa pagkukuwenta ang nakatalang bahagdan ng ibabalik.",
+  "Explain what needs checking": "Ipaliwanag ang kailangang suriin",
+  "The customer can ask you to recheck. This does not mark a refund received.": "Maaaring humiling ang mamimili ng muling pagsusuri. Hindi nito minamarkahang natanggap na ang ibinalik na bayad.",
+  "Refund transfer reference": "Sanggunian ng pagpapadala ng ibinalik na bayad",
+  "Transfer the displayed refund amount yourself first. Recording a reference does not move money.": "Ipadala muna ang nakasaad na halagang ibabalik. Ang pagtatala ng sanggunian ay hindi nagpapadala ng pera.",
+  "Record transfer": "Itala ang pagpapadala",
+  "Check your account and confirm you received the displayed refund amount.": "Suriin ang iyong kuwenta at kumpirmahing natanggap mo ang nakasaad na halagang ibinalik.",
+  "Use earlier payment details?": "Gamitin ang naunang detalye ng bayad?",
+  "Check this reference belongs to the selected request. It will still require payment verification.": "Tiyaking para sa napiling kahilingan ang sangguniang ito. Kailangan pa ring kumpirmahin ang bayad.",
+  "Transaction updated.": "Nabago na ang transaksiyon.",
+  "Transaction summary could not load. Please try reopening the conversation.": "Hindi maipakita ang buod ng transaksiyon. Suriin ang talatuntunan ng talaan at buksan muli ang usapan.",
+  "Use the current transaction summary to submit payment details.": "Gamitin ang buod ng kasalukuyang transaksiyon sa pagsusumite ng detalye ng bayad.",
+  "Accept a transaction first, then set payment instructions in its summary.": "Tanggapin muna ang transaksiyon, saka ilagay ang tagubilin sa pagbabayad sa buod nito.",
+  "Payment instructions saved in the transaction summary.": "Naitala na sa buod ng transaksiyon ang tagubilin sa pagbabayad.",
+  "Delivery accepted. Submit your address, landmark and location here. Payment is handled separately in the current transaction summary.": "Tinanggap ang paghahatid. Isumite rito ang iyong tirahan, palatandaan at lokasyon. Hiwalay ang pagbabayad sa buod ng kasalukuyang transaksiyon.",
+  "Customer submitted the requested transaction details.": "Isinumite ng mamimili ang hinihinging detalye ng transaksiyon.",
+  "Earlier payment details": "Naunang detalye ng bayad",
+  "Payment verification is shown in the current transaction summary. Confirming these details does not verify a payment.": "Makikita sa buod ng kasalukuyang transaksiyon ang pagkumpirma ng bayad. Ang pagtanggap sa mga detalyeng ito ay hindi pagkumpirma ng bayad.",
+  "Details confirmed — payment is separate": "Tinanggap na ang mga detalye — hiwalay ang bayad",
+  "Details submitted for review": "Isinumite na ang mga detalye para masuri",
+  "No payment is recorded. No refund transfer is needed.": "Walang naitalang bayad. Walang halagang kailangang ibalik.",
+  "The business must verify money received before a refund is calculated. Follow the refund status in the transaction summary.": "Kailangang tiyakin muna ng negosyo ang perang natanggap bago kwentahin ang ibabalik. Subaybayan ang kalagayan nito sa buod ng transaksiyon.",
+  "Wait for the business to set the amount and payment instructions.": "Hintaying ilagay ng negosyo ang halaga at tagubilin sa pagbabayad.",
+  "The submitted amount does not match the agreed amount due. Ask the business to correct the amount if needed; do not pay twice.": "Hindi tugma ang isinumiteng halaga sa napagkasunduang bayad. Ipaayos sa negosyo ang halaga kung kailangan; huwag magbayad nang dalawang beses.",
+  "Enter the payment recipient and instructions (8–1000 characters).": "Ilagay ang tatanggap ng bayad at mga tagubilin (8–1000 tanda).",
+  "Enter the refund transfer reference.": "Ilagay ang sanggunian ng ibinalik na bayad.",
+  "Only the business can set payment instructions before payment review.": "Ang negosyo lamang ang maaaring magtakda ng tagubilin bago suriin ang bayad.",
+  "Verify the received payment and refundable amount first.": "Tiyakin muna ang perang natanggap at halagang ibabalik.",
+  "This refund action is not available for your account or the current stage.": "Hindi maaari ang pagkilos na ito para sa iyong kuwenta o kasalukuyang hakbang.",
+  "No refund due": "Walang halagang ibabalik",
+  "Refund status": "Kalagayan ng ibinalik na bayad",
+  "needs verification": "Kailangang tiyakin",
+  "payment not found": "Hindi makita ang bayad",
+  "not required": "Hindi kailangan",
+  "Mark fulfilled": "Markahang natupad",
+  "Mark ready": "Markahang handa",
+  "Transaction completed.": "Natapos na ang transaksiyon.",
+  "Set payment instructions first.": "Ilagay muna ang tagubilin sa pagbabayad.",
+  "Check the agreed amount before using this payment.": "Suriin ang napagkasunduang halaga bago gamitin ang bayad na ito.",
+  "Refund calculation": "Pagkukuwenta ng ibabalik",
+  "Follow the refund status in the current transaction summary.": "Subaybayan ang pagbabalik ng bayad sa buod ng kasalukuyang transaksiyon.",
+  "Waiting for payment instructions": "Hinihintay ang tagubilin sa pagbabayad",
+  "Add the delivery address before the final amount is set.": "Ilagay muna ang tirahan ng paghahatiran bago itakda ang huling halaga.",
+  "Add delivery address": "Ilagay ang paghahatiran",
+  "House number, street or subdivision": "Bilang ng bahay, kalye o pamayanan",
+  "The business uses this address to confirm the total and delivery fee.": "Gagamitin ng negosyo ang tirahang ito upang tiyakin ang kabuuang halaga at bayad sa paghahatid.",
+  "Wait for the delivery address before setting the final amount.": "Hintayin ang paghahatiran bago itakda ang huling halaga.",
+  "Delivery details can only be submitted by the customer after acceptance.": "Ang mamimili lamang ang maaaring magsumite ng paghahatiran matapos tanggapin ang kahilingan.",
+  "Complete the delivery address and landmark.": "Kumpletuhin ang tirahan ng paghahatiran at palatandaan.",
+  "The delivery address is required before preparation.": "Kailangan muna ang paghahatiran bago maghanda.",
+  "Set the agreed amount and payment instructions before preparation.": "Ilagay muna ang napagkasunduang halaga at tagubilin sa pagbabayad bago maghanda.",
+  "Start preparing?": "Simulan na ang paghahanda?",
+  "Starting preparation closes customer cancellation. Verify payment and delivery details first.": "Hindi na maaaring magkansela ang mamimili kapag nagsimula na ang paghahanda. Tiyakin muna ang bayad at detalye ng paghahatid.",
+  "Request progress": "Takbo ng kahilingan",
+  "Requirements": "Mga hinihingi",
+  "Payment setup": "Kasunduan sa bayad",
+  "Preparation": "Paghahanda",
+  "Completed": "Natapos",
+  "Needed": "Kulang pa",
+  "Submitted": "Naipasa",
+  "Confirmed": "Kinumpirma",
+  "Review the submitted details before continuing.": "Suriin muna ang naipasang detalye bago magpatuloy.",
+  "Your details were submitted. Wait for business review.": "Naipasa na ang iyong detalye. Hintaying suriin ito ng negosyo.",
+  "Waiting for the requested customer details.": "Hinihintay ang hinihinging detalye mula sa mamimili.",
+  "Complete the requested details to continue.": "Kumpletuhin ang hinihinging detalye upang makapagpatuloy.",
+  "Submit requirements": "Ipasa ang mga hinihingi",
+  "Confirm details": "Kumpirmahin ang mga detalye",
+  "Waive requirements": "Huwag nang hingin",
+  "Waive these requirements?": "Huwag nang hingin ang mga ito?",
+  "Continue without the requested details? This does not confirm payment.": "Magpatuloy nang hindi na hinihingi ang mga detalye? Hindi nito kinukumpirma ang bayad.",
+  "Instructions (optional)": "Mga tagubilin (maaaring laktawan)",
+  "Explain which details the customer should provide.": "Ipaliwanag kung anong detalye ang kailangang ibigay ng mamimili.",
+  "Details confirmed. Payment verification is separate.": "Kinumpirma na ang mga detalye. Hiwalay ang pagkumpirma ng bayad.",
+  "Review or waive the requested details before preparation.": "Suriin muna o huwag nang hingin ang mga detalye bago maghanda.",
+  "Requirements can only be changed after acceptance and before payment review or preparation.": "Maaari lamang baguhin ang mga hinihingi matapos tanggapin ang kahilingan at bago suriin ang bayad o maghanda.",
+  "Only the business can request details.": "Ang negosyo lamang ang maaaring humingi ng detalye.",
+  "Review or waive the current requirements before creating another request.": "Suriin o huwag nang hingin ang kasalukuyang detalye bago gumawa ng panibagong kahilingan.",
+  "Choose at least one requirement.": "Pumili ng kahit isang kailangang detalye.",
+  "Requirement notes are too long.": "Masyadong mahaba ang tagubilin sa mga hinihingi.",
+  "No requirements are attached to this transaction.": "Walang dagdag na detalye na hinihingi sa transaksiyong ito.",
+  "These requirements were replaced. Open the current transaction summary.": "Napalitan na ang mga hinihingi. Buksan ang kasalukuyang buod ng transaksiyon.",
+  "Only the customer can submit the requested details.": "Ang mamimili lamang ang maaaring magpasa ng hinihinging detalye.",
+  "These details have already been submitted.": "Naipasa na ang mga detalyeng ito.",
+  "Complete all requested details.": "Kumpletuhin ang lahat ng hinihinging detalye.",
+  "Attach a valid current location.": "Ilagay ang wastong kasalukuyang lokasyon.",
+  "Only the business can review requirements.": "Ang negosyo lamang ang maaaring magsuri ng mga hinihingi.",
+  "The customer must submit the current requirements first.": "Kailangang maipasa muna ng mamimili ang kasalukuyang hinihingi.",
+  "These requirements are already closed.": "Sarado na ang paghiling sa mga detalyeng ito.",
+  "Choose a valid requirements action.": "Pumili ng wastong pagkilos sa mga hinihingi.",
+  "Review the requested details before setting the amount.": "Suriin muna ang hinihinging detalye bago itakda ang halaga.",
+  "Complete and confirm the requested details before payment.": "Kumpletuhin at kumpirmahin muna ang mga hinihinging detalye bago magbayad.",
+  "Requirements do not belong to this transaction.": "Hindi para sa transaksiyong ito ang mga hinihingi.",
+  "Business requested transaction details.": "Humingi ang negosyo ng detalye ng transaksiyon.",
+  "Manage my establishments": "Pamahalaan ang aking mga negosyo",
+  "Hide owner tools": "Itago ang mga gamit ng may-ari",
+  "No status": "Walang nakatalang kalagayan",
+  "Requirements requested": "Humingi ng mga detalye",
+  "Requirements submitted": "Naipasa ang mga hinihingi",
+  "Completion request": "Paghingi ng pagkumpirma sa pagtatapos",
+  "Feedback request": "Paghingi ng puna",
+  "Feedback submitted": "Naipasa ang puna",
+  "Transaction update": "Pagbabago sa transaksiyon",
+  "Requirements waived": "Hindi na hinihingi ang mga detalye",
+  "Waived": "Hindi na kailangan",
+  "Acceptance": "Pagtanggap",
+  "Completion": "Pagtatapos",
+  "No requests to show.": "Walang kahilingang maipapakita.",
+  "Record deleted": "Binurang tala",
+  "Record hidden": "Itinagong tala",
+  "Role changed": "Binagong tungkulin",
+  "Owner assigned": "Itinalagang may-ari",
+  "Claim approved": "Inaprubahang pag-angkin",
+  "Claim rejected": "Tinanggihang pag-angkin",
+  "Report resolved": "Naaksyunang ulat",
+  "Report dismissed": "Isinantabing ulat",
+  "New role": "Bagong tungkulin",
+  "Vici AI cannot accept requests from this site address. Please contact the site administrator.": "Hindi makatanggap ang katulong ng Vicinify ng kahilingan mula sa adres ng pahinang ito. Makipag-ugnayan sa tagapangasiwa.",
+  "Vici AI server setup is incomplete. Please contact the site administrator.": "Hindi pa kumpleto ang pagsasaayos ng katulong ng Vicinify. Makipag-ugnayan sa tagapangasiwa.",
+  "Too many AI requests. Please wait before trying again.": "Masyadong maraming kahilingan sa katulong. Maghintay bago muling subukan.",
+  "Please sign in again with a verified email to use Vici AI.": "Mag-sign in muli gamit ang napatunayang adres ng elektronikong liham upang magamit ang katulong ng Vicinify."
+};
 
-        ,"Business Hub": "Sentro ng Negosyo"
-        ,"New Listing": "Bagong Listing"
-        ,"My Establishments": "Aking mga Establisyimento"
-        ,"Customer Inbox": "Inbox ng Customer"
-        ,"Database Management": "Pamamahala ng Database"
-        ,"Nearby Buzz": "Buzz sa Paligid"
-        ,"News in your area": "Balita sa lugar mo"
-        ,"Forgot password?": "Nakalimutan ang password?"
-        ,"Password & Security": "Password at Seguridad"
-        ,"Signed in as": "Naka-sign in bilang"
-        ,"Send Password Reset Email": "Magpadala ng Email para I-reset ang Password"
-        ,"We will email you a secure link so you can create a new password.": "Padadalhan ka namin ng secure link para gumawa ng bagong password."
-        ,"Change password now": "Palitan ang password ngayon"
-        ,"Current Password": "Kasalukuyang Password"
-        ,"New Password": "Bagong Password"
-        ,"Confirm New Password": "Kumpirmahin ang Bagong Password"
-        ,"Update Password": "I-update ang Password"
-        ,"Reset your password": "I-reset ang iyong password"
-        ,"Cancel": "Kanselahin"
-        ,"Send reset link": "Ipadala ang reset link"
-        ,"Basic Info": "Pangunahing Impormasyon"
-        ,"Operating Hours": "Oras ng Operasyon"
-        ,"Create Post": "Gumawa ng Post"
-        ,"Send Request": "Magpadala ng Request"
-        ,"Send a Message": "Magpadala ng Mensahe"
-        ,"Edit Establishment": "I-edit ang Establisyimento"
-        ,"Account History": "Kasaysayan ng Account"
-        ,"Appearance": "Hitsura"
-        ,"Restaurant": "Restaurant"
-        ,"Café": "Kapehan"
-        ,"Bakery": "Panaderya"
-        ,"Milk Tea": "Milk Tea"
-        ,"Snack House": "Snack House"
-        ,"Food Stall": "Food Stall"
-        ,"Eatery": "Karinderya"
-        ,"Dessert Shop": "Dessert Shop"
-        ,"Fast-Food": "Fast-Food"
-        ,"Filters": "Mga Filter"
-        ,"Open": "Bukas"
-        ,"Closed": "Sarado"
-        ,"Busy": "Abala"
-        ,"Fresh": "Aktibo"
-        ,"Inactive": "Hindi Aktibo"
-        ,"Nearby": "Malapit"
-        ,"No ratings yet": "Wala pang rating"
-        ,"Chat": "Chat"
-        ,"Request": "Request"
-        ,"Navigate": "Mag-navigate"
-        ,"Message": "Mensahe"
-        ,"View": "Tingnan"
-        ,"Comment": "Komento"
-        ,"No comments yet. Start the conversation.": "Wala pang komento. Simulan ang usapan."
-        ,"Write a comment...": "Magkomento..."
-        ,"Loading conversation...": "Naglo-load ng usapan..."
-        ,"No messages yet. Send an inquiry!": "Wala pang mensahe. Magtanong na!"
-        ,"No establishments found. Try adjusting the search radius or category.": "Walang nakitang tindahan. Baguhin ang layo o kategorya."
-        ,"About this place": "Tungkol dito"
-        ,"Menu & Store Posts": "Menu at Mga Post"
-        ,"Rate this establishment": "I-rate ang tindahang ito"
-        ,"Verified Reviews": "Mga Verified Review"
-        ,"No menu posts yet": "Wala pang menu post"
-        ,"away": "ang layo"
-        ,"Reviews": "Mga Review"
-        ,"Send": "Ipadala"
-        ,"Search places...": "Maghanap ng lugar..."
-        ,"Load more": "Mag-load pa"
-        ,"Claims": "Mga Claim"
-        ,"Reports": "Mga Report"
-        ,"Audit": "Audit Log"
-    };
+    let languageFallback='en';
+    function readLanguage(){try{return localStorage.getItem('vicinify_lang')||languageFallback;}catch{return languageFallback;}}
+    function saveLanguage(value){languageFallback=value==='ph'||value==='tl'?'ph':'en';try{localStorage.setItem('vicinify_lang',languageFallback);}catch{}return languageFallback;}
+    const textSources=new WeakMap(), attributeSources=new WeakMap();
+    const protectedContent='script,style,code,pre,textarea,[contenteditable=true],[translate=no],[data-no-translate],.notranslate,#accountName,#accountInitials,#settingsAccountEmail,.buzz-feed-body,.buzz-feed-name,.buzz-comment-text,.buzz-comment-name,.chat-message-text,.chat-message-sender,.chat-sender-avatar,#listPreviewTitle,.list-preview-description,.list-preview-summary dd,.list-menu-post-caption p,.list-menu-detail p,.list-preview-review p,.list-preview-review-person strong,.place-list-address,.place-list-card h3,.place-list-card h4,.ticket-who h4,.ticket-place,.ticket-detail-list dd,.place-description-text,.place-menu-body,.place-review-comment,.place-menu-author strong,.suki-name,#bookingStoreChip,#chatTitle,#chatModalTitle,#chatModalAvatar,.business-chat-place';
+    const normalizeText=value=>String(value??'').replace(/\s+/g,' ').trim();
+    const caseKeys=new Map(Object.keys(phDictionary).map(key=>[key.toLowerCase(),key]));
+    const translatedPrefixes=Object.keys(phDictionary).filter(key=>key.endsWith(':'));
+    function tagalogText(value){
+        const key=normalizeText(value),exact=Object.hasOwn(phDictionary,key)?key:caseKeys.get(key.toLowerCase());
+        if(exact){const result=phDictionary[exact];return key===key.toUpperCase()&&/[A-Z]/.test(key)?result.toUpperCase():result;}
+        let match;
+        if((match=key.match(/^Updated (\d+) days? ago$/i)))return `Nabago ${match[1]} araw ang nakalipas`;
+        if((match=key.match(/^(\d+) (minute|hour|day|week|month)s? ago$/i)))return `${match[1]} ${({minute:'minuto',hour:'oras',day:'araw',week:'linggo',month:'buwan'})[match[2].toLowerCase()]} ang nakalipas`;
+        if((match=key.match(/^(\d+) (post|review|stamp|filter)s?( applied)?$/i)))return `${match[1]} ${({post:'paskil',review:'pagsusuri',stamp:'tatak',filter:'sala'})[match[2].toLowerCase()]}${match[3]?' ang ginagamit':''}`;
+        if((match=key.match(/^(Navigating to|Searching for|Sending to) (.+)$/)))return `${({'Navigating to':'Papunta sa','Searching for':'Hinahanap ang','Sending to':'Ipapadala kay'})[match[1]]} ${match[2]}`;
+        if((match=key.match(/^(\d+(?:\.\d+)? km)\s*[·•]\s*about (.+)$/)))return `${match[1]} · humigit-kumulang ${match[2].replace(/\bmin\b/g,'minuto').replace(/\bhr\b/g,'oras')}`;
+        if((match=key.match(/^Showing (\d+) of (\d+)(.*)$/)))return `Ipinapakita ang ${match[1]} sa ${match[2]}${match[3]}`;
+        if((match=key.match(/^Address detected: (.+)$/)))return `Nahanap na tirahan: ${match[1]}`;
+        if(key==='You have arrived at your destination.')return 'Nakarating ka na sa iyong destinasyon.';
+        if(key==='Voice guidance on.')return 'Bukas na ang gabay na pasalita.';
+        if((match=key.match(/^Starting navigation\. First, (.+)\.$/i)))return `Sinisimulan ang paglalakbay. Una, ${tagalogText(match[1])}.`;
+        if((match=key.match(/^In (\d+(?:\.\d+)?) (meters?|kilometers?), (.+)$/i)))return `Sa ${match[1]} ${match[2].toLowerCase().startsWith('kilo')?'kilometro':'metro'}, ${tagalogText(match[3])}`;
+        if((match=key.match(/^(.+) now[.]?$/i)))return `${tagalogText(match[1])} ngayon`;
+        if((match=key.match(/^(Turn|Keep|Bear) (left|right)(?: (?:onto|on|towards) (.+))?[.]?$/i)))return `${match[1].toLowerCase()==='turn'?'Lumiko':'Manatili'} sa ${match[2].toLowerCase()==='left'?'kaliwa':'kanan'}${match[3]?' patungo sa '+match[3]:''}`;
+        if((match=key.match(/^Continue(?: straight)?(?: (?:onto|on) (.+))?[.]?$/i)))return `Magpatuloy nang diretso${match[1]?' sa '+match[1]:''}`;
+        if((match=key.match(/^Head (north|south|east|west|northeast|northwest|southeast|southwest)(?: on (.+))?[.]?$/i)))return `Tumungo sa ${{north:'hilaga',south:'timog',east:'silangan',west:'kanluran',northeast:'hilagang-silangan',northwest:'hilagang-kanluran',southeast:'timog-silangan',southwest:'timog-kanluran'}[match[1].toLowerCase()]}${match[2]?' sa '+match[2]:''}`;
 
-    Object.assign(phDictionary, {
-        'Profile & Settings':'Profile at Mga Setting', 'Appearance':'Hitsura',
-        'Sounds':'Mga Tunog', 'Navigation sounds':'Tunog sa navigation',
-        'Subtle clicks when navigating':'Mahinang tunog habang lumilipat ng pahina',
-        'Manage your account and preferences.':'Pamahalaan ang iyong account at mga kagustuhan.',
-        'Nickname (Display Name)':'Palayaw (Pangalang ipinapakita)',
-        'Save Profile':'I-save ang Profile', 'Log Out':'Mag-log out',
-        'Delete My Account':'Burahin ang Aking Account',
-        'Date *':'Petsa *', 'Time *':'Oras *', 'Cancel':'Kanselahin',
-        'Send a request':'Magpadala ng request', 'Choose your booking':'Piliin ang booking',
-        'Table Reservation':'Reserbasyon ng Mesa', 'Food Reservation':'Reserbasyon ng Pagkain',
-        'Number of Guests *':'Bilang ng Bisita *', 'Additional Notes':'Karagdagang Pahayag',
-        'Payment Method':'Paraan ng Pagbabayad', 'Payment Method *':'Paraan ng Pagbabayad *',
-        'Needs your reply':'Kailangang sagutin', 'Conversations':'Mga Pag-uusap',
-        'Add post / photo':'Magdagdag ng post / larawan', 'Store Suki QR':'Suki QR ng Tindahan'
-    });
-
-    Object.assign(phDictionary, {
-      'Settings':'Mga Setting','Business Hub':'Sentro ng Negosyo','My Activity':'Aking Aktibidad',
-      'Back':'Bumalik','Save':'I-save','Save changes':'I-save ang pagbabago','View page':'Tingnan ang pahina',
-      'Manage Listing':'Ayusin ang Impormasyon','Edit Establishment':'I-edit ang Tindahan',
-      'Customer Inbox':'Inbox ng mga Customer','Messages':'Mga Mensahe','Transactions':'Mga Transaksyon',
-      'Favorites':'Mga Paborito','Chat History':'Kasaysayan ng Chat','Suki Cards':'Mga Suki Card',
-      'Open conversation':'Buksan ang pag-uusap','Hide record':'Itago ang rekord','Request details':'Detalye ng request',
-      'No posts yet':'Wala pang mga post','Post Now':'Mag-post Ngayon','More filters':'Iba pang filter','Show less':'Ipakita ang mas kaunti',
-      'Open now':'Bukas ngayon','Verified':'Beripikado','Bookable':'Tumatanggap ng booking','Delivery':'Paghahatid','Fresh info':'Bagong impormasyon',
-      'View menu':'Tingnan ang menu','Opening hours':'Oras ng pagbubukas','Delivery options':'Mga paraan ng paghahatid','Book a table':'Magpareserba ng mesa',
-      'Quick questions':'Mga madalas itanong','Hide':'Itago','Automatic reply':'Awtomatikong sagot',
-      'Booking':'Reserbasyon','Order':'Order','Reserve a table or food':'Magpareserba ng mesa o pagkain',
-      'Pickup, delivery, or advance':'Pickup, paghahatid, o paunang order','Reserve seats or table':'Magpareserba ng upuan o mesa',
-      'Reserve food/item':'Magpareserba ng pagkain','Seating Preference':'Gustong Upuan','No preference':'Kahit saan',
-      'Window':'Malapit sa bintana','Quiet':'Tahimik','Outdoor':'Sa labas','Occasion':'Okasyon','None':'Wala',
-      'Food Items to Reserve *':'Mga pagkaing ipapareserba *','Order Details *':'Detalye ng order *',
-      'Fulfillment':'Paraan ng pagtanggap','Dine-in':'Kakain sa tindahan','Payment Method *':'Paraan ng pagbabayad *',
-      'Send Table Reservation':'Ipadala ang Reserbasyon','Send Food Reservation':'Ipadala ang Food Reservation',
-      'Send Pickup Pre-order':'Ipadala ang Pickup Order','Send Delivery Order':'Ipadala ang Delivery Order',
-      'Submit for Approval':'Ipadala para sa Pag-apruba','Scan store QR':'I-scan ang QR ng tindahan',
-      'Stamp request pending':'Naghihintay ng stamp approval','Cancel request':'Kanselahin ang request',
-      'Menu & Store Posts':'Menu at Mga Post ng Tindahan','Edit caption / photo':'I-edit ang caption / larawan',
-      'Delete':'Burahin','Share to Buzz':'Ibahagi sa Balita','Search distance':'Layo ng paghahanap',
-      'Write a message...':'Sumulat ng mensahe...','Write a comment...':'Sumulat ng komento...',
-      'Search places or ask Vici…':'Maghanap ng lugar o magtanong kay Vici…'
-    });
-
-    function translateDOM(lang = localStorage.getItem('vicinify_lang') || 'en') {
-        // Tag known leaf labels as well, retaining their English source for reversal.
-        document.querySelectorAll('h2,h3,h4,label,button,span,p,small,summary').forEach(el => {
-            if (!el.children.length && !el.hasAttribute('data-i18n') && Object.hasOwn(phDictionary,el.textContent.trim()))
-                el.setAttribute('data-i18n',el.textContent.trim());
-        });
-        // Papalitan nito yung mga text na may data-i18n tag
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            el.textContent = lang === 'ph' ? (phDictionary[key] || key) : key;
-        });
-        
-        // Papalitan nito yung mga placeholder text sa inputs
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-            const key = el.getAttribute('data-i18n-placeholder');
-            el.placeholder = lang === 'ph' ? (phDictionary[key] || key) : key;
-        });
-
-        // Translate direct control text without replacing its SVG/icon children.
-        document.querySelectorAll('button,label,summary,h2,h3,h4,option').forEach(el => {
-            if(el.hasAttribute('data-i18n')) return;
-            el.childNodes.forEach(node => {
-                if(node.nodeType !== 3) return;
-                const original=node.__viciEnglish || node.textContent.trim();
-                if(!Object.hasOwn(phDictionary,original)) return;
-                node.__viciEnglish=original;
-                const value=lang==='ph'?phDictionary[original]:original;
-                if(node.textContent.trim()!==value) node.textContent=' '+value+' ';
-            });
-        });
-        document.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el=>{
-            const key=el.dataset.i18nPlaceholder || el.placeholder;
-            if(!Object.hasOwn(phDictionary,key)) return;
-            el.dataset.i18nPlaceholder=key;
-            el.placeholder=lang==='ph'?phDictionary[key]:key;
-        });
-        document.documentElement.lang = lang === "ph" ? "tl" : "en";
+        for(const prefix of translatedPrefixes){
+            if(key.startsWith(prefix+' '))return phDictionary[prefix]+' '+key.slice(prefix.length).trim();
+        }
+        return value;
+    }
+    function translateDOM(lang = readLanguage(), scope = document.body) {
+        if(!scope)return;
+        const elements=[];
+        if(scope.nodeType===1)elements.push(scope);
+        if(scope.querySelectorAll)elements.push(...scope.querySelectorAll('[placeholder],[title],[aria-label],[data-i18n-placeholder]'));
+        for(const el of elements){
+            if(el.closest?.(protectedContent)&&!el.matches('textarea'))continue;
+            const saved=attributeSources.get(el)||{};
+            for(const attr of ['placeholder','title','aria-label']){
+                if(!el.hasAttribute(attr))continue;
+                const current=el.getAttribute(attr),record=saved[attr];
+                const source=attr==='placeholder'&&el.hasAttribute('data-i18n-placeholder')?el.getAttribute('data-i18n-placeholder'):record&&current===record.output?record.source:current;
+                const output=lang==='ph'?tagalogText(source):source;
+                saved[attr]={source,output};if(output!==current)el.setAttribute(attr,output);
+            }
+            attributeSources.set(el,saved);
+        }
+        function translateNode(node){
+            const parent=node.parentElement;
+            if(!parent||!node.textContent.trim()||(parent.closest(protectedContent)&&!parent.hasAttribute('data-i18n')))return;
+            const current=node.textContent,record=textSources.get(node);
+            const explicit=parent.children.length===0?parent.getAttribute('data-i18n'):null;
+            const source=explicit||(record&&current===record.output?record.source:current);
+            let translated=lang==='ph'?tagalogText(source):source;
+            if(lang==='ph'&&parent.matches('.navText'))translated=({'Admin Hub':'Tagapangasiwa','Business Hub':'Negosyo','My Activity':'Mga gawain','Settings':'Pagpipilian'})[source.trim()]||translated;
+            const output=translated===source?source:source.match(/^\s*/)[0]+translated.trim()+source.match(/\s*$/)[0];
+            textSources.set(node,{source,output});if(current!==output)node.textContent=output;
+        }
+        if(scope.nodeType===3)translateNode(scope);
+        else{const walker=document.createTreeWalker(scope,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode()))translateNode(node);}
+        document.documentElement.lang = lang === 'ph' ? 'tl' : 'en';
         document.body.dataset.lang = lang;
     }
 
     function setup() {
-        const currentLang = localStorage.getItem('vicinify_lang') || 'en';
+        const currentLang = readLanguage();
         const selector = document.getElementById('langSelector');
         
         if (selector) {
             selector.value = currentLang;
             selector.addEventListener('change', (e) => {
-                localStorage.setItem('vicinify_lang', e.target.value);
+                saveLanguage(e.target.value);
                 translateDOM(e.target.value);
                 window.dispatchEvent(new CustomEvent("vicinify:languagechange", { detail: { lang: e.target.value } }));
             });
         }
 
         translateDOM(currentLang);
-        let pending=false;
+        let pending=false;const dirty=new Set();
+        const options={childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label','data-i18n','data-i18n-placeholder']};
         const observer=new MutationObserver(records=>{
-            if(pending || !records.some(r=>r.type==='childList' && r.addedNodes.length)) return;
-            pending=true;
-            setTimeout(()=>{ observer.disconnect(); translateDOM(); pending=false; observer.observe(document.body,{childList:true,subtree:true}); },50);
+            for(const record of records){
+                if(record.type==='childList')record.addedNodes.forEach(node=>dirty.add(node));
+                else dirty.add(record.target);
+            }
+            if(pending||!dirty.size)return;pending=true;
+            setTimeout(()=>{
+                observer.disconnect();
+                try{for(const node of dirty){if(node.isConnected)translateDOM(undefined,node);}}
+                finally{dirty.clear();pending=false;observer.observe(document.body,options);}
+            },50);
         });
-        observer.observe(document.body,{childList:true,subtree:true});
+        observer.observe(document.body,options);
     }
 
     function init() {
@@ -302,7 +1556,7 @@ window.LangManager = (() => {
     }
 
     function setLanguage(lang) {
-        localStorage.setItem('vicinify_lang', lang);
+        lang=saveLanguage(lang);
         const selector = document.getElementById('langSelector');
         if (selector) selector.value = lang;
         translateDOM(lang);
@@ -310,10 +1564,10 @@ window.LangManager = (() => {
     }
 
     function getLanguage() {
-        return localStorage.getItem('vicinify_lang') || 'en';
+        return readLanguage();
     }
 
-    function translateKey(key){ const lang = localStorage.getItem('vicinify_lang') || 'en'; return lang === 'ph' ? (phDictionary[key] || key) : key; }
+    function translateKey(key){ return getLanguage()==='ph'?tagalogText(key):key; }
     return { init, translateDOM, setLanguage, getLanguage, translateKey };
 })();
 
@@ -390,6 +1644,7 @@ window.vicinifyToast = function(msg, type) {
     const bar = document.createElement('span'); bar.className = 'v-toast-bar';
     el.append(icon, body, close, bar);
     stack.appendChild(el);
+    window.LangManager?.translateDOM?.(undefined,el);
     const duration = Math.min(8500, Math.max(3600, 2200 + text.length * 45));
     bar.style.animationDuration = duration + 'ms';
     let gone = false, timer;
@@ -1341,9 +2596,10 @@ window.auth.onAuthStateChanged(async (user) => {
                 dashNavBtn.style.display = "flex";
                 const navText = dashNavBtn.querySelector(".navText");
                 if (navText) {
-                    const isUser = AppState.userProfile?.role === "user";
-                    navText.textContent = isUser ? "My Activity" : "Business Hub";
-                    navText.setAttribute("data-i18n", isUser ? "My Activity" : "Business Hub");
+                    const role=AppState.userProfile?.role;
+                    const hubLabel=role=== "admin" ? "Admin Hub" : role=== "user" ? "My Activity" : "Business Hub";
+                    navText.textContent = hubLabel;
+                    navText.setAttribute("data-i18n", hubLabel);
                 }
             }
             if (profileApplied) return;
@@ -1942,53 +3198,47 @@ return map[key] || map.table_reservation;
 }
 
 function renderRequestDetailRows(d) {
-const rows = [];
-
-if (d.bookingDate) rows.push(["Date", d.bookingDate]);
-if (d.bookingTime) rows.push(["Time", d.bookingTime]);
-if (d.guestCount) rows.push(["Guests", d.guestCount]);
-if (d.seatingPreference) rows.push(["Seating", d.seatingPreference]);
-if (d.occasion) rows.push(["Occasion", d.occasion]);
-if (d.fulfillmentType) rows.push(["Fulfillment", d.fulfillmentType]);
-if (d.paymentType) rows.push(["Payment Type", d.paymentType]);
-if (d.paymentMethod) rows.push(["Payment", d.paymentMethod]);
-if (d.purpose) rows.push(["Purpose", d.purpose]);
-
-let html = rows.map(([label, value]) => `
-    <div><b>${escapeHtml(label)}:</b> ${escapeHtml(value)}</div>
-`).join("");
-
-if (d.orderItems) {
-    html += `
-        <div style="margin-top:8px;">
-            <b>Items / Order:</b>
-            <div style="white-space:pre-wrap; margin-top:4px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:9px;">${escapeHtml(d.orderItems)}</div>
-        </div>
-    `;
-}
-
-if (d.deliveryAddress) {
-    html += `
-        <div style="margin-top:8px;">
-            <b>Delivery Address:</b>
-            <div style="white-space:pre-wrap; margin-top:4px; background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:9px;">${escapeHtml(d.deliveryAddress)}</div>
-        </div>
-    `;
-}
-
-if (d.bookingDetails && d.bookingDetails !== "None") {
-    html += `
-        <div style="margin-top:8px;">
-            <b>Notes:</b>
-            <div style="white-space:pre-wrap; margin-top:4px;">${escapeHtml(d.bookingDetails)}</div>
-        </div>
-    `;
-} else if (!html && d.details) {
-    html += `<div style="white-space:pre-wrap;">${escapeHtml(d.details)}</div>`;
-}
-
-return html || `<div style="color:#64748b;">No additional details.</div>`;
-
+    const legacy = {}; let current = '';
+    String(d.details || '').split(/\r?\n/).forEach(line => {
+        const match = line.match(/^(Date|Time|Guests|Seating(?: Preference)?|Occasion|Items(?: \/ Order)?|Order|Fulfillment|Payment(?: Method| Type)?|Delivery Address|Address|Purpose|Notes):\s*(.*)$/i);
+        if (match) { current = match[1].toLowerCase(); legacy[current] = match[2]; }
+        else if (current) legacy[current] += (legacy[current] ? '\n' : '') + line;
+    });
+    const take = (field,...keys) => d[field] != null && String(d[field]).trim() ? String(d[field]) : keys.map(k=>legacy[k]).find(v=>v && v.trim()) || '';
+    const visible = value => value && !/^(none|no preference|n\/a)$/i.test(value.trim());
+    const t = value => window.LangManager?.translateKey?.(value) || value;
+    let date = take('bookingDate','date'), time = take('bookingTime','time');
+    const rawDate = date, rawTime = time;
+    const locale = window.LangManager?.getLanguage?.() === 'ph' ? 'fil-PH' : 'en-PH';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        const stamp = new Date(date+'T12:00:00+08:00');
+        if(Number.isFinite(stamp.getTime())) date = new Intl.DateTimeFormat(locale,{timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric'}).format(stamp);
+    }
+    if (/^\d{2}:\d{2}$/.test(time)) {
+        const stamp = new Date('2026-01-01T'+time+':00+08:00');
+        if(Number.isFinite(stamp.getTime())) time = new Intl.DateTimeFormat(locale,{timeZone:'Asia/Manila',hour:'numeric',minute:'2-digit'}).format(stamp);
+    }
+    const items = take('orderItems','items / order','items','order');
+    const purpose = take('purpose','purpose');
+    let notes = take('bookingDetails','notes');
+    if (notes.trim() === items.trim() || notes.trim() === purpose.trim()) notes = '';
+    const rows = [
+        ['Date',date,true,'date',rawDate],['Time',time,true,'time',rawTime],
+        ['Guests',take('guestCount','guests'),true,'guests'],
+        ['Items / Order',items,true,'items'],
+        ['Fulfillment',take('fulfillmentType','fulfillment'),false,'fulfillment'],
+        ['Payment Type',take('paymentType','payment type'),false,'paymentType'],
+        ['Payment',take('paymentMethod','payment method','payment'),false,'payment'],
+        ['Delivery Address',take('deliveryAddress','delivery address','address'),true,'address'],
+        ['Seating',take('seatingPreference','seating preference','seating'),false,'seating'],
+        ['Occasion',take('occasion','occasion'),false,'occasion'],
+        ['Purpose',purpose,true,'purpose'],['Notes',notes,true,'notes'],
+        ['Refund status',d.refundStatus ? d.refundStatus.replace(/_/g,' ') : '',false,'refundStatus'],['Refund amount',d.refundAmount!=null?'₱'+d.refundAmount:'',true,'refundAmount'],['Refund reference',d.refundReference||'',true,'refundReference']
+    ].filter(([,value])=>visible(value));
+    if (!rows.length) return d.details
+        ? `<p class="request-output-fallback" data-no-translate>${escapeHtml(d.details)}</p>`
+        : `<p class="request-output-fallback">${escapeHtml(t('No additional details.'))}</p>`;
+    return `<dl class="request-output-grid">${rows.map(([label,value,personal,field,raw])=>`<div class="request-output-field" data-request-field="${field}"><dt data-i18n="${escapeHtml(label)}">${escapeHtml(t(label))}</dt><dd${personal?' data-no-translate':` data-i18n="${escapeHtml(value)}"`}>${raw?`<time datetime="${escapeHtml(raw)}">${escapeHtml(value)}</time>`:escapeHtml(personal?value:t(value))}</dd></div>`).join('')}</dl>`;
 }
 
 function getCardSide(d, currentUid, isOwnerView, fallbackSenderRole = "customer") {
@@ -2205,7 +3455,7 @@ function renderOrderSummaryMini(state) {
         html += `
             <div class="vtx-panel-card">
                 <div style="font-weight:900; color:#0f172a; margin-bottom:6px;">📍 Delivery Card</div>
-                <div>${escapeHtml(address)}</div>
+                <div data-no-translate>${escapeHtml(address)}</div>
                 ${source.lat && source.lng ? `<button onclick="window.viewSharedLocation(${Number(source.lat)}, ${Number(source.lng)})" style="margin-top:8px; border:none; background:#dcfce7; color:#166534; padding:7px 10px; border-radius:9px; font-weight:800; cursor:pointer;">View Map</button>` : ""}
             </div>
         `;
@@ -2361,7 +3611,8 @@ function renderPaymentFlowCard(order, isOwner) {
     const status = order.bookingStatus || order.status || "pending";
     let title = "Confirm payment details in chat";
     let copy = "Agree on the final amount, delivery fee and payment method with the business before paying.";
-    if (flow.closed) { title = "Payment flow closed"; copy = "If you already paid, contact the business to arrange any applicable refund."; }
+    if (flow.closed) { title = "Payment flow closed"; copy = order.refundStatus ? "Follow the refund status in the current transaction summary." : "If you already paid, contact the business to arrange any applicable refund."; }
+    else if (flow.online && status === "accepted" && !flow.termsReady) { title = "Waiting for payment instructions"; copy = "The business must set the amount and payment instructions first."; }
     else if (status === "pending") { title = "Wait for acceptance"; copy = "The business needs to accept your request and confirm the final total before you pay."; }
     else if (order.paymentReviewDecision === "declined" && status === "accepted") { title = "Payment details declined · Correction needed"; copy = "Your order is still accepted. Check the business note below and resubmit corrected details. Do not pay again unless you have agreed it is necessary."; }
     else if (flow.verified) { title = "Payment accepted by business"; copy = "The business manually checked your payment. Preparation and fulfillment are tracked separately."; }
@@ -2662,13 +3913,15 @@ window.uploadPaymentProof = async function(bookingId, messageId) {
     if (!user) return window.showToast?.("Please log in first.", "error");
     const existing = document.getElementById("paymentProofModal");
     if (existing) return existing.querySelector("input")?.focus();
-    let order = currentChatDocsCache.find(d => d.bookingId === bookingId && d.type === "booking_card");
+    let order = deskOrder(bookingId);
     if (!order) {
         try {
             const doc = await window.db.collection("bookings").doc(bookingId).get();
             if (doc.exists) order = doc.data();
         } catch (error) { return window.showToast?.("Could not load payment details. Try again.", "error"); }
     }
+    const earlier=currentChatDocsCache.find(d=>d.type==='requirement_response'&&d.paymentReference&&([d.bookingId,d.transactionId].includes(bookingId)||!d.bookingId));
+    if(order&&!order.paymentReference&&earlier)order={...order,paymentReference:earlier.paymentReference,paymentAmount:earlier.paymentAmount};
     if (!order || !window.PaymentPolicy.flow(order).awaitingProof && !window.PaymentPolicy.flow(order).reviewing)
         return window.showToast?.("This request is not awaiting online payment details.", "info");
     if (document.getElementById("paymentProofModal")) return;
@@ -2679,10 +3932,11 @@ window.uploadPaymentProof = async function(bookingId, messageId) {
         <form class="req-sheet" role="dialog" aria-modal="true" aria-labelledby="manualPaymentTitle">
             <header class="req-head"><span class="req-head-icon"><i data-lucide="receipt"></i></span><div class="req-head-text"><h3 id="manualPaymentTitle">Payment details</h3><p>Enter your reference number. A receipt image is optional.</p></div><button type="button" class="req-close" aria-label="Close payment details"><i data-lucide="x"></i></button></header>
             <div class="req-body">
-                <div class="req-note"><span>Paid directly to <strong>${escapeHtml(order.placeName || "the business")}</strong> via ${escapeHtml(order.paymentMethod)}. Submit only after you have made the payment.</span></div>
+                <div class="req-note"><span>Paid directly to <strong data-no-translate>${escapeHtml(order.placeName || "the business")}</strong> via ${escapeHtml(order.paymentMethod)}. Submit only after you have made the payment.</span></div>
+                ${order.paymentInstructions ? `<div class="manual-payment-instructions"><b>Amount due: ₱${escapeHtml(order.paymentAmountDue || '')}</b><p data-no-translate>${escapeHtml(order.paymentInstructions)}</p></div>` : ''}
                 <div class="manual-payment-fields">
-                    <label class="req-field"><span>Reference / transaction number *</span><input class="req-input" name="reference" required minlength="3" maxlength="80" autocomplete="off" placeholder="Enter the number from your payment receipt"></label>
-                    <label class="req-field"><span>Amount paid (₱) *</span><input class="req-input" name="amount" required inputmode="decimal" autocomplete="off" placeholder="e.g. 588.00" value="${escapeHtml(order.paymentAmount || "")}"></label>
+                    <label class="req-field"><span>Reference / transaction number *</span><input class="req-input" name="reference" required minlength="3" maxlength="80" autocomplete="off" placeholder="Enter the number from your payment receipt" value="${escapeHtml(order.paymentReference || "")}"></label>
+                    <label class="req-field"><span>Amount paid (₱) *</span><input class="req-input" name="amount" required inputmode="decimal" autocomplete="off" placeholder="e.g. 588.00" value="${escapeHtml(order.paymentAmount || order.paymentAmountDue || "")}"></label>
                     <label class="req-field"><span>Receipt image <em>optional</em></span><input class="req-input payment-receipt-file" name="receipt" type="file" accept="image/*"><small class="manual-payment-help">JPEG, PNG or WebP · up to 8 MB</small></label>
                     <div class="manual-receipt-preview" hidden><img alt="Your selected payment receipt"><button type="button" class="remove-payment-receipt">Remove image</button></div>
                 </div>
@@ -2806,10 +4060,10 @@ window.updateBookingFromChat = async function(bookingId, messageId, status) {
     const user = window.auth?.currentUser;
 
     try {
-        const msgRef = window.db.collection("messages").doc(messageId);
+        const msgRef = messageId ? window.db.collection("messages").doc(messageId) : window.db.collection("bookings").doc(bookingId);
         // The open thread already rendered this card — reuse its data
         // (requestType/payment/address fields are set at send time).
-        const cachedMsg = currentChatDocsCache.find(d => d.id === messageId);
+        const cachedMsg = currentChatDocsCache.find(d => d.id === messageId) || deskOrder(bookingId);
         let msgData;
         if (cachedMsg) {
             msgData = cachedMsg;
@@ -2830,7 +4084,7 @@ window.updateBookingFromChat = async function(bookingId, messageId, status) {
         // 🛵 DELIVERY SMART FLOW:
         // Kapag Delivery Order ang in-accept ng business, automatic lalabas yung delivery-ready card.
         // Customer can submit/confirm address, location, payment, and order details without owner manually clicking Request Requirements.
-        if (status === "accepted" && requestType === "delivery_order") {
+        if (status === "accepted" && requestType === "delivery_order" && msgData.paymentFlowVersion !== 2) {
             const existingDeliveryReq = await window.db.collection("messages").where("placeId", "==", msgData.placeId)
                 .where("type", "==", "requirement_request")
                 .where("bookingId", "==", bookingId)
@@ -2872,7 +4126,7 @@ window.updateBookingFromChat = async function(bookingId, messageId, status) {
                     prefillPaymentMethod: preferredPayment,
                     amount: "",
                     acceptedPaymentMethods: paymentOptions,
-                    notes: "Delivery accepted. Please submit your complete address, barangay, city, landmark/location notes, current location, payment method, and reference number if you paid online. Online payment is recommended to avoid fake orders.",
+                    notes: "Delivery accepted. Submit your address, landmark and location here. Payment is handled separately in the current transaction summary.",
                     requirementStatus: "waiting_customer",
                     text: "Delivery order accepted. Customer can now submit delivery details.",
                     senderUid: user?.uid || "business",
@@ -3050,14 +4304,24 @@ const html = `
 document.body.insertAdjacentHTML("beforeend", html);
 
 const modal = document.getElementById(modalId);
-const close = () => { window.lockBodyScroll(false); modal.remove(); };
+const close = () => { if(modal.dataset.submitting==='true'||!modal.isConnected)return;window.lockBodyScroll(false); modal.remove(); };
 
 document.getElementById(`cancel_${modalId}`).onclick = close;
 const _closeX = document.getElementById(`closeX_${modalId}`); if (_closeX) _closeX.onclick = close;
 modal.querySelector(".modalBackdrop").onclick = close;
+const contextOrder=deskOrder(chatDeskSelected);
+if(contextOrder&&contextOrder.placeId===placeId&&contextOrder.userId===customerUid){
+    modal.classList.add('requirements-only');
+    document.getElementById(`reqPayment_${modalId}`).closest('label').hidden=true;
+    document.getElementById(`reqAmount_${modalId}`).closest('.req-field').hidden=true;
+    document.getElementById(`reqMops_${modalId}`).closest('.req-field').hidden=true;
+    const notes=document.getElementById(`reqNotes_${modalId}`);notes.closest('label').querySelector('span').textContent='Instructions (optional)';notes.placeholder='Explain which details the customer should provide.';
+}
+window.LangManager?.translateDOM?.(undefined,modal);
 window.debouncedIcons?.();
 
 document.getElementById(`send_${modalId}`).onclick = async () => {
+    if(modal.dataset.submitting==='true')return;
     const requirements = {
         address: document.getElementById(`reqAddress_${modalId}`).checked,
         location: document.getElementById(`reqLocation_${modalId}`).checked,
@@ -3077,8 +4341,22 @@ document.getElementById(`send_${modalId}`).onclick = async () => {
     const mops = document.getElementById(`reqMops_${modalId}`).value.trim();
     const notes = document.getElementById(`reqNotes_${modalId}`).value.trim();
 
+    const linkedOrder=deskOrder(chatDeskSelected) || chatDeskOrders.find(d=>d.placeId===placeId&&d.userId===customerUid);
+    modal.dataset.submitting='true';document.getElementById(`send_${modalId}`).disabled=true;
     try {
+        if(requirements.payment){
+            if(!linkedOrder || linkedOrder.placeId!==placeId || linkedOrder.userId!==customerUid)return window.alert("Accept a transaction first, then set payment instructions in its summary.");
+            await window.ViciData.command('booking',{bookingId:linkedOrder.bookingId||linkedOrder.id,patch:{paymentTerms:{amount,instructions:notes}}});
+            requirements.payment=false;
+            if(!requirements.address&&!requirements.location&&!requirements.orderDetails){modal.dataset.submitting='false';close();return window.alert("Payment instructions saved in the transaction summary.");}
+        }
+        if(linkedOrder&&linkedOrder.placeId===placeId&&linkedOrder.userId===customerUid){
+            await window.ViciData.command('booking',{bookingId:linkedOrder.bookingId||linkedOrder.id,patch:{requirements:{action:'request',required:requirements,notes}}});
+            modal.dataset.submitting='false';close();return window.alert('Requirement request sent.');
+        }
         await window.ContentPolicy.create(window.db, 'messages', {
+            bookingId:linkedOrder?.bookingId || linkedOrder?.id || null,
+            transactionId:linkedOrder?.bookingId || linkedOrder?.id || null,
             placeId,
             placeName,
             userId: customerUid,
@@ -3099,11 +4377,11 @@ document.getElementById(`send_${modalId}`).onclick = async () => {
             reply: null
         });
 
-        close();
+        modal.dataset.submitting="false";close();
         window.alert("Requirement request sent.");
     } catch (error) {
         window.alert("Error sending request: " + error.message);
-    }
+    } finally {modal.dataset.submitting='false';const button=document.getElementById(`send_${modalId}`);if(button)button.disabled=false;}
 };
 
 };
@@ -3117,7 +4395,16 @@ try {
     if (!requestDoc.exists) return window.alert("Requirement request no longer exists.");
 
     const req = requestDoc.data();
-    const requirements = req.requirements || {};
+    const requirements = {...(req.requirements || {})};
+    if(requirements.payment){
+        // Payments use the booking endpoint, never a second independent requirements status.
+        requirements.payment=false;
+        if(!requirements.address&&!requirements.location&&!requirements.orderDetails){
+            const linked=req.bookingId || req.transactionId;
+            if(linked&&deskOrder(linked))return window.uploadPaymentProof(linked,'');
+            return window.alert("Use the current transaction summary to submit payment details.");
+        }
+    }
     const modalId = "reqResponseModal_" + Date.now();
 window.lockBodyScroll(true);
 
@@ -3149,7 +4436,7 @@ window.lockBodyScroll(true);
 
                 <div class="req-body">
                 ${req.notes ? `
-                    <div class="req-note"><i data-lucide="message-square-text"></i><span>${escapeHtml(req.notes)}</span></div>
+                    <div class="req-note"><i data-lucide="message-square-text"></i><span ${req.autoGeneratedDelivery ? "" : "data-no-translate"}>${escapeHtml(req.notes)}</span></div>
                 ` : ""}
 
                 ${requirements.address ? `
@@ -3207,7 +4494,7 @@ window.lockBodyScroll(true);
     document.body.insertAdjacentHTML("beforeend", html);
 
     const modal = document.getElementById(modalId);
-    const close = () => { window.lockBodyScroll(false); modal.remove(); };
+    const close = () => { if(modal.dataset.submitting==='true'||!modal.isConnected)return;window.lockBodyScroll(false); modal.remove(); };
 
     document.getElementById(`cancel_${modalId}`).onclick = close;
     const _closeX2 = document.getElementById(`closeX_${modalId}`); if (_closeX2) _closeX2.onclick = close;
@@ -3340,7 +4627,13 @@ window.lockBodyScroll(true);
             }
         }
 
+        if(modal.dataset.submitting==='true')return;
+        modal.dataset.submitting='true';document.getElementById(`submit_${modalId}`).disabled=true;
         try {
+            if(req.canonicalRequirements&&req.bookingId){
+                await window.ViciData.command('booking',{bookingId:req.bookingId,patch:{requirements:{action:'submit',requestId:requestMessageId,data:payload}}});
+                modal.dataset.submitting='false';close();return window.alert('Requirements submitted.');
+            }
             await window.ContentPolicy.create(window.db, 'messages', payload);
 
             await window.db.collection("messages").doc(requestMessageId).update({
@@ -3348,13 +4641,13 @@ window.lockBodyScroll(true);
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            await addSystemUpdate(req.placeId, req.placeName, user.uid, AppState.userProfile?.fullName || user.displayName || "Customer", "Customer submitted address, location, payment, and order details.", "submitted", "📍", req.transactionId || req.bookingId || requestMessageId, req.bookingId || null);
+            await addSystemUpdate(req.placeId, req.placeName, user.uid, AppState.userProfile?.fullName || user.displayName || "Customer", "Customer submitted the requested transaction details.", "submitted", "📍", req.transactionId || req.bookingId || requestMessageId, req.bookingId || null);
 
-            close();
+            modal.dataset.submitting="false";close();
             window.alert("Requirements submitted.");
         } catch (error) {
             window.alert("Error submitting requirements: " + error.message);
-        }
+        } finally {modal.dataset.submitting="false";const button=document.getElementById(`submit_${modalId}`);if(button)button.disabled=false;}
     };
 } catch (error) {
     window.alert("Error opening requirement form: " + error.message);
@@ -3384,6 +4677,10 @@ window.confirmRequirementResponse = async function(responseMessageId) {
 
         const responseData = responseDoc.data();
         const transactionId = responseData.transactionId || responseData.bookingId || responseMessageId;
+        if(responseData.canonicalRequirements&&responseData.bookingId){
+            await window.ViciData.command('booking',{bookingId:responseData.bookingId,patch:{requirements:{action:'confirm',requestId:responseData.requestMessageId,responseId:responseMessageId}}});
+            return window.alert('Details confirmed. Payment verification is separate.');
+        }
         await window.db.collection("messages").doc(responseMessageId).update({
             requirementStatus: "confirmed",
             confirmedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -3595,7 +4892,10 @@ const close = () => { window.lockBodyScroll(false); modal.remove(); };
 document.getElementById(`cancel_${modalId}`).onclick = close;
 modal.querySelector(".modalBackdrop").onclick = close;
 
-document.getElementById(`submit_${modalId}`).onclick = async () => {
+let submitting = false;
+const submitButton = document.getElementById(`submit_${modalId}`);
+submitButton.onclick = async () => {
+    if (submitting) return;
     const rating = Number(document.getElementById(`fbRating_${modalId}`).value);
     const satisfaction = document.getElementById(`fbSatisfaction_${modalId}`).value;
     const comment = document.getElementById(`fbComment_${modalId}`).value.trim();
@@ -3605,16 +4905,13 @@ document.getElementById(`submit_${modalId}`).onclick = async () => {
         return window.alert("Please select a valid rating.");
     }
 
+    submitting = true;
+    submitButton.disabled = true;
+    let reviewSaved = false;
     try {
         const safeTransactionId = bookingId || feedbackMessageId || "manual";
-        const reviewId = `${user.uid}_${placeId}_${safeTransactionId}`;
-
-        const existingReview = await window.db.collection("reviews").doc(reviewId).get();
-
-        if (existingReview.exists) {
-            window.alert("You already submitted feedback for this transaction.");
-            return;
-        }
+        // A missing review cannot be read under the private-review rules.
+        // The authenticated server validates completion and checks duplicates atomically.
 
         let txRequestType = null;
         let txRequestLabel = null;
@@ -3634,7 +4931,8 @@ document.getElementById(`submit_${modalId}`).onclick = async () => {
 
         const txMeta = getRequestMeta(txRequestType || "table_reservation");
 
-        await window.ViciData.command("review", { placeId, bookingId: bookingId || undefined, rating, satisfaction, feedback: comment, isPublic: postPublic });
+        await window.ViciData.command("review", { placeId, bookingId: bookingId || undefined, rating, satisfaction, feedback: comment, isPublic: postPublic, createOnly: true });
+        reviewSaved = true;
         window.invalidatePlacesCache?.();
 
         if (feedbackMessageId && feedbackMessageId !== "null" && feedbackMessageId !== "undefined") {
@@ -3683,7 +4981,18 @@ document.getElementById(`submit_${modalId}`).onclick = async () => {
             setTimeout(() => window.viewPlace(placeId), 600);
         }
     } catch (error) {
-        window.alert("Error submitting feedback: " + error.message);
+        if (reviewSaved) {
+            // The review is already committed. A secondary chat update must not
+            // report a failed submission or encourage another review write.
+            console.warn("Review saved; conversation update failed:", error);
+            close();
+            window.alert("Thank you! Your rating and feedback were submitted.");
+        } else {
+            window.alert("Error submitting feedback: " + error.message);
+        }
+    } finally {
+        submitting = false;
+        submitButton.disabled = false;
     }
 };
 
@@ -3739,17 +5048,7 @@ if (d.requirements?.location) {
 }
 
 if (d.requirements?.payment) {
-    const pStatus = d.paymentStatus || "pending_confirmation";
-
-    html += `
-        <div style="background:#eff6ff; border:1px solid #dbeafe; border-radius:12px; padding:10px; margin-top:10px;">
-            <b style="color:#1d4ed8;">💳 Payment Details</b>
-            <div style="margin-top:6px;"><b>Mode of Payment:</b> ${escapeHtml(d.paymentMethod || "N/A")}</div>
-            <div><b>Amount:</b> ₱${escapeHtml(d.paymentAmount || "0")}</div>
-            <div><b>Reference / Notes:</b> ${escapeHtml(d.paymentReference || "N/A")}</div>
-            <div style="margin-top:6px;"><b>Status:</b> ${makeBadge(pStatus === "confirmed" ? "payment_confirmed" : "pending_confirmation")}</div>
-        </div>
-    `;
+    html += `<div class="legacy-payment-note"><b>Earlier payment details</b><dl><div><dt>Payment</dt><dd data-no-translate>${escapeHtml(d.paymentMethod || '')}</dd></div><div><dt>Amount submitted</dt><dd>₱${escapeHtml(d.paymentAmount || '')}</dd></div><div><dt>Reference</dt><dd data-no-translate>${escapeHtml(d.paymentReference || '')}</dd></div></dl><p>Payment verification is shown in the current transaction summary. Confirming these details does not verify a payment.</p></div>`;
 }
 
 if (d.requirements?.orderDetails) {
@@ -3761,7 +5060,7 @@ if (d.requirements?.orderDetails) {
     `;
 }
 
-if (isOwner && d.requirementStatus !== "confirmed") {
+if (isOwner && !["confirmed","waived"].includes(d.requirementStatus) && (!d.canonicalRequirements || !deskOrder(d.bookingId) || deskOrder(d.bookingId).status === "accepted")) {
     html += `
         <button onclick="window.confirmRequirementResponse('${d.id}')"
             style="margin-top:12px; width:100%; border:none; background:#dcfce7; color:#166534; padding:10px; border-radius:10px; font-weight:800; cursor:pointer;">
@@ -3851,9 +5150,9 @@ window.markIncomingSeen = markIncomingSeen;
 function renderTextBubble(d, currentUid, dateStr, options = {}) {
     const isMine = d.senderUid === currentUid;
     return `<div class="chat-message-row ${isMine ? "is-mine" : "is-other"}${options.grouped ? " is-grouped" : ""}">
-        ${!isMine ? `<span class="chat-sender-avatar" aria-hidden="true">${escapeHtml(String(d.senderName || "B").charAt(0).toUpperCase())}</span>` : ""}
+        ${!isMine ? `<span data-no-translate class="chat-sender-avatar" aria-hidden="true">${escapeHtml(String(d.senderName || "B").charAt(0).toUpperCase())}</span>` : ""}
         <div class="chat-bubble ${isMine ? "me" : "other"}">
-            ${!isMine && !options.grouped && d.senderName ? `<span class="chat-message-sender">${escapeHtml(d.senderName)}</span>` : ""}
+            ${!isMine && !options.grouped && d.senderName ? `<span data-no-translate class="chat-message-sender">${escapeHtml(d.senderName)}</span>` : ""}
             ${d.isAutoReply ? '<span class="chat-auto-reply-label">Automatic reply</span>' : ''}
             <div class="chat-message-text">${escapeHtml(d.text || "")}</div>
             ${d.isAutoReply && d.autoReplyTopic==='menu' ? `<button type="button" class="chat-auto-menu" data-auto-menu="${escapeHtml(d.placeId)}">View menu</button>` : ''}
@@ -3883,8 +5182,185 @@ function chatDayInfo(message, now = new Date()) {
     return { key, label };
 }
 
+let chatDeskOrders = [], chatDeskSelected = null;
+const transactionDeskBusy = new Set();
+function deskOrder(id) { return chatDeskOrders.find(d=>d.id===id) || currentChatDocsCache.find(d=>d.type==='booking_card'&&d.bookingId===id); }
+function deskRequirements(order,docs=currentChatDocsCache) {
+    if(order.requirementsState)return {...order.requirementsState,canonical:true};
+    const id=order.bookingId||order.id;
+    const requests=docs.filter(d=>d.type==='requirement_request'&&[d.bookingId,d.transactionId].includes(id));
+    requests.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+    const req=requests[0];if(!req)return null;
+    const required={address:!!req.requirements?.address,location:!!req.requirements?.location,orderDetails:!!req.requirements?.orderDetails};
+    if(!Object.values(required).some(Boolean))return null;
+    const responses=docs.filter(d=>d.type==='requirement_response'&&d.requestMessageId===req.id);
+    responses.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+    const response=responses[0];
+    return {requestId:req.id,responseId:response?.id,status:response?.requirementStatus||req.requirementStatus||'waiting_customer',required,notes:req.notes||'',data:response||{},canonical:false};
+}
+function renderRequestProcess(order,requirements) {
+    const t=s=>window.LangManager?.translateKey?.(s)||s,status=order.status||order.bookingStatus||'pending',flow=window.PaymentPolicy.flow(order);
+    const active=!['cancelled','rejected'].includes(status);
+    if(!active)return '';
+    const requirementDone=!requirements||['confirmed','waived'].includes(requirements.status);
+    const steps=[['Request sent',true],['Acceptance',status!=='pending'],['Requirements',requirementDone&&flow.addressReady],[order.paymentMethod&&!flow.online?'Payment setup':'Payment',!order.paymentMethod || (!flow.online&&flow.termsReady) || flow.verified],['Preparation',['delivered','fulfilled','received'].includes(status)],['Completion',status==='received']];
+    let current=active?steps.findIndex(([,done])=>!done):-1;
+    return `<ol class="transaction-process" aria-label="${escapeHtml(t('Request progress'))}">${steps.map(([label,done],index)=>`<li class="${(current===-1||index<current)?'is-done':index===current?'is-current':'is-pending'}"${index===current?' aria-current="step"':''}><span aria-hidden="true">${(current===-1||index<current)?'✓':index+1}</span>${escapeHtml(t(label))}</li>`).join('')}</ol>`;
+}
+function renderDeskRequirements(state) {
+    const t=s=>window.LangManager?.translateKey?.(s)||s;
+    if(!state)return '';
+    const labels={address:'Delivery Address',location:'Current Location',orderDetails:'Order Details'};
+    const status=['confirmed','waived'].includes(state.status)?state.status:state.status==='submitted'?'submitted':'waiting_customer';
+    const label={confirmed:'Confirmed',waived:'Not required',submitted:'Submitted',waiting_customer:'Needed'}[status];
+    const keys=Object.keys(labels).filter(key=>state.required?.[key]);
+    const data=state.data||{};
+    const value=key=>key==='address'?[data.houseStreet,data.barangay,data.city,data.landmark].filter(Boolean).join(', '):key==='location'?(data.lat!=null&&data.lng!=null?`${data.lat}, ${data.lng}`:''):data.orderDetails||'';
+    return `<details class="transaction-requirements"><summary><b>${escapeHtml(t('Requirements'))}</b><span>${status==='waiting_customer'?'0':keys.length}/${keys.length} ${escapeHtml(t(label))}</span><small>${keys.map(key=>escapeHtml(t(labels[key]))).join(' · ')}</small></summary>${state.notes?`<p data-no-translate>${escapeHtml(state.notes)}</p>`:''}<ul>${keys.map(key=>`<li><div><b>${escapeHtml(t(labels[key]))}</b><small class="requirement-state state-${status}">${escapeHtml(t(label))}</small></div>${value(key)?`<p data-no-translate>${escapeHtml(value(key))}</p>`:''}</li>`).join('')}</ul></details>`;
+}
+function renderTransactionDesk(order,isOwner,orders=[]) {
+    if(!order)return '';
+    const t=s=>window.LangManager?.translateKey?.(s)||s, esc=escapeHtml;
+    const id=order.bookingId||order.id,status=order.status||order.bookingStatus||'pending',flow=window.PaymentPolicy.flow(order);
+    const requirements=deskRequirements(order);
+    const detailsReady=!requirements||['confirmed','waived'].includes(requirements.status);
+    const action=(key,label)=>`<button type="button" data-tx-action="${key}" data-booking-id="${esc(id)}">${esc(t(label))}</button>`;
+    let next='',buttons='';
+    if(status==='pending'){next=isOwner?'Accept or decline this request.':'Wait for the business to accept your request.';if(isOwner)buttons=action('accept','Accept Request')+action('reject','Reject');}
+    else if(status==='accepted'&&requirements&&['waiting_customer','submitted'].includes(requirements.status)){
+        next=requirements.status==='submitted'?(isOwner?'Review the submitted details before continuing.':'Your details were submitted. Wait for business review.'):(isOwner?'Waiting for the requested customer details.':'Complete the requested details to continue.');
+        if(!isOwner&&requirements.status==='waiting_customer')buttons=action('requirements-submit','Submit requirements');
+        if(isOwner&&requirements.status==='submitted'&&requirements.responseId)buttons=action('requirements-confirm','Confirm details');
+        if(isOwner&&requirements.canonical)buttons+=action('requirements-waive','Waive requirements');
+    }
+    else if(status==='accepted'&&!flow.addressReady){next='Add the delivery address before the final amount is set.';if(!isOwner)buttons=action('delivery-details','Add delivery address');}
+    else if(status==='accepted'&&!flow.termsReady){next='The business must set the amount and payment instructions first.';if(isOwner)buttons=action('terms','Set payment instructions');}
+    else if(status==='accepted'&&flow.online){
+        const terms=order.paymentAmountDue&&order.paymentInstructions;
+        next=terms?(isOwner?'Waiting for the customer to submit payment details.':'Pay the agreed amount once, then submit your reference.'): 'The business must set the amount and payment instructions first.';
+        if(isOwner)buttons=action('terms',terms?'Edit payment instructions':'Set payment instructions');
+        else if(terms||order.paymentFlowVersion!==2)buttons=action('proof',order.paymentReviewDecision==='declined'?'Correct payment details':'Submit payment reference');
+        const legacy=currentChatDocsCache.find(d=>d.type==='requirement_response'&&([d.bookingId,d.transactionId].includes(id)||(isOwner&&!d.bookingId))&&d.paymentReference);
+        if(legacy)buttons+=`<button type="button" data-tx-action="import" data-booking-id="${esc(id)}" data-message-id="${esc(legacy.id)}">${esc(t('Use earlier payment details'))}</button>`;
+    } else if(status==='payment_submitted'){next=isOwner?'Check the reference and money received before verifying payment.':'Payment is under review. Do not pay again.';if(isOwner)buttons=action('verify','Verify payment')+action('decline','Request correction');}
+    else if(flow.canPrepare){next='Payment and preparation are separate steps.';if(isOwner)buttons=action('prepare','Start preparing');}
+    else if(status==='preparing'){next='The business is preparing your request.';if(isOwner)buttons=action(['delivery','delivery_order'].includes(order.requestType)?'dispatch':'ready',['delivery','delivery_order'].includes(order.requestType)?'Mark out for delivery':'Mark ready');}
+    else if(status==='ready'){next='Your request is ready.';if(isOwner)buttons=action('fulfill','Mark fulfilled');}
+    else if(status==='out_for_delivery'){next='Your order is on the way.';if(isOwner)buttons=action('deliver','Mark delivered');}
+    else if(['fulfilled','delivered'].includes(status)){next='Confirm only after you receive the order or service.';if(!isOwner)buttons=action('receive','Confirm Received');}
+    else if(status==='received'){next='Transaction completed.';}
+    else if(status==='cancelled'){
+        const refund=order.refundStatus;
+        if(refund==='needs_verification'){next='Verify the actual payment received before calculating the refund.';if(isOwner)buttons=action('refund-check','Verify received payment')+action('refund-missing','Payment not found');}
+        else if(refund==='pending'){next='Refund due. The business must transfer it manually.';if(isOwner)buttons=action('refund-send','Record refund transfer');}
+        else if(refund==='sent'){next='The business recorded a refund transfer. Confirm after checking your account.';if(!isOwner)buttons=action('refund-receive','Confirm refund received');}
+        else if(refund==='received')next='The customer confirmed the refund was received.';
+        else if(refund==='payment_not_found'){next='The business could not find this payment. Check the reference before requesting a recheck.';if(!isOwner)buttons=action('refund-recheck','Request payment recheck');}
+        else next=refund==='not_required'?'Cancelled. No refund is due.':'Cancelled. Ask the business to review any earlier payment.';
+    }else next='This request is closed.';
+    if(isOwner&&status==='accepted'&&(!requirements||['confirmed','waived'].includes(requirements.status)))buttons+=action('requirements-request','Request details');
+    if(!isOwner&&window.PaymentPolicy.cancellation(order).allowed)buttons+=action('cancel','Cancel request');
+    const value=(label,value,personal=false)=>value?`<div><dt>${esc(t(label))}</dt><dd${personal?' data-no-translate':''}>${esc(String(value))}</dd></div>`:'';
+    const selector=orders.length>1?`<select aria-label="Choose transaction" id="chatTransactionSelect">${orders.map(d=>`<option value="${esc(d.id)}"${d.id===id?' selected':''}>${esc(t(d.requestLabel||'Request')+' · '+String(d.id).slice(-6))}</option>`).join('')}</select>`:'';
+    return `<div class="transaction-desk-top"><b>${esc(t('Current transaction'))}</b><span>${esc(t(status.replace(/_/g,' ')))}</span></div>${selector}${renderRequestProcess(order,requirements)}<p class="transaction-desk-next">${esc(t(next))}</p>${!['cancelled','rejected'].includes(status)?renderDeskRequirements(requirements):''}${status==='accepted'&&flow.online&&flow.termsReady&&detailsReady&&order.paymentInstructions?`<p class="transaction-desk-payto" data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl class="transaction-desk-money">${value('Amount due',flow.termsReady&&detailsReady&&order.paymentAmountDue?'₱'+order.paymentAmountDue:'')}${value('Submitted payment',order.paymentAmount?'₱'+order.paymentAmount:'')}${value('Reference',order.paymentReference,true)}${value('Refund amount',order.refundAmount!=null?'₱'+order.refundAmount:'')}${value('Refund calculation',order.refundBaseAmount&&order.refundAmount!=null?'₱'+order.refundBaseAmount+' × '+order.refundPercent+'%':'')}${value('Refund reference',order.refundReference,true)}</dl><details class="transaction-desk-details"><summary>${esc(t('Payment and request details'))}</summary><p class="transaction-desk-id" data-no-translate>TX-${esc(String(id).slice(-8))}</p>${flow.termsReady&&detailsReady&&order.paymentInstructions?`<p data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl>${value('Reference',order.paymentReference,true)}${value('Refund reference',order.refundReference,true)}${value('Business note',order.paymentReviewNote||order.refundNote,true)}</dl>${order.paymentProofPath?`<div class="transaction-desk-proof" data-tx-proof="${esc(order.paymentProofPath)}" data-booking-id="${esc(id)}"></div>`:''}${renderRequestDetailRows(order)}<p>${esc(t('Vicinify records manual payments and refunds. It does not transfer money.'))}</p></details><div class="transaction-desk-actions">${buttons}</div>`;
+}
+function refreshTransactionDesk(isOwner) {
+    const wrap=document.getElementById('chatTransactionSummary');if(!wrap)return;
+    const fallback=currentChatDocsCache.filter(d=>d.type==='booking_card').map(d=>({...d,id:d.bookingId}));
+    const orders=chatDeskOrders.length?chatDeskOrders:fallback;
+    if(!orders.some(d=>d.id===chatDeskSelected))chatDeskSelected=orders[0]?.id;
+    const order=orders.find(d=>d.id===chatDeskSelected);
+    const suggestions=document.getElementById('chatSuggestions');
+    if(suggestions){const active=order&&!['received','rejected'].includes(order.status)&&!(order.status==='cancelled'&&['received','not_required'].includes(order.refundStatus));suggestions.hidden=isOwner||!!active;}
+    const markup=renderTransactionDesk(order,isOwner,orders);
+    wrap.classList.toggle('hidden',!order);
+    if(wrap.__transactionMarkup===markup)return;
+    const same=wrap.dataset.bookingId===(order?.bookingId||order?.id||'');
+    const openRequirements=same&&!!wrap.querySelector('.transaction-requirements')?.open,openDetails=same&&!!wrap.querySelector('.transaction-desk-details')?.open;
+    const oldScroll=same?wrap.scrollTop:0,focused=document.activeElement;
+    const focusAction=wrap.contains(focused)?focused?.dataset?.txAction:null;
+    wrap.__transactionMarkup=markup;wrap.dataset.bookingId=order?.bookingId||order?.id||'';wrap.innerHTML=markup;
+    if(openRequirements&&wrap.querySelector('.transaction-requirements'))wrap.querySelector('.transaction-requirements').open=true;
+    if(openDetails&&wrap.querySelector('.transaction-desk-details'))wrap.querySelector('.transaction-desk-details').open=true;
+    wrap.scrollTop=oldScroll;
+    if(focusAction){[...wrap.querySelectorAll('[data-tx-action]')].find(button=>button.dataset.txAction===focusAction)?.focus({preventScroll:true});}
+
+    const progress=wrap.querySelector('.transaction-process'),currentStep=progress?.querySelector('[aria-current=step]');
+    if(currentStep)progress.scrollLeft=Math.max(0,currentStep.offsetLeft-progress.offsetLeft-(progress.clientWidth-currentStep.offsetWidth)/2);
+    const detail=wrap.querySelector('.transaction-desk-details');
+    if(detail)detail.ontoggle=()=>{const proof=detail.querySelector('[data-tx-proof]');if(detail.open&&proof&&!proof.firstChild){const img=document.createElement('img');img.alt=window.LangManager?.translateKey?.('Payment proof')||'Payment proof';img.dataset.proofBooking=proof.dataset.bookingId;img.dataset.proofVersion=proof.dataset.txProof;proof.append(img);}};
+    wrap.onchange=e=>{if(e.target.id==='chatTransactionSelect'){chatDeskSelected=e.target.value;refreshTransactionDesk(isOwner)}};
+    wrap.onclick=e=>{const button=e.target.closest('[data-tx-action]');if(button)window.transactionDeskAction(button.dataset.txAction,button.dataset.bookingId,button.dataset.messageId)};
+    window.LangManager?.translateDOM?.(undefined,wrap);window.debouncedIcons?.();
+}
+function transactionInputDialog(title,fields,note,submitLabel='Save') {
+    if(document.getElementById('transactionActionModal'))return Promise.resolve(null);
+    return new Promise(resolve=>{
+        const modal=document.createElement('div');modal.id='transactionActionModal';modal.className='req-modal';
+        modal.innerHTML=`<div class="modalBackdrop"></div><form class="req-sheet" role="dialog" aria-modal="true" aria-labelledby="transactionActionTitle"><header class="req-head"><div class="req-head-text"><h3 id="transactionActionTitle">${escapeHtml(title)}</h3><p>${escapeHtml(note)}</p></div></header><div class="req-body">${fields.map(f=>`<label class="req-field"><span>${escapeHtml(f.label)}</span>${f.area?`<textarea class="req-input" name="${f.name}" required minlength="${f.min||3}" maxlength="1000">${escapeHtml(f.value||'')}</textarea>`:`<input class="req-input" name="${f.name}" required ${f.readOnly?'readonly':''} ${f.money?'inputmode="decimal"':'minlength="3" maxlength="200"'} value="${escapeHtml(f.value||'')}">`}</label>`).join('')}</div><footer class="req-footer"><button type="button" class="req-btn ghost">Cancel</button><button type="submit" class="req-btn primary">${escapeHtml(submitLabel)}</button></footer></form>`;
+        const prior=document.activeElement,finish=value=>{document.removeEventListener('keydown',key);modal.remove();prior?.focus?.();resolve(value)};
+        const key=e=>{if(e.key==='Escape')finish(null);if(e.key==='Tab'){const all=[...modal.querySelectorAll('input,textarea,button')];if(e.shiftKey&&document.activeElement===all[0]){e.preventDefault();all.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===all.at(-1)){e.preventDefault();all[0].focus()}}};
+        modal.querySelector('.modalBackdrop').onclick=()=>finish(null);modal.querySelector('[type=button]').onclick=()=>finish(null);
+        modal.querySelector('form').onsubmit=e=>{e.preventDefault();
+            for(const field of fields.filter(f=>f.money)){const input=e.target.elements[field.name];input.setCustomValidity('');try{window.PaymentPolicy.money(input.value)}catch(error){input.setCustomValidity(window.LangManager?.translateKey?.(error.message)||error.message);input.reportValidity();return;}}
+            if(e.target.reportValidity())finish(Object.fromEntries(new FormData(e.target)))};
+        modal.querySelectorAll('input,textarea').forEach(input=>input.oninput=()=>input.setCustomValidity(''));
+        document.body.append(modal);document.addEventListener('keydown',key);window.LangManager?.translateDOM?.(undefined,modal);modal.querySelector('input,textarea').focus();
+    });
+}
+window.transactionDeskAction=async function(action,id,messageId){
+    if(transactionDeskBusy.has(id))return;const order=deskOrder(id);if(!order)return;
+    transactionDeskBusy.add(id);
+    try{
+        let patch;
+        if(action==='requirements-request')return window.openRequirementRequestModal();
+        if(action==='requirements-submit'){const req=deskRequirements(order);if(req)return await window.openRequirementResponseModal(req.requestId);return;}
+        if(action==='requirements-confirm'){const req=deskRequirements(order);if(req?.responseId)return await window.confirmRequirementResponse(req.responseId);return;}
+        if(action==='requirements-waive'){
+            const req=deskRequirements(order);if(!req)return;
+            if(!await window.vConfirm('Waive these requirements?','Continue without the requested details? This does not confirm payment.','Continue'))return;
+            patch={requirements:{action:'waive',requestId:req.requestId}};
+        }else if(action==='proof')return await window.uploadPaymentProof(id,'');
+        if(['verify','decline'].includes(action))return await window.reviewPaymentProof(id,'',action==='verify'?'confirm':'resubmit');
+        if(action==='requirements-waive'){ /* patch already validated above */ }else if(action==='cancel'){
+            if(!await window.SettingsPage.reviewCancellation(order))return;
+            patch={status:'cancelled'};
+        }else if(action==='delivery-details'){
+            const input=await transactionInputDialog('Delivery address',[{name:'houseStreet',label:'House number, street or subdivision'},{name:'barangay',label:'Barangay'},{name:'city',label:'City / Municipality'},{name:'landmark',label:'Landmark'}],'The business uses this address to confirm the total and delivery fee.');if(!input)return;patch={deliveryDetails:input};
+        }else if(action==='terms'){
+            const input=await transactionInputDialog('Set payment instructions',[{name:'amount',label:'Amount due now (₱)',money:true,value:order.paymentAmountDue},{name:'instructions',label:'Payment recipient and instructions',area:true,min:8,value:order.paymentInstructions}],'Include the recipient name, account number and agreed amount. This does not confirm a payment.');if(!input)return;patch={paymentTerms:input};
+        }else if(action==='refund-check'){
+            const input=await transactionInputDialog('Verify received payment',[{name:'receivedAmount',label:'Amount actually received (₱)',money:true,value:order.paymentAmount}],'Check your account first. The refund will be calculated using the saved cancellation rate.');if(!input)return;patch={refundStatus:'pending',...input};
+        }else if(action==='refund-missing'){
+            const input=await transactionInputDialog('Payment not found',[{name:'refundNote',label:'Explain what needs checking',area:true}],'The customer can ask you to recheck. This does not mark a refund received.');if(!input)return;patch={refundStatus:'payment_not_found',...input};
+        }else if(action==='refund-send'){
+            const input=await transactionInputDialog('Record refund transfer',[{name:'amount',label:'Refund amount',value:order.refundAmount,readOnly:true},{name:'refundReference',label:'Refund transfer reference'}],'Transfer the displayed refund amount yourself first. Recording a reference does not move money.','Record transfer');if(!input)return;patch={refundStatus:'sent',...input};
+        }else if(action==='refund-receive'){
+            if(!await window.vConfirm('Confirm refund received','Check your account and confirm you received the displayed refund amount.','Confirm'))return;patch={refundStatus:'received'};
+        }else if(action==='refund-recheck')patch={refundStatus:'needs_verification'};
+        else if(action==='import'){if(!await window.vConfirm('Use earlier payment details?','Check this reference belongs to the selected request. It will still require payment verification.','Continue'))return;return await window.ViciData.command('booking',{action:'import_payment',bookingId:id,messageId,confirmLink:true});}
+        else if(action==='receive')return await window.confirmReceivedFromChat(id,'',order.placeId);
+        else{
+            const status={accept:'accepted',reject:'rejected',prepare:'preparing',ready:'ready',dispatch:'out_for_delivery',deliver:'delivered',fulfill:'fulfilled'}[action];
+            if(!status)return;
+            if(action==='prepare'&&!await window.vConfirm('Start preparing?','Starting preparation closes customer cancellation. Verify payment and delivery details first.','Start preparing'))return;
+            if(['accept','reject'].includes(action))return await window.updateBookingFromChat(id,currentChatDocsCache.find(d=>d.type==='booking_card'&&d.bookingId===id)?.id||'',status);
+            patch={status};
+        }
+        await window.ViciData.command('booking',{bookingId:id,patch});window.showToast?.('Transaction updated.','success');
+    }catch(error){window.showToast?.(error.message,'error')}finally{transactionDeskBusy.delete(id)}
+};
+
+
+window.addEventListener('vicinify:languagechange',()=>{
+    const modal=document.getElementById('chatModal'),user=window.auth?.currentUser,target=document.getElementById('chatCustomerUid')?.value;
+    if(modal&&!modal.classList.contains('hidden')&&user&&target)refreshTransactionDesk(user.uid!==target);
+});
+
 function listenToChatRoom(placeId, targetUid) {
 if (currentChatUnsub) currentChatUnsub();
+chatDeskOrders=[];chatDeskSelected=null;currentChatDocsCache=[];
+document.getElementById('chatTransactionSummary')?.classList.add('hidden');
 
 const listWrap = document.getElementById("chatMessageList");
 if (!listWrap) return;
@@ -3915,7 +5391,7 @@ const queueChatRender = (snap) => {
     });
 };
 
-currentChatUnsub = window.db.collection("messages")
+const stopMessages = window.db.collection("messages")
     .where("placeId", "==", placeId)
     .where("userId", "==", targetUid)
     .orderBy("createdAt", "desc")
@@ -3928,6 +5404,14 @@ currentChatUnsub = window.db.collection("messages")
         }
     });
 
+
+const stopOrders=window.ViciData.listen('chat-orders:'+placeId+':'+targetUid,
+    window.db.collection('bookings').where('placeId','==',placeId).where('userId','==',targetUid).orderBy('createdAt','desc').limit(5),snap=>{
+        if(document.getElementById('chatPlaceId')?.value!==placeId||document.getElementById('chatCustomerUid')?.value!==targetUid)return;
+        chatDeskOrders=snap.docs.map(d=>({...d.data(),id:d.id,bookingId:d.id}));refreshTransactionDesk(isOwner);
+    },error=>{console.warn('Transaction summary unavailable:',error);window.showToast?.('Transaction summary could not load. Please try reopening the conversation.','error');});
+currentChatUnsub=()=>{stopMessages();stopOrders();chatDeskOrders=[];chatDeskSelected=null;const panel=document.getElementById('chatTransactionSummary');if(panel){panel.classList.add('hidden');panel.replaceChildren();panel.__transactionMarkup=null;delete panel.dataset.bookingId;}};
+
 const renderChatSnap = (snap) => {
         if (snap.empty) {
             listWrap.innerHTML = `<div class="chat-empty"><span class="chat-empty-icon"><i data-lucide="messages-square"></i></span><h4>Start a conversation</h4><p>Ask about the menu, availability, or your request. Choose a quick question below to get started.</p></div>`;
@@ -3937,6 +5421,7 @@ const renderChatSnap = (snap) => {
 
         let docs = snap.docs.map(d => ({ ...d.data(), id: d.id })).filter(d => !(d.deletedBy || []).includes(user?.uid));
         currentChatDocsCache = docs;
+        refreshTransactionDesk(isOwner);
 
         if (docs.length === 0) {
             listWrap.innerHTML = `<div class="chat-empty"><span class="chat-empty-icon"><i data-lucide="messages-square"></i></span><h4>Start a conversation</h4><p>Ask about the menu, availability, or your request. Choose a quick question below to get started.</p></div>`;
@@ -3983,21 +5468,20 @@ const renderChatSnap = (snap) => {
                 const meta = getRequestMeta(d.requestType || "booking");
                 const side = getCardSide(d, user.uid, isOwner, "customer");
                 const isActiveBookingCard = activeTransactionDocs.some(x => x.id === d.id || x.bookingId === d.bookingId || x.transactionId === d.transactionId);
-                const inlineProgressHtml = isActiveBookingCard ? renderInlineTransactionProgress(activeTransactionDocs) : "";
+                const inlineProgressHtml = ""; // Current actions are pinned above the conversation.
 
+                const outputIcon = {table_reservation:'utensils',food_reservation:'package-check',pickup_order:'shopping-basket',delivery_order:'bike',advance_order:'calendar-days'}[meta.key] || 'calendar-days';
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
                         <div class="chat-transaction-card" style="background:#ffffff; border:1px solid ${meta.light}; border-radius:18px; overflow:hidden; max-width:88%; min-width:285px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
-                            <div style="background:${meta.color}; color:white; padding:12px 14px; font-weight:900; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                                <span>${meta.icon} ${escapeHtml(meta.title)}</span>
-                                <span style="background:white; color:${meta.color}; border-radius:999px; padding:3px 8px; font-size:10px; white-space:nowrap;">${escapeHtml(meta.shortLabel)}</span>
+                            <div class="request-output-header">
+                                <span class="request-output-kind"><i data-lucide="${outputIcon}" aria-hidden="true"></i><span>${escapeHtml(meta.shortLabel)}</span></span>
+                                <span class="status-badge status-${escapeHtml(status)}">${escapeHtml(status.replace(/_/g, " "))}</span>
                             </div>
 
                             <div style="padding:14px;">
-                                <div style="display:grid; gap:8px; font-size:13px; color:#334155;">
-                                    ${renderRequestDetailRows(d)}
-                                    <div><b>Status:</b> ${makeBadge(status)}</div>
-                                </div>
+                                ${d.placeName ? `<p class="request-output-store" data-no-translate>${escapeHtml(d.placeName)}</p>` : ''}
+                                ${renderRequestDetailRows(d)}
 
                                 ${inlineProgressHtml}
 
@@ -4010,7 +5494,7 @@ const renderChatSnap = (snap) => {
 
                                 ${isOwner ? renderBookingNextAction(d) : ""}
 
-                                ${renderPaymentFlowCard(d, isOwner)}
+                                ${(d.paymentMethod || d.paymentType || d.paymentStatus || d.paymentReference || d.paymentProofPath || d.paymentProofUrl || d.amount) ? renderPaymentFlowCard(d, isOwner) : ""}
 
                                 ${isOwner && status === "payment_submitted" ? `
                                     <div class="payment-owner-review" style="margin-top:12px; background:#fef3c7; border:1px solid #fde68a; border-radius:12px; padding:12px;">
@@ -4070,7 +5554,7 @@ const renderChatSnap = (snap) => {
                                     <div style="margin-top:8px; background:#f8fafc; padding:8px; border-radius:10px;">${escapeHtml(d.notes)}</div>
                                 ` : ""}
 
-                                ${!isOwner && status === "waiting_customer" ? `
+                                ${!isOwner && status === "waiting_customer" && (!d.canonicalRequirements || !deskOrder(d.bookingId) || deskOrder(d.bookingId).status === "accepted") ? `
                                     <button onclick="window.openRequirementResponseModal('${d.id}')" style="margin-top:12px; width:100%; border:none; background:#e0e7ff; color:#3730a3; padding:10px; border-radius:10px; font-weight:800; cursor:pointer;">Submit Requirements</button>
                                 ` : ""}
 
@@ -4100,7 +5584,7 @@ const renderChatSnap = (snap) => {
                         <div class="chat-transaction-card" style="background:#ffffff; border:1px solid #bbf7d0; border-radius:18px; overflow:hidden; max-width:90%; min-width:290px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
                             <div style="background:#16a34a; color:white; padding:12px 14px; font-weight:800;">✅ Requirements Submitted</div>
                             <div style="padding:14px; font-size:13px; color:#334155;">
-                                <div><b>Status:</b> ${makeBadge(status)}</div>
+                                <div class="requirement-detail-status">${status === "confirmed" ? "Details confirmed — payment is separate" : status === "waived" ? "Requirements waived" : "Details submitted for review"}</div>
                                 ${renderRequirementResponseDetails(d, isOwner, dateStr)}
                             </div>
                         </div>
@@ -4979,7 +6463,7 @@ window.renderListView = function(filteredPlaces) {
                             ${escapeHtml(freshness.shortLabel)}
                         </span>
                     </div>
-                    <div class="place-list-address" style="font-size: 11px; color: #94a3b8; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+                    <div data-no-translate class="place-list-address" style="font-size: 11px; color: #94a3b8; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
                         ${escapeHtml(addrText)}
                     </div>
                 </div>

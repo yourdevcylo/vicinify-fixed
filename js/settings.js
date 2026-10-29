@@ -76,10 +76,11 @@ async function deleteCustomerBooking(bookingId) {
 // Eligibility remains enforced by the server transaction, including races with preparation.
 function cancellationInfo(booking) {
     const status = getStatusTone(booking.status || booking.bookingStatus || "pending");
+    const policy=window.PaymentPolicy?.cancellation(booking);
     const raw = Number(booking.refundPercent ?? 50);
-    const rate = status === "pending" ? 100 : (Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) : 50);
-    const isBooking = ["booking", "table", "table_reservation", "food", "food_reservation"].includes(String(booking.requestType || "booking"));
-    return { status, rate, label: isBooking ? "booking" : "order", allowed: ["pending", "accepted", "payment_submitted"].includes(status) };
+    const rate=policy?.rate ?? (status==='pending'?100:raw);
+    const isBooking=["booking","table","table_reservation","food","food_reservation"].includes(String(booking.requestType||"booking"));
+    return {status,rate,label:isBooking?'booking':'order',allowed:policy?.allowed ?? ['pending','accepted','payment_submitted','payment_confirmed'].includes(status),paid:policy?.evidence ?? !!booking.paymentReference};
 }
 function reviewCancellation(booking) {
     const info = cancellationInfo(booking);
@@ -90,8 +91,8 @@ function reviewCancellation(booking) {
             <header><span class="cancel-review-icon"><i data-lucide="calendar-x"></i></span><button type="button" class="cancel-review-close" aria-label="Close cancellation"><i data-lucide="x"></i></button></header>
             <span class="cancel-review-eyebrow">REVIEW CANCELLATION</span><h3 id="cancelReviewTitle">Cancel this ${info.label}?</h3>
             <p>Your request with <strong>${escapeHtml(booking.placeName || "this establishment")}</strong> will be cancelled. This cannot be undone.</p>
-            <div class="cancel-policy-summary"><span>${info.status === "pending" ? "Not accepted yet" : "Accepted by the business"}</span><strong>${info.status === "pending" ? "Free cancellation" : info.rate + "% refund policy"}</strong><p>${info.status === "pending" ? "No cancellation fee applies while your request is pending." : "The refund rate saved when you placed this request applies before preparation starts."}</p></div>
-            <p class="cancel-manual-note">If you have already paid, arrange any refund with the business in chat. Vicinify does not automatically transfer a refund.</p>
+            <div class="cancel-policy-summary"><span>${info.status === "pending" ? "Not accepted yet" : "Accepted by the business"}</span><strong>${!info.paid ? "Free cancellation" : info.rate + "% refund policy"}</strong><p>${!info.paid ? "No payment is recorded. No refund transfer is needed." : "The business must verify money received before a refund is calculated. Follow the refund status in the transaction summary."}</p></div>
+            <p class="cancel-manual-note">If you already paid, follow the refund steps in the transaction summary. Vicinify does not automatically transfer a refund.</p>
             <footer><button type="button" class="cancel-review-keep">Keep ${info.label}</button><button type="button" class="cancel-review-confirm">Cancel ${info.label}</button></footer>
         </section>`;
         const previousFocus = document.activeElement;
@@ -292,7 +293,7 @@ function listenToCustomerActivities(user) {
                 const meta = getRequestMeta(d.requestType);
                 const cancellation = cancellationInfo(d);
                 const dateStr = formatDateTime(d.createdAt);
-                const summary = getTransactionSummary(d);
+                const summary = window.renderRequestDetailRows(d);
                 const txId = d.transactionId || d.id;
                 const unreadDot = isCustomerUnreadTransaction(d, user.uid) ? `<span class="inbox-unread-dot" title="Unread update"></span>` : "";
 
@@ -306,7 +307,7 @@ function listenToCustomerActivities(user) {
                             <div style="display:flex; align-items:center; gap:10px;">${unreadDot}<span class="status-badge status-${status}" style="font-size:11px; padding:6px 10px; white-space:nowrap;">${escapeHtml(normalizeStatusLabel(d.status || d.bookingStatus || "pending"))}</span></div>
                         </div>
 
-                        <div class="transaction-history-details">${escapeHtml(summary)}</div>
+                        <div class="transaction-history-details request-output-history">${summary}</div>
 
                         <div class="transaction-history-meta">
                             <span>${escapeHtml(dateStr)}</span>
@@ -831,6 +832,7 @@ return {
     deleteCustomerBooking,
     confirmReceivedBooking,
     cancelCustomerBooking,
+    reviewCancellation,
     deleteCustomerChatThread,
     markCustomerTransactionsRead,
     markCustomerChatsRead,

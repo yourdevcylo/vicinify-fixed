@@ -1,3 +1,16 @@
+## Latest payment/refund update — 29 October 2026
+Deploy the matching frontend AND Netlify functions. Deploy the included Firestore indexes once before testing the pinned transaction summary:
+
+```sh
+firebase deploy --only firestore:indexes --project vicinify-c9828
+```
+
+Wait for the new bookings index (placeId, userId, createdAt DESCENDING) to become Enabled in Firebase. No Firestore rules need widening for this update. Netlify build: npm run build; publish dist; functions netlify/functions. Open the permanent site URL, or /update.html on the same domain for safe app-cache recovery.
+
+The app records manual payments/refunds; it does not transfer money. New requests use the current transaction summary for address, agreed amount/instructions, payment verification, preparation and refund tracking. Existing legacy receipt details are never automatically treated as paid.
+
+---
+
 # Latest package: security and process review
 
 Read SECURITY-FLOW-AUDIT.md first. It contains changes, validation limits and deployment sequence.

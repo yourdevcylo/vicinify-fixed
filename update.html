@@ -4,12 +4,16 @@
 <body><main class="card"><small>VICINIFY · APP UPDATE</small><h1>Get the latest Vicinify</h1><p>Close your other Vicinify tabs and the installed app first, then update from this page.</p><p>This removes saved app files on this site. Your account, favorites and transaction records stay saved.</p><div class="build"><small>Available build</small><br><code id="build">VICINIFY_GREEN_EDITOR_20261029</code><br><small id="site"></small></div><button id="update" type="button">Update and open Vicinify</button><p id="status" role="status" aria-live="polite"></p></main>
 <script>
 (()=>{
+ const translations={"VICINIFY · APP UPDATE": "VICINIFY · PAGBABAGO NG APLIKASYON", "Get the latest Vicinify": "Kunin ang pinakabagong Vicinify", "Close your other Vicinify tabs and the installed app first, then update from this page.": "Isara muna ang iba pang bukas na Vicinify at ang nakalagay na aplikasyon, saka magpatuloy dito.", "This removes saved app files on this site. Your account, favorites and transaction records stay saved.": "Aalisin nito ang nakalagak na mga talaksan ng aplikasyon. Mananatili ang iyong akawnt, mga paborito, at tala ng transaksyon.", "Available build": "Bersiyong makukuha", "Update and open Vicinify": "Baguhin at buksan ang Vicinify", "Connect to the internet, then try again.": "Kumonekta sa internet at subukan muli.", "Getting the latest app…": "Kinukuha ang pinakabagong aplikasyon…", "Could not download the app. Please try again.": "Hindi makuha ang aplikasyon. Pakisubukan muli.", "The deployment is changing. Wait a moment, then try again.": "Binabago pa ang inilathalang bersiyon. Maghintay sandali at subukan muli.", "App files refreshed. Opening Vicinify…": "Nabago na ang mga talaksan. Binubuksan ang Vicinify…", "Update could not finish. Please try again.": "Hindi matapos ang pagbabago. Pakisubukan muli."};
+ let tagalog=false;try{tagalog=localStorage.getItem('vicinify_lang')==='ph';}catch{}
+ const t=text=>tagalog?(translations[text]||text):text;
+ if(tagalog){document.documentElement.lang='tl';document.title='Baguhin ang Vicinify';for(const el of document.querySelectorAll?.('h1,p,small,button')||[]){if(!el.children.length)el.textContent=t(el.textContent);}}
  const button=document.getElementById('update'),status=document.getElementById('status');
  const appScope=new URL('./',location.href).href;
  document.getElementById('site').textContent=location.host;
  button.addEventListener('click',async()=>{
-  if(!navigator.onLine){status.textContent='Connect to the internet, then try again.';return;}
-  button.disabled=true;status.textContent='Getting the latest app…';
+  if(!navigator.onLine){status.textContent=t('Connect to the internet, then try again.');return;}
+  button.disabled=true;status.textContent=t('Getting the latest app…');
   try{
    const target=new URL('index.html',appScope);target.searchParams.set('update',String(Date.now()));
    const response=await fetch(target.href,{cache:'no-store',credentials:'same-origin'});
@@ -18,8 +22,8 @@
    if(!html.includes(version))throw Error('The deployment is changing. Wait a moment, then try again.');
    if('serviceWorker' in navigator){const registrations=await navigator.serviceWorker.getRegistrations();await Promise.all(registrations.filter(r=>r.scope===appScope).map(r=>r.unregister()));}
    if('caches' in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('vicinify-ui-')).map(k=>caches.delete(k)));}
-   status.textContent='App files refreshed. Opening Vicinify…';location.replace(target.href);
-  }catch(error){status.textContent=error.message||'Update could not finish. Please try again.';button.disabled=false;}
+   status.textContent=t('App files refreshed. Opening Vicinify…');location.replace(target.href);
+  }catch(error){status.textContent=t(error.message||'Update could not finish. Please try again.');button.disabled=false;}
  });
 })();
 </script></body></html>

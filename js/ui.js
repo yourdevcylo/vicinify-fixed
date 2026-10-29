@@ -8,7 +8,7 @@ window.AppShell = (() => {
         const profile = AppState.userProfile;
         const name = profile?.fullName || AppState.user?.displayName || 'Local explorer';
         const role = profile?.role || 'user';
-        document.getElementById('workspaceTitle').textContent = page === 'page-dashboard' ? (role === 'user' ? 'My Activity' : role === 'admin' ? 'Admin workspace' : 'Business Hub') : titles[page] || 'Vicinify';
+        document.getElementById('workspaceTitle').textContent = page === 'page-dashboard' ? (role === 'user' ? 'My Activity' : role === 'admin' ? 'Admin Hub' : 'Business Hub') : titles[page] || 'Vicinify';
         document.getElementById('accountName').textContent = name;
         document.getElementById('accountRole').textContent = role === 'admin' ? 'Admin' : role === 'business' ? 'Business' : 'Standard';
         document.getElementById('accountInitials').textContent = name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
@@ -18,10 +18,11 @@ window.AppShell = (() => {
             if (current) button.setAttribute('aria-current', 'page');
             else button.removeAttribute('aria-current');
         });
-        document.title = page === 'page-login' ? 'Welcome · Vicinify' : `${titles[page] || 'Your neighborhood'} · Vicinify`;
+        document.title = `${window.LangManager?.translateKey(page==='page-login'?'Welcome':page==='page-dashboard'?(role==='admin'?'Admin Hub':role==='business'?'Business Hub':'My Activity'):titles[page]||'Your neighborhood') || titles[page] || 'Vicinify'} · Vicinify`;
     }
     function connection() { document.getElementById('connectionNotice').hidden = navigator.onLine; }
     window.addEventListener('vicinify:pagechange', sync);
+    window.addEventListener('vicinify:languagechange', sync);
     window.addEventListener('online', connection);
     window.addEventListener('offline', connection);
     document.addEventListener('DOMContentLoaded', () => {
@@ -102,4 +103,25 @@ window.AppShell = (() => {
  const queue=()=>{if(!queued){queued=true;requestAnimationFrame(sync);}};
  viewport.addEventListener('resize',queue);viewport.addEventListener('scroll',queue);
  document.addEventListener('focusin',queue);document.addEventListener('focusout',queue);sync();
+})();
+
+// Localized photo picker: keep the native selection event and image restrictions.
+window.ViciPhotoPicker=(()=>{
+ function enhance(root=document){
+  const inputs=[];if(root.matches?.('input[type=file]'))inputs.push(root);
+  root.querySelectorAll?.('input[type=file]').forEach(input=>inputs.push(input));
+  for(const input of inputs){
+   if(!input.accept.includes('image')||input.closest('.vici-photo-picker'))continue;
+   const wrap=document.createElement('div');wrap.className='vici-photo-picker';
+   input.before(wrap);wrap.append(input);input.tabIndex=-1;
+   const button=document.createElement('button');button.type='button';button.dataset.i18n=input.multiple?'Choose photos':'Choose photo';button.textContent=button.dataset.i18n;
+   const status=document.createElement('span');status.className='vici-photo-selection';
+   wrap.append(button,status);button.addEventListener('click',()=>input.click());
+   function sync(){const files=[...input.files];if(files.length){status.removeAttribute('data-i18n');status.setAttribute('data-no-translate','');status.textContent=files.map(file=>file.name).join(', ');}else{status.removeAttribute('data-no-translate');status.dataset.i18n='No photo selected';status.textContent='No photo selected';}window.LangManager?.translateDOM?.(undefined,wrap);}
+   input.addEventListener('change',sync);input.form?.addEventListener('reset',()=>setTimeout(sync,0));sync();
+  }
+ }
+ function init(){enhance();new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)if(node.nodeType===1)enhance(node);}).observe(document.body,{childList:true,subtree:true});}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+ return {enhance};
 })();

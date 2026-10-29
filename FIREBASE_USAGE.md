@@ -53,3 +53,19 @@ Customer quick questions send immediately while preserving any typed draft. Busi
 
 ## Navigation performance update
 Navigation requests reuse up to eight successful routes in memory for two minutes (rounded to four coordinate decimals). Duplicate active-destination taps do not start additional requests. Routing is an external OSRM request, not a Firestore query. GPS marker/follow rendering is throttled to one accepted movement update per second with a five-meter jitter threshold; coordinate fixes remain local. Stop cancels pending starts and stale route events are ignored. First routing response still depends on network/routing service availability.
+
+
+## Translation and Admin Hub update — 29 October 2026
+Translation uses a local dictionary and batches only changed DOM nodes. Switching languages adds no Firestore reads, writes, or model requests. The existing AI request includes the preferred response language; this does not add a second request. Admin theme, role labels and empty-state changes do not modify queries, counts, permissions or stored records. Live billing and live generated AI response language were not verified in this workspace.
+
+
+## Current transaction desk — 29 October 2026
+While one conversation is open, a shared live bookings query reads at most five recent transactions for that exact place/customer. It is detached together with the messages listener on close or conversation switch. This is an additional bounded listener, not zero extra billing. It avoids rescanning old chat pages or polling for status; payment/refund mutations mirror the booking card in the same server transaction. A composite index on placeId + userId + createdAt descending is included in firestore.indexes.json. Deploy indexes once for the desk query.
+
+Payment references without a receipt still require no Firebase Storage upload. Private receipt images in the desk are inserted only when payment/request details are expanded, then use the existing protected proof endpoint/cache. Payment instructions, address submission, cancellation and refund stages each make explicit user-triggered server writes and audit events; no background money-processing jobs or automatic bank transfers were added. Old unlinked references require explicit owner linking and still require payment verification. Live production billing and bank transfers were not tested.
+
+
+## Request milestones and canonical requirements — 29 October 2026
+New linked requirements store a small request/status/data summary on the booking and its mirrored message card. Request, submit and confirm/waive actions use the existing booking endpoint and update the relevant messages atomically, with audit events. They make bounded action-triggered reads/writes; they add no live listener or polling beyond the five-booking desk feed and existing messages feed. The desk can therefore retain requirements even after their original chat messages leave the loaded 100-message window. Historical linked requirements can fall back to currently loaded messages. Legacy unlinked requirements are not automatically attributed to a booking.
+
+Admin changes in this release are CSS colors only. Layout, controls, queries, status editing and stored data retain their previous behavior.

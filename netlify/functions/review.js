@@ -34,6 +34,11 @@ exports.handler = async event => {
             if (!order || order.userId !== user.uid || order.placeId !== placeId || order.status !== 'received' || !place.exists || place.data().owner_uid === user.uid) {
                 throw Object.assign(new Error('A completed transaction with this establishment is required.'), { status: 403 });
             }
+            // Feedback is submit-once; the separate rating editor keeps its existing update path.
+            // Checking inside the transaction also covers two tabs and concurrent requests.
+            if (body.createOnly === true && previous.exists) {
+                throw Object.assign(new Error('You already submitted feedback for this transaction.'), { status: 409 });
+            }
             let sum = place.data().ratingSum;
             let count = place.data().reviewCount || 0;
             if (!Number.isFinite(sum)) {

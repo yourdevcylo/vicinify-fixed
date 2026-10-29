@@ -42,3 +42,12 @@ test('one-tap question sends just the prompt, preserves draft and requests auto 
   assert.equal(sent[0].quickQuestion,'menu');assert.equal(sent[0].text,policy.quickQuestions.menu.text);assert.equal(w.document.getElementById('chatMessageInput').value,'Keep my draft.');assert.equal(auto.length,1);assert.equal(auto[0][0],'autoReply');assert.equal(w.__chatSending,false);
  }finally{r.dom.window.close();}
 });
+
+test('transaction desk keeps a bounded live order feed and releases it together with chat messages',()=>{
+ const dom=new JSDOM('<input id="chatPlaceId" value="shop"><input id="chatCustomerUid" value="customer"><div id="chatMessageList"></div><section id="chatTransactionSummary"></section>',{runScripts:'outside-only'}),w=dom.window;let messageStops=0,orderStops=0,next,limit,refreshes=0;
+ const query={where(){return this},orderBy(){return this},limit(n){limit=n;return this},onSnapshot(){return()=>messageStops++}};
+ w.auth={currentUser:{uid:'customer'}};w.db={collection:()=>query};w.ViciData={listen:(key,q,callback)=>{assert.match(key,/chat-orders:shop:customer/);next=callback;return()=>orderStops++}};w.showToast=()=>{};w.requestAnimationFrame=()=>{};w.refreshTransactionDesk=()=>refreshes++;
+ const s=fs.readFileSync(require.resolve('../js/common.js'),'utf8'),a=s.indexOf('function listenToChatRoom('),b=s.indexOf('window.requestPushPermission',a);
+ w.eval('let currentChatUnsub=null,currentChatDocsCache=[],chatDeskOrders=[],chatDeskSelected=null;'+s.slice(a,b)+'\nwindow.stopDesk=()=>currentChatUnsub();');
+ try{w.listenToChatRoom('shop','customer');assert.equal(limit,5);next({docs:[{id:'order',data:()=>({status:'accepted'})}]});assert.equal(refreshes,1);w.document.getElementById('chatPlaceId').value='another';next({docs:[]});assert.equal(refreshes,1);w.stopDesk();assert.equal(orderStops,1);assert.equal(messageStops,1);}finally{w.close()}
+});

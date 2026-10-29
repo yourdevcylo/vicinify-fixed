@@ -715,7 +715,7 @@
                 <p style="font-size: 13px; color: #64748b; margin: 0 0 16px;">Design your store's loyalty stamp card. The preview is live — drag to rotate, tap <i data-lucide="rotate-3d" style="width:12px; height:12px; vertical-align:-2px;"></i> to flip. Works even without internet or quota.</p>
                 <div class="card" style="border-radius: 12px; padding: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
-                        <label style="font-weight: 700; color: #0f172a; font-size: 14px;">I-enable ang Suki Card</label>
+                        <label style="font-weight: 700; color: #0f172a; font-size: 14px;">Enable Suki Card</label>
                         <input type="checkbox" id="sukiEnabled" style="width: 40px; height: 20px; cursor: pointer; accent-color: #b8860b;" />
                     </div>
 
@@ -844,9 +844,9 @@
         <div id="bookingModal" class="hidden" aria-hidden="true">
             <div class="modalBackdrop" onclick="closeBookingModal()"></div>
             <div class="modalBox booking-sheet" role="dialog" aria-modal="true" aria-labelledby="bookingModalTitle">
-                <div class="modalHeader"><div><span class="booking-eyebrow">BOOKINGS &amp; ORDERS</span><h3 id="bookingModalTitle">Send Request</h3></div><button type="button" onclick="closeBookingModal()" class="modalClose" aria-label="Close"><i data-lucide="x"></i></button></div>
-                <div class="modalBody">
-                    <div class="booking-store-summary"><span class="booking-store-icon"><i data-lucide="store"></i></span><div><span class="booking-store-label">Sending to</span><strong id="bookingStoreChip"><span>Establishment</span></strong></div></div>
+                <div class="modalHeader"><div><span class="booking-eyebrow">BOOKINGS &amp; ORDERS</span><h3 id="bookingModalTitle" tabindex="-1">Send a request</h3><p id="bookingStepLabel" class="booking-step-label">1 of 2 · Request details</p></div><button type="button" onclick="closeBookingModal()" class="modalClose" aria-label="Close"><i data-lucide="x"></i></button></div>
+                <div class="modalBody" id="bookingDetailsStep">
+                    <div class="booking-store-summary"><span class="booking-store-icon"><i data-lucide="store"></i></span><div><span class="booking-store-label">Sending to</span><strong id="bookingStoreChip"><span data-i18n="Establishment">Establishment</span></strong></div></div>
                     <p class="booking-intro-copy">Choose a booking or order, then add the details. The business will review your request.</p>
                     <input type="hidden" id="bookPlaceId" />
                     <input type="hidden" id="bookPlaceName" />
@@ -916,11 +916,12 @@
                         <i data-lucide="shield-check"></i>
                         <div>
                             <b>Cancellation policy</b>
-                            <p>You may cancel for free while your request is still pending. Once the establishment accepts it, cancelling refunds the establishment's stated rate (shown on your order card). Once preparation starts, cancellation is no longer available.</p>
+                            <p>Free cancellation before preparation if no payment is recorded. Paid cancellations use the saved refund rate. Refund transfers are manual and must be confirmed separately.</p>
                         </div>
                     </div>
                 </div>
-                <div class="modalFooter booking-footer"><button onclick="closeBookingModal()" class="ghost">Cancel</button><button id="confirmBookingBtn" onclick="confirmBookingSubmit()" class="primary">Send Request</button></div>
+                <div class="modalBody booking-review hidden" id="bookingReviewStep" aria-live="polite"></div>
+                <div class="modalFooter booking-footer"><button id="bookingSecondaryBtn" onclick="bookingBackOrCancel()" class="ghost">Cancel</button><button id="confirmBookingBtn" onclick="confirmBookingSubmit()" class="primary">Review request</button></div>
             </div>
         </div>
 
@@ -959,6 +960,7 @@
                     </div>
                     <button type="button" onclick="closeChatModal()" class="modalClose" aria-label="Close conversation"><i data-lucide="x"></i></button>
                 </div>
+                <section id="chatTransactionSummary" class="transaction-desk hidden" aria-label="Current transaction"></section>
                 <div class="chat-body" id="chatMessageList" role="log" aria-label="Conversation">
                     <div class="muted" style="text-align: center; padding: 20px; font-size: 12px;">Loading conversation...</div>
                 </div>
@@ -1000,13 +1002,13 @@
                     <div class="admin-field"><label>description</label><div class="sub-label">Short description</div><input type="text" id="editDesc" /></div>
                     <div class="admin-field"><label>address</label><div class="sub-label">Street address in Lipa City</div><input type="text" id="editAddress" /></div>
                     <div class="admin-field"><label>barangay</label><div class="sub-label">Barangay location</div><input type="text" id="editBrgy" /></div>
-                    <div class="admin-checkbox-field"><div><label>is_verified</label><div class="sub-label">Verified by admin</div></div><input type="checkbox" id="editVerified" /></div>
-                    <div class="admin-checkbox-field"><div><label>is_premium</label><div class="sub-label">Premium business listing</div></div><input type="checkbox" id="editPremium" /></div>
-                    <div class="admin-checkbox-field"><div><label>is_featured</label><div class="sub-label">Featured on map</div></div><input type="checkbox" id="editFeatured" /></div>
-                    <div class="admin-field"><label>owner_email</label><div class="sub-label">Business owner email</div><input type="text" id="editOwnerEmail" placeholder="Enter user's email..." /></div>
-                    <div class="admin-checkbox-field"><label>accepts_booking</label><input type="checkbox" id="editBooking" /></div>
+                    <div class="admin-checkbox-field"><div><label>Verified</label><div class="sub-label">Verified by admin</div></div><input type="checkbox" id="editVerified" /></div>
+                    <div class="admin-checkbox-field"><div><label>Premium</label><div class="sub-label">Premium business listing</div></div><input type="checkbox" id="editPremium" /></div>
+                    <div class="admin-checkbox-field"><div><label>Featured on map</label><div class="sub-label">Featured on map</div></div><input type="checkbox" id="editFeatured" /></div>
+                    <div class="admin-field"><label>Owner Email</label><div class="sub-label">Business owner email</div><input type="text" id="editOwnerEmail" placeholder="Enter user's email..." /></div>
+                    <div class="admin-checkbox-field"><label>Accepts booking</label><input type="checkbox" id="editBooking" /></div>
                     <div class="admin-field">
-                        <label>approval_status</label>
+                        <label>Approval status</label>
                         <select id="editApproval"><option value="pending">pending</option><option value="approved">approved</option><option value="rejected">rejected</option></select>
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 10px;">

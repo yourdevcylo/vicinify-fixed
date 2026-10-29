@@ -68,23 +68,7 @@ window.DashboardPage = (() => {
         return map[key] || map.booking;
     }
     function renderRequestDetails(order) {
-        const legacy={}; let key='';
-        String(order.details || '').split(/\r?\n/).forEach(line=>{
-            const match=line.match(/^(Date|Time|Items \/ Order|Payment Method|Notes|Guests|Delivery Address|Seating Preference|Occasion):\s*(.*)$/i);
-            if(match){ key=match[1].toLowerCase(); legacy[key]=match[2]; }
-            else if(key) legacy[key]+=(legacy[key]?'\n':'')+line;
-        });
-        const date=order.bookingDate || legacy.date;
-        const time=order.bookingTime || legacy.time;
-        let schedule=[date,time].filter(Boolean).join(' · ');
-        if(/^\d{4}-\d{2}-\d{2}$/.test(date || '') && /^\d{2}:\d{2}$/.test(time || '')) {
-            const stamp=new Date(date+'T'+time+':00+08:00');
-            if(Number.isFinite(stamp.getTime())) schedule=stamp.toLocaleDateString('en-US',{timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric'})+' · '+stamp.toLocaleTimeString('en-US',{timeZone:'Asia/Manila',hour:'numeric',minute:'2-digit'});
-        }
-        const rows=[['Schedule',schedule],['Guests',order.guestCount || legacy.guests],['Items',order.orderItems || legacy['items / order']],['Payment',order.paymentMethod || legacy['payment method']],['Address',order.deliveryAddress || legacy['delivery address']],['Seating',order.seatingPreference || legacy['seating preference']],['Occasion',order.occasion || legacy.occasion],['Notes',order.bookingDetails || legacy.notes]];
-        const visible=rows.filter(([,value])=>value!=null && String(value).trim());
-        if(!visible.length) return '<p class="ticket-details">'+escapeHtml(order.details || 'No additional details.')+'</p>';
-        return '<dl class="ticket-detail-list">'+visible.map(([label,value])=>'<div><dt>'+label+'</dt><dd>'+escapeHtml(String(value))+'</dd></div>').join('')+'</dl>';
+        return window.renderRequestDetailRows(order);
     }
 
     function safeString(str) { return String(str ?? "").split("").map(c => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")).join(""); }
@@ -338,8 +322,8 @@ updateDashboardKpis(places);
 
             if (places.length === 0) {
                 wrap.innerHTML = `
-                    <div style="text-align:center; padding: 40px 0;">
-                        <div style="background: #f8fafc; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                    <div class="business-empty-state" style="text-align:center; padding: 40px 0;">
+                        <div class="business-empty-icon" style="background: #f8fafc; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
                             <i data-lucide="store" style="color: #94a3b8; width: 40px; height: 40px;"></i>
                         </div>
                         <div style="font-weight: 700; font-size: 18px; color: #0f172a;">No establishments yet</div>
@@ -376,7 +360,7 @@ updateDashboardKpis(places);
     <!-- Header: Title & Verification -->
     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
         <div>
-            <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em;">${escapeHtml(p.name)}</h3>
+            <h3 data-no-translate style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em;">${escapeHtml(p.name)}</h3>
             <p style="margin: 4px 0 0; font-size: 13px; color: #64748b; display: flex; align-items: center; gap: 4px;">
                 <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i> ${escapeHtml(p.address || p.brgy || "Lipa City")}
             </p>
@@ -735,7 +719,7 @@ globalMessagesUnsub = [];
                         <div class="inbox-top" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                             <div class="inbox-name" style="font-size: 16px; font-weight: 700;">
                                 ${escapeHtml(d.userName || "Customer")}
-                                <span class="business-chat-place">${escapeHtml(businessName)}</span>
+                                <span data-no-translate class="business-chat-place">${escapeHtml(businessName)}</span>
                             </div>
                             <div class="inbox-time" style="font-size: 13px; color: #64748b;">${dateStr}</div>
                         </div>
@@ -1161,7 +1145,7 @@ globalBookingsUnsub.push(bookingUnsub);
                             </div>
                         </div>
 
-                        <div style="overflow-x: auto;">
+                        <div class="admin-table-scroll" style="overflow-x: auto;">
                             <table class="admin-db-table">
                                 <thead><tr style="font-size: 14px;"><th>Name</th><th>Category</th><th>Owner Email</th><th>Approval Status</th></tr></thead>
                                 <tbody id="adminPlacesTableBody">
@@ -1173,9 +1157,9 @@ globalBookingsUnsub.push(bookingUnsub);
                                         data-premium="${p.is_premium ? 'true' : 'false'}"
                                         data-featured="${p.is_featured ? 'true' : 'false'}"
                                         data-booking="${p.accepts_booking ? 'true' : 'false'}">
-                                        <td style="font-weight: 700;">${escapeHtml(p.name || "N/A")}</td>
+                                        <td data-no-translate style="font-weight: 700;">${escapeHtml(p.name || "N/A")}</td>
                                         <td>${escapeHtml(p.category || p.cat || "N/A")}</td>
-                                        <td onclick="event.stopPropagation(); window.DashboardPage.manualAssignOwner('${p.id}', '${safeString(p.name || "Establishment")}')" style="cursor:pointer; color: ${p.owner_email ? '#3b82f6' : '#94a3b8'}; font-weight: 600;" title="Click to manually assign owner">
+                                        <td ${p.owner_email ? 'data-no-translate' : 'data-i18n="Unclaimed"'} onclick="event.stopPropagation(); window.DashboardPage.manualAssignOwner('${p.id}', '${safeString(p.name || "Establishment")}')" style="cursor:pointer; color: ${p.owner_email ? '#3b82f6' : '#94a3b8'}; font-weight: 600;" title="Click to manually assign owner">
                                             ${escapeHtml(p.owner_email || "Unclaimed")}
                                         </td>
                                         <td><span class="status-badge status-${(p.approval_status || p.status || 'pending').toLowerCase()}">${(p.approval_status || p.status || 'pending').toUpperCase()}</span></td>
@@ -1210,10 +1194,10 @@ globalBookingsUnsub.push(bookingUnsub);
         wrap.innerHTML = `<div class="muted" style="padding:20px; font-size:15px;">Fetching users from database...</div>`;
         try {
             const snap = await window.db.collection("users").limit(20).get();
-            let html = `<div style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead><tbody>`;
             snap.forEach(doc => {
                 const u = doc.data(); const r = u.role || 'user'; const badgeClass = r === 'admin' ? 'status-accepted' : (r === 'business' ? 'status-pending' : 'status-rejected');
-                html += `<tr style="font-size: 14px;"><td style="font-weight:700;">${escapeHtml(u.fullName || 'Unknown')}</td><td style="color:#64748b;">${escapeHtml(u.email || 'No email')}</td><td><span class="status-badge ${badgeClass}">${r.toUpperCase()}${doc.id === PERMANENT_ADMIN_UID ? " • PERMANENT" : ""}</span></td><td><select ${doc.id === PERMANENT_ADMIN_UID ? 'disabled title="Permanent admin — role is locked"' : ""} onchange="window.DashboardPage.updateUserRole('${doc.id}', this.value)" style="padding:8px; border-radius:6px; border:1px solid #cbd5e1; outline:none; font-size:14px;"><option value="user" ${r === 'user' ? 'selected' : ''}>User</option><option value="business" ${r === 'business' ? 'selected' : ''}>Business</option><option value="admin" ${r === 'admin' ? 'selected' : ''}>Admin</option></select></td></tr>`;
+                html += `<tr style="font-size: 14px;"><td data-no-translate style="font-weight:700;">${escapeHtml(u.fullName || 'Unknown')}</td><td data-no-translate style="color:#64748b;">${escapeHtml(u.email || 'No email')}</td><td><span class="status-badge ${badgeClass}">${r.toUpperCase()}${doc.id === PERMANENT_ADMIN_UID ? " • PERMANENT" : ""}</span></td><td><select ${doc.id === PERMANENT_ADMIN_UID ? 'disabled title="Permanent admin — role is locked"' : ""} onchange="window.DashboardPage.updateUserRole('${doc.id}', this.value)" style="padding:8px; border-radius:6px; border:1px solid #cbd5e1; outline:none; font-size:14px;"><option value="user" ${r === 'user' ? 'selected' : ''}>User</option><option value="business" ${r === 'business' ? 'selected' : ''}>Business</option><option value="admin" ${r === 'admin' ? 'selected' : ''}>Admin</option></select></td></tr>`;
             });
             html += `</tbody></table></div>`;
             wrap.innerHTML = html;
@@ -1251,14 +1235,14 @@ globalBookingsUnsub.push(bookingUnsub);
                 wrap.innerHTML = `<div class="muted" style="padding:24px; font-size:15px;">No business claims yet.</div>`;
                 return;
             }
-            let html = `<div style="overflow-x:auto;"><table class="admin-db-table"><thead><tr style="font-size:14px;"><th>Establishment</th><th>Claimant</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x:auto;"><table class="admin-db-table"><thead><tr style="font-size:14px;"><th>Establishment</th><th>Claimant</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
             docs.forEach(c => {
                 const st = String(c.status || "pending").toLowerCase();
                 const badge = st === "approved" ? "status-accepted" : (st === "pending" ? "status-pending" : "status-rejected");
                 const date = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleDateString() : "";
                 html += `<tr style="font-size:14px;">
                     <td style="font-weight:700;">${escapeHtml(c.placeName || "Establishment")}<div style="font-weight:500; color:#94a3b8; font-size:12px;">${escapeHtml(date)}</div></td>
-                    <td>${escapeHtml(c.userName || "User")}<div style="color:#64748b; font-size:12px;">${escapeHtml(c.userEmail || "")}</div></td>
+                    <td>${escapeHtml(c.userName || "User")}<div data-no-translate style="color:#64748b; font-size:12px;">${escapeHtml(c.userEmail || "")}</div></td>
                     <td><span class="status-badge ${badge}">${escapeHtml(st.toUpperCase())}</span></td>
                     <td>${st === "pending" ? `<button onclick="window.DashboardPage.approveClaim('${c.id}')" style="background:#dcfce7; color:#166534; border:none; padding:9px 14px; border-radius:9px; font-weight:800; cursor:pointer; margin-right:6px;">Approve</button><button onclick="window.DashboardPage.rejectClaim('${c.id}')" style="background:#fee2e2; color:#991b1b; border:none; padding:9px 14px; border-radius:9px; font-weight:800; cursor:pointer;">Reject</button>` : ""}</td>
                 </tr>`;
@@ -1320,12 +1304,12 @@ globalBookingsUnsub.push(bookingUnsub);
                 wrap.innerHTML = `<div class="muted" style="padding:24px; font-size:15px;">No reports yet.</div>`;
                 return;
             }
-            let html = `<div style="overflow-x:auto;"><table class="admin-db-table"><thead><tr style="font-size:14px;"><th>Establishment</th><th>Issue</th><th>Details</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x:auto;"><table class="admin-db-table"><thead><tr style="font-size:14px;"><th>Establishment</th><th>Issue</th><th>Details</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
             docs.forEach(r => {
                 const st = String(r.status || "open").toLowerCase();
                 const badge = st === "resolved" ? "status-accepted" : (st === "dismissed" ? "status-rejected" : "status-pending");
                 html += `<tr style="font-size:14px;">
-                    <td style="font-weight:700;">${escapeHtml(r.placeName || "Establishment")}<div style="font-weight:500; color:#94a3b8; font-size:12px;">${escapeHtml(r.userName || "")}</div></td>
+                    <td style="font-weight:700;">${escapeHtml(r.placeName || "Establishment")}<div data-no-translate style="font-weight:500; color:#94a3b8; font-size:12px;">${escapeHtml(r.userName || "")}</div></td>
                     <td>${escapeHtml(r.issueType || "Report")}</td>
                     <td style="max-width:280px; white-space:pre-wrap;">${escapeHtml(r.details || "")}</td>
                     <td><span class="status-badge ${badge}">${escapeHtml(st.toUpperCase())}</span></td>
@@ -1360,13 +1344,13 @@ globalBookingsUnsub.push(bookingUnsub);
                 wrap.innerHTML = `<div class="muted" style="padding:24px; font-size:15px;">No admin actions logged yet.</div>`;
                 return;
             }
-            let html = `<div style="overflow-x:auto;"><table class="admin-db-table"><thead><tr style="font-size:14px;"><th>When</th><th>Admin</th><th>Action</th><th>Target</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x:auto;"><table class="admin-db-table"><thead><tr style="font-size:14px;"><th>When</th><th>Admin</th><th>Action</th><th>Target</th></tr></thead><tbody>`;
             snap.forEach(doc => {
                 const a = doc.data();
                 const when = a.createdAt?.toDate ? a.createdAt.toDate().toLocaleString() : "";
                 html += `<tr style="font-size:14px;">
                     <td style="white-space:nowrap;">${escapeHtml(when)}</td>
-                    <td>${escapeHtml(a.actorEmail || a.actorUid || "")}</td>
+                    <td data-no-translate>${escapeHtml(a.actorEmail || a.actorUid || "")}</td>
                     <td><span class="status-badge" style="background:#eef2ff; color:#3b82f6;">${escapeHtml(String(a.action || "").toUpperCase())}</span></td>
                     <td>${escapeHtml(a.targetCollection || "")} ${escapeHtml(a.targetLabel || "")}<div style="color:#94a3b8; font-size:12px;">${escapeHtml(a.detail || "")}</div></td>
                 </tr>`;
@@ -1384,14 +1368,14 @@ globalBookingsUnsub.push(bookingUnsub);
         try {
             const snap = await window.db.collection("buzz_posts").orderBy("createdAt", "desc").limit(20).get();
             let posts = [];
-            let html = `<div style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Author</th><th>Barangay</th><th>Content</th><th>Type</th><th>Actions</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Author</th><th>Barangay</th><th>Content</th><th>Type</th><th>Actions</th></tr></thead><tbody>`;
             snap.forEach(doc => {
                 const d = doc.data();
                 posts.push({ ...d, id: doc.id });
                 html += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('buzz_posts', '${doc.id}')">
-                    <td style="font-weight:700;">${escapeHtml(d.authorName || 'User')}</td>
+                    <td data-no-translate style="font-weight:700;">${escapeHtml(d.authorName || 'User')}</td>
                     <td>${escapeHtml(d.barangay || 'All')}</td>
-                    <td style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.body || d.title || '')}</td>
+                    <td data-no-translate style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.body || d.title || '')}</td>
                     <td><span class="status-badge" style="background:#eef2ff; color:#3b82f6;">${(d.type || 'general').toUpperCase()}</span></td>
                     <td><button onclick="event.stopPropagation(); window.DashboardPage.adminDeleteRecord('buzz_posts', '${doc.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;" title="Delete Post"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button></td>
                 </tr>`;
@@ -1405,6 +1389,13 @@ globalBookingsUnsub.push(bookingUnsub);
         } catch (e) { wrap.innerHTML = `<div style="color:red; padding:20px; font-size:15px;">Error: ${escapeHtml(e.message)}</div>`; }
     }
 
+    function adminBookingStatusOptions(value) {
+        const status=String(value || 'unknown');
+        const labels={payment_submitted:'Payment submitted',payment_confirmed:'Payment confirmed',preparing:'Preparing',ready:'Ready',ready_for_pickup:'Ready for pickup',out_for_delivery:'Out for delivery',delivered:'Delivered',fulfilled:'Fulfilled',received:'Received',cancelled:'Cancelled',unknown:'No status recorded'};
+        const current=['pending','accepted','rejected'].includes(status)?'':`<option value="${escapeHtml(status)}" selected disabled>${escapeHtml(labels[status] || status.replace(/_/g,' '))}</option>`;
+        return current+['pending','accepted','rejected'].map(key=>`<option value="${key}"${status===key?' selected':''}>${key[0].toUpperCase()+key.slice(1)}</option>`).join('');
+    }
+
     async function loadAdminBookings() {
         if (!requireAdminAction()) return;
         const wrap = document.getElementById("adminBookingsList");
@@ -1413,21 +1404,19 @@ globalBookingsUnsub.push(bookingUnsub);
         try {
             const snap = await window.db.collection("bookings").orderBy("createdAt", "desc").limit(20).get();
             let bks = [];
-            let html = `<div style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Place</th><th>Customer</th><th>Details</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Place</th><th>Customer</th><th>Details</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
             snap.forEach(doc => {
                 const d = doc.data();
                 if ((d.deletedBy || []).includes("admin_deleted")) return;
                 bks.push({ ...d, id: doc.id });
-                const s = d.status || 'pending';
+                const s = d.status || d.bookingStatus || 'unknown';
                 html += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('bookings', '${doc.id}')">
-                    <td style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
-                    <td style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
+                    <td data-no-translate style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
+                    <td data-no-translate style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
                     <td style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.details || '')}</td>
                     <td>
                         <select onclick="event.stopPropagation()" onchange="window.DashboardPage.adminUpdateBookingStatus('${doc.id}', this.value)" style="padding:8px; border-radius:6px; border:1px solid #cbd5e1; outline:none; font-size: 13px;">
-                            <option value="pending" ${s === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="accepted" ${s === 'accepted' ? 'selected' : ''}>Accepted</option>
-                            <option value="rejected" ${s === 'rejected' ? 'selected' : ''}>Rejected</option>
+                            ${adminBookingStatusOptions(s)}
                         </select>
                     </td>
                     <td><button onclick="event.stopPropagation(); window.DashboardPage.adminDeleteRecord('bookings', '${doc.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;" title="Hide Request from Admin"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button></td>
@@ -1450,14 +1439,14 @@ globalBookingsUnsub.push(bookingUnsub);
         try {
             const snap = await window.db.collection("messages").orderBy("createdAt", "desc").limit(20).get();
             let msgs = [];
-            let html = `<div style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Place</th><th>Sender</th><th>Message</th><th>Reply</th><th>Actions</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Place</th><th>Sender</th><th>Message</th><th>Reply</th><th>Actions</th></tr></thead><tbody>`;
             snap.forEach(doc => {
                 const d = doc.data();
                 if ((d.deletedBy || []).includes("admin_deleted")) return;
                 msgs.push({ ...d, id: doc.id });
                 html += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('messages', '${doc.id}')">
-                    <td style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
-                    <td style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
+                    <td data-no-translate style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
+                    <td data-no-translate style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
                     <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.text || '')}</td>
                     <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#64748b;">${escapeHtml(d.reply || 'No reply yet')}</td>
                     <td><button onclick="event.stopPropagation(); window.DashboardPage.adminDeleteRecord('messages', '${doc.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;" title="Hide Message from Admin"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button></td>
@@ -1490,31 +1479,29 @@ globalBookingsUnsub.push(bookingUnsub);
                 const d = doc.data();
                 if (collectionName === "buzz_posts") {
                     rows += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('buzz_posts', '${doc.id}')">
-                        <td style="font-weight:700;">${escapeHtml(d.authorName || 'User')}</td>
+                        <td data-no-translate style="font-weight:700;">${escapeHtml(d.authorName || 'User')}</td>
                         <td>${escapeHtml(d.barangay || 'All')}</td>
-                        <td style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.body || d.title || '')}</td>
+                        <td data-no-translate style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.body || d.title || '')}</td>
                         <td><span class="status-badge" style="background:#eef2ff; color:#3b82f6;">${(d.type || 'general').toUpperCase()}</span></td>
                         <td><button onclick="event.stopPropagation(); window.DashboardPage.adminDeleteRecord('buzz_posts', '${doc.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;" title="Delete Post"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button></td>
                     </tr>`;
                 } else if (collectionName === "bookings") {
                     if ((d.deletedBy || []).includes("admin_deleted")) return;
-                    const s = d.status || 'pending';
+                    const s = d.status || d.bookingStatus || 'unknown';
                     rows += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('bookings', '${doc.id}')">
-                        <td style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
-                        <td style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
+                        <td data-no-translate style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
+                        <td data-no-translate style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
                         <td style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.details || '')}</td>
                         <td><select onclick="event.stopPropagation()" onchange="window.DashboardPage.adminUpdateBookingStatus('${doc.id}', this.value)" style="padding:8px; border-radius:6px; border:1px solid #cbd5e1; outline:none; font-size: 13px;">
-                            <option value="pending" ${s === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="accepted" ${s === 'accepted' ? 'selected' : ''}>Accepted</option>
-                            <option value="rejected" ${s === 'rejected' ? 'selected' : ''}>Rejected</option>
+                            ${adminBookingStatusOptions(s)}
                         </select></td>
                         <td><button onclick="event.stopPropagation(); window.DashboardPage.adminDeleteRecord('bookings', '${doc.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;" title="Hide Request from Admin"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button></td>
                     </tr>`;
                 } else if (collectionName === "messages") {
                     if ((d.deletedBy || []).includes("admin_deleted")) return;
                     rows += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('messages', '${doc.id}')">
-                        <td style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
-                        <td style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
+                        <td data-no-translate style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
+                        <td data-no-translate style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
                         <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.text || '')}</td>
                         <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#64748b;">${escapeHtml(d.reply || 'No reply yet')}</td>
                         <td><button onclick="event.stopPropagation(); window.DashboardPage.adminDeleteRecord('messages', '${doc.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;" title="Hide Message from Admin"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button></td>
@@ -1592,7 +1579,7 @@ async function updateBookingStatus(id, stat) {
 
         // 🛵 DELIVERY SMART FLOW FROM DASHBOARD:
         // If owner accepts a Delivery Order from dashboard, auto-create the delivery details card in chat.
-        if (stat === "accepted" && requestType === "delivery_order") {
+        if (stat === "accepted" && requestType === "delivery_order" && bookingData.paymentFlowVersion !== 2) {
             const existingDeliveryReq = await window.db.collection("messages").where("placeId", "==", bookingData.placeId)
                 .where("type", "==", "requirement_request")
                 .where("bookingId", "==", id)
@@ -1703,7 +1690,7 @@ async function updateBookingStatus(id, stat) {
             overlay.innerHTML = `
                 <div style="background: white; padding: 24px; border-radius: 16px; width: 90%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
                     <h3 style="margin-top: 0; color: #0f172a; font-size: 18px; margin-bottom: 8px;">Assign Owner</h3>
-                    <p style="font-size: 14px; color: #64748b; margin-bottom: 16px; line-height: 1.5;">Assigning owner for: <strong style="color:#0f172a;">${escapeHtml(placeName)}</strong><br><br>Enter user's registered email address:</p>
+                    <p style="font-size: 14px; color: #64748b; margin-bottom: 16px; line-height: 1.5;">Assigning owner for: <strong data-no-translate style="color:#0f172a;">${escapeHtml(placeName)}</strong><br><br>Enter user's registered email address:</p>
                     <input type="email" id="assignEmailInput" placeholder="user@example.com" autocomplete="off" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; font-family: inherit; font-size: 14px;" />
                     <div style="display: flex; gap: 10px;">
                         <button id="assignCancelBtn" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #f1f5f9; color: #475569; font-weight: bold; cursor: pointer;">Cancel</button>
@@ -1795,9 +1782,9 @@ const currentCat = data.category || data.cat || "default";
 
 panelTitle.textContent = "Edit Establishment";
             formHtml += `
-                <div class="admin-field"><label>name</label><div class="sub-label">Establishment name</div><input type="text" id="dynName" value="${escapeHtml(data.name || '')}" style="font-size: 15px; padding: 12px;"/></div>
+                <div class="admin-field"><label>Name</label><div class="sub-label">Establishment name</div><input type="text" id="dynName" value="${escapeHtml(data.name || '')}" style="font-size: 15px; padding: 12px;"/></div>
                 
-                <div class="admin-field"><label>category</label><div class="sub-label">Type of establishment</div>
+                <div class="admin-field"><label>Category</label><div class="sub-label">Type of establishment</div>
                     <select id="dynCat" style="font-size: 15px; padding: 12px;">
                         <option value="restaurant" ${currentCat === 'restaurant' ? 'selected' : ''}>Restaurant</option>
 <option value="cafe" ${currentCat === 'cafe' ? 'selected' : ''}>Café</option>
@@ -1811,11 +1798,11 @@ panelTitle.textContent = "Edit Establishment";
 <option value="default" ${currentCat === 'default' ? 'selected' : ''}>Default</option>
                     </select>
                 </div>
-                <div class="admin-field"><label>description</label><div class="sub-label">Short description</div><input type="text" id="dynDesc" value="${escapeHtml(data.description || data.desc || '')}" style="font-size: 15px; padding: 12px;"/></div>
-                <div class="admin-field"><label>address</label><div class="sub-label">Street address in Lipa City</div><input type="text" id="dynAddr" value="${escapeHtml(data.address || data.addr || '')}" style="font-size: 15px; padding: 12px;"/></div>
-                <div class="admin-field"><label>barangay</label><div class="sub-label">Barangay location</div><input type="text" id="dynBrgy" value="${escapeHtml(data.barangay || data.brgy || '')}" style="font-size: 15px; padding: 12px;"/></div>
-                <div class="admin-field"><label>owner_email</label><div class="sub-label">Business owner email</div><input type="text" id="dynEmail" value="${escapeHtml(data.owner_email || '')}" placeholder="Enter user's email..." style="font-size: 15px; padding: 12px;"/></div>
-                <div class="admin-field"><label>approval_status</label>
+                <div class="admin-field"><label>Description</label><div class="sub-label">Short description</div><input type="text" id="dynDesc" value="${escapeHtml(data.description || data.desc || '')}" style="font-size: 15px; padding: 12px;"/></div>
+                <div class="admin-field"><label>Address</label><div class="sub-label">Street address in Lipa City</div><input type="text" id="dynAddr" value="${escapeHtml(data.address || data.addr || '')}" style="font-size: 15px; padding: 12px;"/></div>
+                <div class="admin-field"><label>Barangay</label><div class="sub-label">Barangay location</div><input type="text" id="dynBrgy" value="${escapeHtml(data.barangay || data.brgy || '')}" style="font-size: 15px; padding: 12px;"/></div>
+                <div class="admin-field"><label>Owner Email</label><div class="sub-label">Business owner email</div><input type="text" id="dynEmail" value="${escapeHtml(data.owner_email || '')}" placeholder="Enter user's email..." style="font-size: 15px; padding: 12px;"/></div>
+                <div class="admin-field"><label>Approval status</label>
                     <select id="dynApproval" style="font-size: 15px; padding: 12px;">
                         <option value="pending" ${(data.approval_status || data.status) === 'pending' ? 'selected' : ''}>pending</option>
                         <option value="approved" ${(data.approval_status || data.status) === 'approved' ? 'selected' : ''}>approved</option>
@@ -1829,7 +1816,7 @@ panelTitle.textContent = "Edit Establishment";
 
                 <div class="admin-checkbox-field"><div><label style="font-size: 15px;">delivery_grab</label><div class="sub-label">Available on Grab/Foodpanda</div></div><input type="checkbox" id="dynGrab" ${data.delivery_grab ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
                 <div class="admin-checkbox-field"><div><label style="font-size: 15px;">delivery_inhouse</label><div class="sub-label">Has in-house delivery</div></div><input type="checkbox" id="dynInHouse" ${data.delivery_inhouse ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
-                <div class="admin-field"><label>delivery_radius</label><div class="sub-label">Delivery distance in km (e.g. 5)</div><input type="number" id="dynRadius" value="${escapeHtml(data.delivery_radius || '')}" style="font-size: 15px; padding: 12px;"/></div>
+                <div class="admin-field"><label>Delivery Radius (km)</label><div class="sub-label">Delivery distance in km (e.g. 5)</div><input type="number" id="dynRadius" value="${escapeHtml(data.delivery_radius || '')}" style="font-size: 15px; padding: 12px;"/></div>
             `;
         }
         else if (type === 'buzz_posts') {
@@ -1837,8 +1824,8 @@ panelTitle.textContent = "Edit Establishment";
             if (!data) return;
             panelTitle.textContent = "Edit BuzzPost";
             formHtml += `
-                <div class="admin-field"><label>content</label><div class="sub-label">Post content / text</div><textarea id="dynBody" rows="4" style="font-size: 15px; padding: 12px;">${escapeHtml(data.body || data.title || '')}</textarea></div>
-                <div class="admin-field"><label>post_type</label><div class="sub-label">Type of post</div>
+                <div class="admin-field"><label>Content</label><div class="sub-label">Post content / text</div><textarea id="dynBody" rows="4" style="font-size: 15px; padding: 12px;">${escapeHtml(data.body || data.title || '')}</textarea></div>
+                <div class="admin-field"><label>Post type</label><div class="sub-label">Type of post</div>
                     <select id="dynType" style="font-size: 15px; padding: 12px;">
                         <option value="promo" ${data.type === 'promo' ? 'selected' : ''}>promo</option>
                         <option value="event" ${data.type === 'event' ? 'selected' : ''}>event</option>
@@ -1847,8 +1834,8 @@ panelTitle.textContent = "Edit Establishment";
                         <option value="general" ${(data.type === 'general' || !data.type) ? 'selected' : ''}>general</option>
                     </select>
                 </div>
-                <div class="admin-field"><label>barangay</label><div class="sub-label">Barangay/area this post belongs to</div><input type="text" id="dynBrgy" value="${escapeHtml(data.barangay || '')}" style="font-size: 15px; padding: 12px;"></div>
-                <div class="admin-field"><label>author_name</label><div class="sub-label">Display name of poster</div><input type="text" id="dynAuthor" value="${escapeHtml(data.authorName || '')}" style="font-size: 15px; padding: 12px;"></div>
+                <div class="admin-field"><label>Barangay</label><div class="sub-label">Barangay/area this post belongs to</div><input type="text" id="dynBrgy" value="${escapeHtml(data.barangay || '')}" style="font-size: 15px; padding: 12px;"></div>
+                <div class="admin-field"><label>Author</label><div class="sub-label">Display name of poster</div><input type="text" id="dynAuthor" value="${escapeHtml(data.authorName || '')}" style="font-size: 15px; padding: 12px;"></div>
             `;
         }
         else if (type === 'bookings') {
@@ -1856,8 +1843,8 @@ panelTitle.textContent = "Edit Establishment";
             if (!data) return;
             panelTitle.textContent = "Edit Booking";
             formHtml += `
-                <div class="admin-field"><label>customer_name</label><input type="text" id="dynCustomer" value="${escapeHtml(data.userName || '')}" style="font-size: 15px; padding: 12px;"></div>
-                <div class="admin-field"><label>booking_details</label><div class="sub-label">Date, time, and service notes</div><textarea id="dynDetails" rows="5" style="font-size: 15px; padding: 12px;">${escapeHtml(data.details || '')}</textarea></div>
+                <div class="admin-field"><label>Customer</label><input type="text" id="dynCustomer" value="${escapeHtml(data.userName || '')}" style="font-size: 15px; padding: 12px;"></div>
+                <div class="admin-field"><label>Request details</label><div class="sub-label">Date, time, and service notes</div><textarea id="dynDetails" rows="5" style="font-size: 15px; padding: 12px;">${escapeHtml(data.details || '')}</textarea></div>
                 <div class="admin-field"><label>status</label>
                     <select id="dynStatus" style="font-size: 15px; padding: 12px;">
                         <option value="pending" ${data.status === 'pending' ? 'selected' : ''}>pending</option>
@@ -1872,9 +1859,9 @@ panelTitle.textContent = "Edit Establishment";
             if (!data) return;
             panelTitle.textContent = "Edit Message Thread";
             formHtml += `
-                <div class="admin-field"><label>sender_name</label><div class="sub-label">Display name of the sender</div><input type="text" id="dynSender" value="${escapeHtml(data.userName || '')}" style="font-size: 15px; padding: 12px;"></div>
-                <div class="admin-field"><label>content</label><div class="sub-label">Message text from customer</div><textarea id="dynText" rows="4" style="font-size: 15px; padding: 12px;">${escapeHtml(data.text || '')}</textarea></div>
-                <div class="admin-field"><label>owner_reply</label><div class="sub-label">Reply from the business owner</div><textarea id="dynReply" rows="4" style="font-size: 15px; padding: 12px;">${escapeHtml(data.reply || '')}</textarea></div>
+                <div class="admin-field"><label>Sender</label><div class="sub-label">Display name of the sender</div><input type="text" id="dynSender" value="${escapeHtml(data.userName || '')}" style="font-size: 15px; padding: 12px;"></div>
+                <div class="admin-field"><label>Content</label><div class="sub-label">Message text from customer</div><textarea id="dynText" rows="4" style="font-size: 15px; padding: 12px;">${escapeHtml(data.text || '')}</textarea></div>
+                <div class="admin-field"><label>Reply from the business owner</label><div class="sub-label">Reply from the business owner</div><textarea id="dynReply" rows="4" style="font-size: 15px; padding: 12px;">${escapeHtml(data.reply || '')}</textarea></div>
             `;
         }
 
@@ -2572,7 +2559,7 @@ let updateData = {
                     <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
                         <div style="flex: 1;">
                             <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 8px;">${dateStr}</div>
-                            <div style="font-size: 16px; color: #1e293b; white-space: pre-wrap; line-height: 1.5;">${escapeHtml(d.body)}</div>
+                            <div data-no-translate style="font-size: 16px; color: #1e293b; white-space: pre-wrap; line-height: 1.5;">${escapeHtml(d.body)}</div>
                         </div>
                         ${imgHtml}
                         <button onclick="window.DashboardPage.deletePlacePost('${d.id}')" style="margin-left: 20px; background: #fee2e2; color: #ef4444; border: none; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; align-self: flex-start; transition: 0.2s;" title="Delete Post">
@@ -2614,7 +2601,7 @@ let updateData = {
         const dashIcon = document.querySelector(".dash-pro-icon");
        if (dashTitle && dashSub) {
             if (getRole() === "admin") { 
-                dashTitle.textContent = "Admin Panel"; 
+                dashTitle.textContent = "Admin Hub";
                 dashSub.textContent = "Manage establishments, users, posts, claims, and reports in one place."; 
                 if (dashIcon) dashIcon.innerHTML = '<i data-lucide="database" style="color: white; width: 24px; height: 24px;"></i>'; 
             } else if (getRole() === "user") {

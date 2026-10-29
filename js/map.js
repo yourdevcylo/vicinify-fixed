@@ -878,6 +878,7 @@ window.MapPage = (() => {
                     signal: context.signal && AbortSignal.any ? AbortSignal.any([context.signal, AbortSignal.timeout(20000)]) : AbortSignal.timeout(20000),
                     body: JSON.stringify({
                         query: intent.query,
+                        uiLanguage: window.LangManager?.getLanguage?.() || 'en',
                         history: context.history || [],
                         radius: AppState.radius,
                         userLocation: AppState.userLocation || null,
@@ -885,11 +886,21 @@ window.MapPage = (() => {
                         pureAI: true
                     })
                 });
+                if (!response.ok) {
+                    const data = await response.json().catch(()=>({}));
+                    const message = data.error === 'Forbidden origin' ? 'Vici AI cannot accept requests from this site address. Please contact the site administrator.'
+                        : response.status === 503 ? 'Vici AI server setup is incomplete. Please contact the site administrator.'
+                        : response.status === 429 ? 'Too many AI requests. Please wait before trying again.'
+                        : response.status === 401 || response.status === 403 ? 'Please sign in again with a verified email to use Vici AI.'
+                        : response.status === 504 ? 'AI timed out. Please try again.' : VICI_AI_ERROR;
+                    console.warn('Vici AI request failed.', {status:response.status, reason:data.error === 'Forbidden origin'?'origin_rejected':response.status===503?'server_setup':'request_failed'});
+                    return {answer:message,source:'error',error:true};
+                }
                 if (response.ok) {
                     const data = await response.json();
                     if (data.answer) return { answer: data.answer, source: data.source === "guard" ? "guard" : "ai", placeIds: Array.isArray(data.placeIds) ? data.placeIds : [] };
                 }
-            } catch (e) { console.warn("Vici AI endpoint unavailable.", e); }
+            } catch (e) { console.warn("Vici AI endpoint unavailable.", e); if(e.name === "TimeoutError" || e.name === "AbortError")return {answer:"AI timed out. Please try again.",source:"error",error:true}; }
         }
         return { answer: VICI_AI_ERROR, source: "error", error: true };
     }
@@ -1088,7 +1099,7 @@ window.MapPage = (() => {
                                     <span class="vici-ai-rank"><b>${index + 1}</b><i data-lucide="map-pin"></i></span>
                                     <span class="vici-ai-pick-main">
                                         <span class="vici-ai-place-top">
-                                            <strong>${escapeHtml(place.name || "Establishment")}</strong>
+                                            <strong data-no-translate>${escapeHtml(place.name || "Establishment")}</strong>
                                             <mark>${escapeHtml(catLabel)}</mark>
                                         </span>
                                         <small>${escapeHtml(reasonText)}</small>
@@ -1147,7 +1158,7 @@ window.MapPage = (() => {
                     <button type="button" class="smart-answer-card" onclick="window.viewPlace('${place.id}')">
                         <span class="smart-answer-score">${Math.max(0, Math.round(place._smartScore || 0))}</span>
                         <span class="smart-answer-main">
-                            <strong>${escapeHtml(place.name || "Establishment")}</strong>
+                            <strong data-no-translate>${escapeHtml(place.name || "Establishment")}</strong>
                             <small>${escapeHtml((place._smartReasons || ["nearby match"]).join(" • "))}</small>
                         </span>
                         <i data-lucide="chevron-right"></i>
@@ -1640,10 +1651,12 @@ window.MapPage = (() => {
         try {
             if (!("speechSynthesis" in window)) return;
             window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
+            const translated=window.LangManager?.translateKey?.(text)||text;
+            const tagalog=window.LangManager?.getLanguage?.()==='ph';
+            const u = new SpeechSynthesisUtterance(translated);
             if (!navBestVoice) navBestVoice = pickNavVoice();
-            if (navBestVoice) u.voice = navBestVoice;
-            u.lang = "en-US";
+            if (tagalog){const voice=window.speechSynthesis.getVoices().find(v=>/^(tl|fil)/i.test(v.lang));if(voice)u.voice=voice;}else if(navBestVoice)u.voice=navBestVoice;
+            u.lang = tagalog?'fil-PH':'en-US';
             u.rate = 0.95;   // slightly slower = clearer
             u.pitch = 1.05;  // slightly warmer
             u.volume = 1.0;
@@ -2211,7 +2224,7 @@ window.MapPage = (() => {
                 <div class="placeHeaderRow place-profile-head">
                     <div class="placeHeaderTitle">
                         <span class="place-profile-eyebrow">LOCAL FAVORITES · LIPA CITY</span>
-                        <h1>${escapeHtml(p.name)}</h1>
+                        <h1 data-no-translate>${escapeHtml(p.name)}</h1>
                         <p style="margin-bottom: 8px;">${escapeHtml((p.cat || p.category || "Establishment").toUpperCase())}</p>
 
                         ${p.avgRating ? `
@@ -2256,7 +2269,7 @@ window.MapPage = (() => {
                 </div>
 
                 <div class="place-contact-grid">
-                    <div class="placeContactRow"><i data-lucide="map-pin"></i> <span>${escapeHtml(placeAddrText)}</span></div>
+                    <div class="placeContactRow"><i data-lucide="map-pin"></i> <span data-no-translate>${escapeHtml(placeAddrText)}</span></div>
                     <div class="placeContactRow link"><i data-lucide="phone"></i> <span>${escapeHtml(p.phone || p.contact_phone || "No contact number")}</span></div>
                 </div>
 
@@ -2277,7 +2290,7 @@ window.MapPage = (() => {
                             <h3><i data-lucide="info"></i> <span data-i18n="About this place">About this place</span></h3>
                         </div>
                     </div>
-                    <p class="place-description-text">${escapeHtml(p.desc || p.description || "No details provided.")}</p>
+                    <p data-no-translate class="place-description-text">${escapeHtml(p.desc || p.description || "No details provided.")}</p>
 
                     ${adminPostBtnHtml}
 
@@ -2440,7 +2453,7 @@ window.MapPage = (() => {
                     <div class="place-review-item" style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:14px; margin-bottom:10px; box-shadow:0 4px 12px rgba(15,23,42,0.04);">
                         <div class="place-review-item-head" style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
                             <div class="place-review-person">
-                                <div style="font-weight:900; color:#0f172a; font-size:14px;">${escapeHtml(name)}</div>
+                                <div data-no-translate style="font-weight:900; color:#0f172a; font-size:14px;">${escapeHtml(name)}</div>
                                 <div class="place-review-stars" style="color:#f59e0b; font-weight:900; letter-spacing:1px; margin-top:3px;">${stars}</div>
                             </div>
                             <div class="place-review-meta" style="text-align:right; font-size:10px; color:#64748b;">
@@ -2448,7 +2461,7 @@ window.MapPage = (() => {
                                 <div style="margin-top:5px;">${escapeHtml(meta.shortLabel)} &middot; ${escapeHtml(date)}</div>
                             </div>
                         </div>
-                        <div class="place-review-comment" style="margin-top:10px; color:#334155; font-size:13px; line-height:1.5; white-space:pre-wrap;">${escapeHtml(comment)}</div>
+                        <div data-no-translate class="place-review-comment" style="margin-top:10px; color:#334155; font-size:13px; line-height:1.5; white-space:pre-wrap;">${escapeHtml(comment)}</div>
                     </div>
                 `;
             }).join("") + moreHtml;
@@ -2846,8 +2859,8 @@ window.MapPage = (() => {
                     <article class="place-menu-card">
                         <div class="place-menu-card-head">
                             <div class="place-menu-author">
-                                <div>${escapeHtml(authorName.charAt(0).toUpperCase())}</div>
-                                <span><strong>${escapeHtml(authorName)}</strong><small>${dateStr}</small></span>
+                                <div data-no-translate>${escapeHtml(authorName.charAt(0).toUpperCase())}</div>
+                                <span><strong data-no-translate>${escapeHtml(authorName)}</strong><small>${dateStr}</small></span>
                             </div>
                             <div class="place-menu-card-tools">
                                 ${sharedBadgeHtml}
@@ -2855,7 +2868,7 @@ window.MapPage = (() => {
                                 ${actionsHtml}
                             </div>
                         </div>
-                        <div class="place-menu-body">${escapeHtml(data.body)}</div>
+                        <div data-no-translate class="place-menu-body">${escapeHtml(data.body)}</div>
                         ${imgHtml}
                     </article>
                     `;
@@ -3002,7 +3015,7 @@ window.MapPage = (() => {
         });
 
         const confirmBtn = document.getElementById("confirmBookingBtn");
-        if (confirmBtn && !confirmBtn.disabled) confirmBtn.textContent = `Send ${selectedMeta.shortLabel}`;
+        if (confirmBtn && !confirmBtn.disabled) confirmBtn.textContent = "Review request";
         window.debouncedIcons?.();
     }
 
@@ -3141,6 +3154,54 @@ window.MapPage = (() => {
         });
     };
 
+    let bookingReviewSnapshot = null;
+    let bookingSending = false;
+    const bookingText = text => window.LangManager?.translateKey?.(text) || text;
+
+    function setBookingStep(review) {
+        const details = document.getElementById("bookingDetailsStep");
+        const summary = document.getElementById("bookingReviewStep");
+        details?.classList.toggle("hidden", review);
+        summary?.classList.toggle("hidden", !review);
+        const title = document.getElementById("bookingModalTitle");
+        title.textContent = bookingText(review ? "Review your request" : "Send a request");
+        document.getElementById("bookingStepLabel").textContent = bookingText(review ? "2 of 2 · Review and send" : "1 of 2 · Request details");
+        document.getElementById("bookingSecondaryBtn").textContent = bookingText(review ? "Back to edit" : "Cancel");
+        document.getElementById("confirmBookingBtn").textContent = bookingText(review ? "Send Request" : "Review request");
+        (review ? summary : details)?.scrollTo?.(0, 0);
+        title.focus({preventScroll:true});
+    }
+
+    window.bookingBackOrCancel = function () {
+        if (bookingSending) return;
+        if (bookingReviewSnapshot) {
+            bookingReviewSnapshot = null;
+            setBookingStep(false);
+        } else window.closeBookingModal();
+    };
+
+    function renderBookingReview(data) {
+        const meta = getRequestMetaForSubmit(data.requestType);
+        const lang = window.LangManager?.getLanguage?.() === 'ph' ? 'fil-PH' : 'en-PH';
+        const scheduled = new Date(`${data.date}T${data.time}:00+08:00`);
+        const date = new Intl.DateTimeFormat(lang,{month:'short',day:'numeric',year:'numeric',timeZone:'Asia/Manila'}).format(scheduled);
+        const time = new Intl.DateTimeFormat(lang,{hour:'numeric',minute:'2-digit',timeZone:'Asia/Manila'}).format(scheduled);
+        const row = (label,value,personal=false) => value ? `<div class="booking-review-row"><dt>${escapeHtml(bookingText(label))}</dt><dd${personal?' data-no-translate':''}>${escapeHtml(personal ? value : bookingText(value))}</dd></div>` : '';
+        const icon = {table_reservation:'utensils',food_reservation:'package-check',pickup_order:'shopping-basket',delivery_order:'bike',advance_order:'calendar-days'}[meta.key] || 'calendar';
+        const cachedRefund = cloudPlaces.find(x => x.id === data.placeId)?.refund_percent;
+        document.getElementById('bookingReviewStep').innerHTML = `
+            <div class="booking-review-place"><span class="booking-store-icon"><i data-lucide="${icon}"></i></span><div><p>${escapeHtml(bookingText(meta.shortLabel))}</p><h4 data-no-translate>${escapeHtml(data.placeName)}</h4></div><span class="booking-review-unsent">${escapeHtml(bookingText('Not sent yet'))}</span></div>
+            <dl class="booking-review-summary">
+                ${row('Date',date,true)}${row('Time',time,true)}${row('Guests',data.guests,true)}
+                ${row('Seating',data.seating==='No preference'?'':data.seating)}${row('Occasion',data.occasion==='None'?'':data.occasion)}
+                ${row('Items / Order',data.items,true)}${row('Fulfillment',data.fulfillment)}${row('Delivery Address',data.deliveryAddress,true)}
+                ${row('Payment Type',data.paymentType)}${row('Payment Method',data.paymentMethod)}${row('Purpose',data.purpose,true)}${row('Notes',data.notes,true)}
+            </dl>
+            <div class="booking-review-next"><i data-lucide="circle-check"></i><div><b>${escapeHtml(bookingText('What happens next'))}</b><p>${escapeHtml(bookingText('The business will accept or decline your request. Follow updates in your transaction chat.'))}</p>${meta.needsPayment?`<p>${escapeHtml(bookingText('Send payment details only after the business accepts.'))}</p>`:''}</div></div>
+            <details class="booking-review-policy"><summary>${escapeHtml(bookingText('Cancellation policy'))}</summary><p>${escapeHtml(bookingText("Free cancellation before preparation if no payment is recorded. Paid cancellations use the saved refund rate. Refund transfers are manual and must be confirmed separately."))}</p>${cachedRefund != null?`<p>${escapeHtml(bookingText('Refund rate on paid cancellations'))}: <strong>${escapeHtml(String(cachedRefund))}%</strong></p>`:''}</details>`;
+        window.debouncedIcons?.();
+    }
+
     function syncBookingSchedule() {
         const date = document.getElementById("bookDate");
         const time = document.getElementById("bookTime");
@@ -3180,14 +3241,17 @@ window.MapPage = (() => {
         }
 
         const modal = document.getElementById("bookingModal");
+        if (bookingSending) return;
+        bookingReviewSnapshot = null;
+        setBookingStep(false);
         window.lockBodyScroll(true);
         document.getElementById("bookPlaceId").value = placeId;
         document.getElementById("bookPlaceName").value = placeName;
-        document.getElementById("bookingModalTitle").textContent = "Send a request";
+        document.getElementById("bookingModalTitle").textContent = bookingText("Send a request");
         const storeChip = document.getElementById("bookingStoreChip");
         if (storeChip) {
             const chipText = storeChip.querySelector("span");
-            if (chipText) chipText.textContent = placeName || "Establishment";
+            if (chipText) { chipText.removeAttribute("data-i18n"); chipText.setAttribute("data-no-translate", ""); chipText.textContent = placeName || "Establishment"; }
         }
         document.getElementById("bookDate").value = "";
         document.getElementById("bookTime").value = "";
@@ -3213,13 +3277,16 @@ window.MapPage = (() => {
             });
         }
         window.debouncedIcons?.();
+        window.LangManager?.translateDOM?.(undefined, modal);
+        document.getElementById("bookingModalTitle").focus({preventScroll:true});
     };
 
-    window.closeBookingModal = () => { window.lockBodyScroll(false); const modal = document.getElementById("bookingModal"); modal?.classList.add("hidden"); modal?.setAttribute("aria-hidden", "true"); };
+    window.closeBookingModal = (force = false) => { if (bookingSending && force !== true) return; bookingReviewSnapshot = null; window.lockBodyScroll(false); const modal = document.getElementById("bookingModal"); modal?.classList.add("hidden"); modal?.setAttribute("aria-hidden", "true"); };
 
     window.confirmBookingSubmit = async function () {
+        if (bookingSending) return;
         const user = await requireVerifiedUser("send a request");
-        if (!user) return;
+        if (!user || bookingSending) return;
 
         const placeId = getValue("bookPlaceId");
         const placeName = getValue("bookPlaceName");
@@ -3245,6 +3312,7 @@ window.MapPage = (() => {
         for (const id of ["bookDate", "bookTime"]) {
             const input = document.getElementById(id);
             if (input && !input.checkValidity()) {
+                if (bookingReviewSnapshot) { bookingReviewSnapshot = null; setBookingStep(false); }
                 input.reportValidity();
                 input.focus();
                 return;
@@ -3257,7 +3325,11 @@ window.MapPage = (() => {
                 return window.showToast("Please choose today or a future date and time.", "error");
             }
         }
-        if (meta.needsGuests && !guests) return window.showToast("Please enter the number of guests.", "error");
+        if (meta.needsGuests && (!Number.isInteger(Number(guests)) || Number(guests) < 1 || Number(guests) > 99)) {
+            if (bookingReviewSnapshot) { bookingReviewSnapshot = null; setBookingStep(false); }
+            document.getElementById("bookGuests")?.focus();
+            return window.showToast("Please enter the number of guests.", "error");
+        }
         if (meta.needsItems && !items) return window.showToast("Please enter the order/items details.", "error");
         if (meta.needsAddress && !deliveryAddress) return window.showToast("Please enter the delivery address.", "error");
         if (meta.needsPayment && !paymentMethod) return window.showToast("Please select a payment method.", "error");
@@ -3281,22 +3353,21 @@ window.MapPage = (() => {
 
         const details = lines.join("\n");
 
-        // Confirmation prompt before anything is written: the customer
-        // reviews the full summary plus the cancellation terms first.
-        {
-            const cachedRefund = (cloudPlaces.find(x => x.id === placeId) || {}).refund_percent;
-            const refundLine = cachedRefund != null
-                ? `Once accepted, cancelling refunds ${cachedRefund}% of any amount paid.`
-                : "Once accepted, cancelling refunds the establishment's stated rate.";
-            const okSend = window.vConfirm
-                ? await window.vConfirm("Send this request?", `${placeName}\n\n${details}\n\nCancellation: free while pending. ${refundLine} Once preparation starts, cancellation is no longer available.`, "Send Request")
-                : window.confirm("Send this request?");
-            if (!okSend) return;
+        // Review inside the same sheet. No writes occur until the second action.
+        const reviewData = {uid:user.uid,placeId,placeName,requestType,date,time,guests,seating,occasion,items,fulfillment,paymentMethod,paymentType,deliveryAddress,purpose,notes};
+        const snapshot = JSON.stringify(reviewData);
+        if (bookingReviewSnapshot !== snapshot) {
+            renderBookingReview(reviewData);
+            bookingReviewSnapshot = snapshot;
+            setBookingStep(true);
+            return;
         }
 
         const btn = document.getElementById("confirmBookingBtn");
-        btn.textContent = "Sending...";
+        bookingSending = true;
+        btn.textContent = bookingText("Sending...");
         btn.disabled = true;
+        document.getElementById("bookingSecondaryBtn").disabled = true;
 
         try {
             const userName = AppState.userProfile?.fullName || user.displayName || "Customer";
@@ -3346,8 +3417,8 @@ window.MapPage = (() => {
             // The server validates identity, Philippine schedule, place and initial payment state.
             await window.ViciData.command('booking', {action:'create',request:requestData});
 
-            window.showToast(`${meta.shortLabel} sent! Opening transaction chat...`, "success");
-            window.closeBookingModal();
+            window.showToast(bookingText("Request sent. Opening your transaction chat..."), "success");
+            window.closeBookingModal(true);
 
             setTimeout(() => {
                 if (window.openChatModal) window.openChatModal(placeId, placeName);
@@ -3355,9 +3426,10 @@ window.MapPage = (() => {
         } catch (e) {
             window.showToast("Error sending request: " + e.message, "error");
         } finally {
-            const currentMeta = getRequestMetaForSubmit(getValue("bookType"));
-            btn.textContent = `Send ${currentMeta.shortLabel}`;
+            bookingSending = false;
+            btn.textContent = bookingText(bookingReviewSnapshot ? "Send Request" : "Review request");
             btn.disabled = false;
+            document.getElementById("bookingSecondaryBtn").disabled = false;
         }
     };
 

@@ -34,7 +34,7 @@ function createBooking(input, user, place, profile, now = Date.now()) {
         bookingDetails:text('bookingDetails'),guestCount:requestType==='table_reservation'?guests:null,
         seatingPreference:text('seatingPreference',100),occasion:text('occasion',100),orderItems,
         fulfillmentType:text('fulfillmentType',100),deliveryAddress,paymentMethod,paymentType:text('paymentType',80),
-        purpose:text('purpose'),details:text('details',4000),status:'pending',
+        purpose:text('purpose'),details:text('details',4000),status:'pending',paymentFlowVersion:2,
         refundPercent:Number.isFinite(rate)?Math.max(0,Math.min(100,rate)):50
     };
 }

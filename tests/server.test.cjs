@@ -59,3 +59,91 @@ test('automatic reply is opt-in, customer-only, fresh and idempotent',async()=>{
  assert.equal(JSON.parse((await call()).body).saved,false);assert.equal(created.size,1);
  }finally{Object.assign(helpers,old);delete require.cache[require.resolve('../netlify/functions/autoReply')];}
 });
+
+test('Tagalog AI preference uses a Filipino refusal without a model request',async()=>{
+ const admin=require('../netlify/functions/lib/admin'),catalog=require('../netlify/functions/lib/catalog');
+ const old={authenticate:admin.authenticate,limit:admin.limit,catalog:catalog.catalog,fetch:global.fetch,key:process.env.GEMINI_API_KEY};let calls=0;
+ admin.authenticate=async()=>({uid:'customer'});admin.limit=async()=>{};catalog.catalog=async()=>({places:[]});global.fetch=async()=>{calls++;throw Error('Should not call model')};process.env.GEMINI_API_KEY='test-only';
+ try{delete require.cache[require.resolve('../netlify/functions/askVici')];const {handler}=require('../netlify/functions/askVici');const result=await handler({httpMethod:'POST',body:JSON.stringify({query:'Explain quantum physics',uiLanguage:'ph'})});assert.equal(result.statusCode,200);assert.match(JSON.parse(result.body).answer,/Katulong ako ng Vicinify/);assert.equal(calls,0);}finally{admin.authenticate=old.authenticate;admin.limit=old.limit;catalog.catalog=old.catalog;global.fetch=old.fetch;if(old.key===undefined)delete process.env.GEMINI_API_KEY;else process.env.GEMINI_API_KEY=old.key;delete require.cache[require.resolve('../netlify/functions/askVici')];}
+});
+
+test('standard customer feedback saves privately or publicly, blocks duplicates and rejects ineligible actors',async()=>{
+ const helpers=require('../netlify/functions/lib/admin'),old={...helpers};
+ let actor='customer';const records=new Map([
+  ['bookings/order',{userId:'customer',placeId:'shop',status:'received'}],
+  ['places/shop',{owner_uid:'owner',ratingSum:0,reviewCount:0}],
+  ['users/customer',{fullName:'Real Customer'}]
+ ]);
+ const db={collection:kind=>({doc:id=>({path:`${kind}/${id}`})}),runTransaction:async fn=>{
+  const writes=[];await fn({get:async ref=>({exists:records.has(ref.path),data:()=>records.get(ref.path)}),set:(ref,value)=>writes.push([ref.path,value]),update:(ref,value)=>writes.push([ref.path,{...records.get(ref.path),...value}])});
+  for(const [path,value]of writes)records.set(path,value);
+ }};
+ helpers.authenticate=async()=>({uid:actor});helpers.limit=async()=>{};helpers.services=()=>({db,FieldValue:{serverTimestamp:()=>123}});
+ try{
+  delete require.cache[require.resolve('../netlify/functions/review')];const {handler}=require('../netlify/functions/review');
+  const call=patch=>handler({httpMethod:'POST',body:JSON.stringify({placeId:'shop',bookingId:'order',rating:5,feedback:'Good food.',createOnly:true,...patch})});
+  for(const isPublic of [false,true]){
+   records.delete('reviews/customer_shop_order');records.set('places/shop',{owner_uid:'owner',ratingSum:0,reviewCount:0});
+   const response=await call({isPublic});assert.equal(response.statusCode,200,response.body);
+   const saved=records.get('reviews/customer_shop_order');assert.equal(saved.isPublic,isPublic);assert.equal(saved.verifiedTransaction,true);assert.equal(saved.userId,'customer');
+   assert.equal((await call({rating:1})).statusCode,409);assert.equal(records.get('places/shop').ratingSum,5);assert.equal(records.get('places/shop').reviewCount,1);assert.equal(records.get('reviews/customer_shop_order').rating,5);
+  }
+  actor='stranger';assert.equal((await call({})).statusCode,403);
+  actor='customer';records.set('bookings/order',{userId:'customer',placeId:'shop',status:'pending'});assert.equal((await call({})).statusCode,403);
+  records.set('bookings/order',{userId:'customer',placeId:'shop',status:'received'});records.set('places/shop',{owner_uid:'customer',ratingSum:5,reviewCount:1});assert.equal((await call({})).statusCode,403);
+  records.set('places/shop',{owner_uid:'owner',ratingSum:5,reviewCount:1});
+  // Existing star-rating edits retain their one-record update behavior.
+  assert.equal((await call({createOnly:false,rating:3})).statusCode,200);assert.equal(records.get('places/shop').reviewCount,1);assert.equal(records.get('places/shop').ratingSum,3);
+ }finally{Object.assign(helpers,old);delete require.cache[require.resolve('../netlify/functions/review')];}
+});
+
+test('manual payment, cancellation and refund endpoints mirror one authoritative booking and never transfer money',async()=>{
+ const helpers=require('../netlify/functions/lib/admin'),old={...helpers};let actor='customer',eventId=0,storageCalls=0;
+ const records=new Map([
+  ['bookings/order',{userId:'customer',placeId:'shop',status:'accepted',paymentMethod:'GCash',paymentFlowVersion:2,refundPercent:70}],
+  ['places/shop',{owner_uid:'owner'}],['users/customer',{role:'user'}],['users/owner',{role:'business'}],
+  ['messages/card',{type:'booking_card',bookingId:'order',bookingStatus:'accepted'}]
+ ]);
+ const snapshot=path=>({id:path.split('/').at(-1),exists:records.has(path),data:()=>records.get(path),ref:ref(path)});
+ function ref(path){return{path,id:path.split('/').at(-1),get:async()=>snapshot(path),collection:sub=>({doc:()=>ref(path+'/'+sub+'/'+(++eventId))})}}
+ const db={collection:kind=>({doc:id=>ref(kind+'/'+(id||'new')),where(){return this},limit(){return this},kind}),runTransaction:async fn=>{
+  const writes=[];await fn({get:async target=>target.path?snapshot(target.path):{forEach:cb=>cb(snapshot('messages/card'))},update:(r,value)=>writes.push([r.path,{...records.get(r.path),...value}]),create:(r,value)=>writes.push([r.path,value])});
+  for(const [path,value]of writes){assert(!Object.values(value).includes(undefined),path+' must not contain undefined');records.set(path,value);}
+ }};
+ helpers.authenticate=async()=>({uid:actor});helpers.limit=async()=>{};helpers.services=()=>({db,storage:{bucket(){storageCalls++;throw Error('No automatic transfer or storage call expected')}},FieldValue:{serverTimestamp:()=>123,delete:()=>null}});
+ try{
+  for(const name of ['booking','proof'])delete require.cache[require.resolve('../netlify/functions/'+name)];const booking=require('../netlify/functions/booking').handler,proof=require('../netlify/functions/proof').handler;
+  const update=patch=>booking({httpMethod:'POST',body:JSON.stringify({bookingId:'order',patch})});const submit=amount=>proof({httpMethod:'POST',body:JSON.stringify({bookingId:'order',reference:'PAY-123',amount})});
+  assert.equal((await submit('500')).statusCode,409);actor='stranger';assert.equal((await update({paymentTerms:{amount:'500',instructions:'GCash 09171234567 Juan'}})).statusCode,403);
+  actor='owner';assert.equal((await update({paymentTerms:{amount:'500',instructions:'GCash 09171234567 Juan'}})).statusCode,200);assert.equal(records.get('messages/card').bookingStatus,'accepted');assert.equal(records.get('bookings/order').paymentAmountDue,'500.00');
+  records.set('messages/legacy',{type:'requirement_response',bookingId:'another-order',placeId:'shop',userId:'customer',paymentReference:'PAY123',paymentAmount:'500.00'});
+  assert.equal((await booking({httpMethod:'POST',body:JSON.stringify({action:'import_payment',bookingId:'order',messageId:'legacy',confirmLink:true})})).statusCode,403);
+  records.set('messages/legacy',{type:'requirement_response',bookingId:'order',placeId:'wrong-place',userId:'customer',paymentReference:'PAY123',paymentAmount:'500.00'});
+  assert.equal((await booking({httpMethod:'POST',body:JSON.stringify({action:'import_payment',bookingId:'order',messageId:'legacy'})})).statusCode,403);
+  actor='customer';assert.equal((await submit('499')).statusCode,409);assert.equal((await submit('500')).statusCode,200);assert.equal(records.get('bookings/order').status,'payment_submitted');assert.equal(records.get('messages/card').paymentStatus,'pending_confirmation');
+  actor='owner';assert.equal((await update({status:'payment_confirmed'})).statusCode,200);assert.equal(records.get('messages/card').paymentStatus,'confirmed');
+  actor='customer';assert.equal((await update({status:'cancelled',refundPercent:100,refundAmount:'500'})).statusCode,200);assert.equal(records.get('bookings/order').refundAmount,'350.00');assert.equal(records.get('messages/card').refundStatus,'pending');
+  assert.equal((await update({refundStatus:'sent',refundReference:'FAKE'})).statusCode,409);
+  actor='owner';assert.equal((await update({refundStatus:'sent',refundReference:'RETURN-123',refundAmount:'999'})).statusCode,200);assert.equal(records.get('messages/card').refundAmount,'350.00');assert.equal(records.get('messages/card').bookingStatus,'cancelled');assert.equal((await update({refundStatus:'received'})).statusCode,409);
+  actor='customer';assert.equal((await update({refundStatus:'received'})).statusCode,200);assert.equal(records.get('bookings/order').refundStatus,'received');assert.equal(records.get('messages/card').refundStatus,'received');assert.equal(storageCalls,0);
+ }finally{Object.assign(helpers,old);for(const name of ['booking','proof'])delete require.cache[require.resolve('../netlify/functions/'+name)];}
+});
+
+test('requirements request, submission and confirmation persist atomically with the selected booking and mirrored card',async()=>{
+ const helpers=require('../netlify/functions/lib/admin'),old={...helpers};let actor='owner',seq=0;
+ const records=new Map([['bookings/order',{status:'accepted',userId:'customer',userName:'Customer',placeId:'shop',placeName:'Shop',paymentMethod:'GCash',paymentFlowVersion:2}],['places/shop',{owner_uid:'owner',name:'Shop'}],['users/owner',{role:'business'}],['users/customer',{role:'user'}],['messages/card',{type:'booking_card',bookingId:'order',bookingStatus:'accepted'}]]);
+ function ref(path){return{path,id:path.split('/').at(-1),collection:sub=>({doc:()=>ref(path+'/'+sub+'/event-'+(++seq))})}}
+ const snap=path=>({exists:records.has(path),id:path.split('/').at(-1),data:()=>records.get(path),ref:ref(path)});
+ const db={collection:kind=>({doc:id=>ref(kind+'/'+(id||'auto-'+(++seq))),where(){return this},limit(){return this}}),runTransaction:async fn=>{const writes=[];await fn({get:async r=>r.path?snap(r.path):{forEach:cb=>cb(snap('messages/card'))},create:(r,d)=>writes.push([r.path,d]),update:(r,d)=>writes.push([r.path,{...records.get(r.path),...d}])});for(const [key,value]of writes)records.set(key,value)}};
+ helpers.authenticate=async()=>({uid:actor});helpers.services=()=>({db,FieldValue:{serverTimestamp:()=>123,delete:()=>null}});
+ try{delete require.cache[require.resolve('../netlify/functions/booking')];const {handler}=require('../netlify/functions/booking');const call=requirements=>handler({httpMethod:'POST',body:JSON.stringify({bookingId:'order',patch:{requirements}})});
+  let result=await call({action:'request',requestId:'client-spoof',required:{address:true,orderDetails:true},notes:'Address and order details.'});assert.equal(result.statusCode,200,result.body);
+  let state=records.get('bookings/order').requirementsState;const requestId=state.requestId;assert.notEqual(requestId,'client-spoof');assert.equal(records.get('messages/'+requestId).canonicalRequirements,true);assert.equal(records.get('messages/card').requirementsState.status,'waiting_customer');
+  actor='stranger';assert.equal((await call({action:'submit',requestId,data:{}})).statusCode,403);
+  actor='customer';assert.equal((await call({action:'submit',requestId,data:{houseStreet:'10 Test',barangay:'West',city:'Lipa',landmark:'Gate',orderDetails:'Two meals',paymentStatus:'confirmed'}})).statusCode,200);
+  state=records.get('bookings/order').requirementsState;assert.equal(state.status,'submitted');assert.equal(records.get('messages/'+state.responseId).requestMessageId,requestId);assert.equal(records.get('messages/'+requestId).requirementStatus,'submitted');assert.equal(records.get('bookings/order').paymentStatus,undefined);
+  assert.equal((await call({action:'submit',requestId,data:{}})).statusCode,409);
+  actor='owner';assert.equal((await call({action:'confirm',requestId,responseId:'wrong'})).statusCode,409);result=await call({action:'confirm',requestId,responseId:state.responseId});assert.equal(result.statusCode,200,result.body);
+  assert.equal(records.get('bookings/order').requirementsState.status,'confirmed');assert.equal(records.get('messages/card').bookingStatus,'accepted');assert.equal(records.get('messages/card').requirementsState.status,'confirmed');assert.equal(records.get('messages/'+state.responseId).requirementStatus,'confirmed');assert.equal(records.get('bookings/order').paymentStatus,undefined);
+ }finally{Object.assign(helpers,old);delete require.cache[require.resolve('../netlify/functions/booking')];}
+});

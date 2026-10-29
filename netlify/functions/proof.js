@@ -24,9 +24,12 @@ exports.handler = async event => {
         }
         if (order.userId !== user.uid || !['accepted', 'payment_submitted'].includes(order.status)) return reply(403, { error: 'This booking is not awaiting payment proof.' });
         if (!isOnline(order)) return reply(409, { error: 'Cash or pay-on-pickup requests do not need online payment proof.' });
+        if(!require('../../js/payment-policy').flow(order).requirementsReady)return reply(409,{error:'Complete and confirm the requested details before payment.'});
         let payment;
         try { payment = details(body.reference, body.amount); }
         catch (error) { return reply(400, { error: error.message }); }
+        if(order.paymentFlowVersion===2 && (!order.paymentAmountDue || !order.paymentInstructions || order.paymentTermsNeedReview))return reply(409,{error:'Wait for the business to set the amount and payment instructions.'});
+        if(order.paymentAmountDue && payment.paymentAmount!==Number(order.paymentAmountDue).toFixed(2))return reply(409,{error:'The submitted amount does not match the agreed amount due. Ask the business to correct the amount if needed; do not pay twice.'});
         let bytes = null;
         if (body.image != null) {
             if (typeof body.image !== 'string' || !/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(body.image)) return reply(400, { error: 'Upload a JPEG image.' });
@@ -39,6 +42,10 @@ exports.handler = async event => {
         await db.runTransaction(async transaction => {
             const current = await transaction.get(ref);
             if (current.data()?.userId !== user.uid || !['accepted', 'payment_submitted'].includes(current.data()?.status)) throw Object.assign(new Error('Booking status changed. Please refresh.'), { status: 409 });
+            const latest=current.data();
+            if(!require('../../js/payment-policy').flow(latest).requirementsReady)throw Object.assign(new Error('Complete and confirm the requested details before payment.'),{status:409});
+            if(latest.paymentFlowVersion===2 && (!latest.paymentAmountDue || !latest.paymentInstructions || latest.paymentTermsNeedReview))throw Object.assign(new Error('Wait for the business to set the amount and payment instructions.'),{status:409});
+            if(latest.paymentAmountDue && payment.paymentAmount!==Number(latest.paymentAmountDue).toFixed(2))throw Object.assign(new Error('The submitted amount does not match the agreed amount due. Ask the business to correct the amount if needed; do not pay twice.'),{status:409});
             const cards = await transaction.get(db.collection('messages').where('bookingId', '==', bookingId).where('type', '==', 'booking_card').limit(20));
             const patch = { status: 'payment_submitted', ...payment, paymentStatus: 'pending_confirmation', paymentReviewDecision: 'pending', paymentReviewNote: FieldValue.delete(), paymentReviewedAt: FieldValue.delete(), paymentReviewedBy: FieldValue.delete(), paymentProofPath: objectPath || FieldValue.delete(), paymentProofUrl: FieldValue.delete(), paymentProofAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() };
             transaction.update(ref, patch);

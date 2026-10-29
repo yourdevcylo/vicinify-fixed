@@ -197,3 +197,86 @@ test('returning from establishment preserves the selected List or Map discovery 
   for(const view of ['list','map']) {page.dataset.view=view;w.showPage('page-place');w.showPage('page-map');assert.equal(page.dataset.view,view);assert.equal(w.AppState.activePage,'page-map');}
  } finally {dom.window.close();}
 });
+
+function languageDOM(content){
+ const dom=new JSDOM(content||read('index.html').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,''),{url:'https://vicinify.test/',runScripts:'outside-only'}),w=dom.window;
+ const source=read('js/common.js');w.eval(source.slice(source.indexOf('window.LangManager ='),source.indexOf('// Patakbuhin agad')));
+ return dom;
+}
+test('English/Tagalog switches preserve icons, input values and user-authored content',()=>{
+ const dom=languageDOM('<button id="control" aria-label="Send request"><svg></svg>Send request</button><input id="field" placeholder="Search places..." value="My business"><p id="label">Pending Approvals</p><p class="buzz-feed-body">Settings</p><h2 id="listPreviewTitle">Delivery</h2><p class="chat-message-text">Send request</p><span data-no-translate>Admin Hub</span><select><option value="pending">Pending</option></select>'),w=dom.window,d=w.document;
+ try{w.LangManager.setLanguage('ph');assert.match(d.querySelector('#control').textContent,/Ipadala ang kahilingan/);assert(d.querySelector('#control svg'));assert.equal(d.querySelector('#control').getAttribute('aria-label'),'Ipadala ang kahilingan');assert.equal(d.querySelector('#field').placeholder,'Maghanap ng lugar...');assert.equal(d.querySelector('#field').value,'My business');assert.equal(d.querySelector('.buzz-feed-body').textContent,'Settings');assert.equal(d.querySelector('#listPreviewTitle').textContent,'Delivery');assert.equal(d.querySelector('.chat-message-text').textContent,'Send request');assert.equal(d.querySelector('option').value,'pending');assert.equal(d.querySelector('option').textContent,'Naghihintay');assert.equal(d.documentElement.lang,'tl');w.LangManager.setLanguage('en');assert.equal(d.querySelector('#control').textContent,'Send request');assert.equal(d.querySelector('#field').placeholder,'Search places...');assert.equal(d.querySelector('#label').textContent,'Pending Approvals');assert(d.querySelector('#control svg'));}finally{w.close();}
+});
+test('new and edited dynamic labels translate in place without moving focus',async()=>{
+ const dom=languageDOM('<input id="focus"><div id="items"></div>'),w=dom.window,d=w.document;
+ try{w.LangManager.init();await new Promise(resolve=>w.setTimeout(resolve,0));w.LangManager.setLanguage('ph');d.querySelector('#focus').focus();const button=d.createElement('button');button.textContent='Approve';d.querySelector('#items').append(button);await new Promise(resolve=>w.setTimeout(resolve,90));assert.equal(button.textContent,'Aprubahan');button.firstChild.data='Reject';await new Promise(resolve=>w.setTimeout(resolve,90));assert.equal(button.textContent,'Tanggihan');assert.equal(d.activeElement.id,'focus');w.LangManager.setLanguage('en');assert.equal(button.textContent,'Reject');}finally{w.close();}
+});
+test('admin, owner and customer shell titles stay role-correct in both languages',async()=>{
+ const dom=languageDOM(),w=dom.window,d=w.document;
+ try{w.AppState={userProfile:{role:'admin',fullName:'Settings'}};w.eval(read('js/ui.js'));d.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-dashboard'));for(const [role,title,tagalog] of [['admin','Admin Hub','Sentro ng Tagapangasiwa'],['business','Business Hub','Sentro ng Negosyo'],['user','My Activity','Aking Gawain']]){w.AppState.userProfile.role=role;w.LangManager.setLanguage('en');w.AppShell.sync();assert.equal(d.querySelector('#workspaceTitle').textContent,title);w.LangManager.setLanguage('ph');w.AppShell.sync();w.LangManager.translateDOM();assert.equal(d.querySelector('#workspaceTitle').textContent,tagalog);assert.equal(d.querySelector('#accountName').textContent,'Settings');} }finally{w.close();}
+});
+
+test('translated photo picker preserves the native file and filename without changing uploaded content',()=>{
+ const dom=languageDOM('<input id="photo" type="file" accept="image/*">'),w=dom.window,d=w.document;
+ try{w.LangManager.setLanguage('ph');const ui=read('js/ui.js');w.eval(ui.slice(ui.indexOf('// Localized photo picker:')));w.ViciPhotoPicker.enhance();assert.equal(d.querySelectorAll('.vici-photo-picker').length,1);const input=d.querySelector('#photo');assert.equal(input.accept,'image/*');assert.equal(d.querySelector('button').textContent,'Pumili ng larawan');assert.equal(d.querySelector('.vici-photo-selection').textContent,'Walang napiling larawan');const file=new w.File(['actual image bytes'],'Settings.jpg',{type:'image/jpeg'});Object.defineProperty(input,'files',{value:[file],configurable:true});input.dispatchEvent(new w.Event('change',{bubbles:true}));w.LangManager.translateDOM();assert.equal(input.files[0],file);assert.equal(d.querySelector('.vici-photo-selection').textContent,'Settings.jpg');w.LangManager.setLanguage('en');assert.equal(d.querySelector('button').textContent,'Choose photo');assert.equal(d.querySelector('.vici-photo-selection').textContent,'Settings.jpg');w.ViciPhotoPicker.enhance();assert.equal(d.querySelectorAll('.vici-photo-picker').length,1);}finally{w.close();}
+});
+test('Tagalog selection still works when browser storage is unavailable',()=>{
+ const dom=languageDOM('<button>Admin Hub</button><textarea placeholder="Write a comment..."></textarea>'),w=dom.window,d=w.document;
+ try{Object.defineProperty(w,'localStorage',{get(){throw new Error('Blocked storage')}});w.LangManager.setLanguage('ph');assert.equal(w.LangManager.getLanguage(),'ph');assert.equal(d.querySelector('button').textContent,'Sentro ng Tagapangasiwa');assert.equal(d.querySelector('textarea').placeholder,'Sumulat ng komento...');w.LangManager.setLanguage('en');assert.equal(d.querySelector('button').textContent,'Admin Hub');}finally{w.close();}
+});
+
+function feedbackRuntime(){
+ const dom=new JSDOM('<body></body>',{runScripts:'outside-only'}),w=dom.window,calls=[],alerts=[];
+ w.auth={currentUser:{uid:'customer'}};w.AppState={userProfile:{fullName:'Customer'}};w.lockBodyScroll=()=>{};w.alert=text=>alerts.push(text);
+ w.getRequestMeta=()=>({key:'pickup_preorder',shortLabel:'Pickup Pre-order'});w.getPlaceDisplayName=async()=> 'Real Shop';w.addSystemUpdate=async()=>{};
+ w.firebase={firestore:{FieldValue:{serverTimestamp:()=>123}}};
+ w.db={collection:kind=>({doc:()=>({get:async()=>{
+  if(kind==='reviews')throw Error('Missing or insufficient permissions.');
+  return{exists:true,data:()=>({requestType:'pickup_preorder'})};
+ }})})};
+ w.ContentPolicy={create:async()=>{},updateMessage:async()=>{}};
+ w.ViciData={command:async(name,payload)=>calls.push({name,payload})};
+ const s=read('js/common.js'),a=s.indexOf('window.openFeedbackModal =');w.eval(s.slice(a,s.indexOf('window.viewSharedLocation =',a)));
+ return{dom,w,calls,alerts};
+}
+test('feedback submits without reading an absent protected review and ignores a second tap',async()=>{
+ const r=feedbackRuntime();try{
+  let complete;r.w.ViciData.command=async(name,payload)=>{r.calls.push({name,payload});await new Promise(resolve=>complete=resolve)};
+  await r.w.openFeedbackModal('shop','order');const button=r.w.document.querySelector('[id^=submit_feedbackModal]');
+  const pending=button.onclick();await button.onclick();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(r.calls.length,1);assert.equal(r.calls[0].payload.createOnly,true);assert.equal(button.disabled,true);
+  complete();await pending;assert.equal(r.w.document.querySelector('[id^=feedbackModal]'),null);assert.match(r.alerts.at(-1),/Thank you/);
+ }finally{r.dom.window.close();}
+});
+test('failed review keeps the draft and re-enables retry; saved review does not become an error when chat sync fails',async()=>{
+ const r=feedbackRuntime();try{
+  await r.w.openFeedbackModal('shop','order','request');const button=r.w.document.querySelector('[id^=submit_feedbackModal]'),comment=r.w.document.querySelector('textarea');comment.value='Keep my feedback.';
+  r.w.ViciData.command=async()=>{throw Error('Please try again.')};await button.onclick();assert.equal(button.disabled,false);assert.equal(comment.value,'Keep my feedback.');assert.match(r.alerts.at(-1),/Error submitting feedback/);
+  r.w.ViciData.command=async()=>({reviewId:'customer_shop_order'});r.w.ContentPolicy.updateMessage=async()=>{throw Error('Missing or insufficient permissions.')};r.w.console.warn=()=>{};
+  await button.onclick();assert.match(r.alerts.at(-1),/Thank you/);assert.equal(r.w.document.querySelector('[id^=feedbackModal]'),null);
+ }finally{r.dom.window.close();}
+});
+
+
+
+test('transaction requirements form hides payment controls and sends one canonical request on double tap',async()=>{
+ const dom=new JSDOM('<input id="chatPlaceId" value="shop"><input id="chatPlaceName" value="Shop"><input id="chatCustomerUid" value="customer">',{runScripts:'outside-only'}),w=dom.window,calls=[];let finish;
+ try{
+  w.auth={currentUser:{uid:'owner'}};w.chatDeskSelected='order';w.chatDeskOrders=[{id:'order',placeId:'shop',userId:'customer'}];w.deskOrder=()=>w.chatDeskOrders[0];w.lockBodyScroll=()=>{};w.debouncedIcons=()=>{};w.alert=()=>{};
+  w.ViciData={command:async(name,body)=>{calls.push({name,body});await new Promise(resolve=>finish=resolve)}};
+  const s=read('js/common.js'),a=s.indexOf('window.openRequirementRequestModal =');w.eval(s.slice(a,s.indexOf('window.openRequirementResponseModal =',a)));
+  w.openRequirementRequestModal();const modal=w.document.querySelector('.req-modal'),payment=w.document.querySelector('[id^=reqPayment_]');assert.equal(payment.closest('label').hidden,true);assert.equal(w.document.querySelector('[id^=reqAmount_]').closest('.req-field').hidden,true);
+  w.document.querySelector('[id^=reqAddress_]').checked=true;const button=w.document.querySelector('[id^=send_reqRequestModal]'),pending=button.onclick();await button.onclick();assert.equal(calls.length,1);assert.equal(calls[0].body.bookingId,'order');assert.equal(calls[0].body.patch.requirements.required.payment,false);assert.equal(button.disabled,true);
+  finish();await pending;assert.equal(modal.isConnected,false);
+ }finally{w.close()}
+});
+test('customer canonical requirement submission preserves the transaction link and avoids separate client writes',async()=>{
+ const dom=new JSDOM('<body></body>',{runScripts:'outside-only'}),w=dom.window,calls=[];
+ try{
+  w.auth={currentUser:{uid:'customer'}};w.AppState={userProfile:{fullName:'Customer'}};w.escapeHtml=s=>String(s??'');w.lockBodyScroll=()=>{};w.debouncedIcons=()=>{};w.alert=()=>{};w.firebase={firestore:{FieldValue:{serverTimestamp:()=>123}}};w.ContentPolicy={create:()=>{throw Error('Client message write must not run')}};
+  w.db={collection:()=>({doc:()=>({get:async()=>({exists:true,data:()=>({placeId:'shop',placeName:'Shop',bookingId:'order',canonicalRequirements:true,requirements:{address:true}})})})})};w.ViciData={command:async(name,body)=>calls.push({name,body})};
+  const s=read('js/common.js'),a=s.indexOf('window.openRequirementResponseModal =');w.eval(s.slice(a,s.indexOf('window.confirmRequirementResponse =',a)));
+  await w.openRequirementResponseModal('request');for(const [prefix,value]of [['resHouse','10 Test'],['resBarangay','West'],['resCity','Lipa'],['resLandmark','Green gate']])w.document.querySelector('[id^='+prefix+'_]').value=value;
+  await w.document.querySelector('[id^=submit_reqResponseModal]').onclick();assert.equal(calls.length,1);assert.equal(calls[0].body.bookingId,'order');assert.equal(calls[0].body.patch.requirements.requestId,'request');assert.equal(calls[0].body.patch.requirements.data.houseStreet,'10 Test');assert.equal(w.document.querySelector('.req-modal'),null);
+ }finally{w.close()}
+});
