@@ -265,7 +265,7 @@ test('transaction requirements form hides payment controls and sends one canonic
   w.auth={currentUser:{uid:'owner'}};w.chatDeskSelected='order';w.chatDeskOrders=[{id:'order',placeId:'shop',userId:'customer'}];w.deskOrder=()=>w.chatDeskOrders[0];w.lockBodyScroll=()=>{};w.debouncedIcons=()=>{};w.alert=()=>{};
   w.ViciData={command:async(name,body)=>{calls.push({name,body});await new Promise(resolve=>finish=resolve)}};
   const s=read('js/common.js'),a=s.indexOf('window.openRequirementRequestModal =');w.eval(s.slice(a,s.indexOf('window.openRequirementResponseModal =',a)));
-  w.openRequirementRequestModal();const modal=w.document.querySelector('.req-modal'),payment=w.document.querySelector('[id^=reqPayment_]');assert.equal(payment.closest('label').hidden,true);assert.equal(w.document.querySelector('[id^=reqAmount_]').closest('.req-field').hidden,true);
+  w.openRequirementRequestModal();const modal=w.document.querySelector('.req-modal'),payment=w.document.querySelector('[id^=reqPayment_]');assert.equal(payment,null);assert.equal(w.document.querySelector('[id^=reqAmount_]'),null);
   w.document.querySelector('[id^=reqAddress_]').checked=true;const button=w.document.querySelector('[id^=send_reqRequestModal]'),pending=button.onclick();await button.onclick();assert.equal(calls.length,1);assert.equal(calls[0].body.bookingId,'order');assert.equal(calls[0].body.patch.requirements.required.payment,false);assert.equal(button.disabled,true);
   finish();await pending;assert.equal(modal.isConnected,false);
  }finally{w.close()}
@@ -279,4 +279,8 @@ test('customer canonical requirement submission preserves the transaction link a
   await w.openRequirementResponseModal('request');for(const [prefix,value]of [['resHouse','10 Test'],['resBarangay','West'],['resCity','Lipa'],['resLandmark','Green gate']])w.document.querySelector('[id^='+prefix+'_]').value=value;
   await w.document.querySelector('[id^=submit_reqResponseModal]').onclick();assert.equal(calls.length,1);assert.equal(calls[0].body.bookingId,'order');assert.equal(calls[0].body.patch.requirements.requestId,'request');assert.equal(calls[0].body.patch.requirements.data.houseStreet,'10 Test');assert.equal(w.document.querySelector('.req-modal'),null);
  }finally{w.close()}
+});
+
+test('completed feedback marker prevents reopening the feedback form',async()=>{
+ const r=feedbackRuntime();try{r.w.db={collection:()=>({doc:()=>({get:async()=>({exists:true,data:()=>({feedbackStatus:'feedback_submitted',feedbackSubmittedAt:123})})})})};await r.w.openFeedbackModal('shop','order');assert.equal(r.w.document.querySelector('.feedback-modal'),null);assert.match(r.alerts.at(-1),/already submitted/);assert.equal(r.calls.length,0);}finally{r.dom.window.close();}
 });

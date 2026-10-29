@@ -78,8 +78,7 @@ service cloud.firestore {
     function messageGate(targetId, isText) {
       let path = /databases/$(database)/documents/message_limits/$(request.auth.uid);
       let gate = getAfter(path).data;
-      return gate.at == request.time && gate.targetId == targetId
-        && (!isText || !exists(path) || request.time >= get(path).data.at + duration.value(2,'s'));
+      return gate.at == request.time && gate.targetId == targetId;
     }
     match /message_limits/{userId} {
       allow get: if signedIn() && userId == request.auth.uid;
@@ -90,7 +89,7 @@ service cloud.firestore {
         && request.resource.data.at == request.time
         && request.resource.data.targetId is string
         && request.resource.data.targetId.matches('^[A-Za-z0-9_-]{1,180}$')
-        && request.resource.data.count is int && request.resource.data.count >= 1 && request.resource.data.count <= 30
+        && request.resource.data.count is int && request.resource.data.count >= 1 && request.resource.data.count <= 90
         && ((resource == null && request.resource.data.count == 1 && request.resource.data.windowStartedAt == request.time)
           || (resource != null && request.resource.data.windowStartedAt == resource.data.windowStartedAt
             && request.time < resource.data.windowStartedAt + duration.value(60,'s')
@@ -285,6 +284,19 @@ service cloud.firestore {
       function participant() {
         return signedIn() && (resource.data.userId == request.auth.uid || isPlaceOwner(resource.data.placeId) || isAdmin());
       }
+      function transactionChatOpen(id) {
+        let order=get(/databases/$(database)/documents/bookings/$(id)).data;
+        return !(order.status in ['received','rejected'])
+          && !(order.status=='cancelled' && order.get('refundStatus','') in ['received','not_required']);
+      }
+      function validTextTransaction() {
+        let data=request.resource.data;
+        let linked=data.get('bookingId',null);
+        return (linked==null && data.get('transactionId',null)==null)
+          || (linked is string && data.get('transactionId',null)==linked && transactionChatOpen(linked)
+            && get(/databases/$(database)/documents/bookings/$(linked)).data.userId==data.userId
+            && get(/databases/$(database)/documents/bookings/$(linked)).data.placeId==data.placeId);
+      }
       function cardMirror() {
         let order = get(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data;
         return resource.data.type == "booking_card"
@@ -315,11 +327,12 @@ service cloud.firestore {
         && (request.resource.data.get('feedback','') == '' || validChat(request.resource.data.feedback))
         && (request.resource.data.get('text','') == '' || validChat(request.resource.data.text))
         && (request.resource.data.type != "text" || (validChat(request.resource.data.text)
+          && validTextTransaction()
           && request.resource.data.get("status", "sent") == "sent"
           && request.resource.data.get('reply',null) == null
           && request.resource.data.get('deliveredAt',null) == null
           && request.resource.data.get('seenAt',null) == null
-          && request.resource.data.keys().hasOnly(['placeId','placeName','userId','userName','type','text','status','deliveredAt','seenAt','senderUid','senderRole','senderName','createdBy','createdAt','reply','quickQuestion'])))
+          && request.resource.data.keys().hasOnly(['placeId','placeName','userId','userName','type','text','status','deliveredAt','seenAt','senderUid','senderRole','senderName','createdBy','createdAt','reply','quickQuestion','bookingId','transactionId'])))
         && request.resource.data.senderUid == request.auth.uid && request.resource.data.createdBy == request.auth.uid
         && ((request.resource.data.userId == request.auth.uid && request.resource.data.senderRole == "customer"
               && get(/databases/$(database)/documents/places/$(request.resource.data.placeId)).data.approval_status == "approved"

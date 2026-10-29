@@ -3399,13 +3399,13 @@ window.MapPage = (() => {
             };
 
             // The server validates identity, Philippine schedule, place and initial payment state.
-            await window.ViciData.command('booking', {action:'create',request:requestData});
+            const createdBooking=await window.ViciData.command('booking', {action:'create',request:requestData});
 
             window.showToast(bookingText("Request sent. Opening your transaction chat..."), "success");
             window.closeBookingModal(true);
 
             setTimeout(() => {
-                if (window.openChatModal) window.openChatModal(placeId, placeName, null, "transaction");
+                if (window.openChatModal) window.openChatModal(placeId, placeName, null, "transaction", createdBooking.bookingId);
             }, 350);
         } catch (e) {
             window.showToast("Error sending request: " + e.message, "error");

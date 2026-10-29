@@ -80,7 +80,8 @@ test('refund ledger verifies actual paid money, freezes server amount, and requi
  assert.throws(()=>transition(cancelled,'customer',{refundStatus:'pending',receivedAmount:'500'}),{status:409});assert.throws(()=>transition(cancelled,'owner',{refundStatus:'pending',receivedAmount:'600'}),{status:409});
  const verified={...cancelled,...transition(cancelled,'owner',{refundStatus:'pending',receivedAmount:'500'})};assert.equal(verified.refundAmount,'350.00');assert.equal(verified.status,'cancelled');
  assert.throws(()=>transition(verified,'customer',{refundStatus:'sent',refundReference:'FAKE'}),{status:409});assert.throws(()=>transition(verified,'owner',{refundStatus:'received'}),{status:409});
- const sent={...verified,...transition(verified,'owner',{refundStatus:'sent',refundReference:'REFUND123',refundAmount:'999'})};assert.equal(sent.refundAmount,'350.00');assert.equal(sent.refundStatus,'sent');assert.equal(transition(sent,'customer',{refundStatus:'received'}).refundStatus,'received');
+ const approved={...verified,...transition(verified,'owner',{refundStatus:'approved',confirmRefund:true})};
+ const sent={...approved,...transition(approved,'owner',{refundStatus:'sent',refundReference:'REFUND123',refundAmount:'999',confirmTransferred:true})};assert.equal(sent.refundAmount,'350.00');assert.equal(sent.refundStatus,'sent');assert.equal(transition(sent,'customer',{refundStatus:'received',confirmReceived:true}).refundStatus,'received');
  assert.equal(transition(sent,'owner',{refundStatus:'sent',refundReference:'DOUBLE'}),null);
 });
 test('verified paid cancellation before preparation computes cents and later stages reject cancellation',()=>{
@@ -131,3 +132,11 @@ test('owner can waive unavailable requirements; invalid location and stale respo
 });
 test('all requests need verified payment before preparation, including legacy no-payment reservations',()=>{for(const requestType of ['table_reservation','food_reservation','pickup_order','delivery_order','advance_order'])for(const paymentMethod of [undefined,'COD','Cash on Pickup','GCash'])assert.throws(()=>transition({status:'accepted',requestType,paymentMethod},'owner',{status:'preparing'}),{status:409});});
 test('new reservations accept prepaid methods only and never accept client-confirmed payment',()=>{const {createBooking}=require('../netlify/functions/lib/booking-create');const input={placeId:'shop',requestType:'table_reservation',bookingDate:'2026-11-02',bookingTime:'12:00',guestCount:2},user={uid:'customer'},place={approval_status:'approved',owner_uid:'owner'},now=new Date('2026-10-29T00:00:00Z').getTime();for(const paymentMethod of ['Cash','Cash on Pickup','COD','Others'])assert.throws(()=>createBooking({...input,paymentMethod},user,place,{},now),{status:400});const order=createBooking({...input,paymentMethod:'GCash',paymentStatus:'confirmed'},user,place,{},now);assert.equal(order.paymentMethod,'GCash');assert.equal(order.status,'pending');assert.notEqual(order.paymentStatus,'confirmed');});
+
+test('refund approval, sender confirmation and recipient confirmation cannot be skipped',()=>{
+ const pending={status:'cancelled',refundStatus:'pending',refundPaymentVerified:true,refundAmount:'100.00'};
+ assert.throws(()=>transition(pending,'customer',{refundStatus:'approved',confirmRefund:true}));assert.throws(()=>transition(pending,'owner',{refundStatus:'approved'}));assert.throws(()=>transition(pending,'owner',{refundStatus:'sent',confirmTransferred:true,refundReference:'R123'}));
+ const approved={...pending,...transition(pending,'owner',{refundStatus:'approved',confirmRefund:true})};assert.throws(()=>transition(approved,'owner',{refundStatus:'sent',refundReference:'R123'}));
+ const sent={...approved,...transition(approved,'owner',{refundStatus:'sent',refundReference:'R123',confirmTransferred:true})};assert.throws(()=>transition(sent,'customer',{refundStatus:'received'}));assert.throws(()=>transition(sent,'owner',{refundStatus:'received',confirmReceived:true}));
+ const disputed={...sent,...transition(sent,'customer',{refundStatus:'disputed',refundNote:'No transfer in my account'})};assert.equal(require('../js/payment-policy').conversationClosed(disputed),false);assert.equal(require('../js/payment-policy').conversationClosed({...sent,refundStatus:'received'}),true);
+});

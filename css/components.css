@@ -3,7 +3,7 @@ html body.vicinify-ui {
  --ui-success-bg:#e6f4ed; --ui-success-ink:#17633f; --ui-success-line:#b6ddc8;
  --ui-warning-bg:#fff3dc; --ui-warning-ink:#845305; --ui-warning-line:#ecd29c;
  --ui-danger-bg:#fff0f0; --ui-danger-ink:#a92d36; --ui-danger-line:#edb9be;
- --ui-info-bg:#edf3ff; --ui-info-ink:#285a9a; --ui-info-line:#c5d7ef;
+ --ui-info-bg:var(--ui-success-bg); --ui-info-ink:var(--ui-success-ink); --ui-info-line:var(--ui-success-line);
  --ui-dialog-shadow:0 24px 80px #10262130;
 }
 html body.vicinify-ui.dark-mode {
@@ -11,7 +11,7 @@ html body.vicinify-ui.dark-mode {
  --ui-success-bg:#193d30; --ui-success-ink:#a6e9c4; --ui-success-line:#3c7258;
  --ui-warning-bg:#45371f; --ui-warning-ink:#ffdb96; --ui-warning-line:#816934;
  --ui-danger-bg:#44282c; --ui-danger-ink:#ffb9c1; --ui-danger-line:#8e4c55;
- --ui-info-bg:#20394e; --ui-info-ink:#bfdcff; --ui-info-line:#486783;
+ --ui-info-bg:var(--ui-success-bg); --ui-info-ink:var(--ui-success-ink); --ui-info-line:var(--ui-success-line);
  --ui-dialog-shadow:0 24px 80px #0008;
 }
 /* The content itself scrolls below the fixed header, without a second centered page frame. */
@@ -1350,10 +1350,10 @@ html body.vicinify-ui[data-lang="ph"] #main-content #btnListView::after { conten
 html body.vicinify-ui #main-content #dashboardKpiGrid .dash-kpi-card.accent-blue .dash-kpi-icon { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; }
 html body.vicinify-ui #main-content #dashboardKpiGrid .dash-kpi-card.accent-blue .dash-kpi-icon svg { color:var(--ui-success-ink) !important; }
 html body.vicinify-ui #main-content #adminReviewCard.dark-mode #adminFilterBtn { background:var(--ui-soft) !important; }
-html body.vicinify-ui #main-content .vici-photo-picker { position:relative; display:flex; align-items:center; flex-wrap:wrap; gap:10px; min-width:0; max-width:100%; padding:10px; border:1px dashed var(--ui-border); border-radius:10px; background:var(--ui-soft); }
-html body.vicinify-ui #main-content .vici-photo-picker>input[type=file] { position:absolute !important; width:1px !important; height:1px !important; min-width:0 !important; min-height:0 !important; margin:0 !important; padding:0 !important; border:0 !important; opacity:0; overflow:hidden; clip-path:inset(50%); pointer-events:none; }
-html body.vicinify-ui #main-content .vici-photo-picker>button { flex:0 0 auto; min-height:38px; max-width:100%; padding:8px 11px; border:1px solid var(--ui-success-line); border-radius:8px; background:var(--ui-success-bg); color:var(--ui-success-ink); font-family:inherit; font-size:12px; font-weight:600; line-height:1.4; }
-html body.vicinify-ui #main-content .vici-photo-selection { min-width:0; flex:1 1 100px; font-size:11px; line-height:1.5; overflow-wrap:anywhere; color:var(--ui-muted); }
+html body.vicinify-ui .vici-photo-picker { position:relative; display:flex; align-items:center; flex-wrap:wrap; gap:10px; min-width:0; max-width:100%; padding:10px; border:1px dashed var(--ui-border); border-radius:10px; background:var(--ui-soft); }
+html body.vicinify-ui .vici-photo-picker>input[type=file] { position:absolute !important; width:1px !important; height:1px !important; min-width:0 !important; min-height:0 !important; margin:0 !important; padding:0 !important; border:0 !important; opacity:0; overflow:hidden; clip-path:inset(50%); pointer-events:none; }
+html body.vicinify-ui .vici-photo-picker>button { flex:0 0 auto; min-height:38px; max-width:100%; padding:8px 11px; border:1px solid var(--ui-success-line); border-radius:8px; background:var(--ui-success-bg); color:var(--ui-success-ink); font-family:inherit; font-size:12px; font-weight:600; line-height:1.4; }
+html body.vicinify-ui .vici-photo-selection { min-width:0; flex:1 1 100px; font-size:11px; line-height:1.5; overflow-wrap:anywhere; color:var(--ui-muted); }
 html body.vicinify-ui #main-content #page-dashboard .business-empty-state .dash-action-btn { background:#237e72 !important; border-color:#237e72 !important; color:#fff !important; }
 
 /* Request details and review share one sheet; only the body scrolls. */
@@ -1493,7 +1493,7 @@ html body.vicinify-ui .transaction-history-update svg { width:14px; height:14px;
 html body.vicinify-ui .transaction-history-update time { font-size:10px; }
 html body.vicinify-ui #chatModal:has(#chatTransactionSummary:not(.hidden)) #chatQuickActions { display:none !important; }
 
-html body.vicinify-ui #chatModal[data-mode=transaction] .chat-footer { display:none !important; }
+html body.vicinify-ui #chatModal[data-mode=transaction] .chat-footer { display:flex !important; }
 html body.vicinify-ui #chatModal[data-mode=messages] #chatQuickActions { display:none !important; }
 html body.vicinify-ui #chatModal .chat-mode-switch { border:1px solid var(--ui-border); background:var(--ui-accent-soft); color:var(--ui-accent); padding:5px 9px; border-radius:7px; margin-top:4px; cursor:pointer; font-size:11px; }
 
@@ -1511,7 +1511,7 @@ html body.vicinify-ui #main-content #page-settings .transaction-action-chat:hove
 html body.vicinify-ui .req-modal .req-opt-icon:is(.blue,.purple) { background:var(--ui-accent-soft) !important; color:var(--ui-accent) !important; }
 
 html body.vicinify-ui #page-settings .favorite-heart svg { color:var(--ui-accent) !important; stroke:var(--ui-accent) !important; fill:var(--ui-accent) !important; }
-html body.vicinify-ui #main-content #chatModal[data-mode=transaction] .chat-footer { display:none !important; }
+html body.vicinify-ui #main-content #chatModal[data-mode=transaction] .chat-footer { display:flex !important; }
 html body.vicinify-ui #main-content #chatModal[data-mode=messages] #chatQuickActions { display:none !important; }
 /* Size changes follow the pointer immediately; only visual focus colors animate. */
 html body.vicinify-ui #main-content textarea { transition:border-color .12s,box-shadow .12s,background-color .12s !important; }
@@ -1562,3 +1562,52 @@ html body.vicinify-ui #main-content #termsModal .terms-body { overflow-wrap:anyw
 html body.vicinify-ui #forgotModal .forgot-btn.primary { box-shadow:none !important; }
 html body.vicinify-ui #main-content #termsModal .modalFooter { flex-direction:row !important; align-items:center; }
 html body.vicinify-ui #main-content #termsModal .modalFooter button { flex:0 0 112px !important; max-width:160px; }
+
+/* Ownership dialog: compact header and one clear action row. */
+html body.vicinify-ui #ownershipTransferModal .req-sheet { width:min(460px,calc(100vw - 24px)) !important; overflow:hidden; }
+html body.vicinify-ui #ownershipTransferModal .req-head { display:flex !important; align-items:center; gap:12px; padding:20px !important; }
+#ownershipTransferModal .transfer-icon { display:grid; place-items:center; flex:none; width:40px; height:40px; border-radius:12px; background:var(--ui-success-bg); color:var(--ui-success-ink); font-size:22px; }
+html body.vicinify-ui #ownershipTransferModal .req-head h3 { flex:1; margin:0; font-size:18px; }
+html body.vicinify-ui #ownershipTransferModal .transfer-close { display:grid; place-items:center; flex:none; width:36px; height:36px; padding:0; border:1px solid var(--ui-border); border-radius:50%; background:var(--ui-soft); color:var(--ui-text); cursor:pointer; }
+#ownershipTransferModal .transfer-close svg { width:18px; height:18px; }
+html body.vicinify-ui #ownershipTransferModal .req-body { padding:20px !important; }
+#ownershipTransferModal [role=status]:empty { display:none; }
+#ownershipTransferModal .transfer-content>p { margin:0 0 20px; color:var(--ui-muted); line-height:1.6; font-size:13px; }
+html body.vicinify-ui #ownershipTransferModal .req-footer { display:flex !important; gap:10px; padding:16px 20px !important; }
+html body.vicinify-ui #ownershipTransferModal .req-footer .req-btn { flex:1; width:auto !important; margin:0; min-width:0; white-space:normal; }
+
+/* Feedback uses the same green controls in body-mounted dialogs. */
+html body.vicinify-ui .feedback-modal { padding:12px; box-sizing:border-box; }
+html body.vicinify-ui .feedback-modal .feedback-sheet { max-height:calc(100dvh - 24px); overflow-y:auto; box-sizing:border-box; }
+html body.vicinify-ui .feedback-modal :is(select,textarea) { background:var(--ui-surface,#fff) !important; color:var(--ui-text,#193a34) !important; border-color:var(--ui-border,#d4e4dd) !important; font-family:inherit; }
+html body.vicinify-ui .feedback-modal :is(select,textarea,button,input):focus-visible { outline:2px solid var(--ui-primary,#237e72); outline-offset:2px; }
+html body.vicinify-ui .feedback-modal input[type=checkbox] { accent-color:var(--ui-primary,#237e72); }
+html body.vicinify-ui .feedback-modal button { min-height:44px; font-family:inherit; }
+html body.vicinify-ui .feedback-request-card { background:var(--ui-surface,#fff) !important; color:var(--ui-text,#193a34); }
+
+html body.vicinify-ui #chatModal[data-mode=transaction] :is(#chatQuickActions,#chatSuggestions) { display:none !important; }
+
+html body.vicinify-ui #chatModal[data-mode=transaction] .transaction-desk { max-height:42dvh; }
+
+html body.vicinify-ui #main-content #chatModal[data-mode=transaction][data-archived=true] .chat-footer { display:none !important; }
+
+/* Theme audit: editor inputs and body-mounted legacy dialogs share the palette. */
+html body.vicinify-ui #main-content :is(#page-add,#page-biz-edit,#page-suki-studio) :is(input,select,textarea) {
+ background:var(--ui-surface) !important; color:var(--ui-ink) !important; border-color:var(--ui-border) !important; accent-color:var(--ui-primary);
+}
+html body.vicinify-ui #main-content :is(#page-add,#page-biz-edit,#page-suki-studio) :is(input,select,textarea):focus-visible {
+ border-color:var(--ui-accent) !important; outline:2px solid var(--ui-accent) !important; outline-offset:2px; box-shadow:none !important;
+}
+html body.vicinify-ui #main-content :is(#page-add,#page-biz-edit,#page-suki-studio) input:disabled { background:var(--ui-soft) !important; color:var(--ui-muted) !important; opacity:1; }
+html body.vicinify-ui #main-content #bizPostsAddBtn { background:var(--ui-success-bg) !important; color:var(--ui-success-ink) !important; border-color:var(--ui-success-line) !important; }
+html body.vicinify-ui #main-content #togglePassBtn { color:var(--ui-muted) !important; }
+html body.vicinify-ui #main-content #page-biz-posts { background:var(--ui-bg) !important; color:var(--ui-ink); }
+html body.vicinify-ui #main-content #submitPlacePostBtn { background:var(--ui-primary) !important; color:#fff !important; }
+html body.vicinify-ui :is(.cancellation-sheet,.suki-scan-sheet) { background:var(--ui-surface) !important; color:var(--ui-ink) !important; border-color:var(--ui-border) !important; }
+html body.vicinify-ui input[type=checkbox] { accent-color:var(--ui-primary); }
+
+html body.vicinify-ui #main-content #page-login .auth-story p { color:var(--ui-muted) !important; }
+html body.vicinify-ui :is(.payment-owner-review,.ticket-proof) { background:var(--ui-success-bg) !important; border-color:var(--ui-success-line) !important; color:var(--ui-ink) !important; }
+html body.vicinify-ui #main-content input[type=checkbox] { background-color:var(--ui-surface) !important; color:var(--ui-ink) !important; border-color:var(--ui-border) !important; accent-color:var(--ui-primary); }
+
+html body.vicinify-ui :is(input,textarea)::placeholder { color:var(--ui-muted) !important; opacity:1; }

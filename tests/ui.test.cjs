@@ -98,7 +98,7 @@ test('pinned transaction desk shows the next role action, agreed instructions an
 test('legacy requirement confirmation no longer displays a second independent payment confirmation status',()=>{
  const r=requestOutputRuntime();try{
   const {w}=r,s=fs.readFileSync(path.join(__dirname,'../js/common.js'),'utf8'),a=s.indexOf('function renderRequirementResponseDetails(');w.eval(s.slice(a,s.indexOf('// ---- Message receipts',a)));
-  const html=w.renderRequirementResponseDetails({requirements:{payment:true},paymentMethod:'GCash',paymentAmount:'500',paymentReference:'REF123',paymentStatus:'pending_confirmation'},false,'8:19 AM');assert.match(html,/Earlier payment details/);assert.match(html,/transaction summary/);assert(!html.includes('Waiting for Business Confirmation'));assert(!html.includes('makeBadge'));
+  const html=w.renderRequirementResponseDetails({requirements:{payment:true},paymentMethod:'GCash',paymentAmount:'500',paymentReference:'REF123',paymentStatus:'pending_confirmation'},false,'8:19 AM');assert(!html.includes('Earlier payment details'));assert(!html.includes('REF123'));assert(!html.includes('Waiting for Business Confirmation'));assert(!html.includes('makeBadge'));
  }finally{r.dom.window.close();}
 });
 

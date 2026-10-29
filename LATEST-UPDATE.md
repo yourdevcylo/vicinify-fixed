@@ -1,3 +1,29 @@
+Green light/dark theme audit: fixed legacy input palette, Add Establishment focus and controls, editor/Suki fields, signup checkbox, Business Posts action, body-mounted dialogs, feedback/payment styling and text contrast. Includes all earlier fixes. See THEME-AUDIT.md for scope and validation. 24 test files and build passed; local rendered-page and dynamic-dialog fixtures verified. Live service actions not performed.
+
+Direct transaction: removed the internal transaction dropdown. Customer history and business inbox now pass the exact booking ID; new requests open the returned booking ID. A selected request listens to its own document (including older history beyond the recent-five limit); no fallback to another request. Inquiries remain separate; all previous refund/archive/theme fixes retained. Tests and build passed.
+
+Refund/transaction archive: owner must approve server-calculated refund, separately confirm manual transfer with reference; only customer can explicitly confirm receipt. Customer can dispute nonreceipt; refund chat remains open. Completed/rejected or cancelled-and-settled conversations close on live transition; history is retained, archived composer hidden and linked text writes denied by rules. Zero computed refunds resolve without a transfer. Backend audit timestamps track approval/sent/receipt. Image proof upload is not yet implemented (Firebase Storage follow-up); current evidence is manual reference. Deploy updated rules before Netlify/client release. 24 test files and 60 browser refund-stage/role/layout checks passed; live Firebase/emulator not verified.
+
+Transaction chat + single payment flow: remove legacy payment import endpoint/button, old receipt autofill and payment requirements controls. Restore compact transaction composer; link text to selected booking; filter per transaction and exclude from inquiries. Rules validate matching booking customer/place and immutable transaction link. Deploy Firestore rules BEFORE new client. Existing paid records retained; no data deleted. Expanded client/server tests and 32 browser layout cases passed; build passed. Live Firebase/emulator validation unavailable.
+
+Submit-once feedback: review endpoint rejects existing transaction reviews regardless of createOnly. Atomic review + booking completion marker + validated feedback-request status update; UI uses canonical submitted marker/responses and prevents reopening submitted feedback. No client status-sync dependency. Previously saved reviews remain protected by deterministic review ID; old stale cards may require reloading. All 24 test files passed, expanded server/UI tests passed, build passed. Netlify deployment required for server endpoint.
+
+Feedback theme: green request card, waiting badge and primary actions; green checkbox/focus; theme-aware dialog/inputs; gold rating stars preserved. Mobile/tablet light/dark browser checks and build passed. Includes all previous changes.
+
+Inquiry chat adjustment: 90 messages/minute and no per-message delay in client/rules. Refresh verified user token and retry once only after rejected permission write; preserve draft on failure. Deploy Firestore rules separately BEFORE updated client. No access restrictions bypassed. Exact production permission cause not confirmed; Firestore emulator/live verification unavailable. Content-policy checks/build passed.
+
+Ownership language fix: explicit English translation keys on dynamic ownership button, modal headings, statuses and actions; preserve business/person names. Switching PH to EN restores labels even when first rendered in PH. Browser switching and 48 layout checks, regression test, build passed.
+
+Admin tabs fix: repaired missing filter-content closing tag that nested Users through Audit inside the hidden Establishments panel. Restored booking/approval filter groups. Regression test and Chromium all-8-tab visibility check use fixture data; live Firebase permissions not tested. Static build passed.
+
+Transaction picker: show reservation date/time, readable status, and short reference instead of type + random ID only. Legacy Date/Time details supported. Build and label checks passed.
+
+Transfer modal and receipt upload fix
+
+- Receipt photo picker now styled inside body-mounted modals: one visible control, unchanged native selection event.
+- Ownership transfer has compact green header, circular close, aligned Cancel/submit footer. Password verification and recipient acceptance remain required.
+- Browser: 48 viewport/theme/language dialog checks; receipt selection updates verified; static build passed.
+
 CURRENT REVIEWABLE BUILD — 2026-10-29
 
 Includes all prior cumulative account/ownership/Suki/password/modal/transaction fixes. New: Netlify-native IP/domain rate-limit declarations (120 page requests/minute,600 Netlify API requests/minute), JSON/HTML HTTP429 response with Retry-After60, and green document error handling for400/401/403/404/408/413/429/500/502/503/504. A custom static404 is generated for Netlify missing routes; original error statuses are preserved. API errors stay JSON instead of replacing in-progress forms with HTML. Static app assets are excluded from the page counter. Firebase sessions unchanged.

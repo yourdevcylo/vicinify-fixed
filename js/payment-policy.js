@@ -47,15 +47,25 @@
             const received=money(patch.receivedAmount),submitted=Number(order.paymentAmount)>0?money(order.paymentAmount):null;
             if(submitted!=null&&received>submitted)return fail('The received amount cannot exceed the submitted payment.');
             const amount=Math.round(received*cancellation(order).rate/100);
-            return {refundStatus:'pending',refundBaseAmount:(received/100).toFixed(2),refundAmount:(amount/100).toFixed(2),refundPaymentVerified:true};
+            return {refundStatus:amount===0?'not_required':'pending',refundBaseAmount:(received/100).toFixed(2),refundAmount:(amount/100).toFixed(2),refundPaymentVerified:true};
         }
         if(actor==='owner'&&current==='needs_verification'&&next==='payment_not_found')return {refundStatus:next,refundNote:reference(patch.refundNote,'Explain why the payment was not found.')};
         if(actor==='customer'&&current==='payment_not_found'&&next==='needs_verification')return {refundStatus:next};
-        if(actor==='owner'&&current==='pending'&&next==='sent') {
+        if(actor==='owner'&&current==='pending'&&next==='approved') {
             if(!order.refundPaymentVerified || Number(order.refundAmount)<=0)return fail('Verify the received payment and refundable amount first.');
+            if(patch.confirmRefund!==true)return fail('Confirm the refund amount before approving it.');
+            return {refundStatus:'approved'};
+        }
+        if(actor==='owner'&&['approved','disputed'].includes(current)&&next==='sent') {
+            if(!order.refundPaymentVerified || Number(order.refundAmount)<=0)return fail('Verify the received payment and refundable amount first.');
+            if(patch.confirmTransferred!==true)return fail('Confirm you transferred the refund before recording it.');
             return {refundStatus:'sent',refundReference:reference(patch.refundReference,'Enter the refund transfer reference.')};
         }
-        if(actor==='customer'&&current==='sent'&&next==='received')return {refundStatus:'received'};
+        if(actor==='customer'&&current==='sent'&&next==='received') {
+            if(patch.confirmReceived!==true)return fail('Check your account and confirm the refund was received.');
+            return {refundStatus:'received'};
+        }
+        if(actor==='customer'&&current==='sent'&&next==='disputed')return {refundStatus:'disputed',refundNote:reference(patch.refundNote,'Explain why the refund was not received.')};
         if(current===next)return null;
         return fail('This refund action is not available for your account or the current stage.');
     }
@@ -69,7 +79,11 @@
         if(!['GCash','Maya','Bank Transfer'].includes(method))throw Object.assign(new Error('Choose GCash, Maya or Bank Transfer. Payment is required before preparation.'),{status:400});
         return {paymentMethod:method,paymentFlowVersion:2,paymentAmountDue:(amount/100).toFixed(2),paymentInstructions:input.instructions.trim(),paymentTermsVersion:2,paymentTermsNeedReview:false};
     }
-    const api = { isOnline, flow, details, money, cancellation, refundTransition, paymentTerms };
+    function conversationClosed(order) {
+        const status=order.status||order.bookingStatus;
+        return ['received','rejected'].includes(status)||(status==='cancelled'&&['received','not_required'].includes(order.refundStatus));
+    }
+    const api = { conversationClosed, isOnline, flow, details, money, cancellation, refundTransition, paymentTerms };
     if (typeof module === 'object' && module.exports) module.exports = api;
     else root.PaymentPolicy = api;
 })(typeof window !== 'undefined' ? window : globalThis);

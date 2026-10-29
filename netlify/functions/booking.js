@@ -31,7 +31,7 @@ exports.handler = async event => {
             });
             return reply(200, {saved:true,bookingId:ref.id});
         }
-        if (body.action && !['update','import_payment'].includes(body.action)) return reply(400,{error:'Unknown booking action.'});
+        if (body.action && body.action!=='update') return reply(400,{error:'Unknown booking action.'});
         const bookingId = identifier(body.bookingId);
         const ref = db.collection('bookings').doc(bookingId);
         await db.runTransaction(async transaction => {
@@ -59,22 +59,14 @@ exports.handler = async event => {
                 }
             }
             let change;
-            if(body.action==='import_payment') {
-                if(order.status!=='accepted'||!PaymentPolicy.isOnline(order))throw Object.assign(new Error('This request is not awaiting online payment.'),{status:409});
-                const legacy=await transaction.get(db.collection('messages').doc(identifier(body.messageId)));
-                const data=legacy.data();
-                if(!legacy.exists||data.type!=='requirement_response'||data.userId!==order.userId||data.placeId!==order.placeId||(![data.bookingId,data.transactionId].includes(bookingId)&&!(actor==='owner'&&body.confirmLink===true&&!data.bookingId&&data.createdAt?.toMillis?.()>=order.createdAt?.toMillis?.())))throw Object.assign(new Error('This payment is not linked to this transaction.'),{status:403});
-                const payment=PaymentPolicy.details(data.paymentReference,String(data.paymentAmount ?? ''));
-                if(order.paymentFlowVersion===2&&(!order.paymentAmountDue||!order.paymentInstructions||order.paymentTermsNeedReview||!PaymentPolicy.flow(order).requirementsReady))throw Object.assign(new Error('Set payment instructions first.'),{status:409});
-                if(order.paymentAmountDue&&Number(payment.paymentAmount)!==Number(order.paymentAmountDue))throw Object.assign(new Error('Check the agreed amount before using this payment.'),{status:409});
-                change={...payment,status:'payment_submitted',paymentStatus:'pending_confirmation',paymentReviewDecision:'pending',legacyPaymentMessageId:legacy.id};
-            } else change = transition(order, actor, inputPatch);
+            change = transition(order, actor, inputPatch);
             if (!change) return;
             const cards = await transaction.get(db.collection('messages').where('bookingId', '==', bookingId).where('type', '==', 'booking_card').limit(50));
             change.updatedAt = FieldValue.serverTimestamp();
             if(change.paymentTermsVersion){change.paymentTermsUpdatedAt=FieldValue.serverTimestamp();change.paymentTermsUpdatedBy=user.uid;}
-            if(change.refundStatus){change.refundUpdatedAt=FieldValue.serverTimestamp();change.refundUpdatedBy=user.uid;if(change.refundStatus==='sent')change.refundSentAt=FieldValue.serverTimestamp();if(change.refundStatus==='received')change.refundReceivedAt=FieldValue.serverTimestamp();}
+            if(change.refundStatus){change.refundUpdatedAt=FieldValue.serverTimestamp();change.refundUpdatedBy=user.uid;if(change.refundStatus==='approved'){change.refundApprovedAt=FieldValue.serverTimestamp();change.refundApprovedBy=user.uid;}if(change.refundStatus==='sent')change.refundSentAt=FieldValue.serverTimestamp();if(change.refundStatus==='received')change.refundReceivedAt=FieldValue.serverTimestamp();}
             const nextStatus=change.status || order.status;
+            if(PaymentPolicy.conversationClosed({...order,...change}))change.conversationArchivedAt=FieldValue.serverTimestamp();
             if (change.status === 'payment_confirmed') change.paymentVerifiedAt = FieldValue.serverTimestamp();
             if (change.paymentReviewDecision) { change.paymentReviewedBy = user.uid; change.paymentReviewedAt = FieldValue.serverTimestamp(); }
             if (change.status === 'received') change.customerConfirmedAt = FieldValue.serverTimestamp();

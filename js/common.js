@@ -654,7 +654,7 @@ window.LangManager = (() => {
   "Submitting a reference number does not mark your request paid. The business checks the amount and reference against funds actually received.": "Hindi awtomatikong ituturing na bayad ang kahilingan kapag nagsumite ng sanggunian number. Susuriin ng negosyo ang halaga at sanggunian batay sa aktuwal na natanggap na pera.",
   "No receipt image attached. Verify the submitted reference against your actual account.": "Walang kalakip na larawan ng resibo. Ihambing ang sanggunian sa aktuwal mong akawnt.",
   "Receipt image is optional. Verify the submitted reference against your actual account.": "Opsyonal ang larawan ng resibo. Ihambing ang sanggunian sa aktuwal mong akawnt.",
-  "Confirm the total, delivery fee, payment recipient and account details. Never ask for a PIN or OTP.": "Kumpirmahin ang kabuuang halaga, paghahatid fee, tatanggap ng bayad, at detalye ng akawnt. Huwag humingi ng Pananda o Minsang kodigo.",
+  "Explain which details the customer should provide.": "Kumpirmahin ang kabuuang halaga, paghahatid fee, tatanggap ng bayad, at detalye ng akawnt. Huwag humingi ng Pananda o Minsang kodigo.",
   "The order stays accepted. The customer can correct and resubmit their payment details.": "Mananatiling tanggap ang bilin. Maaaring itama at muling isumite ng mamimili ang detalye ng bayad.",
   "For example: reference not found, amount does not match, or receipt is unclear.": "Halimbawa: hindi makita ang sanggunian, hindi tugma ang halaga, o malabo ang resibo.",
   "Explain what needs correcting. Do not ask the customer to pay again if you have already received the payment.": "Ipaliwanag ang kailangang itama. Huwag pagbayarin muli ang mamimili kung natanggap mo na ang bayad.",
@@ -686,7 +686,7 @@ window.LangManager = (() => {
   "Reply": "Sumagot",
   "Hide conversation": "Itago ang pag-uusap",
   "Check details with the business before visiting.": "Kumpirmahin ang mga detalye sa negosyo bago bumisita.",
-  "Ask about the menu, availability, or your request. Choose a quick question below to get started.": "Magtanong tungkol sa talaan ng pagkain, pagkakaroon, o iyong kahilingan. Pumili ng mabilis na tanong sa ibaba para magsimula.",
+  "${document.getElementById('chatModal')?.dataset.mode==='transaction'?'Send a message about the selected transaction.':'Ask about the menu, availability, or your request. Choose a quick question below to get started.'}": "Magtanong tungkol sa talaan ng pagkain, pagkakaroon, o iyong kahilingan. Pumili ng mabilis na tanong sa ibaba para magsimula.",
   "Date": "Petsa",
   "Time": "Oras",
   "Guests": "Mga bisita",
@@ -1487,6 +1487,19 @@ window.LangManager = (() => {
   "Account checks passed. Confirm only when you are ready.": "Pumasa ang pagsusuri sa account. Kumpirmahin lamang kapag handa ka na.",
   "Permanently delete account": "Tuluyang burahin ang account",
   "Transfer ownership": "Ilipat ang pagmamay-ari",
+  "Message about this transaction...": "Mensahe tungkol sa transaksiyong ito...",
+  "This transaction conversation is archived. You can read it in history.": "Naka-archive na ang usapang ito. Mababasa mo ito sa kasaysayan.",
+  "Transaction conversation archived. The record remains in history.": "Naka-archive na ang usapan. Nananatili ang tala sa kasaysayan.",
+  "The business must review and approve the calculated refund.": "Kailangang suriin at aprubahan ng negosyo ang halagang ibabalik.",
+  "Review refund": "Suriin ang ibabalik na bayad",
+  "Approve refund": "Aprubahan ang ibabalik na bayad",
+  "Refund approved. Transfer the displayed amount, then record the reference.": "Aprubado na ang refund. Ipadala ang nakasaad na halaga, saka itala ang sanggunian.",
+  "The customer reported the refund was not received. Check the transfer before recording a correction.": "Iniulat ng customer na hindi natanggap ang refund. Suriin muna ang padala bago magtala ng pagwawasto.",
+  "Refund not received": "Hindi natanggap ang refund",
+  "What needs checking?": "Ano ang kailangang suriin?",
+  "Check your account first. The refund will stay open for the business to review.": "Suriin muna ang iyong account. Mananatiling bukas ang refund para masuri ng negosyo.",
+  "Confirm refund transfer": "Kumpirmahin ang pagpapadala ng refund",
+  "Confirm transferred": "Kumpirmahing naipadala na",
   "Ownership transfers": "Mga paglilipat ng pagmamay-ari",
   "Ownership transfer": "Paglilipat ng pagmamay-ari",
   "Enter the email of a verified business account. Your password confirms this request. Ownership changes only after the recipient accepts.": "Ilagay ang adres ng elektronikong liham ng isang napatunayang account ng negosyo. Kumpirmahin gamit ang iyong kontrasenyas. Magbabago lamang ang may-ari kapag tinanggap ng tatanggap.",
@@ -1823,11 +1836,11 @@ window.vConfirm = function(title, message, confirmBtnText = "Confirm", isDanger 
         const modalHtml = `
             <div id="${modalId}" role="alertdialog" aria-modal="true" aria-labelledby="${modalId}_title" aria-describedby="${modalId}_body" style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 99999;">
                 <div class="modalBackdrop" style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
-                <div class="modalBox" style="position: relative; width: 90%; max-width: 400px; background: #fff; border-radius: 18px; padding: 24px; z-index: 1; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
-                    <h3 id="${modalId}_title" data-vconfirm-title style="margin-top: 0; font-size: 18px; color: #0f172a; margin-bottom: 12px;"></h3>
-                    <p id="${modalId}_body" data-vconfirm-message style="font-size: 14px; color: #475569; margin-bottom: 24px; line-height: 1.5; white-space: pre-line;"></p>
+                <div class="modalBox" style="position: relative; width: 90%; max-width: 400px; background:var(--ui-surface); border-radius: 18px; padding: 24px; z-index: 1; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+                    <h3 id="${modalId}_title" data-vconfirm-title style="margin-top: 0; font-size: 18px; color:var(--ui-ink); margin-bottom: 12px;"></h3>
+                    <p id="${modalId}_body" data-vconfirm-message style="font-size: 14px; color:var(--ui-muted); margin-bottom: 24px; line-height: 1.5; white-space: pre-line;"></p>
                     <div style="display: flex; gap: 12px;">
-                        <button id="cancelBtn_${modalId}" style="flex: 1; background: #f1f5f9; color: #475569; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer;">Cancel</button>
+                        <button id="cancelBtn_${modalId}" style="flex: 1; background: #f1f5f9; color:var(--ui-muted); border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer;">Cancel</button>
                         <button id="confirmBtn_${modalId}" style="flex: 1; ${btnStyle}"></button>
                     </div>
                 </div>
@@ -2921,7 +2934,6 @@ const makeActionBtn = (id, label, title, bg, color) => {
 
 makeActionBtn("chatAddressBtn", '<i data-lucide="home"></i>', "Submit delivery address", "#fff7ed", "#c2410c");
 makeActionBtn("chatShareLocationBtn", '<i data-lucide="map-pin"></i>', "Submit current location", "#ecfdf5", "#047857");
-makeActionBtn("chatPaymentBtn", '<i data-lucide="credit-card"></i>', "Submit payment details", "#eff6ff", "#1d4ed8");
 makeActionBtn("chatOrderBtn", '<i data-lucide="clipboard-pen"></i>', "Submit order details", "#f8fafc", "#0f172a");
 
 const reqBtn = document.createElement("button");
@@ -2935,7 +2947,7 @@ reqBtn.style.cssText = `
     height:40px;
     border-radius:50%;
     border:1px solid #cbd5e1;
-    background:white;
+    background:var(--ui-surface);
     cursor:pointer;
     font-size:18px;
     display:none;
@@ -2965,7 +2977,6 @@ const showCustomerQuick = !isOwner && !!pendingRequirement && (pendingRequiremen
 const buttonMap = {
     chatAddressBtn: !!req.address,
     chatShareLocationBtn: !!req.location,
-    chatPaymentBtn: !!req.payment,
     chatOrderBtn: !!req.orderDetails
 };
 
@@ -3143,8 +3154,8 @@ const map = {
         label: "Rejected by Business"
     },
     fulfilled: {
-        bg: "#dbeafe",
-        color: "#1d4ed8",
+        bg: "var(--ui-success-bg)",
+        color: "var(--ui-success-ink)",
         label: "Marked Fulfilled by Business"
     },
     received: {
@@ -3198,13 +3209,13 @@ const map = {
         label: "Delivered by Business"
     },
     fulfilled_waiting_customer: {
-        bg: "#dbeafe",
-        color: "#1d4ed8",
+        bg: "var(--ui-success-bg)",
+        color: "var(--ui-success-ink)",
         label: "Waiting for Customer Confirmation"
     },
     feedback_waiting: {
-        bg: "#fef3c7",
-        color: "#92400e",
+        bg: "var(--ui-success-bg,#e7f3ed)",
+        color: "var(--ui-success-ink,#28634b)",
         label: "Waiting for Customer Feedback"
     },
     feedback_submitted: {
@@ -3242,9 +3253,9 @@ const map = {
         icon: "📅",
         title: "General Booking Request",
         shortLabel: "Booking",
-        color: "#2563eb",
-        light: "#dbeafe",
-        dark: "#1d4ed8",
+        color: "var(--ui-accent)",
+        light: "var(--ui-success-bg)",
+        dark: "var(--ui-success-ink)",
         fulfillLabel: "Mark as Fulfilled",
         confirmLabel: "Confirm Completed"
     },
@@ -3433,28 +3444,28 @@ function injectChatStyles() {
         #chatModal { z-index: 9998 !important; }
         #chatModal .modalBackdrop { z-index: 9998 !important; }
         #chatModal .modalBox { z-index: 9999 !important; }
-        .vtx-command { position: relative; top: auto; z-index: 1; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 12px; margin: 10px auto 14px; width: calc(100% - 16px); box-shadow: 0 6px 18px rgba(15,23,42,0.08); box-sizing: border-box; }
+        .vtx-command { position: relative; top: auto; z-index: 1; background:var(--ui-surface); border: 1px solid #e2e8f0; border-radius: 18px; padding: 12px; margin: 10px auto 14px; width: calc(100% - 16px); box-shadow: 0 6px 18px rgba(15,23,42,0.08); box-sizing: border-box; }
         .vtx-command-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
         .vtx-title { display:flex; align-items:center; gap:10px; min-width:0; }
         .vtx-icon { width:40px; height:40px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:white; font-size:20px; box-shadow:0 8px 18px rgba(15,23,42,0.16); }
-        .vtx-name { font-size:13px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:210px; }
-        .vtx-sub { font-size:11px; color:#64748b; font-weight:700; margin-top:2px; }
+        .vtx-name { font-size:13px; font-weight:900; color:var(--ui-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:210px; }
+        .vtx-sub { font-size:11px; color:var(--ui-muted); font-weight:700; margin-top:2px; }
         .vtx-pill { font-size:10px; font-weight:900; border-radius:999px; padding:6px 9px; white-space:nowrap; }
         .vtx-progress { width:100%; height:8px; border-radius:999px; background:#e2e8f0; overflow:hidden; margin:10px 0 12px; }
         .vtx-progress-fill { height:100%; border-radius:999px; transition:width .35s ease; }
         .vtx-grid { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:7px; margin-top:10px; }
-        .vtx-mini { background:white; border:1px solid #e2e8f0; border-radius:14px; padding:9px; min-height:58px; }
-        .vtx-mini-label { font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:.03em; }
-        .vtx-mini-value { font-size:12px; color:#0f172a; font-weight:900; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .vtx-mini { background:var(--ui-surface); border:1px solid #e2e8f0; border-radius:14px; padding:9px; min-height:58px; }
+        .vtx-mini-label { font-size:10px; color:var(--ui-muted); font-weight:800; text-transform:uppercase; letter-spacing:.03em; }
+        .vtx-mini-value { font-size:12px; color:var(--ui-ink); font-weight:900; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .vtx-timeline { display:grid; gap:8px; margin-top:11px; }
         .vtx-step { display:flex; align-items:flex-start; gap:9px; }
         .vtx-dot { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; font-weight:900; }
-        .vtx-step-title { font-size:12px; color:#0f172a; font-weight:900; }
-        .vtx-step-sub { font-size:11px; color:#64748b; margin-top:1px; line-height:1.3; }
+        .vtx-step-title { font-size:12px; color:var(--ui-ink); font-weight:900; }
+        .vtx-step-sub { font-size:11px; color:var(--ui-muted); margin-top:1px; line-height:1.3; }
         .vtx-panel { display:grid; gap:8px; margin-top:10px; }
-        .vtx-panel-card { background:white; border:1px solid #e2e8f0; border-radius:14px; padding:10px; font-size:12px; color:#334155; }
+        .vtx-panel-card { background:var(--ui-surface); border:1px solid #e2e8f0; border-radius:14px; padding:10px; font-size:12px; color:var(--ui-ink); }
         .vtx-system { display:flex; align-items:center; justify-content:center; margin:14px 0; }
-        .vtx-system span { background:#f8fafc; border:1px solid #e2e8f0; color:#64748b; padding:6px 12px; border-radius:999px; font-size:11px; font-weight:800; box-shadow:0 4px 12px rgba(15,23,42,0.06); }
+        .vtx-system span { background:#f8fafc; border:1px solid #e2e8f0; color:var(--ui-muted); padding:6px 12px; border-radius:999px; font-size:11px; font-weight:800; box-shadow:0 4px 12px rgba(15,23,42,0.06); }
         @media (max-width: 520px) { .vtx-grid { grid-template-columns: repeat(3, minmax(0,1fr)); gap:6px; } .vtx-mini { padding:8px; min-height:54px; } .vtx-name { max-width: 170px; } .vtx-command { border-radius:16px; width: calc(100% - 10px); } }
     `;
     document.head.appendChild(style);
@@ -3535,7 +3546,7 @@ function isDone(status, values) {
     return values.includes(normalizeStatusText(status));
 }
 
-function renderTimelineStep(done, active, icon, title, sub, color = "#3b82f6") {
+function renderTimelineStep(done, active, icon, title, sub, color = "var(--ui-primary,#237e72)") {
     const bg = done ? "#dcfce7" : active ? "#fff7ed" : "#f1f5f9";
     const c = done ? "#166534" : active ? "#ea580c" : "#94a3b8";
     const symbol = done ? "✓" : active ? "…" : icon;
@@ -3601,7 +3612,7 @@ function renderOrderSummaryMini(state) {
     if (order && state.meta.key !== "table_reservation") {
         html += `
             <div class="vtx-panel-card">
-                <div style="font-weight:900; color:#0f172a; margin-bottom:6px;">🧾 Order Summary</div>
+                <div style="font-weight:900; color:var(--ui-ink); margin-bottom:6px;">🧾 Order Summary</div>
                 <div style="white-space:pre-wrap; line-height:1.45;">${escapeHtml(order)}</div>
             </div>
         `;
@@ -3610,7 +3621,7 @@ function renderOrderSummaryMini(state) {
     if (state.meta.key === "delivery_order" && address) {
         html += `
             <div class="vtx-panel-card">
-                <div style="font-weight:900; color:#0f172a; margin-bottom:6px;">📍 Delivery Card</div>
+                <div style="font-weight:900; color:var(--ui-ink); margin-bottom:6px;">📍 Delivery Card</div>
                 <div data-no-translate>${escapeHtml(address)}</div>
                 ${source.lat && source.lng ? `<button onclick="window.viewSharedLocation(${Number(source.lat)}, ${Number(source.lng)})" style="margin-top:8px; border:none; background:#dcfce7; color:#166534; padding:7px 10px; border-radius:9px; font-weight:800; cursor:pointer;">View Map</button>` : ""}
             </div>
@@ -3623,7 +3634,7 @@ function renderOrderSummaryMini(state) {
     if (hasRealPaymentInfo) {
         html += `
             <div class="vtx-panel-card">
-                <div style="font-weight:900; color:#0f172a; margin-bottom:6px;">💳 Payment Summary</div>
+                <div style="font-weight:900; color:var(--ui-ink); margin-bottom:6px;">💳 Payment Summary</div>
                 ${pay ? `<div><b>Method:</b> ${escapeHtml(pay)}</div>` : ""}
                 ${amount ? `<div><b>Amount:</b> ₱${escapeHtml(amount)}</div>` : ""}
                 ${source.paymentReference ? `<div><b>Reference:</b> ${escapeHtml(source.paymentReference)}</div>` : ""}
@@ -3870,7 +3881,7 @@ async function addSystemUpdate(placeId, placeName, userId, userName, text, stage
     }
 }
 
-window.openChatModal = async function(placeId, placeName, customerUid = null, mode = "messages") {
+window.openChatModal = async function(placeId, placeName, customerUid = null, mode = "messages", bookingId = null) {
 const user = window.auth?.currentUser;
 
 if (!user) {
@@ -3923,9 +3934,10 @@ placeName = placeData.name || placeName || 'Establishment';
 document.getElementById('chatModal').dataset.autoReply=String(!isOwnerView && placeData.auto_reply_enabled===true);
 
 document.getElementById('chatModal').dataset.mode=mode==='transaction'?'transaction':'messages';
+const composer=document.getElementById('chatMessageInput');if(composer){const placeholder=mode==='transaction'?'Message about this transaction...':'Write a message...';composer.dataset.i18nPlaceholder=placeholder;composer.placeholder=window.LangManager?.translateKey?.(placeholder)||placeholder;}
 let switcher=document.getElementById('chatModeSwitch');
 if(!switcher){switcher=document.createElement('button');switcher.id='chatModeSwitch';switcher.type='button';switcher.className='chat-mode-switch';document.querySelector('#chatModal .chat-header-copy')?.append(switcher);}
-if(switcher){switcher.textContent=window.LangManager?.translateKey?.(mode==='transaction'?'Open inquiries':'Open transactions')||(mode==='transaction'?'Open inquiries':'Open transactions');switcher.onclick=()=>window.openChatModal(placeId,placeName,targetUid,mode==='transaction'?'messages':'transaction');}
+if(switcher){switcher.textContent=window.LangManager?.translateKey?.(mode==='transaction'?'Open inquiries':'Open transactions')||(mode==='transaction'?'Open inquiries':'Open transactions');switcher.onclick=()=>window.openChatModal(placeId,placeName,targetUid,mode==='transaction'?'messages':'transaction',bookingId);}
 const headerCopy=document.querySelector('#chatModal .chat-header-copy');
 for(const [node,label] of [[headerCopy?.querySelector('.chat-header-eyebrow'),mode==='transaction'?'Transaction':'Inquiries'],[headerCopy?.querySelector('p'),mode==='transaction'?'Request, payment and progress':'Questions and messages']])if(node){node.dataset.i18n=label;node.textContent=window.LangManager?.translateKey?.(label)||label;}
 document.getElementById("chatPlaceId").value = placeId;
@@ -3951,7 +3963,7 @@ updateChatQuickActions(isOwnerView, null);
 document.getElementById("chatModal").classList.remove("hidden");
 document.getElementById("chatModal").setAttribute("aria-hidden", "false");
 if (!window.__chatScrollLocked) { window.__chatScrollLocked = true; window.lockBodyScroll?.(true); }
-listenToChatRoom(placeId, targetUid);
+listenToChatRoom(placeId, targetUid, mode==='transaction'?bookingId:null);
 
 // Resolve only the customer's display name in the background. The business name
 // always comes from the place document, including when opened by its business.
@@ -3988,6 +4000,10 @@ const placeId = document.getElementById("chatPlaceId").value;
 const placeName = document.getElementById("chatPlaceName").value;
 const customerUid = document.getElementById("chatCustomerUid").value;
 const input = document.getElementById("chatMessageInput");
+const transactionMode=document.getElementById('chatModal')?.dataset.mode==='transaction';
+const linkedBooking=transactionMode?document.getElementById('chatTransactionSummary')?.dataset.bookingId:null;
+if(transactionMode&&window.PaymentPolicy?.conversationClosed?.(deskOrder(linkedBooking)||{}))return window.showToast?.('This transaction conversation is archived. You can read it in history.','info');
+if(transactionMode&&!linkedBooking)return window.showToast?.('Choose a transaction before sending a message.','info');
 const quickSend = typeof options.text === 'string';
 const text = quickSend ? options.text.trim() : input.value.trim();
 
@@ -4010,8 +4026,8 @@ const senderName = isOwner
     ? placeName
     : (AppState.userProfile?.fullName || user.displayName || "Customer");
 
-const quickQuestion = !isOwner ? window.ContentPolicy?.topicFor(text) : null;
-    const messageRef = await window.ContentPolicy.create(window.db, 'messages', {
+const quickQuestion = !isOwner && !transactionMode ? window.ContentPolicy?.topicFor(text) : null;
+    const messagePayload = {
         placeId,
         placeName,
         userId: customerUid,
@@ -4019,6 +4035,7 @@ const quickQuestion = !isOwner ? window.ContentPolicy?.topicFor(text) : null;
         type: "text",
         text,
         ...(quickQuestion ? {quickQuestion} : {}),
+        ...(linkedBooking ? {bookingId:linkedBooking,transactionId:linkedBooking} : {}),
         status: "sent",
         deliveredAt: null,
         seenAt: null,
@@ -4028,7 +4045,16 @@ const quickQuestion = !isOwner ? window.ContentPolicy?.topicFor(text) : null;
         createdBy: user.uid,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         reply: null
-    });
+    };
+    // Verification can change while an old ID token is still cached. Retry only
+    // a rejected write, which Firestore commits atomically with its rate bucket.
+    let messageRef;
+    try { messageRef=await window.ContentPolicy.create(window.db,'messages',messagePayload); }
+    catch(error) {
+        if(!['permission-denied','firestore/permission-denied'].includes(error.code)||!user.emailVerified)throw error;
+        await user.getIdToken(true);
+        messageRef=await window.ContentPolicy.create(window.db,'messages',messagePayload);
+    }
     if(quickQuestion && document.getElementById('chatModal').dataset.autoReply==='true') {
         window.ViciData.command('autoReply',{messageId:messageRef.id,topic:quickQuestion})
             .catch(error=>{
@@ -4040,7 +4066,9 @@ const quickQuestion = !isOwner ? window.ContentPolicy?.topicFor(text) : null;
 } catch (error) {
     console.error("sendChatMessage failed:", error);
     if(!quickSend && !input.value.trim()){input.value = text;input.dispatchEvent(new Event("input", { bubbles: true }));}
-    if (window.vicinifyToast) window.vicinifyToast("Message not sent: " + error.message, "error");
+    if (window.vicinifyToast) window.vicinifyToast(['permission-denied','firestore/permission-denied'].includes(error.code)
+        ? 'Message not sent. Check that your email is verified and the latest Firestore rules are deployed.'
+        : "Message not sent: " + error.message, "error");
     else window.alert("Error sending message: " + error.message);
 } finally {
     window.__chatSending=false;
@@ -4083,8 +4111,6 @@ window.uploadPaymentProof = async function(bookingId, messageId) {
             if (doc.exists) order = doc.data();
         } catch (error) { return window.showToast?.("Could not load payment details. Try again.", "error"); }
     }
-    const earlier=currentChatDocsCache.find(d=>d.type==='requirement_response'&&d.paymentReference&&([d.bookingId,d.transactionId].includes(bookingId)||!d.bookingId));
-    if(order&&!order.paymentReference&&earlier)order={...order,paymentReference:earlier.paymentReference,paymentAmount:earlier.paymentAmount};
     if (!order || !window.PaymentPolicy.flow(order).awaitingProof && !window.PaymentPolicy.flow(order).reviewing)
         return window.showToast?.("This request is not awaiting online payment details.", "info");
     if (document.getElementById("paymentProofModal")) return;
@@ -4428,12 +4454,6 @@ const html = `
                     <span class="req-opt-check"><i data-lucide="check"></i></span>
                 </label>
                 <label class="req-option">
-                    <input id="reqPayment_${modalId}" type="checkbox">
-                    <span class="req-opt-icon blue"><i data-lucide="credit-card"></i></span>
-                    <span class="req-opt-text"><b>Payment Details</b><small>Amount, mode of payment &amp; reference</small></span>
-                    <span class="req-opt-check"><i data-lucide="check"></i></span>
-                </label>
-                <label class="req-option">
                     <input id="reqOrder_${modalId}" type="checkbox">
                     <span class="req-opt-icon purple"><i data-lucide="clipboard-pen"></i></span>
                     <span class="req-opt-text"><b>Order Details</b><small>Items, quantity &amp; special instructions</small></span>
@@ -4444,14 +4464,8 @@ const html = `
             <p id="reqHint_${modalId}" class="req-hint" hidden>Please select at least one requirement above.</p>
 
             <div class="req-fields">
-                <label class="req-field"><span>Amount to pay <em>optional</em></span>
-                    <div class="req-amount-wrap"><span>₱</span><input id="reqAmount_${modalId}" inputmode="decimal" aria-label="Amount to pay" placeholder="e.g. 588"></div>
-                </label>
-                <label class="req-field"><span>Accepted payment methods <em>optional</em></span>
-                    <input id="reqMops_${modalId}" class="req-input" placeholder="e.g. GCash, Maya, Cash, Bank Transfer">
-                </label>
-                <label class="req-field"><span>Payment instructions / message <em>optional</em></span>
-                    <textarea id="reqNotes_${modalId}" class="req-input req-textarea" placeholder="Confirm the total, delivery fee, payment recipient and account details. Never ask for a PIN or OTP."></textarea>
+                <label class="req-field"><span>Instructions <em>optional</em></span>
+                    <textarea id="reqNotes_${modalId}" class="req-input req-textarea" placeholder="Explain which details the customer should provide."></textarea>
                 </label>
             </div>
 
@@ -4467,6 +4481,7 @@ const html = `
 document.body.insertAdjacentHTML("beforeend", html);
 
 const modal = document.getElementById(modalId);
+window.LangManager?.translateDOM?.(undefined,modal);
 const close = () => { if(modal.dataset.submitting==='true'||!modal.isConnected)return;window.lockBodyScroll(false); modal.remove(); };
 
 document.getElementById(`cancel_${modalId}`).onclick = close;
@@ -4479,9 +4494,6 @@ if(contextOrder&&contextOrder.placeId===placeId&&contextOrder.userId===customerU
         for(const key of ['reqAddress','reqLocation']){const field=document.getElementById(`${key}_${modalId}`);if(field){field.checked=false;field.disabled=true;field.closest('label').hidden=true;}}
         const field=document.getElementById(`reqOrder_${modalId}`);if(field){field.closest('label').querySelector('b').textContent='Additional reservation details';field.closest('label').querySelector('small').textContent='Only ask for information missing from the reservation.';}
     }
-    document.getElementById(`reqPayment_${modalId}`).closest('label').hidden=true;
-    document.getElementById(`reqAmount_${modalId}`).closest('.req-field').hidden=true;
-    document.getElementById(`reqMops_${modalId}`).closest('.req-field').hidden=true;
     const notes=document.getElementById(`reqNotes_${modalId}`);notes.closest('label').querySelector('span').textContent='Instructions (optional)';notes.placeholder='Explain which details the customer should provide.';
 }
 window.LangManager?.translateDOM?.(undefined,modal);
@@ -4492,7 +4504,7 @@ document.getElementById(`send_${modalId}`).onclick = async () => {
     const requirements = {
         address: document.getElementById(`reqAddress_${modalId}`).checked,
         location: document.getElementById(`reqLocation_${modalId}`).checked,
-        payment: document.getElementById(`reqPayment_${modalId}`).checked,
+        payment: false,
         orderDetails: document.getElementById(`reqOrder_${modalId}`).checked
     };
 
@@ -4501,22 +4513,12 @@ document.getElementById(`send_${modalId}`).onclick = async () => {
         return window.alert("Please select at least one requirement.");
     }
 
-    const amount = document.getElementById(`reqAmount_${modalId}`).value.trim();
-    if (amount && (!/^\d+(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0)) {
-        return window.alert("Enter a valid amount greater than zero, with up to two decimal places.");
-    }
-    const mops = document.getElementById(`reqMops_${modalId}`).value.trim();
+    const amount = '', mops = '';
     const notes = document.getElementById(`reqNotes_${modalId}`).value.trim();
 
     const linkedOrder=deskOrder(chatDeskSelected) || chatDeskOrders.find(d=>d.placeId===placeId&&d.userId===customerUid);
     modal.dataset.submitting='true';document.getElementById(`send_${modalId}`).disabled=true;
     try {
-        if(requirements.payment){
-            if(!linkedOrder || linkedOrder.placeId!==placeId || linkedOrder.userId!==customerUid)return window.alert("Accept a transaction first, then set payment instructions in its summary.");
-            await window.ViciData.command('booking',{bookingId:linkedOrder.bookingId||linkedOrder.id,patch:{paymentTerms:{amount,instructions:notes}}});
-            requirements.payment=false;
-            if(!requirements.address&&!requirements.location&&!requirements.orderDetails){modal.dataset.submitting='false';close();return window.alert("Payment instructions saved in the transaction summary.");}
-        }
         if(linkedOrder&&linkedOrder.placeId===placeId&&linkedOrder.userId===customerUid){
             await window.ViciData.command('booking',{bookingId:linkedOrder.bookingId||linkedOrder.id,patch:{requirements:{action:'request',required:requirements,notes}}});
             modal.dataset.submitting='false';close();return window.alert('Requirement request sent.');
@@ -4619,7 +4621,7 @@ window.lockBodyScroll(true);
                 ${requirements.location ? `
                     <div class="req-section">
                         <div class="req-section-head"><span class="req-opt-icon green"><i data-lucide="map-pin"></i></span><b>Current Location</b></div>
-                        <p id="locStatus_${modalId}" style="font-size:12px; color:#64748b;">Location not attached yet.</p>
+                        <p id="locStatus_${modalId}" style="font-size:12px; color:var(--ui-muted);">Location not attached yet.</p>
                         <input id="resLat_${modalId}" type="hidden">
                         <input id="resLng_${modalId}" type="hidden">
                         <button type="button" id="getLoc_${modalId}" class="req-loc-btn"><i data-lucide="locate-fixed"></i> Attach My Current Location</button>
@@ -5003,20 +5005,26 @@ if (feedbackMessageId) {
     }
 }
 
+if(bookingId && !['null','undefined','manual'].includes(bookingId)) {
+    try { const booking=await window.db.collection('bookings').doc(bookingId).get();
+        if(booking.data()?.feedbackSubmittedAt || booking.data()?.feedbackStatus==='feedback_submitted')return window.alert('You already submitted feedback for this transaction.');
+    } catch(error) { console.warn('Feedback completion lookup skipped:',error); }
+}
+if(document.querySelector('.feedback-modal'))return;
 const modalId = "feedbackModal_" + Date.now();
 window.lockBodyScroll(true);
 
 const html = `
-    <div id="${modalId}" style="position:fixed; inset:0; z-index:999999; display:flex; align-items:center; justify-content:center;">
+    <div id="${modalId}" class="feedback-modal" style="position:fixed; inset:0; z-index:999999; display:flex; align-items:center; justify-content:center;">
         <div class="modalBackdrop" style="position:absolute; inset:0; background:rgba(15,23,42,0.55);"></div>
 
-        <div style="position:relative; background:white; width:92%; max-width:440px; border-radius:22px; padding:22px; box-shadow:0 24px 60px rgba(15,23,42,0.25);">
-            <h3 style="margin:0 0 6px; font-size:20px; color:#0f172a;">Rate Your Experience</h3>
-            <p style="margin:0 0 16px; color:#64748b; font-size:13px; line-height:1.5;">
+        <div class="feedback-sheet" role="dialog" aria-modal="true" aria-labelledby="title_${modalId}" style="position:relative; background:var(--ui-surface,#fff); width:92%; max-width:440px; border-radius:22px; padding:22px; box-shadow:0 24px 60px rgba(15,23,42,0.25);">
+            <h3 id="title_${modalId}" style="margin:0 0 6px; font-size:20px; color:var(--ui-text,#193a34);">Rate Your Experience</h3>
+            <p style="margin:0 0 16px; color:var(--ui-muted,#58716a); font-size:13px; line-height:1.5;">
                 How was your transaction? Your feedback helps improve local establishments.
             </p>
 
-            <label style="font-size:13px; font-weight:800; color:#334155;">Rating</label>
+            <label style="font-size:13px; font-weight:800; color:var(--ui-text,#193a34);">Rating</label>
             <select id="fbRating_${modalId}" style="width:100%; box-sizing:border-box; padding:11px; border:1px solid #cbd5e1; border-radius:12px; margin:8px 0 12px;">
                 <option value="5">⭐⭐⭐⭐⭐ 5 - Very Satisfied</option>
                 <option value="4">⭐⭐⭐⭐ 4 - Satisfied</option>
@@ -5025,7 +5033,7 @@ const html = `
                 <option value="1">⭐ 1 - Bad Experience</option>
             </select>
 
-            <label style="font-size:13px; font-weight:800; color:#334155;">Satisfaction</label>
+            <label style="font-size:13px; font-weight:800; color:var(--ui-text,#193a34);">Satisfaction</label>
             <select id="fbSatisfaction_${modalId}" style="width:100%; box-sizing:border-box; padding:11px; border:1px solid #cbd5e1; border-radius:12px; margin:8px 0 12px;">
                 <option value="Very satisfied">Very satisfied</option>
                 <option value="Satisfied">Satisfied</option>
@@ -5034,18 +5042,18 @@ const html = `
                 <option value="Needs improvement">Needs improvement</option>
             </select>
 
-            <label style="font-size:13px; font-weight:800; color:#334155;">Feedback / Comment</label>
+            <label style="font-size:13px; font-weight:800; color:var(--ui-text,#193a34);">Feedback / Comment</label>
             <textarea id="fbComment_${modalId}" placeholder="Write your feedback here, optional but recommended"
                 style="width:100%; box-sizing:border-box; min-height:95px; padding:11px; border:1px solid #cbd5e1; border-radius:12px; resize:none; margin-top:8px;"></textarea>
 
-            <label style="display:flex; gap:10px; align-items:flex-start; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px; margin-top:12px; font-size:12px; color:#334155; line-height:1.35; cursor:pointer;">
+            <label style="display:flex; gap:10px; align-items:flex-start; background:var(--ui-soft,#eef5f2); border:1px solid #e2e8f0; border-radius:12px; padding:10px; margin-top:12px; font-size:12px; color:var(--ui-text,#193a34); line-height:1.35; cursor:pointer;">
                 <input type="checkbox" id="fbPublic_${modalId}" checked style="margin-top:2px;" />
-                <span><b>Post publicly as a Verified Review</b><br><span style="color:#64748b;">This helps the business build trust. You can uncheck this to keep the feedback inside the transaction only.</span></span>
+                <span><b>Post publicly as a Verified Review</b><br><span style="color:var(--ui-muted,#58716a);">This helps the business build trust. You can uncheck this to keep the feedback inside the transaction only.</span></span>
             </label>
 
             <div style="display:flex; gap:10px; margin-top:16px;">
-                <button id="cancel_${modalId}" style="flex:1; padding:12px; border:none; border-radius:12px; background:#f1f5f9; color:#475569; font-weight:800; cursor:pointer;">Later</button>
-                <button id="submit_${modalId}" style="flex:1; padding:12px; border:none; border-radius:12px; background:#facc15; color:#713f12; font-weight:900; cursor:pointer;">Send Feedback</button>
+                <button id="cancel_${modalId}" style="flex:1; padding:12px; border:none; border-radius:12px; background:var(--ui-soft,#eef5f2); color:var(--ui-text,#193a34); font-weight:800; cursor:pointer;">Later</button>
+                <button id="submit_${modalId}" style="flex:1; padding:12px; border:none; border-radius:12px; background:var(--ui-primary,#237e72); color:#fff; font-weight:900; cursor:pointer;">Send Feedback</button>
             </div>
         </div>
     </div>
@@ -5054,6 +5062,7 @@ const html = `
 document.body.insertAdjacentHTML("beforeend", html);
 
 const modal = document.getElementById(modalId);
+window.LangManager?.translateDOM?.(undefined,modal);
 const close = () => { window.lockBodyScroll(false); modal.remove(); };
 
 document.getElementById(`cancel_${modalId}`).onclick = close;
@@ -5098,19 +5107,13 @@ submitButton.onclick = async () => {
 
         const txMeta = getRequestMeta(txRequestType || "table_reservation");
 
-        await window.ViciData.command("review", { placeId, bookingId: bookingId || undefined, rating, satisfaction, feedback: comment, isPublic: postPublic, createOnly: true });
+        await window.ViciData.command("review", { placeId, bookingId: bookingId || undefined, rating, satisfaction, feedback: comment, isPublic: postPublic, createOnly: true, feedbackMessageId: feedbackMessageId && !["null","undefined"].includes(feedbackMessageId) ? feedbackMessageId : undefined });
         reviewSaved = true;
         window.invalidatePlacesCache?.();
 
-        if (feedbackMessageId && feedbackMessageId !== "null" && feedbackMessageId !== "undefined") {
-            await window.ContentPolicy.updateMessage(window.db,window.db.collection("messages").doc(feedbackMessageId), {
-                feedbackStatus: "feedback_submitted",
-                rating,
-                satisfaction,
-                feedback: comment,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
+        // The server commits review, booking marker and request status atomically.
+        for(const item of typeof chatDeskOrders!=='undefined'?chatDeskOrders:[])if(item.id===bookingId)item.feedbackStatus='feedback_submitted';
+        for(const item of typeof currentChatDocsCache!=='undefined'?currentChatDocsCache:[])if(item.id===feedbackMessageId)item.feedbackStatus='feedback_submitted';
 
         const placeName = await getPlaceDisplayName(placeId, "Establishment");
 
@@ -5214,9 +5217,6 @@ if (d.requirements?.location) {
     `;
 }
 
-if (d.requirements?.payment) {
-    html += `<div class="legacy-payment-note"><b>Earlier payment details</b><dl><div><dt>Payment</dt><dd data-no-translate>${escapeHtml(d.paymentMethod || '')}</dd></div><div><dt>Amount submitted</dt><dd>₱${escapeHtml(d.paymentAmount || '')}</dd></div><div><dt>Reference</dt><dd data-no-translate>${escapeHtml(d.paymentReference || '')}</dd></div></dl><p>Payment verification is shown in the current transaction summary. Confirming these details does not verify a payment.</p></div>`;
-}
 
 if (d.requirements?.orderDetails) {
     html += `
@@ -5236,7 +5236,7 @@ if (isOwner && !["confirmed","waived"].includes(d.requirementStatus) && (!d.cano
     `;
 }
 
-html += `<div style="font-size:10px; color:#94a3b8; margin-top:10px;">${dateStr}</div>`;
+html += `<div style="font-size:10px; color:var(--ui-muted); margin-top:10px;">${dateStr}</div>`;
 
 return html;
 
@@ -5338,6 +5338,11 @@ function renderLegacyMessage(d, isOwner, dateStr, replyDateStr) {
     return html;
 }
 
+function isSelectedTransactionMessage(message,bookingId) {
+    if(isConversationMessage(message))return false;
+    const links=[message.bookingId,message.transactionId,message.type==='booking_card'?message.id:null].filter(Boolean);
+    return !!bookingId && (links.includes(bookingId)||(!links.length&&message.type!=='text'));
+}
 function isConversationMessage(message) { return (!message.type || message.type==='text') && !message.bookingId && !message.transactionId; }
 window.isConversationMessage=isConversationMessage;
 function renderPinnedTransactionHistory(message, time, orders) {
@@ -5360,6 +5365,22 @@ function chatDayInfo(message, now = new Date()) {
 
 let chatDeskOrders = [], chatDeskSelected = null;
 const transactionDeskBusy = new Set();
+function transactionChoiceLabel(order) {
+    const t=s=>window.LangManager?.translateKey?.(s)||s;
+    const locale=window.LangManager?.getLanguage?.()==='ph'?'fil-PH':'en-PH';
+    const legacy=String(order.details||'');
+    const date=order.bookingDate||legacy.match(/^Date:\s*(.+)$/mi)?.[1]||'';
+    const time=order.bookingTime||legacy.match(/^Time:\s*(.+)$/mi)?.[1]||'';
+    let when=[date,time].filter(Boolean).join(' ');
+    if(/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        const stamp=new Date(date+'T'+(/^\d{2}:\d{2}$/.test(time)?time:'12:00')+':00+08:00');
+        if(Number.isFinite(stamp.getTime()))when=new Intl.DateTimeFormat(locale,{timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric',...(time?{hour:'numeric',minute:'2-digit'}:{})}).format(stamp);
+    }
+    if(!when){const stamp=order.createdAt?.toDate?.();if(stamp instanceof Date&&Number.isFinite(stamp.getTime()))when=new Intl.DateTimeFormat(locale,{timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}).format(stamp);}
+    const status=order.status||order.bookingStatus||'pending';
+    const labels={pending:'Pending',accepted:'Accepted',received:'Completed',cancelled:'Cancelled',rejected:'Rejected',fulfilled:'Ready',delivered:'Delivered'};
+    return [t(order.requestLabel||'Request'),when,t(labels[status]||status.replace(/_/g,' ')),'#'+String(order.id||order.bookingId||'').slice(-6)].filter(Boolean).join(' · ');
+}
 function deskOrder(id) { return chatDeskOrders.find(d=>d.id===id) || currentChatDocsCache.find(d=>d.type==='booking_card'&&d.bookingId===id); }
 function deskRequirements(order,docs=currentChatDocsCache) {
     if(order.requirementsState)return {...order.requirementsState,canonical:true};
@@ -5417,8 +5438,6 @@ function renderTransactionDesk(order,isOwner,orders=[]) {
         next=terms?(isOwner?'Waiting for the customer to submit payment details.':'Pay the agreed amount once, then submit your reference.'): 'The business must set the amount and payment instructions first.';
         if(isOwner)buttons=action('terms',terms?'Edit payment instructions':'Set payment instructions');
         else if(terms||order.paymentFlowVersion!==2)buttons=action('proof',order.paymentReviewDecision==='declined'?'Correct payment details':'Submit payment reference');
-        const legacy=currentChatDocsCache.find(d=>d.type==='requirement_response'&&([d.bookingId,d.transactionId].includes(id)||(isOwner&&!d.bookingId))&&d.paymentReference);
-        if(legacy)buttons+=`<button type="button" data-tx-action="import" data-booking-id="${esc(id)}" data-message-id="${esc(legacy.id)}">${esc(t('Use earlier payment details'))}</button>`;
     } else if(status==='payment_submitted'){next=isOwner?'Check the reference and money received before verifying payment.':'Payment is under review. Do not pay again.';if(isOwner)buttons=action('verify','Verify payment')+action('decline','Request correction');}
     else if(flow.canPrepare){next='Payment verified. The business can now prepare your request.';if(isOwner)buttons=action('prepare','Start preparing');}
     else if(status==='preparing'){next='The business is preparing your request.';if(isOwner)buttons=action(['delivery','delivery_order'].includes(order.requestType)?'dispatch':'ready',['delivery','delivery_order'].includes(order.requestType)?'Mark out for delivery':'Mark ready');}
@@ -5429,8 +5448,9 @@ function renderTransactionDesk(order,isOwner,orders=[]) {
     else if(status==='cancelled'){
         const refund=order.refundStatus;
         if(refund==='needs_verification'){next='Verify the actual payment received before calculating the refund.';if(isOwner)buttons=action('refund-check','Verify received payment')+action('refund-missing','Payment not found');}
-        else if(refund==='pending'){next='Refund due. The business must transfer it manually.';if(isOwner)buttons=action('refund-send','Record refund transfer');}
-        else if(refund==='sent'){next='The business recorded a refund transfer. Confirm after checking your account.';if(!isOwner)buttons=action('refund-receive','Confirm refund received');}
+        else if(refund==='pending'){next='The business must review and approve the calculated refund.';if(isOwner)buttons=action('refund-approve','Review refund');}
+        else if(['approved','disputed'].includes(refund)){next=refund==='disputed'?'The customer reported the refund was not received. Check the transfer before recording a correction.':'Refund approved. Transfer the displayed amount, then record the reference.';if(isOwner)buttons=action('refund-send','Record refund transfer');}
+        else if(refund==='sent'){next='The business recorded a refund transfer. Confirm after checking your account.';if(!isOwner)buttons=action('refund-receive','Confirm refund received')+action('refund-dispute','Refund not received');}
         else if(refund==='received')next='The customer confirmed the refund was received.';
         else if(refund==='payment_not_found'){next='The business could not find this payment. Check the reference before requesting a recheck.';if(!isOwner)buttons=action('refund-recheck','Request payment recheck');}
         else next=refund==='not_required'?'Cancelled. No refund is due.':'Cancelled. Ask the business to review any earlier payment.';
@@ -5438,8 +5458,7 @@ function renderTransactionDesk(order,isOwner,orders=[]) {
     if(isOwner&&status==='accepted'&&(!requirements||['confirmed','waived'].includes(requirements.status)))buttons+=action('requirements-request','Request details');
     if(!isOwner&&window.PaymentPolicy.cancellation(order).allowed)buttons+=action('cancel','Cancel request');
     const value=(label,value,personal=false)=>value?`<div><dt>${esc(t(label))}</dt><dd${personal?' data-no-translate':''}>${esc(String(value))}</dd></div>`:'';
-    const selector=orders.length>1?`<select aria-label="Choose transaction" id="chatTransactionSelect">${orders.map(d=>`<option value="${esc(d.id)}"${d.id===id?' selected':''}>${esc(t(d.requestLabel||'Request')+' · '+String(d.id).slice(-6))}</option>`).join('')}</select>`:'';
-    return `<div class="transaction-desk-top"><b>${esc(t('Current transaction'))}</b><span>${esc(t(status.replace(/_/g,' ')))}</span></div>${selector}${renderRequestProcess(order,requirements)}<p class="transaction-desk-next">${esc(t(next))}</p>${!['cancelled','rejected'].includes(status)?renderDeskRequirements(requirements):''}${status==='accepted'&&flow.online&&flow.termsReady&&detailsReady&&order.paymentInstructions?`<p class="transaction-desk-payto" data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl class="transaction-desk-money">${value('Amount due',flow.termsReady&&detailsReady&&order.paymentAmountDue?'₱'+order.paymentAmountDue:'')}${value('Submitted payment',order.paymentAmount?'₱'+order.paymentAmount:'')}${value('Reference',order.paymentReference,true)}${value('Refund amount',order.refundAmount!=null?'₱'+order.refundAmount:'')}${value('Refund calculation',order.refundBaseAmount&&order.refundAmount!=null?'₱'+order.refundBaseAmount+' × '+order.refundPercent+'%':'')}${value('Refund reference',order.refundReference,true)}</dl><details class="transaction-desk-details"><summary>${esc(t('Payment and request details'))}</summary><p class="transaction-desk-next">${esc(t('Refund rate before preparation'))}: ${esc(String(order.refundPercent ?? 50))}% · ${esc(t('Cancellation closes when preparation starts.'))}</p><p class="transaction-desk-id" data-no-translate>TX-${esc(String(id).slice(-8))}</p>${flow.termsReady&&detailsReady&&order.paymentInstructions?`<p data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl>${value('Reference',order.paymentReference,true)}${value('Refund reference',order.refundReference,true)}${value('Business note',order.paymentReviewNote||order.refundNote,true)}</dl>${order.paymentProofPath?`<div class="transaction-desk-proof" data-tx-proof="${esc(order.paymentProofPath)}" data-booking-id="${esc(id)}"></div>`:''}${renderRequestDetailRows(order)}<p>${esc(t('Vicinify records manual payments and refunds. It does not transfer money.'))}</p></details><div class="transaction-desk-actions">${buttons}</div>`;
+    return `<div class="transaction-desk-top"><b>${esc(t('Current transaction'))}</b><span>${esc(t(status.replace(/_/g,' ')))}</span></div>${renderRequestProcess(order,requirements)}<p class="transaction-desk-next">${esc(t(next))}</p>${!['cancelled','rejected'].includes(status)?renderDeskRequirements(requirements):''}${status==='accepted'&&flow.online&&flow.termsReady&&detailsReady&&order.paymentInstructions?`<p class="transaction-desk-payto" data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl class="transaction-desk-money">${value('Amount due',flow.termsReady&&detailsReady&&order.paymentAmountDue?'₱'+order.paymentAmountDue:'')}${value('Submitted payment',order.paymentAmount?'₱'+order.paymentAmount:'')}${value('Reference',order.paymentReference,true)}${value('Refund amount',order.refundAmount!=null?'₱'+order.refundAmount:'')}${value('Refund calculation',order.refundBaseAmount&&order.refundAmount!=null?'₱'+order.refundBaseAmount+' × '+order.refundPercent+'%':'')}${value('Refund reference',order.refundReference,true)}</dl><details class="transaction-desk-details"><summary>${esc(t('Payment and request details'))}</summary><p class="transaction-desk-next">${esc(t('Refund rate before preparation'))}: ${esc(String(order.refundPercent ?? 50))}% · ${esc(t('Cancellation closes when preparation starts.'))}</p><p class="transaction-desk-id" data-no-translate>TX-${esc(String(id).slice(-8))}</p>${flow.termsReady&&detailsReady&&order.paymentInstructions?`<p data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl>${value('Reference',order.paymentReference,true)}${value('Refund reference',order.refundReference,true)}${value('Business note',order.paymentReviewNote||order.refundNote,true)}</dl>${order.paymentProofPath?`<div class="transaction-desk-proof" data-tx-proof="${esc(order.paymentProofPath)}" data-booking-id="${esc(id)}"></div>`:''}${renderRequestDetailRows(order)}<p>${esc(t('Vicinify records manual payments and refunds. It does not transfer money.'))}</p></details><div class="transaction-desk-actions">${buttons}</div>`;
 }
 function refreshTransactionDesk(isOwner) {
     if(document.getElementById('chatModal')?.dataset.mode==='messages'){document.getElementById('chatTransactionSummary')?.classList.add('hidden');return;}
@@ -5447,8 +5466,10 @@ function refreshTransactionDesk(isOwner) {
     const wrap=document.getElementById('chatTransactionSummary');if(!wrap)return;
     const fallback=currentChatDocsCache.filter(d=>d.type==='booking_card').map(d=>({...d,id:d.bookingId}));
     const orders=chatDeskOrders.length?chatDeskOrders:fallback;
-    if(!orders.some(d=>d.id===chatDeskSelected))chatDeskSelected=orders[0]?.id;
+    if(!chatDeskSelected || !orders.some(d=>d.id===chatDeskSelected) && !document.getElementById('chatModal')?.dataset.transactionId)chatDeskSelected=orders[0]?.id;
     const order=orders.find(d=>d.id===chatDeskSelected);
+    const closed=order&&window.PaymentPolicy.conversationClosed(order);
+    const modal=document.getElementById('chatModal');if(modal)modal.dataset.archived=closed?'true':'false';
     const suggestions=document.getElementById('chatSuggestions');
     if(suggestions){const active=order&&!['received','rejected'].includes(order.status)&&!(order.status==='cancelled'&&['received','not_required'].includes(order.refundStatus));suggestions.hidden=isOwner||!!active;}
     const markup=renderTransactionDesk(order,isOwner,orders);
@@ -5470,7 +5491,6 @@ function refreshTransactionDesk(isOwner) {
     if(currentStep)progress.scrollLeft=Math.max(0,currentStep.offsetLeft-progress.offsetLeft-(progress.clientWidth-currentStep.offsetWidth)/2);
     const detail=wrap.querySelector('.transaction-desk-details');
     if(detail)detail.ontoggle=()=>{const proof=detail.querySelector('[data-tx-proof]');if(detail.open&&proof&&!proof.firstChild){const img=document.createElement('img');img.alt=window.LangManager?.translateKey?.('Payment proof')||'Payment proof';img.dataset.proofBooking=proof.dataset.bookingId;img.dataset.proofVersion=proof.dataset.txProof;proof.append(img);}};
-    wrap.onchange=e=>{if(e.target.id==='chatTransactionSelect'){chatDeskSelected=e.target.value;refreshTransactionDesk(isOwner)}};
     wrap.onclick=e=>{const button=e.target.closest('[data-tx-action]');if(button)window.transactionDeskAction(button.dataset.txAction,button.dataset.bookingId,button.dataset.messageId)};
     window.LangManager?.translateDOM?.(undefined,wrap);window.debouncedIcons?.();
 }
@@ -5514,12 +5534,15 @@ window.transactionDeskAction=async function(action,id,messageId){
             const input=await transactionInputDialog('Verify received payment',[{name:'receivedAmount',label:'Amount actually received (₱)',money:true,value:order.paymentAmount}],'Check your account first. The refund will be calculated using the saved cancellation rate.');if(!input)return;patch={refundStatus:'pending',...input};
         }else if(action==='refund-missing'){
             const input=await transactionInputDialog('Payment not found',[{name:'refundNote',label:'Explain what needs checking',area:true}],'The customer can ask you to recheck. This does not mark a refund received.');if(!input)return;patch={refundStatus:'payment_not_found',...input};
+        }else if(action==='refund-approve'){
+            if(!await window.vConfirm('Approve refund','Confirm the refund amount: ₱'+order.refundAmount+'. This approves the refund; it does not transfer money.','Approve refund'))return;patch={refundStatus:'approved',confirmRefund:true};
         }else if(action==='refund-send'){
-            const input=await transactionInputDialog('Record refund transfer',[{name:'amount',label:'Refund amount',value:order.refundAmount,readOnly:true},{name:'refundReference',label:'Refund transfer reference'}],'Transfer the displayed refund amount yourself first. Recording a reference does not move money.','Record transfer');if(!input)return;patch={refundStatus:'sent',...input};
+            const input=await transactionInputDialog('Record refund transfer',[{name:'amount',label:'Refund amount',value:order.refundAmount,readOnly:true},{name:'refundReference',label:'Refund transfer reference'}],'Transfer the displayed refund amount yourself first. Recording a reference does not move money.','Record transfer');if(!input)return;if(!await window.vConfirm('Confirm refund transfer','I have transferred ₱'+order.refundAmount+' and checked the reference against my account.','Confirm transferred'))return;patch={refundStatus:'sent',...input,confirmTransferred:true};
         }else if(action==='refund-receive'){
-            if(!await window.vConfirm('Confirm refund received','Check your account and confirm you received the displayed refund amount.','Confirm'))return;patch={refundStatus:'received'};
+            if(!await window.vConfirm('Confirm refund received','Check your account and confirm you received the displayed refund amount.','Confirm'))return;patch={refundStatus:'received',confirmReceived:true};
+        }else if(action==='refund-dispute'){
+            const input=await transactionInputDialog('Refund not received',[{name:'refundNote',label:'What needs checking?',area:true}],'Check your account first. The refund will stay open for the business to review.');if(!input)return;patch={refundStatus:'disputed',...input};
         }else if(action==='refund-recheck')patch={refundStatus:'needs_verification'};
-        else if(action==='import'){if(!await window.vConfirm('Use earlier payment details?','Check this reference belongs to the selected request. It will still require payment verification.','Continue'))return;return await window.ViciData.command('booking',{action:'import_payment',bookingId:id,messageId,confirmLink:true});}
         else if(action==='receive')return await window.confirmReceivedFromChat(id,'',order.placeId);
         else{
             const status={accept:'accepted',reject:'rejected',prepare:'preparing',ready:'ready',dispatch:'out_for_delivery',deliver:'delivered',fulfill:'fulfilled'}[action];
@@ -5538,9 +5561,10 @@ window.addEventListener('vicinify:languagechange',()=>{
     if(modal&&!modal.classList.contains('hidden')&&user&&target)refreshTransactionDesk(user.uid!==target);
 });
 
-function listenToChatRoom(placeId, targetUid) {
+function listenToChatRoom(placeId, targetUid, bookingId=null) {
 if (currentChatUnsub) currentChatUnsub();
-chatDeskOrders=[];chatDeskSelected=null;currentChatDocsCache=[];
+chatDeskOrders=[];chatDeskSelected=bookingId;currentChatDocsCache=[];
+const chatModal=document.getElementById('chatModal');if(chatModal)chatModal.dataset.transactionId=bookingId||'';
 document.getElementById('chatTransactionSummary')?.classList.add('hidden');
 
 const listWrap = document.getElementById("chatMessageList");
@@ -5574,6 +5598,8 @@ const queueChatRender = (snap) => {
     });
 };
 
+const onTransactionChange=()=>{if(_lastChatSnap)queueChatRender(_lastChatSnap);};
+document.getElementById('chatModal')?.addEventListener('transactionchange',onTransactionChange);
 const stopMessages = window.db.collection("messages")
     .where("placeId", "==", placeId)
     .where("userId", "==", targetUid)
@@ -5588,17 +5614,23 @@ const stopMessages = window.db.collection("messages")
     });
 
 
-const stopOrders=document.getElementById('chatModal')?.dataset.mode==='messages'?()=>{}:window.ViciData.listen('chat-orders:'+placeId+':'+targetUid,
-    window.db.collection('bookings').where('placeId','==',placeId).where('userId','==',targetUid).orderBy('createdAt','desc').limit(5),snap=>{
+const stopOrders=document.getElementById('chatModal')?.dataset.mode==='messages'?()=>{}:window.ViciData.listen('chat-orders:'+placeId+':'+targetUid+':'+(bookingId||'recent'),
+    (bookingId?window.db.collection('bookings').doc(bookingId):window.db.collection('bookings').where('placeId','==',placeId).where('userId','==',targetUid).orderBy('createdAt','desc').limit(5)),snap=>{
         if(document.getElementById('chatPlaceId')?.value!==placeId||document.getElementById('chatCustomerUid')?.value!==targetUid)return;
-        chatDeskOrders=snap.docs.map(d=>({...d.data(),id:d.id,bookingId:d.id}));refreshTransactionDesk(isOwner);
+        const previous=chatDeskOrders.find(order=>order.id===chatDeskSelected);
+        chatDeskOrders=(bookingId?(snap.exists?[snap]:[]):snap.docs).map(d=>({...d.data(),id:d.id,bookingId:d.id})).filter(order=>!bookingId||(order.placeId===placeId&&order.userId===targetUid));
+        const current=chatDeskOrders.find(order=>order.id===chatDeskSelected);
+        if(previous&&current&&!window.PaymentPolicy.conversationClosed(previous)&&window.PaymentPolicy.conversationClosed(current)){
+            window.closeChatModal();window.showToast?.('Transaction conversation archived. The record remains in history.','info');return;
+        }
+        refreshTransactionDesk(isOwner);
         if(_lastChatSnap)queueChatRender(_lastChatSnap);
     },error=>{console.warn('Transaction summary unavailable:',error);window.showToast?.('Transaction summary could not load. Please try reopening the conversation.','error');});
-currentChatUnsub=()=>{stopMessages();stopOrders();chatDeskOrders=[];chatDeskSelected=null;const panel=document.getElementById('chatTransactionSummary');if(panel){panel.classList.add('hidden');panel.replaceChildren();panel.__transactionMarkup=null;delete panel.dataset.bookingId;}};
+currentChatUnsub=()=>{document.getElementById('chatModal')?.removeEventListener('transactionchange',onTransactionChange);stopMessages();stopOrders();chatDeskOrders=[];chatDeskSelected=null;const panel=document.getElementById('chatTransactionSummary');if(panel){panel.classList.add('hidden');panel.replaceChildren();panel.__transactionMarkup=null;delete panel.dataset.bookingId;}};
 
 const renderChatSnap = (snap) => {
         if (snap.empty) {
-            listWrap.innerHTML = `<div class="chat-empty"><span class="chat-empty-icon"><i data-lucide="messages-square"></i></span><h4>Start a conversation</h4><p>Ask about the menu, availability, or your request. Choose a quick question below to get started.</p></div>`;
+            listWrap.innerHTML = `<div class="chat-empty"><span class="chat-empty-icon"><i data-lucide="messages-square"></i></span><h4>Start a conversation</h4><p>${document.getElementById('chatModal')?.dataset.mode==='transaction'?'Send a message about the selected transaction.':'Ask about the menu, availability, or your request. Choose a quick question below to get started.'}</p></div>`;
             window.debouncedIcons?.();
             return;
         }
@@ -5606,10 +5638,10 @@ const renderChatSnap = (snap) => {
         let docs = snap.docs.map(d => ({ ...d.data(), id: d.id })).filter(d => !(d.deletedBy || []).includes(user?.uid));
         currentChatDocsCache = docs;
         refreshTransactionDesk(isOwner);
-        docs=docs.filter(d=>document.getElementById('chatModal')?.dataset.mode==='messages'?isConversationMessage(d):!isConversationMessage(d));
+        docs=docs.filter(d=>document.getElementById('chatModal')?.dataset.mode==='messages'?isConversationMessage(d):isSelectedTransactionMessage(d,chatDeskSelected));
 
         if (docs.length === 0) {
-            listWrap.innerHTML = `<div class="chat-empty"><span class="chat-empty-icon"><i data-lucide="messages-square"></i></span><h4>Start a conversation</h4><p>Ask about the menu, availability, or your request. Choose a quick question below to get started.</p></div>`;
+            listWrap.innerHTML = `<div class="chat-empty"><span class="chat-empty-icon"><i data-lucide="messages-square"></i></span><h4>Start a conversation</h4><p>${document.getElementById('chatModal')?.dataset.mode==='transaction'?'Send a message about the selected transaction.':'Ask about the menu, availability, or your request. Choose a quick question below to get started.'}</p></div>`;
             window.debouncedIcons?.();
             return;
         }
@@ -5661,7 +5693,7 @@ const renderChatSnap = (snap) => {
                 const outputIcon = {table_reservation:'utensils',food_reservation:'package-check',pickup_order:'shopping-basket',delivery_order:'bike',advance_order:'calendar-days'}[meta.key] || 'calendar-days';
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div class="chat-transaction-card" style="background:#ffffff; border:1px solid ${meta.light}; border-radius:18px; overflow:hidden; max-width:88%; min-width:285px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                        <div class="chat-transaction-card" style="background:var(--ui-surface); border:1px solid ${meta.light}; border-radius:18px; overflow:hidden; max-width:88%; min-width:285px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
                             <div class="request-output-header">
                                 <span class="request-output-kind"><i data-lucide="${outputIcon}" aria-hidden="true"></i><span>${escapeHtml(meta.shortLabel)}</span></span>
                                 <span class="status-badge status-${escapeHtml(status)}">${escapeHtml(status.replace(/_/g, " "))}</span>
@@ -5685,11 +5717,11 @@ const renderChatSnap = (snap) => {
                                 ${(d.paymentMethod || d.paymentType || d.paymentStatus || d.paymentReference || d.paymentProofPath || d.paymentProofUrl || d.amount) ? renderPaymentFlowCard(d, isOwner) : ""}
 
                                 ${isOwner && status === "payment_submitted" ? `
-                                    <div class="payment-owner-review" style="margin-top:12px; background:#fef3c7; border:1px solid #fde68a; border-radius:12px; padding:12px;">
+                                    <div class="payment-owner-review" style="margin-top:12px; background:var(--ui-success-bg); border:1px solid var(--ui-success-line); border-radius:12px; padding:12px;">
                                         <div style="font-size:13px; font-weight:900; color:#92400e; margin-bottom:8px;">Payment details submitted — please review</div>
                                         ${(d.paymentProofPath || d.paymentProofUrl) ? `<img ${d.paymentProofPath ? `data-proof-booking="${escapeHtml(d.bookingId || "")}" data-proof-version="${escapeHtml(d.paymentProofPath || "")}"` : `src="${escapeHtml(safeImageUrl(d.paymentProofUrl))}"`} alt="Payment proof" style="width:100%; border-radius:8px; border:1px solid #fde68a; margin-bottom:10px;" loading="lazy" />` : `<div style="font-size:12px; color:#92400e;">Receipt image is optional. Verify the submitted reference against your actual account.</div>`}
                                         <div class="payment-review-actions" style="display:flex; gap:8px;">
-                                            <button onclick="window.reviewPaymentProof('${d.bookingId}', '${d.id}', 'resubmit')" style="flex:1; border:1px solid #fca5a5; background:#fff; color:#991b1b; padding:9px; border-radius:10px; font-weight:800; cursor:pointer;">Decline payment</button>
+                                            <button onclick="window.reviewPaymentProof('${d.bookingId}', '${d.id}', 'resubmit')" style="flex:1; border:1px solid #fca5a5; background:var(--ui-surface); color:#991b1b; padding:9px; border-radius:10px; font-weight:800; cursor:pointer;">Decline payment</button>
                                             <button onclick="window.reviewPaymentProof('${d.bookingId}', '${d.id}', 'confirm')" style="flex:1; border:none; background:#16a34a; color:#fff; padding:9px; border-radius:10px; font-weight:800; cursor:pointer;">Accept payment</button>
                                         </div>
                                     </div>
@@ -5709,7 +5741,7 @@ const renderChatSnap = (snap) => {
                                     <div style="margin-top:12px; font-size:12px; color:#5b21b6; font-weight:800;">Transaction completed. Feedback can now be submitted.</div>
                                 ` : ""}
 
-                                <div style="font-size:10px; color:#94a3b8; margin-top:10px;">${dateStr}</div>
+                                <div style="font-size:10px; color:var(--ui-muted); margin-top:10px;">${dateStr}</div>
                             </div>
                         </div>
                     </div>
@@ -5724,10 +5756,10 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div class="chat-transaction-card" style="background:#ffffff; border:1px solid #c7d2fe; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
-                            <div style="background:${d.requestType === 'delivery_order' ? '#0ea5e9' : '#4f46e5'}; color:white; padding:12px 14px; font-weight:800;">${d.requestType === 'delivery_order' ? '🛵 Delivery Details Ready' : '📋 Requirements Needed'}</div>
+                        <div class="chat-transaction-card" style="background:var(--ui-surface); border:1px solid var(--ui-success-line); border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                            <div style="background:${d.requestType === 'delivery_order' ? '#0ea5e9' : 'var(--ui-primary,#237e72)'}; color:white; padding:12px 14px; font-weight:800;">${d.requestType === 'delivery_order' ? '🛵 Delivery Details Ready' : '📋 Requirements Needed'}</div>
 
-                            <div style="padding:14px; font-size:13px; color:#334155;">
+                            <div style="padding:14px; font-size:13px; color:var(--ui-ink);">
                                 <div><b>Status:</b> ${makeBadge(status)}</div>
                                 <div style="margin-top:8px;"><b>Business requested:</b></div>
                                 ${renderRequirementList(d.requirements)}
@@ -5743,7 +5775,7 @@ const renderChatSnap = (snap) => {
                                 ` : ""}
 
                                 ${!isOwner && status === "waiting_customer" && (!d.canonicalRequirements || !deskOrder(d.bookingId) || deskOrder(d.bookingId).status === "accepted") ? `
-                                    <button onclick="window.openRequirementResponseModal('${d.id}')" style="margin-top:12px; width:100%; border:none; background:#e0e7ff; color:#3730a3; padding:10px; border-radius:10px; font-weight:800; cursor:pointer;">Submit Requirements</button>
+                                    <button onclick="window.openRequirementResponseModal('${d.id}')" style="margin-top:12px; width:100%; border:none; background:var(--ui-accent-soft); color:#3730a3; padding:10px; border-radius:10px; font-weight:800; cursor:pointer;">Submit Requirements</button>
                                 ` : ""}
 
                                 ${!isOwner && status === "submitted" ? `
@@ -5754,7 +5786,7 @@ const renderChatSnap = (snap) => {
                                     <div style="margin-top:12px; color:#5b21b6; font-size:12px; font-weight:800;">Requirements confirmed by business.</div>
                                 ` : ""}
 
-                                <div style="font-size:10px; color:#94a3b8; margin-top:10px;">${dateStr} ${receiptHtml(d, user.uid, {})}</div>
+                                <div style="font-size:10px; color:var(--ui-muted); margin-top:10px;">${dateStr} ${receiptHtml(d, user.uid, {})}</div>
                             </div>
                         </div>
                     </div>
@@ -5769,9 +5801,9 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div class="chat-transaction-card" style="background:#ffffff; border:1px solid #bbf7d0; border-radius:18px; overflow:hidden; max-width:90%; min-width:290px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                        <div class="chat-transaction-card" style="background:var(--ui-surface); border:1px solid #bbf7d0; border-radius:18px; overflow:hidden; max-width:90%; min-width:290px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
                             <div style="background:#16a34a; color:white; padding:12px 14px; font-weight:800;">✅ Requirements Submitted</div>
-                            <div style="padding:14px; font-size:13px; color:#334155;">
+                            <div style="padding:14px; font-size:13px; color:var(--ui-ink);">
                                 <div class="requirement-detail-status">${status === "confirmed" ? "Details confirmed — payment is separate" : status === "waived" ? "Requirements waived" : "Details submitted for review"}</div>
                                 ${renderRequirementResponseDetails(d, isOwner, dateStr)}
                             </div>
@@ -5792,15 +5824,15 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div class="chat-transaction-card" style="background:#ffffff; border:1px solid #bfdbfe; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
-                            <div style="background:${isDeliveryCompletion ? "#0ea5e9" : "#2563eb"}; color:white; padding:12px 14px; font-weight:900;">
+                        <div class="chat-transaction-card" style="background:var(--ui-surface); border:1px solid var(--ui-success-line); border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                            <div style="background:${isDeliveryCompletion ? "#0ea5e9" : "var(--ui-accent)"}; color:white; padding:12px 14px; font-weight:900;">
                                 ${header}
                             </div>
 
-                            <div style="padding:14px; font-size:13px; color:#334155;">
+                            <div style="padding:14px; font-size:13px; color:var(--ui-ink);">
                                 <div><b>Status:</b> ${status === "received" ? makeBadge("received") : makeBadge(status === "delivered" ? "fulfilled" : status)}</div>
 
-                                <div style="margin-top:10px; color:#475569;">
+                                <div style="margin-top:10px; color:var(--ui-muted);">
                                     ${status === "preparing" ? "Business is preparing the delivery/order." : status === "out_for_delivery" ? "The order is on the way to the customer." : status === "delivered" ? "Business marked this as delivered. Customer can now confirm received." : status === "received" ? "Transaction confirmed received by customer." : "The business marked this transaction as fulfilled. Please confirm once received/completed."}
                                 </div>
 
@@ -5819,7 +5851,7 @@ const renderChatSnap = (snap) => {
                                     </button>
                                 ` : ""}
 
-                                <div style="font-size:10px; color:#94a3b8; margin-top:10px;">${dateStr}</div>
+                                <div style="font-size:10px; color:var(--ui-muted); margin-top:10px;">${dateStr}</div>
                             </div>
                         </div>
                     </div>
@@ -5829,15 +5861,17 @@ const renderChatSnap = (snap) => {
             }
 
             if (d.type === "feedback_request") {
-                const status = d.feedbackStatus || "feedback_waiting";
+                const completedOrder=chatDeskOrders.find(order=>order.id===d.bookingId);
+                const submitted=completedOrder?.feedbackSubmittedAt||completedOrder?.feedbackStatus==='feedback_submitted'||currentChatDocsCache.some(item=>item.type==='feedback_response'&&item.bookingId===d.bookingId);
+                const status = submitted?'feedback_submitted':d.feedbackStatus || "feedback_waiting";
                 const side = getCardSide(d, user.uid, isOwner, "system");
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div class="chat-transaction-card" style="background:#ffffff; border:1px solid #fde68a; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
-                            <div style="background:#facc15; color:#713f12; padding:12px 14px; font-weight:900;">⭐ Rate & Feedback</div>
+                        <div class="chat-transaction-card feedback-request-card" style="background:var(--ui-surface); border:1px solid var(--ui-success-line,#bdded1); border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                            <div style="background:var(--ui-success-bg,#e7f3ed); color:var(--ui-success-ink,#28634b); padding:12px 14px; font-weight:900;">⭐ Rate & Feedback</div>
 
-                            <div style="padding:14px; font-size:13px; color:#334155;">
+                            <div style="padding:14px; font-size:13px; color:var(--ui-ink);">
                                 <div><b>Status:</b> ${makeBadge(status)}</div>
                                 <div style="margin-top:8px;">
                                     Transaction completed. Please rate your experience and send feedback.
@@ -5845,7 +5879,7 @@ const renderChatSnap = (snap) => {
 
                                 ${!isOwner && status === "feedback_waiting" ? `
                                     <button onclick="window.openFeedbackModal('${d.placeId}', '${d.bookingId}', '${d.id}')"
-                                        style="margin-top:12px; width:100%; border:none; background:#fef3c7; color:#92400e; padding:10px; border-radius:10px; font-weight:900; cursor:pointer;">
+                                        style="margin-top:12px; width:100%; border:none; background:var(--ui-primary,#237e72); color:#fff; padding:10px; border-radius:10px; font-weight:900; cursor:pointer;">
                                         Rate & Send Feedback
                                     </button>
                                 ` : ""}
@@ -5856,7 +5890,7 @@ const renderChatSnap = (snap) => {
                                     </div>
                                 ` : ""}
 
-                                <div style="font-size:10px; color:#94a3b8; margin-top:10px;">${dateStr}</div>
+                                <div style="font-size:10px; color:var(--ui-muted); margin-top:10px;">${dateStr}</div>
                             </div>
                         </div>
                     </div>
@@ -5872,14 +5906,14 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div class="chat-transaction-card" style="background:#ffffff; border:1px solid #fde68a; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
-                            <div style="background:#f59e0b; color:white; padding:12px 14px; font-weight:900;">🌟 Customer Feedback</div>
+                        <div class="chat-transaction-card" style="background:var(--ui-surface); border:1px solid #fde68a; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                            <div style="background:var(--ui-success-bg); color:var(--ui-success-ink); padding:12px 14px; font-weight:900;">🌟 Customer Feedback</div>
 
-                            <div style="padding:14px; font-size:13px; color:#334155; display:grid; gap:8px;">
+                            <div style="padding:14px; font-size:13px; color:var(--ui-ink); display:grid; gap:8px;">
                                 <div><b>Rating:</b> ${escapeHtml(stars)} (${escapeHtml(String(d.rating || "N/A"))}/5)</div>
                                 <div><b>Satisfaction:</b> ${escapeHtml(d.satisfaction || "N/A")}</div>
                                 <div><b>Feedback:</b> ${escapeHtml(d.feedback || "No written feedback.")}</div>
-                                <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${dateStr}</div>
+                                <div style="font-size:10px; color:var(--ui-muted); margin-top:4px;">${dateStr}</div>
                             </div>
                         </div>
                     </div>
@@ -5989,7 +6023,7 @@ const FLOATING_ORDER_STATES = {
 
 const FOW_STATUS_DOTS = {
     pending: "#f97316",
-    accepted: "#2563eb",
+    accepted: "var(--ui-accent)",
     payment_submitted: "#d97706",
     payment_confirmed: "#d97706",
     preparing: "#ea580c",
@@ -6609,9 +6643,9 @@ window.renderListView = function(filteredPlaces) {
 
         let ratingHtml = place.avgRating
             ? `<div style="display: flex; align-items: center; gap: 4px; font-size: 12px; color: #d97706; font-weight: 700;">
-                <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b; color:#f59e0b;"></i> ${escapeHtml(String(place.avgRating))} <span style="color: #94a3b8; font-weight: normal;">(${escapeHtml(String(place.reviewCount || 0))})</span>
+                <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b; color:#f59e0b;"></i> ${escapeHtml(String(place.avgRating))} <span style="color:var(--ui-muted); font-weight: normal;">(${escapeHtml(String(place.reviewCount || 0))})</span>
                </div>`
-            : `<div style="font-size: 11px; color: #94a3b8;">No ratings yet</div>`;
+            : `<div style="font-size: 11px; color:var(--ui-muted);">No ratings yet</div>`;
 
         // FIX ONLY: never show a raw ID/number or the literal word "ADDRESS" as the address
         const rawAddr = String(place.address || place.brgy || place.barangay || "").trim();
@@ -6619,20 +6653,20 @@ window.renderListView = function(filteredPlaces) {
         const addrText = (!rawAddr || addrLooksId || rawAddr.toLowerCase() === "address") ? "Lipa City" : rawAddr;
 
         html += `
-        <div class="est-card place-list-card ${freshness.className}" style="background: white; border: 1px solid #fde047; border-radius: 12px; padding: 16px; margin: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 16px; cursor: pointer;" data-place-card="${escapeHtml(place.id)}">
+        <div class="est-card place-list-card ${freshness.className}" style="background:var(--ui-surface); border: 1px solid #fde047; border-radius: 12px; padding: 16px; margin: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 16px; cursor: pointer;" data-place-card="${escapeHtml(place.id)}">
             <div class="place-list-summary" style="display: flex; gap: 16px; position: relative;">
                 <div class="place-list-thumbnail" style="position: relative; width: 72px; height: 72px; flex-shrink: 0; border-radius: 8px; border: 1px solid #f1f5f9;">
                     ${imgHtml}
                 </div>
                 <div class="place-list-info" style="flex: 1; min-width: 0;">
                     <div class="place-list-heading" style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${escapeHtml(place.name)} ${place.is_verified ? `<i data-lucide="badge-check" style="width: 16px; height: 16px; color: #3b82f6;"></i>` : ''}
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 800; color:var(--ui-ink); display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${escapeHtml(place.name)} ${place.is_verified ? `<i data-lucide="badge-check" style="width: 16px; height: 16px; color:var(--ui-accent);"></i>` : ''}
                         </h3>
                         <i data-lucide="chevron-right" style="width: 18px; height: 18px; color: #cbd5e1; flex-shrink: 0;"></i>
                     </div>
                     <div class="place-list-meta" style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-                        <div style="font-size: 13px; color: #64748b; text-transform: capitalize;">${escapeHtml(place.category || place.cat || "")}</div>
+                        <div style="font-size: 13px; color:var(--ui-muted); text-transform: capitalize;">${escapeHtml(place.category || place.cat || "")}</div>
                         <div style="width: 3px; height: 3px; border-radius: 50%; background: #cbd5e1;"></div>
                         ${ratingHtml}
                         <button type="button" class="place-list-action place-list-menu-trigger" data-action="menu" data-place-id="${escapeHtml(place.id)}"><i data-lucide="book-open"></i> Menu</button>
@@ -6642,7 +6676,7 @@ window.renderListView = function(filteredPlaces) {
                             <span style="width: 6px; height: 6px; border-radius: 50%; background: ${statusDot};"></span>
                             <span data-i18n="${statusText}">${statusText}</span>
                         </span>
-                        <span style="font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 4px;">
+                        <span style="font-size: 12px; color:var(--ui-muted); display: flex; align-items: center; gap: 4px;">
                             <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> ${distText}
                         </span>
                         <span class="vici-freshness-badge ${freshness.className}" title="${escapeHtml(freshness.label)}" style="background:${freshness.bg}; border-color:${freshness.border}; color:${freshness.tone};">
@@ -6650,19 +6684,19 @@ window.renderListView = function(filteredPlaces) {
                             ${escapeHtml(freshness.shortLabel)}
                         </span>
                     </div>
-                    <div data-no-translate class="place-list-address" style="font-size: 11px; color: #94a3b8; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+                    <div data-no-translate class="place-list-address" style="font-size: 11px; color:var(--ui-muted); margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
                         ${escapeHtml(addrText)}
                     </div>
                 </div>
             </div>
             <div class="place-list-actions" style="display: flex; gap: 8px;">
-                <button type="button" class="place-list-action" data-action="chat" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background: white; border: 1px solid #e2e8f0; color: #0f172a; font-size: 13px; font-weight: 600; cursor: pointer;">
+                <button type="button" class="place-list-action" data-action="chat" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background:var(--ui-surface); border: 1px solid #e2e8f0; color:var(--ui-ink); font-size: 13px; font-weight: 600; cursor: pointer;">
                     <i data-lucide="message-square" style="width: 14px; height: 14px;"></i> <span data-i18n="Chat">Chat</span>
                 </button>
-                <button type="button" class="place-list-action" data-action="booking" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background: white; border: 1px solid #e2e8f0; color: #0f172a; font-size: 13px; font-weight: 600; cursor: pointer;">
+                <button type="button" class="place-list-action" data-action="booking" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background:var(--ui-surface); border: 1px solid #e2e8f0; color:var(--ui-ink); font-size: 13px; font-weight: 600; cursor: pointer;">
                     <i data-lucide="calendar" style="width: 14px; height: 14px;"></i> <span data-i18n="Request">Request</span>
                 </button>
-                <button type="button" class="place-list-action" data-action="route" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background: #2563eb; border: none; color: white; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);">
+                <button type="button" class="place-list-action" data-action="route" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background: var(--ui-primary); border: none; color: white; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(35,126,114,0.18);">
                     <i data-lucide="send" style="width: 14px; height: 14px;"></i> <span data-i18n="Navigate">Navigate</span>
                 </button>
             </div>

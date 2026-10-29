@@ -7,10 +7,11 @@
     --ui-surface: #ffffff;
     --ui-soft: #eef3f1;
     --ui-ink: #172e2b;
-    --ui-muted: #697b76;
+    --ui-muted: #5c7067;
     --ui-border: #dfe8e3;
-    --ui-accent: #147d70;
+    --ui-accent: #116f63;
     --ui-accent-soft: #e7f3ee;
+    --ui-primary: #237e72;
     --ui-rail: 220px;
     --ui-header: 80px;
     --navH: 76px;
@@ -26,6 +27,8 @@ html body.vicinify-ui.dark-mode {
     --ui-accent-soft: #244038;
 }
 html body.vicinify-ui {
+    --ui-text: var(--ui-ink);
+    --surface:var(--ui-surface); --surface-2:var(--ui-soft); --surface-3:var(--ui-soft); --field:var(--ui-surface);
     --bg: var(--ui-bg); --card: var(--ui-surface); --text: var(--ui-ink);
     --muted: var(--ui-muted); --line: var(--ui-border);
     background: var(--ui-bg) !important;

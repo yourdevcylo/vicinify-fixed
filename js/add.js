@@ -24,19 +24,19 @@ window.AddPage = (() => {
         /* Modern Inputs */
         #page-add .field input, #page-add .field select, #page-add .field textarea {
             border-radius: 12px !important;
-            border: 1px solid #e5e7eb !important;
+            border:1px solid var(--ui-border) !important;
             padding: 12px 16px !important;
-            background: #f9fafb !important;
+            background:var(--ui-soft) !important;
             transition: all 0.2s !important;
             font-size: 14px !important;
             outline: none !important;
         }
         #page-add .field input:focus, #page-add .field select:focus, #page-add .field textarea:focus {
-            border-color: #93c5fd !important;
-            background: #ffffff !important;
-            box-shadow: 0 0 0 4px rgba(191, 219, 254, 0.4) !important;
+            border-color: var(--ui-success-line) !important;
+            background:var(--ui-surface) !important;
+            box-shadow: 0 0 0 4px color-mix(in srgb,var(--ui-accent) 18%,transparent) !important;
         }
-        #page-add .card { border-radius: 20px !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important; border: 1px solid #f3f4f6 !important; }
+        #page-add .card { border-radius: 20px !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important; border:1px solid var(--ui-border) !important; }
         
         /* 🔥 Photo Grid System 🔥 */
         .photo-grid-wrap {
@@ -86,11 +86,11 @@ window.AddPage = (() => {
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            background: #f8fafc;
+            background:var(--ui-soft);
             transition: 0.2s;
-            color: #64748b;
+            color:var(--ui-muted);
         }
-        .add-photo-btn:hover { border-color: #93c5fd; background: #eff6ff; color: #3b82f6; }
+        .add-photo-btn:hover { border-color: var(--ui-success-line); background: var(--ui-accent-soft); color:var(--ui-accent); }
         
         /* Modern Submit Button */
         #submitPendingBtn {

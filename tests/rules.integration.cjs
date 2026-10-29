@@ -169,7 +169,7 @@ test('console writes cannot skip message gates, exceed word limits or send a bur
  const uid='limituser',db=dbFor(uid),base={placeId:'shop',userId:uid,senderUid:uid,createdBy:uid,senderRole:'customer',type:'text',status:'sent',text:'Hello',createdAt:serverTimestamp()};
  await assertFails(setDoc(doc(db,'messages/directbypass'),base));
  await assertSucceeds(gatedWrite(uid,'chat','firstvalid',base));
- await assertFails(gatedWrite(uid,'chat','secondfast',base));
+ await assertSucceeds(gatedWrite(uid,'chat','secondfast',base));
  await assertFails(updateDoc(doc(db,'message_limits',uid),{count:0}));
  await assertFails(updateDoc(doc(db,'message_limits',uid),{at:new Date(2000,0,1)}));
  const wordUid='worduser',words={...base,userId:wordUid,senderUid:wordUid,createdBy:wordUid,text:Array(301).fill('a').join(' ')};
@@ -221,3 +221,10 @@ test('deleting accounts cannot write, recreate profiles, upload or self-transfer
  await assertFails(uploadBytes(ref(env.authenticatedContext('deleting',verified).storage(),'places/deleting/photo.jpg'),new Uint8Array([255,216,255,217]),{contentType:'image/jpeg'}));
 });
 test('closed-owner tombstones expose only server-sanitized listing records for retained transaction history',async()=>{await env.withSecurityRulesDisabled(async ctx=>setDoc(doc(ctx.firestore(),'places/closed_deleted'),{name:'Closed establishment',owner_uid:'deleted_random',approval_status:'archived',status:'closed',accountDeleted:true}));await assertSucceeds(getDoc(doc(env.unauthenticatedContext().firestore(),'places/closed_deleted')));await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(),'places/pending')));});
+
+test('transaction chat must reference a booking belonging to the same customer and place',async()=>{
+ const base={placeId:'shop',userId:'customer',senderUid:'customer',createdBy:'customer',senderRole:'customer',type:'text',status:'sent',text:'About this request',bookingId:'order',transactionId:'order'};
+ await assertSucceeds(gatedWrite('customer','chat','linkedtext',base));
+ await assertFails(gatedWrite('customer','chat','missingbooking',{...base,bookingId:'missing',transactionId:'missing'}));
+ await assertFails(gatedWrite('customer','chat','mismatchedlink',{...base,transactionId:'other'}));
+});

@@ -11,11 +11,11 @@ window.BuzzPage = (() => {
     const style = document.createElement('style');
     style.innerHTML = `
         /* Modern Card Styling */
-        .mod-card { background: #fff; border-radius: 1rem; padding: 1rem; border: 1px solid #f3f4f6; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); margin-bottom: 1rem; animation: slideUp 0.4s ease forwards; opacity: 0; transform: translateY(16px); }
+        .mod-card { background:var(--ui-surface); border-radius: 1rem; padding: 1rem; border: 1px solid #f3f4f6; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); margin-bottom: 1rem; animation: slideUp 0.4s ease forwards; opacity: 0; transform: translateY(16px); }
         @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
         
         .mod-avatar { width: 2.25rem; height: 2.25rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #f3f4f6; color: #6b7280; font-weight: 700; font-size: 0.875rem; }
-        .mod-avatar.biz { background: #dbeafe; color: #2563eb; }
+        .mod-avatar.biz { background: var(--ui-success-bg); color: var(--ui-accent); }
         
         .mod-badge { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.5rem; border-radius: 9999px; white-space: nowrap; }
         
@@ -24,7 +24,7 @@ window.BuzzPage = (() => {
         .mod-btn-like:hover { background: #fef2f2; color: #f87171; }
         .mod-btn-like.liked { background: #fef2f2; color: #ef4444; }
         .mod-btn-comment { background: #f9fafb; color: #6b7280; }
-        .mod-btn-comment:hover { background: #eff6ff; color: #3b82f6; }
+        .mod-btn-comment:hover { background: var(--ui-accent-soft); color:var(--ui-accent); }
 
         /* Modern Comment Section */
         .mod-comment-wrap { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #f3f4f6; display: flex; flex-direction: column; gap: 0.75rem; }
@@ -33,26 +33,26 @@ window.BuzzPage = (() => {
         
         .mod-input-row { display: flex; gap: 0.5rem; }
         .mod-input { flex: 1; font-size: 0.75rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 9999px; padding: 0.5rem 0.75rem; outline: none; }
-        .mod-input:focus { border-color: #93c5fd; }
-        .mod-send-btn { width: 2rem; height: 2rem; border-radius: 9999px; background: #3b82f6; color: white; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+        .mod-input:focus { border-color: var(--ui-success-line); }
+        .mod-send-btn { width: 2rem; height: 2rem; border-radius: 9999px; background: var(--ui-primary,#237e72); color: white; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
         .mod-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* 🔥 MAKUKULAY NA PILLS / CHIPS 🔥 */
-        .type-chip { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; border-radius: 9999px; border: 1px solid #e5e7eb; background: #ffffff; color: #6b7280; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .type-chip { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; border-radius: 9999px; border: 1px solid #e5e7eb; background:var(--ui-surface); color: #6b7280; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .type-chip:hover { background: #f9fafb; border-color: #d1d5db; }
         
         .type-chip.active { border-color: transparent; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
         .type-chip.active.all { background: linear-gradient(to right, #6b7280, #4b5563); }
         .type-chip.active.promo { background: linear-gradient(to right, #4ade80, #16a34a); }
         .type-chip.active.event { background: linear-gradient(to right, #c084fc, #9333ea); }
-        .type-chip.active.tip { background: linear-gradient(to right, #facc15, #ca8a04); }
+        .type-chip.active.tip { background:var(--ui-primary); }
         .type-chip.active.announcement { background: linear-gradient(to right, #f87171, #dc2626); }
-        .type-chip.active.general { background: linear-gradient(to right, #60a5fa, #2563eb); }
+        .type-chip.active.general { background: linear-gradient(to right, #60a5fa, var(--ui-accent)); }
 
         /* Business Post UI */
         .mod-btn-biz { background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
-        .mod-btn-biz.active { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
-        .mod-select-biz { border: 1px solid #e5e7eb; border-radius: 8px; padding: 6px 10px; font-size: 12px; background: white; color: #374151; outline: none; flex: 1; display: none; }
+        .mod-btn-biz.active { background: var(--ui-success-bg); color: var(--ui-success-ink); border-color: var(--ui-success-line); }
+        .mod-select-biz { border: 1px solid #e5e7eb; border-radius: 8px; padding: 6px 10px; font-size: 12px; background:var(--ui-surface); color: #374151; outline: none; flex: 1; display: none; }
         .mod-select-biz.show { display: inline-block; }
     `;
     document.head.appendChild(style);
@@ -62,7 +62,7 @@ window.BuzzPage = (() => {
         event: { label: 'Event', icon: 'calendar-days', color: 'background:#f3e8ff; color:#7e22ce;' },
         tip: { label: 'Tip', icon: 'lightbulb', color: 'background:#fef9c3; color:#a16207;' },
         announcement: { label: 'Announcement', icon: 'megaphone', color: 'background:#fee2e2; color:#b91c1c;' },
-        general: { label: 'Update', icon: 'message-square', color: 'background:#dbeafe; color:#1d4ed8;' }
+        general: { label: 'Update', icon: 'message-square', color: 'background:var(--ui-success-bg); color:var(--ui-success-ink);' }
     };
 
     const BARANGAYS = [
@@ -232,7 +232,7 @@ window.BuzzPage = (() => {
         if (unsubscribe) unsubscribe();
 
         const wrap = document.getElementById("buzzList");
-        if (wrap) wrap.innerHTML = `<div class="muted" style="text-align:center; padding:40px; display:flex; flex-direction:column; align-items:center; gap:8px;"><i data-lucide="loader-2" class="animate-spin" style="color:#94a3b8;"></i> Fetching live posts...</div>`;
+        if (wrap) wrap.innerHTML = `<div class="muted" style="text-align:center; padding:40px; display:flex; flex-direction:column; align-items:center; gap:8px;"><i data-lucide="loader-2" class="animate-spin" style="color:var(--ui-muted);"></i> Fetching live posts...</div>`;
         window.debouncedIcons?.();
 
         let feed = window.db.collection("buzz_posts");
@@ -269,9 +269,9 @@ currentPosts = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));       
                 <div class="buzz-empty-state">
                     <div class="buzz-empty-card">
                         <div style="background:#f1f5f9; width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
-                            <i data-lucide="zap" style="width:32px; height:32px; color:#94a3b8;"></i>
+                            <i data-lucide="zap" style="width:32px; height:32px; color:var(--ui-muted);"></i>
                         </div>
-                        <div style="font-weight:800; font-size:17px; color:#0f172a;">No posts yet</div>
+                        <div style="font-weight:800; font-size:17px; color:var(--ui-ink);">No posts yet</div>
                         <div style="font-size:13px;">Be the first to share something in ${escapeHtml(bFilter)}.</div>
                         <button class="primaryBtn buzzEmptyBtn" id="emptyPostBtn" style="padding: 10px 24px; border-radius:99px;"><i data-lucide="plus"></i> Post Now</button>
                     </div>
@@ -291,7 +291,7 @@ currentPosts = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));       
             const initial = displayName.charAt(0).toUpperCase();
             const avatarClass = isBiz ? "mod-avatar biz" : "mod-avatar";
             const avatarIcon = isBiz ? `<i data-lucide="store" style="width:16px; height:16px;"></i>` : initial;
-            const verifiedBadge = isBiz ? `<i data-lucide="badge-check" style="width:14px; height:14px; color:#3b82f6;"></i>` : '';
+            const verifiedBadge = isBiz ? `<i data-lucide="badge-check" style="width:14px; height:14px; color:var(--ui-accent);"></i>` : '';
             
             const config = TYPE_CONFIG[p.type] || TYPE_CONFIG.general;
             

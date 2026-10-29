@@ -42,7 +42,7 @@ function transition(order, actor, patch) {
     }
     if (actor === 'customer' && next === 'cancelled' && cancellation(order).allowed) {
         const info=cancellation(order),change={status:'cancelled',refundPercent:info.rate,refundStatus:info.refundStatus};
-        if(info.paid && Number(order.paymentAmount)>0){const cents=money(order.paymentAmount);change.refundBaseAmount=(cents/100).toFixed(2);change.refundAmount=(Math.round(cents*info.rate/100)/100).toFixed(2);change.refundPaymentVerified=true;}else if(info.paid){change.refundStatus='needs_verification';}
+        if(info.paid && Number(order.paymentAmount)>0){const cents=money(order.paymentAmount);change.refundBaseAmount=(cents/100).toFixed(2);change.refundAmount=(Math.round(cents*info.rate/100)/100).toFixed(2);change.refundPaymentVerified=true;if(Number(change.refundAmount)===0)change.refundStatus='not_required';}else if(info.paid){change.refundStatus='needs_verification';}
         return change;
     }
     if (actor === 'customer' && next === 'received' && ['fulfilled', 'ready', 'delivered', 'ready_for_pickup'].includes(current)) return { status: next, customer_confirmed: true };

@@ -92,7 +92,7 @@ function reviewCancellation(booking) {
             <span class="cancel-review-eyebrow">REVIEW CANCELLATION</span><h3 id="cancelReviewTitle">Cancel this ${info.label}?</h3>
             <p>Your request with <strong>${escapeHtml(booking.placeName || "this establishment")}</strong> will be cancelled. This cannot be undone.</p>
             <div class="cancel-policy-summary"><span>${info.status === "pending" ? "Not accepted yet" : "Accepted by the business"}</span><strong>${!info.paid ? "Free cancellation" : info.rate + "% refund policy"}</strong><p>${!info.paid ? "No payment is recorded. No refund transfer is needed." : "The business must verify money received before a refund is calculated. Follow the refund status in the transaction summary."}</p></div>
-            <p class="cancel-manual-note">If you already paid, follow the refund steps in the transaction summary. Vicinify does not automatically transfer a refund.</p>
+            <p class="cancel-manual-note">If paid: the business reviews the refund amount, confirms the transfer reference, then you confirm receipt after checking your account. The conversation stays open until the refund is settled. Vicinify does not transfer money.</p>
             <footer><button type="button" class="cancel-review-keep">Keep ${info.label}</button><button type="button" class="cancel-review-confirm">Cancel ${info.label}</button></footer>
         </section>`;
         const previousFocus = document.activeElement;
@@ -324,9 +324,9 @@ function listenToCustomerActivities(user) {
                             ${cancellation.allowed ? `
                                 <div class="transaction-cancel-note">${status === "pending" ? "Free cancellation while pending." : `Cancellation available · ${cancellation.rate}% refund policy if paid.`}</div>
                                 <button class="transaction-cancel-button" onclick="window.SettingsPage.cancelCustomerBooking('${d.id}')">Cancel ${cancellation.label}</button>
-                            ` : status === "cancelled" ? `<div class="transaction-cancel-note">Cancelled · If paid, contact the business to arrange your refund.</div>` : ["preparing", "ready", "ready_for_pickup", "payment_confirmed", "out_for_delivery", "delivered", "fulfilled", "received"].includes(status) ? `<div class="transaction-cancel-note is-closed">Cancellation is closed at this stage. Contact the business if you need help.</div>` : ""}
+                            ` : status === "cancelled" ? `<div class="transaction-cancel-note">Cancelled · Open the transaction to follow the refund status.</div>` : ["preparing", "ready", "ready_for_pickup", "payment_confirmed", "out_for_delivery", "delivered", "fulfilled", "received"].includes(status) ? `<div class="transaction-cancel-note is-closed">Cancellation is closed at this stage. Contact the business if you need help.</div>` : ""}
 
-                            <button class="transaction-action-chat" onclick="window.openChatModal('${d.placeId}', '${safeString(d.placeName || "Establishment")}', null, 'transaction')">
+                            <button class="transaction-action-chat" onclick="window.openChatModal('${d.placeId}', '${safeString(d.placeName || "Establishment")}', null, 'transaction', '${d.id}')">
                                 Open transaction
                             </button>
 
@@ -440,7 +440,7 @@ function startFavorites(user) {
 
                         <div class="inbox-content">
                             <div class="inbox-name">${escapeHtml(d.placeName)}</div>
-                            <div class="inbox-snippet" style="color:#3b82f6;">Click to view on map</div>
+                            <div class="inbox-snippet" style="color:var(--ui-accent);">Click to view on map</div>
                         </div>
 
                         <button onclick="window.SettingsPage.removeFavorite('${d.id}', event)"

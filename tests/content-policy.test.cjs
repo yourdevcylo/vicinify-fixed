@@ -22,7 +22,7 @@ test('message write atomically carries a matching account bucket and target id',
  assert.equal(r.writes.length,2);assert.equal(r.writes[0][1].kind,'message_limits');assert.equal(r.writes[0][1].id,'customer');assert.equal(r.writes[0][2].count,1);assert.equal(r.writes[0][2].targetId,r.writes[1][1].id);
 });
 test('client bucket protects drafts by rejecting rate-limited sends before a write',async()=>{
- for(const old of [{count:30,windowStartedAt:{toMillis:()=>Date.now()},at:{toMillis:()=>Date.now()-5000}},{count:1,windowStartedAt:{toMillis:()=>Date.now()},at:{toMillis:()=>Date.now()}}]){
+ for(const old of [{count:90,windowStartedAt:{toMillis:()=>Date.now()},at:{toMillis:()=>Date.now()-5000}}]){
   const r=runtime(old);await assert.rejects(r.api.create(r.db,'messages',{type:'text',text:'Hello'}));assert.equal(r.writes.length,0);
  }
 });
@@ -55,4 +55,9 @@ test('legacy reply edits use the same message counter and matching document targ
  const r=runtime();await r.api.updateMessage(r.db,{kind:'messages',id:'existing'},{reply:'Thanks for asking'});
  assert.equal(r.writes[0][2].targetId,'existing');assert.equal(r.writes[1][0],'update');
  await assert.rejects(r.api.updateMessage(r.db,{id:'existing'},{reply:'a'.repeat(2001)}));
+});
+
+test('normal chat bursts are allowed below the 90 per minute ceiling',async()=>{
+ for(const count of [1,30,89]){const r=runtime({count,windowStartedAt:{toMillis:()=>Date.now()},at:{toMillis:()=>Date.now()}});await r.api.create(r.db,'messages',{type:'text',text:'Thanks!'});assert.equal(r.writes[0][2].count,count+1);}
+ const rules=fs.readFileSync(require.resolve('../firestore.rules'),'utf8');assert(rules.includes('request.resource.data.count <= 90'));assert(!rules.includes("duration.value(2,'s')"));
 });

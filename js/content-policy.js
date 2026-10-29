@@ -31,8 +31,7 @@
    await db.runTransaction(async tx=>{
     const snapshot=await tx.get(gate),old=snapshot.exists?snapshot.data():null;
     const reset=!old || Date.now()-old.windowStartedAt.toMillis()>=60000;
-    if(!reset&&old.count>=30)throw new Error('Message limit reached. Wait for the next minute.');
-    if((payload.type==='text'||existingRef)&&old&&Date.now()-old.at.toMillis()<2000)throw new Error('Wait 2 seconds before sending another message.');
+    if(!reset&&old.count>=90)throw new Error('Message limit reached. Wait for the next minute.');
     tx.set(gate,{uid,targetId:ref.id,at:stamp(),windowStartedAt:reset?stamp():old.windowStartedAt,count:reset?1:old.count+1});
     if(existingRef)tx.update(ref,payload);else tx.set(ref,payload);
    });

@@ -72,7 +72,8 @@ test('standard customer feedback saves privately or publicly, blocks duplicates 
  let actor='customer';const records=new Map([
   ['bookings/order',{userId:'customer',placeId:'shop',status:'received'}],
   ['places/shop',{owner_uid:'owner',ratingSum:0,reviewCount:0}],
-  ['users/customer',{fullName:'Real Customer'}]
+  ['users/customer',{fullName:'Real Customer'}],
+  ['messages/request',{userId:'customer',placeId:'shop',bookingId:'order',type:'feedback_request',feedbackStatus:'feedback_waiting'}]
  ]);
  const db={collection:kind=>({doc:id=>({path:`${kind}/${id}`})}),runTransaction:async fn=>{
   const writes=[];await fn({get:async ref=>({exists:records.has(ref.path),data:()=>records.get(ref.path)}),set:(ref,value)=>writes.push([ref.path,value]),update:(ref,value)=>writes.push([ref.path,{...records.get(ref.path),...value}])});
@@ -81,10 +82,11 @@ test('standard customer feedback saves privately or publicly, blocks duplicates 
  helpers.authenticate=async()=>({uid:actor});helpers.limit=async()=>{};helpers.services=()=>({db,FieldValue:{serverTimestamp:()=>123}});
  try{
   delete require.cache[require.resolve('../netlify/functions/review')];const {handler}=require('../netlify/functions/review');
-  const call=patch=>handler({httpMethod:'POST',body:JSON.stringify({placeId:'shop',bookingId:'order',rating:5,feedback:'Good food.',createOnly:true,...patch})});
+  const call=patch=>handler({httpMethod:'POST',body:JSON.stringify({placeId:'shop',bookingId:'order',rating:5,feedback:'Good food.',createOnly:true,feedbackMessageId:'request',...patch})});
   for(const isPublic of [false,true]){
-   records.delete('reviews/customer_shop_order');records.set('places/shop',{owner_uid:'owner',ratingSum:0,reviewCount:0});
+   records.delete('reviews/customer_shop_order');records.set('bookings/order',{userId:'customer',placeId:'shop',status:'received'});records.set('places/shop',{owner_uid:'owner',ratingSum:0,reviewCount:0});
    const response=await call({isPublic});assert.equal(response.statusCode,200,response.body);
+   assert.equal(records.get('bookings/order').feedbackStatus,'feedback_submitted');assert.equal(records.get('messages/request').feedbackStatus,'feedback_submitted');
    const saved=records.get('reviews/customer_shop_order');assert.equal(saved.isPublic,isPublic);assert.equal(saved.verifiedTransaction,true);assert.equal(saved.userId,'customer');
    assert.equal((await call({rating:1})).statusCode,409);assert.equal(records.get('places/shop').ratingSum,5);assert.equal(records.get('places/shop').reviewCount,1);assert.equal(records.get('reviews/customer_shop_order').rating,5);
   }
@@ -92,8 +94,8 @@ test('standard customer feedback saves privately or publicly, blocks duplicates 
   actor='customer';records.set('bookings/order',{userId:'customer',placeId:'shop',status:'pending'});assert.equal((await call({})).statusCode,403);
   records.set('bookings/order',{userId:'customer',placeId:'shop',status:'received'});records.set('places/shop',{owner_uid:'customer',ratingSum:5,reviewCount:1});assert.equal((await call({})).statusCode,403);
   records.set('places/shop',{owner_uid:'owner',ratingSum:5,reviewCount:1});
-  // Existing star-rating edits retain their one-record update behavior.
-  assert.equal((await call({createOnly:false,rating:3})).statusCode,200);assert.equal(records.get('places/shop').reviewCount,1);assert.equal(records.get('places/shop').ratingSum,3);
+  // Omitting createOnly must not bypass the submit-once rule.
+  assert.equal((await call({createOnly:false,rating:3})).statusCode,409);assert.equal(records.get('places/shop').reviewCount,1);assert.equal(records.get('places/shop').ratingSum,5);
  }finally{Object.assign(helpers,old);delete require.cache[require.resolve('../netlify/functions/review')];}
 });
 
@@ -117,15 +119,15 @@ test('manual payment, cancellation and refund endpoints mirror one authoritative
   assert.equal((await submit('500')).statusCode,409);actor='stranger';assert.equal((await update({paymentTerms:{amount:'500',instructions:'GCash 09171234567 Juan'}})).statusCode,403);
   actor='owner';assert.equal((await update({paymentTerms:{amount:'500',instructions:'GCash 09171234567 Juan'}})).statusCode,200);assert.equal(records.get('messages/card').bookingStatus,'accepted');assert.equal(records.get('bookings/order').paymentAmountDue,'500.00');
   records.set('messages/legacy',{type:'requirement_response',bookingId:'another-order',placeId:'shop',userId:'customer',paymentReference:'PAY123',paymentAmount:'500.00'});
-  assert.equal((await booking({httpMethod:'POST',body:JSON.stringify({action:'import_payment',bookingId:'order',messageId:'legacy',confirmLink:true})})).statusCode,403);
+  assert.equal((await booking({httpMethod:'POST',body:JSON.stringify({action:'import_payment',bookingId:'order',messageId:'legacy',confirmLink:true})})).statusCode,400);
   records.set('messages/legacy',{type:'requirement_response',bookingId:'order',placeId:'wrong-place',userId:'customer',paymentReference:'PAY123',paymentAmount:'500.00'});
-  assert.equal((await booking({httpMethod:'POST',body:JSON.stringify({action:'import_payment',bookingId:'order',messageId:'legacy'})})).statusCode,403);
+  assert.equal((await booking({httpMethod:'POST',body:JSON.stringify({action:'import_payment',bookingId:'order',messageId:'legacy'})})).statusCode,400);
   actor='customer';assert.equal((await submit('499')).statusCode,409);assert.equal((await submit('500')).statusCode,200);assert.equal(records.get('bookings/order').status,'payment_submitted');assert.equal(records.get('messages/card').paymentStatus,'pending_confirmation');
   actor='owner';assert.equal((await update({status:'payment_confirmed'})).statusCode,200);assert.equal(records.get('messages/card').paymentStatus,'confirmed');
   actor='customer';assert.equal((await update({status:'cancelled',refundPercent:100,refundAmount:'500'})).statusCode,200);assert.equal(records.get('bookings/order').refundAmount,'350.00');assert.equal(records.get('messages/card').refundStatus,'pending');
   assert.equal((await update({refundStatus:'sent',refundReference:'FAKE'})).statusCode,409);
-  actor='owner';assert.equal((await update({refundStatus:'sent',refundReference:'RETURN-123',refundAmount:'999'})).statusCode,200);assert.equal(records.get('messages/card').refundAmount,'350.00');assert.equal(records.get('messages/card').bookingStatus,'cancelled');assert.equal((await update({refundStatus:'received'})).statusCode,409);
-  actor='customer';assert.equal((await update({refundStatus:'received'})).statusCode,200);assert.equal(records.get('bookings/order').refundStatus,'received');assert.equal(records.get('messages/card').refundStatus,'received');assert.equal(storageCalls,0);
+  actor='owner';assert.equal((await update({refundStatus:'approved',confirmRefund:true})).statusCode,200);assert.equal((await update({refundStatus:'sent',refundReference:'RETURN-123',refundAmount:'999',confirmTransferred:true})).statusCode,200);assert.equal(records.get('messages/card').refundAmount,'350.00');assert.equal(records.get('messages/card').bookingStatus,'cancelled');assert.equal((await update({refundStatus:'received'})).statusCode,409);
+  actor='customer';assert.equal((await update({refundStatus:'received',confirmReceived:true})).statusCode,200);assert(records.get('bookings/order').conversationArchivedAt);assert.equal(records.get('bookings/order').refundStatus,'received');assert.equal(records.get('messages/card').refundStatus,'received');assert.equal(storageCalls,0);
  }finally{Object.assign(helpers,old);for(const name of ['booking','proof'])delete require.cache[require.resolve('../netlify/functions/'+name)];}
 });
 

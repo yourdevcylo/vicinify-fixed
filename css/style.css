@@ -11095,8 +11095,8 @@ html body.dark-mode :is(
   #askInput, .vici-ai-composer input
 ){
   background:var(--field) !important;
-  border-color:#334155 !important;
-  color:#f8fafc !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
 }
 html body.dark-mode input::placeholder,
 html body.dark-mode textarea::placeholder{ color:#64748b !important; }
@@ -11114,13 +11114,13 @@ html body.dark-mode :is(
 html body.dark-mode :is(h1,h2,h3,h4,h5,strong,.cardTitle,.buzzTitleMain,
   .placeHeaderTitle h1,.mec-title,.vtx-name,.vtx-step-title,.inbox-name,
   .transaction-history-place,.buzz-feed-name,.buzz-comment-name){
-  color:#f8fafc !important;
+  color:var(--text) !important;
 }
 html body.dark-mode :is(p,.muted,.sub-label,.section-note,.miniHint,
   .buzzSubtitle,.buzz-feed-meta,.buzz-feed-stats,.buzz-comment-text,
   .mec-sub,.mec-info-line,.vtx-sub,.vtx-step-sub,.vtx-mini-label,
   .inbox-snippet,.inbox-time,.transaction-history-meta,.place-description-text){
-  color:#94a3b8 !important;
+  color:var(--muted) !important;
 }
 html body.dark-mode :is(.bottom-nav,.askBar,.toolbar,.toolbar-modern,.pageHeader,
   .modalHeader,.modalFooter,.chat-header,.chat-footer,.panel-header){

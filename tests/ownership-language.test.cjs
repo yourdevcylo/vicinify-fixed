@@ -1,0 +1,8 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{JSDOM}=require('jsdom');
+test('ownership labels created in Tagalog restore English without exposing names to translation',async()=>{
+ const dom=new JSDOM('<body><div id="page-dashboard"><div class="dash-pro-actions"></div></div></body>',{url:'https://example.test',runScripts:'outside-only'}),w=dom.window,s=fs.readFileSync('js/common.js','utf8');
+ w.eval(s.slice(s.indexOf('window.LangManager ='),s.indexOf('// Patakbuhin agad')));w.LangManager.setLanguage('ph');w.AppState={userProfile:{role:'business'}};w.ViciData={command:async()=>({transfers:[{incoming:true,placeName:'Everyday Café',fromName:'Current owner',status:'pending',placeId:'cafe'}]})};
+ w.eval(fs.readFileSync('js/ownership-transfer.js','utf8'));w.document.dispatchEvent(new w.Event('DOMContentLoaded'));await w.OwnershipTransfer.open('cafe');w.LangManager.setLanguage('en');
+ assert.equal(w.document.getElementById('ownershipTransfersBtn').textContent,'Ownership transfers');assert.equal(w.document.querySelector('#transfer-title').textContent,'Transfer ownership');assert.equal(w.document.querySelector('.req-footer .primary').textContent,'Confirm and request transfer');
+ await w.OwnershipTransfer.list();w.LangManager.setLanguage('ph');w.LangManager.setLanguage('en');assert.equal(w.document.querySelector('.transfer-request-row button').textContent,'Accept ownership');assert.equal(w.document.querySelector('.transfer-request-row b').textContent,'Everyday Café');assert.equal(w.document.querySelector('.transfer-request-row p').textContent,'From: Current owner');dom.window.close();
+});
