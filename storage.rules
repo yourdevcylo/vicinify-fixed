@@ -17,7 +17,7 @@ service firebase.storage {
   match /b/{bucket}/o {
 
     function signedIn() {
-      return request.auth != null;
+      return request.auth != null && !firestore.exists(/databases/(default)/documents/account_deletions/$(request.auth.uid));
     }
 
     function isImageUnder5MB() {
@@ -72,6 +72,12 @@ service firebase.storage {
       allow read: if true;
       allow create, update: if isImageUnder5MB() && verifiedEmailStorage()
         && (isPlaceOwnerStorage(placeId) || isStorageAdmin());
+      allow delete: if verifiedEmailStorage() && (isPlaceOwnerStorage(placeId) || isStorageAdmin());
+    }
+
+    match /place_assets/{placeId}/{allPaths=**} {
+      allow read: if true;
+      allow create, update: if verifiedEmailStorage() && isImageUnder5MB() && isPlaceOwnerStorage(placeId);
       allow delete: if verifiedEmailStorage() && (isPlaceOwnerStorage(placeId) || isStorageAdmin());
     }
 

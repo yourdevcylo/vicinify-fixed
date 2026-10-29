@@ -19,7 +19,7 @@ test('delivery cannot jump directly to fulfilled or customer receipt before deli
 });
 test('server atomically creates a pending booking and matching chat card',async()=>{
  const helpers=require('../netlify/functions/lib/admin'),old={...helpers},created=[];
- let i=0;const db={collection:name=>({doc:id=>({id:id||'new'+(++i),kind:name})}),runTransaction:async fn=>fn({get:async ref=>({exists:true,data:()=>ref.kind==='places'?place:{fullName:'Customer'}}),create:(ref,data)=>created.push({ref,data})})};
+ let i=0;const db={collection:name=>({doc:id=>({id:id||'new'+(++i),kind:name})}),runTransaction:async fn=>fn({get:async ref=>({exists:ref.kind!=='account_deletions',data:()=>ref.kind==='places'?place:{fullName:'Customer'}}),create:(ref,data)=>created.push({ref,data})})};
  helpers.authenticate=async()=>user;helpers.limit=async()=>{};helpers.services=()=>({db,FieldValue:{serverTimestamp:()=>123}});
  try {
   delete require.cache[require.resolve('../netlify/functions/booking')];

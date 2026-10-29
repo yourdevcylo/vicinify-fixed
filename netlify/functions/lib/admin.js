@@ -7,17 +7,18 @@ function services() {
     if (!getApps().length) {
         if (!process.env.FIREBASE_SERVICE_ACCOUNT) throw Object.assign(new Error('Server credentials are not configured.'), { status: 503 });
         const account = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-        initializeApp({ credential: cert(account), storageBucket: process.env.FIREBASE_STORAGE_BUCKET });
+        initializeApp({ credential: cert(account), storageBucket: process.env.FIREBASE_STORAGE_BUCKET || (account.project_id === 'vicinify-c9828' ? 'vicinify-c9828.firebasestorage.app' : undefined) });
     }
     return { db: getFirestore(), auth: getAuth(), storage: getStorage(), FieldValue };
 }
 
-async function authenticate(event) {
+async function authenticate(event, options = {}) {
     const authorization = event.headers?.authorization || event.headers?.Authorization || '';
     if (!authorization.startsWith('Bearer ')) throw Object.assign(new Error('Sign in to continue.'), { status: 401 });
     try {
         const user = await services().auth.verifyIdToken(authorization.slice(7), true);
-        if (!user.email_verified) throw Object.assign(new Error('Verify your email first.'), { status: 403 });
+        if (!options.allowUnverified && !user.email_verified) throw Object.assign(new Error('Verify your email first.'), { status: 403 });
+        if (!options.allowDeletion && (await services().db.collection('account_deletions').doc(user.uid).get()).exists) throw Object.assign(new Error('Account deletion is in progress. Resume it in Settings.'),{status:409});
         return user;
     } catch (error) {
         if (error.status) throw error;

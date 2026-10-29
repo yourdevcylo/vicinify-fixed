@@ -8,7 +8,7 @@ const read=name=>fs.readFileSync(path.join(root,name),'utf8');
 async function loginDOM() {
  const html=read('index.html').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,'');
  const dom=new JSDOM(html,{runScripts:'outside-only'}),w=dom.window;
- w.AppState={};w.debouncedIcons=()=>{};
+ w.PasswordPolicy=require('../js/password-policy');w.AppState={};w.debouncedIcons=()=>{};
  const common=read('js/common.js');
  w.eval(common.slice(common.indexOf('function initLogin() {'),common.indexOf('\nwindow.resendVerificationEmail'))+'\ninitLogin();');
  w.eval(read('js/ui.js'));

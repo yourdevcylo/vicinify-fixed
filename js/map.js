@@ -8,7 +8,6 @@ window.MapPage = (() => {
         const config = CAT_CONFIG[p.cat] || CAT_CONFIG["default"];
         return [p.id, p.lat, p.lng, p.cat, config.color,
                 freshness?.level || "", freshness?.markerColor || "",
-                (p.is_featured || p.is_premium) ? "1" : "0",
                 freshness?.isInactive ? "1" : "0"].join("|");
     }
     let cloudPlaces = [];
@@ -66,21 +65,10 @@ window.MapPage = (() => {
             0%, 100% { box-shadow: 0 0 0 4px rgba(59,130,246,0.3), 0 2px 8px rgba(0,0,0,0.3); }
             50% { box-shadow: 0 0 0 8px rgba(59,130,246,0.2), 0 2px 8px rgba(0,0,0,0.3); }
         }
-        @keyframes markerPulseAnim {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
 
         .user-marker-modern {
             width: 20px; height: 20px; background: #3b82f6; border: 3px solid white; border-radius: 50%;
             animation: userRadarPulse 2s ease-in-out infinite; margin-left: 4px; margin-top: 4px;
-        }
-
-        .vici-marker-wrap.premium-pulse { animation: markerPulseAnim 2s infinite; z-index: 1000 !important; }
-        .vici-star-badge {
-            position: absolute; top: -8px; right: -12px; background: #f59e0b; color: white; border-radius: 50%;
-            width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px;
-            border: 2px solid white; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         /* Modern React Popup Overrides */
@@ -251,7 +239,7 @@ window.MapPage = (() => {
         finally { if (_placesInFlight === run) _placesInFlight = null; }
     }
     const publicCacheKey='vicinify:approved-catalog:20261028';
-    const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','hours','operatingHours','operating_hours','is_verified','is_featured','is_premium','owner_uid','addedBy','approval_status','avgRating','reviewCount','priceRange','accepts_booking','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
+    const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','hours','operatingHours','operating_hours','is_verified','owner_uid','addedBy','approval_status','avgRating','reviewCount','priceRange','accepts_booking','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
     function readPublicSessionCache(now) {
         try {
             const cached=JSON.parse(window.sessionStorage?.getItem(publicCacheKey)||'null');
@@ -316,7 +304,7 @@ window.MapPage = (() => {
     // Marker diffing (perf): instead of destroying and recreating every marker on
     // each filter/search/radius change (which caused visible flicker and GC churn on
     // low-end Android), we keep a Map of place ID -> {marker, signature}. Only
-    // markers whose signature (position, category, color, freshness, premium,
+    // markers whose signature (position, category, color, freshness,
     // inactive state) changed are rebuilt. Unchanged markers are untouched.
     // v53BK #2: diff markers — add new, remove gone, update changed
     function diffAcceptedMarkers(filtered, buildMarkerFn) {
@@ -1298,14 +1286,10 @@ window.MapPage = (() => {
             const config = CAT_CONFIG[p.cat] || CAT_CONFIG["default"];
             const markerColor = "#e1f1e9";
 
-            const isPremium = p.is_featured || p.is_premium;
-            const premiumClass = isPremium && !freshness.isInactive ? "premium-pulse" : "";
-            const starBadgeHtml = isPremium ? `<div class="vici-star-badge"><i data-lucide="star" style="width:12px; height:12px; fill:white;"></i></div>` : '';
             const staleBadgeHtml = freshness.level && freshness.level !== "active" ? `<div class="vici-stale-badge" title="${escapeHtml(freshness.label || '')}"><i data-lucide="${freshness.isInactive ? 'pause' : 'alert-triangle'}" style="width:10px; height:10px;"></i></div>` : '';
 
             const customHtml = `
-                <div class="vici-marker-wrap ${premiumClass} ${freshness.className || ''}" style="position:relative;">
-                    ${starBadgeHtml}
+                <div class="vici-marker-wrap ${freshness.className || ''}" style="position:relative;">
                     ${staleBadgeHtml}
                     <div class="vici-marker" style="background-color: ${markerColor}; ${freshness.isInactive ? 'filter:grayscale(1); opacity:.78;' : ''}">
                         <i data-lucide="${config.icon}" style="color: #17633f; width: 18px; height: 18px;"></i>
@@ -2214,8 +2198,8 @@ window.MapPage = (() => {
                 <div class="placeCoverBrand">
                     <div class="placeBrandLogo">${brandLogoHtml}</div>
                     <div class="placeBrandText">
-                        <strong>Your neighborhood, discovered.</strong>
-                        <span>Lipa City · Local guide</span>
+                        <strong data-no-translate>${escapeHtml(p.name)}</strong>
+                        <span>${escapeHtml(p.cat || p.category || "Establishment")}</span>
                     </div>
                 </div>
             </div>
@@ -2223,7 +2207,7 @@ window.MapPage = (() => {
                 <section class="placeProfilePanel">
                 <div class="placeHeaderRow place-profile-head">
                     <div class="placeHeaderTitle">
-                        <span class="place-profile-eyebrow">LOCAL FAVORITES · LIPA CITY</span>
+                        
                         <h1 data-no-translate>${escapeHtml(p.name)}</h1>
                         <p style="margin-bottom: 8px;">${escapeHtml((p.cat || p.category || "Establishment").toUpperCase())}</p>
 
@@ -2294,7 +2278,7 @@ window.MapPage = (() => {
 
                     ${adminPostBtnHtml}
 
-                    <div class="rating-section place-rating-panel" style="margin-top: 24px; padding: 20px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0;">
+                    <div class="rating-section place-rating-panel ${isOwnPlaceView ? 'is-own-place' : ''}" style="margin-top: 24px; padding: 20px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0;">
                         ${isOwnPlaceView ? `
                         <h4 style="margin:0 0 4px; font-size:14px; color:#1e293b;">You own this establishment</h4>
                         <p style="font-size:12px; color:#64748b; margin:0;">You can't rate your own place.</p>` : `
@@ -3066,7 +3050,7 @@ window.MapPage = (() => {
                 <div class="field"><label>Occasion</label>
                     ${chipRow("bookOccasion", ["None", "Birthday", "Anniversary", "Meeting", "Date"], "None")}
                     <input type="hidden" id="bookOccasion" value="None" />
-                </div>`;
+                </div><div class="field"><label>Payment Method</label>${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer"], "GCash")}<input type="hidden" id="bookPayment" value="GCash" /></div>`;
         } else if (meta.key === "food_reservation") {
             fields = `
                 <div class="field"><label>Food Items to Reserve *</label>
@@ -3077,8 +3061,8 @@ window.MapPage = (() => {
                     <input type="hidden" id="bookFulfillment" value="Dine-in" />
                 </div>
                 <div class="field"><label>Payment Method</label>
-                    ${chipRow("bookPayment", ["Cash", "GCash", "Maya", "Bank Transfer", "Others"], "Cash")}
-                    <input type="hidden" id="bookPayment" value="Cash" />
+                    ${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer"], "GCash")}
+                    <input type="hidden" id="bookPayment" value="GCash" />
                 </div>`;
         } else if (meta.key === "pickup_order") {
             fields = `
@@ -3086,8 +3070,8 @@ window.MapPage = (() => {
                     <textarea id="bookItems" rows="3" placeholder="Example:\n1x Chicken Meal\n2x Fries"></textarea>
                 </div>
                 <div class="field"><label>Payment Method *</label>
-                    ${chipRow("bookPayment", ["Cash on Pickup", "GCash", "Maya", "Bank Transfer", "Others"], "Cash on Pickup")}
-                    <input type="hidden" id="bookPayment" value="Cash on Pickup" />
+                    ${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer"], "GCash")}
+                    <input type="hidden" id="bookPayment" value="GCash" />
                 </div>`;
         } else if (meta.key === "advance_order") {
             fields = `
@@ -3100,7 +3084,7 @@ window.MapPage = (() => {
                     <input type="hidden" id="bookPaymentType" value="Downpayment" />
                 </div>
                 <div class="field"><label>Payment Method *</label>
-                    ${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer", "Others"], "GCash")}
+                    ${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer"], "GCash")}
                     <input type="hidden" id="bookPayment" value="GCash" />
                 </div>`;
         } else if (meta.key === "delivery_order") {
@@ -3110,7 +3094,7 @@ window.MapPage = (() => {
                     <textarea id="bookItems" rows="3" placeholder="Example:\n2x Burger\n1x Large Fries"></textarea>
                 </div>
                 <div class="field"><label>Payment Method *</label>
-                    ${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer", "COD", "Others"], "GCash")}
+                    ${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer"], "GCash")}
                     <input type="hidden" id="bookPayment" value="GCash" />
                 </div>`;
         } else {
@@ -3421,7 +3405,7 @@ window.MapPage = (() => {
             window.closeBookingModal(true);
 
             setTimeout(() => {
-                if (window.openChatModal) window.openChatModal(placeId, placeName);
+                if (window.openChatModal) window.openChatModal(placeId, placeName, null, "transaction");
             }, 350);
         } catch (e) {
             window.showToast("Error sending request: " + e.message, "error");

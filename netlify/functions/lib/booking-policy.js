@@ -26,8 +26,8 @@ function transition(order, actor, patch) {
             throw Object.assign(new Error('Delivery must pass through preparation, dispatch and delivery confirmation.'),{status:409});
         if (next === 'out_for_delivery' && !['delivery_order', 'delivery'].includes(order.requestType))
             throw Object.assign(new Error('Only delivery orders can be marked out for delivery.'), { status: 409 });
-        if (current === 'accepted' && ['preparing', 'fulfilled'].includes(next) && isOnline(order))
-            throw Object.assign(new Error('Verify the online payment proof before preparation.'), { status: 409 });
+        if (current === 'accepted' && ['preparing', 'fulfilled'].includes(next)  )
+            throw Object.assign(new Error('Verify the received payment before preparation.'), { status: 409 });
         if (current === 'payment_submitted' && next === 'accepted') {
             const note = typeof patch.paymentReviewNote === 'string' ? patch.paymentReviewNote.trim() : '';
             if (note.length < 5 || note.length > 500) throw Object.assign(new Error('Explain why the payment details were declined (5–500 characters).'), { status: 400 });
@@ -57,6 +57,7 @@ function requirementsTransition(order,actor,input) {
         if(actor!=='owner')return fail('Only the business can request details.',403);
         if(state&&['waiting_customer','submitted'].includes(state.status))return fail('Review or waive the current requirements before creating another request.');
         const flags={address:input.required?.address===true,location:input.required?.location===true,orderDetails:input.required?.orderDetails===true};
+        if(order.requestType==='table_reservation'&&(flags.address||flags.location))return fail('Delivery address and current location are not required for table reservations.',400);
         if(!Object.values(flags).some(Boolean))return fail('Choose at least one requirement.',400);
         const notes=typeof input.notes==='string'?input.notes.trim():'';
         if(notes.length>1000)return fail('Requirement notes are too long.',400);

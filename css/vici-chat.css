@@ -67,7 +67,7 @@ html body.vicinify-ui #smartAnswerPanel.vici-workspace * { box-sizing:border-box
 #smartAnswerPanel.vici-workspace .from-user .vici-message-content { max-width:85%; flex:0 1 auto; }
 #smartAnswerPanel.vici-workspace .vici-message-text { color:var(--ui-ink); font-size:13px; line-height:1.85; white-space:pre-wrap; overflow-wrap:anywhere; }
 #smartAnswerPanel.vici-workspace .from-user .vici-message-text { background:#237e72; color:#fff; border-radius:16px 16px 5px 16px; padding:11px 15px; line-height:1.7; }
-#smartAnswerPanel.vici-workspace .vici-message-text.is-error { background:var(--ui-warning-bg); color:var(--ui-warning-ink); border:1px solid var(--ui-warning-line); border-radius:12px; padding:12px; }
+#smartAnswerPanel.vici-workspace .vici-message-text.is-error { background:var(--ui-accent-soft); color:var(--ui-ink); border:1px solid var(--ui-border); border-radius:12px; padding:12px; }
 #smartAnswerPanel.vici-workspace .vici-message time { display:block; font-size:9px; color:var(--ui-muted); margin-top:8px; }
 #smartAnswerPanel.vici-workspace .from-user time { text-align:right; }
 #smartAnswerPanel.vici-workspace .vici-results { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:16px; min-width:0; }
@@ -123,3 +123,10 @@ html body.vicinify-ui #smartAnswerPanel.vici-workspace #viciAiChatInput { min-wi
  html body.vicinify-ui #smartAnswerPanel.vici-workspace { inset:0 !important; transform:none !important; width:100% !important; height:100dvh !important; border-radius:0 !important; }
  #smartAnswerPanel.vici-workspace .vici-compose-wrap { padding-bottom:max(12px,env(safe-area-inset-bottom)); }
 }
+
+#smartAnswerPanel .vici-history-row { display:flex; align-items:center; gap:2px; min-width:0; }
+#smartAnswerPanel .vici-history-row .vici-history-item { flex:1; min-width:0; }
+#smartAnswerPanel .vici-delete-chat { flex:0 0 32px; width:32px; height:36px; border:0; border-radius:8px; color:var(--ui-muted); background:transparent; cursor:pointer; }
+#smartAnswerPanel .vici-delete-chat svg { width:15px; height:15px; }
+#smartAnswerPanel .vici-delete-chat:hover { background:var(--ui-accent-soft); color:var(--ui-accent); }
+#viciAiResume { position:fixed; right:18px; bottom:calc(80px + env(safe-area-inset-bottom,0px)); z-index:12000; border:1px solid var(--ui-border); border-radius:24px; padding:12px 18px; background:var(--ui-accent,#237e72); color:white; font-weight:700; cursor:pointer; box-shadow:0 4px 16px #0002; }

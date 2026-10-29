@@ -31,3 +31,5 @@ Customer quick questions send immediately while preserving any typed draft. Busi
 
 
 Latest QA: 99 local tests, build and dependency audit passed. Browser fixture checks cover light/dark responsive requests, establishment/menu, activity, Vici layout, Suki designs, alerts, Settings overlap and amenities alignment. These are not live backend passes. User emulator result: 20 passed on earlier snapshot. Re-run rules tests after latest favorite rule changes. Known live blockers: Vici AI unavailable needs askVici response/logs; Firebase Storage not initialized. Dynamic translation coverage is partial. Actual camera/location, payment proof privacy, account deletion and multi-account production flows still require manual testing.
+
+Current account/ownership/QR update: read ACCOUNT-DELETION-TRANSFER.md before deploying. Deploy matching source, Netlify functions, Firestore rules/indexes and Storage rules together; wait for the ownership-transfer and events.actorUid indexes to be Enabled. Local tests pass, but the new rules emulator run was blocked by the emulator download host network policy. No production account deletion or ownership transfer was executed here.

@@ -13,7 +13,7 @@
         const awaitingProof = online && status === 'accepted' && termsReady;
         const reviewing = online && status === 'payment_submitted';
         const requirementsReady=!order.requirementsState||['confirmed','waived'].includes(order.requirementsState.status);
-        const canPrepare = requirementsReady && addressReady && (status === 'payment_confirmed' || (status === 'accepted' && !online && termsReady));
+        const canPrepare = requirementsReady && addressReady && status === 'payment_confirmed';
         return { online, verified, closed, awaitingProof, reviewing, canPrepare, termsReady, addressReady, requirementsReady };
     }
     function details(reference, amount) {
@@ -65,7 +65,9 @@
         if(order.requirementsState&&!['confirmed','waived'].includes(order.requirementsState.status))throw Object.assign(new Error('Review the requested details before setting the amount.'),{status:409});
         const amount=money(input.amount);
         if(typeof input.instructions!=='string'||input.instructions.trim().length<8||input.instructions.length>1000)throw Object.assign(new Error('Enter the payment recipient and instructions (8–1000 characters).'),{status:400});
-        return {paymentAmountDue:(amount/100).toFixed(2),paymentInstructions:input.instructions.trim(),paymentTermsVersion:2,paymentTermsNeedReview:false};
+        const method=String(input.paymentMethod||order.paymentMethod||'GCash').trim();
+        if(!['GCash','Maya','Bank Transfer'].includes(method))throw Object.assign(new Error('Choose GCash, Maya or Bank Transfer. Payment is required before preparation.'),{status:400});
+        return {paymentMethod:method,paymentFlowVersion:2,paymentAmountDue:(amount/100).toFixed(2),paymentInstructions:input.instructions.trim(),paymentTermsVersion:2,paymentTermsNeedReview:false};
     }
     const api = { isOnline, flow, details, money, cancellation, refundTransition, paymentTerms };
     if (typeof module === 'object' && module.exports) module.exports = api;

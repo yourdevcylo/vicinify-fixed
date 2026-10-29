@@ -326,8 +326,8 @@ function listenToCustomerActivities(user) {
                                 <button class="transaction-cancel-button" onclick="window.SettingsPage.cancelCustomerBooking('${d.id}')">Cancel ${cancellation.label}</button>
                             ` : status === "cancelled" ? `<div class="transaction-cancel-note">Cancelled · If paid, contact the business to arrange your refund.</div>` : ["preparing", "ready", "ready_for_pickup", "payment_confirmed", "out_for_delivery", "delivered", "fulfilled", "received"].includes(status) ? `<div class="transaction-cancel-note is-closed">Cancellation is closed at this stage. Contact the business if you need help.</div>` : ""}
 
-                            <button class="transaction-action-chat" onclick="window.openChatModal('${d.placeId}', '${safeString(d.placeName || "Establishment")}')">
-                                Open Chat
+                            <button class="transaction-action-chat" onclick="window.openChatModal('${d.placeId}', '${safeString(d.placeName || "Establishment")}', null, 'transaction')">
+                                Open transaction
                             </button>
 
                             <button class="transaction-action-chat" onclick="showPage('page-map'); setTimeout(() => window.viewPlace('${d.placeId}', { focusReviews: true }), 350)">
@@ -359,7 +359,7 @@ function listenToCustomerActivities(user) {
                 return;
             }
 
-            let docs = snap.docs.map(doc => ({ ...doc.data(), id: doc.id })).filter(d => !(d.deletedBy || []).includes(user.uid));
+            let docs = snap.docs.map(doc => ({ ...doc.data(), id: doc.id })).filter(d => !(d.deletedBy || []).includes(user.uid) && window.isConversationMessage(d));
 
             let threads = {};
 
@@ -434,8 +434,8 @@ function startFavorites(user) {
             docs.forEach(d => {
                 html += `
                     <div class="inbox-row" style="position:relative; padding-right:50px;" onclick="showPage('page-map'); setTimeout(() => window.viewPlace('${d.placeId}'), 300)">
-                        <div class="inbox-avatar" style="background:#fef2f2; color:#ef4444;">
-                            <i data-lucide="heart" style="fill:#ef4444;"></i>
+                        <div class="inbox-avatar favorite-heart">
+                            <i data-lucide="heart" style="fill:currentColor;"></i>
                         </div>
 
                         <div class="inbox-content">
@@ -640,7 +640,7 @@ function init() {
         const currentPass = curEl?.value || "", newPass = newEl?.value || "", confirmPass = confEl?.value || "";
         if (!currentPass || !newPass || !confirmPass) return alert("Please fill in current, new, and confirm password fields.");
         if (newPass !== confirmPass) return alert("New password and confirmation do not match.");
-        if (newPass.length < 8 || !/[a-z]/.test(newPass) || !/[A-Z]/.test(newPass) || !/\d/.test(newPass) || !/[!@#$%^&*(),.?":{}|<>]/.test(newPass)) return alert("New password must be at least 8 characters with uppercase, lowercase, a number, and a special character (!@#$%).");
+        if (!window.PasswordPolicy.isStrong(newPass)) return alert("New password must be at least 8 characters with uppercase, lowercase, a number, and a special character (!@#$%).");
         settingsChangeBtn.disabled = true; const old = settingsChangeBtn.textContent; settingsChangeBtn.textContent = "Updating...";
         try {
             const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPass);
@@ -695,99 +695,15 @@ function init() {
         if (!ans) return;
 
         try {
+            window.clearAccountCredentials?.();
             await window.auth.signOut();
+            window.clearAccountCredentials?.();
         } catch (error) {
             alert("Error logging out: " + error.message);
         }
     });
 
-    deleteAccountBtn?.addEventListener("click", () => {
-        const user = window.auth.currentUser;
-        if (!user) return;
-
-        const overlay = document.createElement("div");
-        overlay.style.position = "fixed";
-        overlay.style.top = "0";
-        overlay.style.left = "0";
-        overlay.style.width = "100%";
-        overlay.style.height = "100%";
-        overlay.style.background = "rgba(0,0,0,0.6)";
-        overlay.style.zIndex = "9999";
-        overlay.style.display = "flex";
-        overlay.style.alignItems = "center";
-        overlay.style.justifyContent = "center";
-
-        overlay.innerHTML = `
-            <div style="background:white; padding:24px; border-radius:16px; width:90%; max-width:340px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
-                <div style="background:#fef2f2; width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 6h18"></path>
-                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                    </svg>
-                </div>
-
-                <h3 style="margin-top:0; color:#0f172a; font-size:18px;">Delete Account</h3>
-                <p style="font-size:13px; color:#64748b; margin-bottom:20px; line-height:1.5;">
-                    This deletes your sign-in and profile. Transaction and business history remain; this is not a full data-erasure request. Enter your password to confirm.
-                </p>
-
-                <input type="password" id="delConfirmPass" placeholder="Enter your password" autocomplete="off"
-                    style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:20px; box-sizing:border-box; font-family:inherit; font-size:14px;" />
-
-                <div style="display:flex; gap:10px;">
-                    <button id="delCancelBtn" style="flex:1; padding:12px; border-radius:8px; border:none; background:#f1f5f9; color:#475569; font-weight:bold; cursor:pointer;">Cancel</button>
-                    <button id="delConfirmBtn" style="flex:1; padding:12px; border-radius:8px; border:none; background:#ef4444; color:white; font-weight:bold; cursor:pointer;">Delete Data</button>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(overlay);
-
-        document.getElementById("delCancelBtn").onclick = () => overlay.remove();
-
-        document.getElementById("delConfirmBtn").onclick = async () => {
-            const passInput = document.getElementById("delConfirmPass").value;
-
-            if (!passInput) {
-                return alert("Password cannot be empty.");
-            }
-
-            const btn = document.getElementById("delConfirmBtn");
-            btn.textContent = "Verifying...";
-            btn.disabled = true;
-
-            try {
-                const credential = firebase.auth.EmailAuthProvider.credential(user.email, passInput);
-                await user.reauthenticateWithCredential(credential);
-
-                window.isSelfDeleting = true;
-
-                const deletion = window.db.batch();
-                deletion.delete(window.db.collection("public_profiles").doc(user.uid));
-                deletion.delete(window.db.collection("users").doc(user.uid));
-                await deletion.commit();
-                await user.delete();
-
-                alert("Your sign-in account and profile were deleted. Related history records may remain for business and transaction records.");
-                window.location.reload();
-            } catch (error) {
-                window.isSelfDeleting = false;
-                console.error("Delete Error:", error);
-
-                if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
-                    alert("❌ INCORRECT PASSWORD! Account deletion failed.");
-                } else if (error.code === "auth/too-many-requests") {
-                    alert("Too many failed attempts. Please try again later.");
-                } else {
-                    alert("Error: " + error.message);
-                }
-
-                btn.textContent = "Delete Data";
-                btn.disabled = false;
-            }
-        };
-    });
+    deleteAccountBtn?.addEventListener("click", () => window.AccountDeletion?.open());
 
     document.body.addEventListener("click", e => {
         const tabBtn = e.target.closest(".cust-tab");

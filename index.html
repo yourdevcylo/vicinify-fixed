@@ -279,15 +279,15 @@
 
             <div id="catChips" class="modern-chips">
                 <button type="button" class="chip active" data-cat="all" data-color="gray"><i data-lucide="package"></i> <span data-i18n="All">All</span></button>
-                <button type="button" class="chip" data-cat="restaurant" data-color="red"><i data-lucide="utensils"></i> Restaurant</button>
-                <button type="button" class="chip" data-cat="cafe" data-color="amber"><i data-lucide="coffee"></i> Café</button>
-                <button type="button" class="chip" data-cat="bakery" data-color="orange"><i data-lucide="croissant"></i> Bakery</button>
-                <button type="button" class="chip" data-cat="milktea" data-color="pink"><i data-lucide="cup-soda"></i> Milk Tea</button>
-                <button type="button" class="chip" data-cat="snackhouse" data-color="cyan"><i data-lucide="cookie"></i> Snack House</button>
-                <button type="button" class="chip" data-cat="foodstall" data-color="green"><i data-lucide="store"></i> Food Stall</button>
-                <button type="button" class="chip" data-cat="eatery" data-color="slate"><i data-lucide="chef-hat"></i> Eatery</button>
-                <button type="button" class="chip" data-cat="dessert" data-color="purple"><i data-lucide="ice-cream"></i> Dessert Shop</button>
-                <button type="button" class="chip" data-cat="fastfood" data-color="blue"><i data-lucide="pizza"></i> Fast-Food</button>
+                <button type="button" class="chip" data-cat="restaurant" data-color="red"><i data-lucide="utensils"></i> <span data-i18n="Restaurant">Restaurant</span></button>
+                <button type="button" class="chip" data-cat="cafe" data-color="amber"><i data-lucide="coffee"></i> <span data-i18n="Café">Café</span></button>
+                <button type="button" class="chip" data-cat="bakery" data-color="orange"><i data-lucide="croissant"></i> <span data-i18n="Bakery">Bakery</span></button>
+                <button type="button" class="chip" data-cat="milktea" data-color="pink"><i data-lucide="cup-soda"></i> <span data-i18n="Milk Tea">Milk Tea</span></button>
+                <button type="button" class="chip" data-cat="snackhouse" data-color="cyan"><i data-lucide="cookie"></i> <span data-i18n="Snack House">Snack House</span></button>
+                <button type="button" class="chip" data-cat="foodstall" data-color="green"><i data-lucide="store"></i> <span data-i18n="Food Stall">Food Stall</span></button>
+                <button type="button" class="chip" data-cat="eatery" data-color="slate"><i data-lucide="chef-hat"></i> <span data-i18n="Eatery">Eatery</span></button>
+                <button type="button" class="chip" data-cat="dessert" data-color="purple"><i data-lucide="ice-cream"></i> <span data-i18n="Dessert Shop">Dessert Shop</span></button>
+                <button type="button" class="chip" data-cat="fastfood" data-color="blue"><i data-lucide="pizza"></i> <span data-i18n="Fast-Food">Fast-Food</span></button>
             </div>
             <div class="discovery-note"><div class="note-art" aria-hidden="true"><svg viewBox="0 0 330 100" fill="none"><path d="M210 -20C140 35 285 55 340 110M300 -20C175 30 185 60 290 120" stroke="white" stroke-opacity=".4" stroke-width="20"/><path d="M255 105C220 40 285 25 287 70" stroke="#86bdb3" stroke-width="2" stroke-dasharray="4 5"/><path d="m284 49 22-8-8 22-4-11-10-3Z" fill="#237f73" stroke="white" stroke-width="3" stroke-linejoin="round"/></svg></div><i data-lucide="sparkles"></i><div><strong>A little help from Vici</strong><p>Try “coffee nearby” or choose a category to start exploring.</p></div></div>
             </div>
@@ -582,6 +582,7 @@
 
             <div class="bizedit-wrap">
                 <input type="hidden" id="bizPortalId" />
+                <button type="button" class="req-btn ghost biz-transfer-btn" onclick="window.OwnershipTransfer.open(document.getElementById('bizPortalId').value)" data-i18n="Transfer ownership">Transfer ownership</button>
 
                 <h3 class="bizedit-section-title">Basic Info</h3>
                 <div class="card bizedit-card bizedit-basic-card">
@@ -798,10 +799,10 @@
 
 
 
-        <div id="termsModal" class="hidden" aria-hidden="true">
-            <div class="modalBackdrop" onclick="document.getElementById('termsModal').classList.add('hidden')"></div>
+        <div id="termsModal" class="hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
+            <div class="modalBackdrop" onclick="window.closeTermsModal()"></div>
             <div class="modalBox">
-                <div class="modalHeader"><h3>Terms and Conditions</h3><button type="button" class="modalClose" onclick="document.getElementById('termsModal').classList.add('hidden')">✕</button></div>
+                <div class="modalHeader"><h3 id="termsTitle">Terms and Conditions</h3><button type="button" class="modalClose" aria-label="Close" onclick="window.closeTermsModal()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div>
                 <div class="modalBody terms-body">
                     <p>Welcome to Vicinify: An AI-Assisted Food Establishment Locator and Recommendation System in Lipa City. By creating an account and using Vicinify, you agree to the following terms. Please read them carefully.</p>
                     <h4>1. Use of the Platform</h4>
@@ -818,7 +819,7 @@
                     <p>Participating food establishments may set their own terms regarding reservations, bookings, pre-orders, cancellations and refund percentages, pickup arrangements, and delivery arrangements, which are shown in the request process, including the cancellation policy notice. Payment is arranged directly between the user and the establishment. Users are responsible for reviewing and following the applicable establishment terms before proceeding with any request.</p>
                     <p>Vicinify may update these terms from time to time. Continued use of the platform after an update means the user accepts the updated terms.</p>
                 </div>
-                <div class="modalFooter"><button type="button" class="primary" onclick="document.getElementById('termsModal').classList.add('hidden')">Close</button></div>
+                <div class="modalFooter"><button type="button" class="primary" onclick="window.closeTermsModal()">Close</button></div>
             </div>
         </div>
 
@@ -1003,8 +1004,6 @@
                     <div class="admin-field"><label>address</label><div class="sub-label">Street address in Lipa City</div><input type="text" id="editAddress" /></div>
                     <div class="admin-field"><label>barangay</label><div class="sub-label">Barangay location</div><input type="text" id="editBrgy" /></div>
                     <div class="admin-checkbox-field"><div><label>Verified</label><div class="sub-label">Verified by admin</div></div><input type="checkbox" id="editVerified" /></div>
-                    <div class="admin-checkbox-field"><div><label>Premium</label><div class="sub-label">Premium business listing</div></div><input type="checkbox" id="editPremium" /></div>
-                    <div class="admin-checkbox-field"><div><label>Featured on map</label><div class="sub-label">Featured on map</div></div><input type="checkbox" id="editFeatured" /></div>
                     <div class="admin-field"><label>Owner Email</label><div class="sub-label">Business owner email</div><input type="text" id="editOwnerEmail" placeholder="Enter user's email..." /></div>
                     <div class="admin-checkbox-field"><label>Accepts booking</label><input type="checkbox" id="editBooking" /></div>
                     <div class="admin-field">
@@ -1026,7 +1025,7 @@
         <div id="forgotModal" class="forgot-modal" hidden role="dialog" aria-modal="true" aria-labelledby="forgotTitle">
             <div class="forgot-backdrop" data-close-forgot></div>
             <div class="forgot-box">
-                <button type="button" class="forgot-close" data-close-forgot aria-label="Close">&times;</button>
+                <button type="button" class="forgot-close" data-close-forgot aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
                 <div class="forgot-icon"><i data-lucide="key-round"></i></div>
                 <h3 id="forgotTitle">Reset your password</h3>
                 <p class="forgot-sub">Enter the email you used for Vicinify. We will send you a secure link to reset your password.</p>
@@ -1091,12 +1090,15 @@
     <script src="js/place-features.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/place-preview.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/content-policy.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/account-deletion.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/password-policy.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/common.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/vici-chat.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/map.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/add.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/buzz.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/dashboard.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/ownership-transfer.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/settings.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
 
     <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>

@@ -7,6 +7,7 @@ function createBooking(input, user, place, profile, now = Date.now()) {
     if (!types.has(input.requestType)) invalid('Choose a valid request type.');
     if (place.approval_status !== 'approved' || !place.owner_uid || place.owner_uid === user.uid)
         throw Object.assign(new Error('This establishment cannot accept this request.'),{status:409});
+    if(place.ownershipTransferPending)throw Object.assign(new Error('This establishment is completing an ownership transfer. Try again later.'),{status:409});
     const text = (key, max = 1000) => {
         const value = input[key];
         if (value == null) return null;
@@ -18,12 +19,12 @@ function createBooking(input, user, place, profile, now = Date.now()) {
     const scheduled = new Date(`${date}T${time}:00+08:00`);
     if (!Number.isFinite(scheduled.getTime()) || new Date(scheduled.getTime()+8*3600000).toISOString().slice(0,10)!==date || scheduled.getTime() <= now)
         invalid('Choose a future date and time (Philippine time).');
-    const requestType=input.requestType, orderItems=text('orderItems'),deliveryAddress=text('deliveryAddress'),paymentMethod=text('paymentMethod',80);
+    const requestType=input.requestType, orderItems=text('orderItems'),deliveryAddress=text('deliveryAddress'),paymentMethod=text('paymentMethod',80)||(input.requestType==='table_reservation'?'GCash':null);
     const guests=Number(input.guestCount);
     if (requestType==='table_reservation' && (!Number.isInteger(guests)||guests<1||guests>500)) invalid('Enter 1 to 500 guests.');
     if (requestType!=='table_reservation' && !orderItems) invalid('Enter the food or items requested.');
     if (requestType==='delivery_order' && !deliveryAddress) invalid('Enter a delivery address.');
-    if (requestType!=='table_reservation' && !paymentMethod) invalid('Choose a payment method.');
+    if (!['GCash','Maya','Bank Transfer'].includes(paymentMethod)) invalid('Choose GCash, Maya or Bank Transfer. Payment is required before preparation.');
     const rate=Number(place.refund_percent ?? 50);
     return {
         placeId:input.placeId, placeName:String(place.name || 'Establishment').slice(0,120), userId:user.uid,

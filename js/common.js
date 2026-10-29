@@ -73,7 +73,6 @@ window.LangManager = (() => {
   "Send payment details only after the business accepts.": "Ipadala lamang ang detalye ng bayad matapos tanggapin ng negosyo.",
   "Free cancellation before preparation if no payment is recorded. Paid cancellations use the saved refund rate. Refund transfers are manual and must be confirmed separately.": "Walang bayad ang pagkansela bago maghanda kung wala pang naitalang bayad. Ang kinanselang may bayad ay susunod sa nakatalang bahagdan ng ibabalik. Kailangang ipadala at kumpirmahin nang hiwalay ang ibinalik na halaga.",
   "Refund rate on paid cancellations": "Bahagdan ng ibabalik sa kinanselang may bayad",
-  "Premium": "Natatangi",
   "Welcome to Vicinify": "Maligayang pagdating sa Vicinify",
   "Sign in to continue": "Pumasok para magpatuloy",
   "Create your account": "Gumawa ng akawnt",
@@ -158,7 +157,7 @@ window.LangManager = (() => {
   "Snack House": "Meryendahan",
   "Food Stall": "Puwesto ng pagkain",
   "Eatery": "Karinderya",
-  "Dessert Shop": "Tindahan ng panghimagas",
+  "Dessert Shop": "Panghimagas",
   "Fast-Food": "Mabilisang kainan",
   "Filters": "Mga sala",
   "Open": "Bukas",
@@ -840,12 +839,8 @@ window.LangManager = (() => {
   "Permanent admin — role is locked": "Permanenteng tagapangasiwa — hindi mababago ang tungkulin",
   "Verified by admin": "Beripikado ng tagapangasiwa",
   "Accepted MOP:": "Tinatanggap na paraan ng pagbabayad:",
-  "Is featured": "Naka-gamit",
-  "Is premium": "Natatangi",
   "Is verified": "Beripikado",
   "Accepts booking": "Tumatanggap ng pagpapareserba",
-  "Premium business listing": "Natatangi na listing ng negosyo",
-  "Featured on map": "Naka-gamit sa mapa",
   "No changes": "Walang pagbabago",
   "Dismiss": "Alisin",
   "Remove": "Alisin",
@@ -1393,7 +1388,7 @@ window.LangManager = (() => {
   "Complete the requested details to continue.": "Kumpletuhin ang hinihinging detalye upang makapagpatuloy.",
   "Submit requirements": "Ipasa ang mga hinihingi",
   "Confirm details": "Kumpirmahin ang mga detalye",
-  "Waive requirements": "Huwag nang hingin",
+  "Skip requested details": "Hindi na kailangan ang mga detalye",
   "Waive these requirements?": "Huwag nang hingin ang mga ito?",
   "Continue without the requested details? This does not confirm payment.": "Magpatuloy nang hindi na hinihingi ang mga detalye? Hindi nito kinukumpirma ang bayad.",
   "Instructions (optional)": "Mga tagubilin (maaaring laktawan)",
@@ -1418,7 +1413,7 @@ window.LangManager = (() => {
   "Review the requested details before setting the amount.": "Suriin muna ang hinihinging detalye bago itakda ang halaga.",
   "Complete and confirm the requested details before payment.": "Kumpletuhin at kumpirmahin muna ang mga hinihinging detalye bago magbayad.",
   "Requirements do not belong to this transaction.": "Hindi para sa transaksiyong ito ang mga hinihingi.",
-  "Business requested transaction details.": "Humingi ang negosyo ng detalye ng transaksiyon.",
+  "Business requested transaction details.": "Humingi ang negosyo ng mga detalye ng transaksiyon.",
   "Manage my establishments": "Pamahalaan ang aking mga negosyo",
   "Hide owner tools": "Itago ang mga gamit ng may-ari",
   "No status": "Walang nakatalang kalagayan",
@@ -1445,7 +1440,140 @@ window.LangManager = (() => {
   "Vici AI cannot accept requests from this site address. Please contact the site administrator.": "Hindi makatanggap ang katulong ng Vicinify ng kahilingan mula sa adres ng pahinang ito. Makipag-ugnayan sa tagapangasiwa.",
   "Vici AI server setup is incomplete. Please contact the site administrator.": "Hindi pa kumpleto ang pagsasaayos ng katulong ng Vicinify. Makipag-ugnayan sa tagapangasiwa.",
   "Too many AI requests. Please wait before trying again.": "Masyadong maraming kahilingan sa katulong. Maghintay bago muling subukan.",
-  "Please sign in again with a verified email to use Vici AI.": "Mag-sign in muli gamit ang napatunayang adres ng elektronikong liham upang magamit ang katulong ng Vicinify."
+  "Please sign in again with a verified email to use Vici AI.": "Mag-sign in muli gamit ang napatunayang adres ng elektronikong liham upang magamit ang katulong ng Vicinify.",
+  "How to install": "Paano idagdag",
+  "App installed": "Naidagdag na ang aplikasyon",
+  "Resume Vici AI": "Buksan muli ang katulong ng Vicinify",
+  "Delete chat": "Burahin ang usapan",
+  "Request recorded": "Naitala ang kahilingan",
+  "Customer submitted transaction details.": "Isinumite ng mamimili ang mga detalye ng transaksiyon.",
+  "Transaction progress updated.": "Na-update ang pag-usad ng transaksiyon.",
+  "Open messages": "Buksan ang mga mensahe",
+  "Open transactions": "Buksan ang mga transaksiyon",
+  "Open transaction": "Buksan ang transaksiyon",
+  "Payment verified. The business can now prepare your request.": "Natiyak na ang bayad. Maaari nang ihanda ng negosyo ang iyong kahilingan.",
+  "Refund rate before preparation": "Bahagi ng bayad na ibabalik bago magsimula ang paghahanda",
+  "Cancellation closes when preparation starts.": "Hindi na maaaring magkansela kapag nagsimula na ang paghahanda.",
+  "Open inquiries": "Buksan ang mga tanong",
+  "Inquiries": "Mga tanong",
+  "Transaction": "Transaksiyon",
+  "Request, payment and progress": "Kahilingan, bayad, at pag-usad",
+  "Questions and messages": "Mga tanong at mensahe",
+  "Additional reservation details": "Karagdagang detalye ng pagpapareserba",
+  "Only ask for information missing from the reservation.": "Hingin lamang ang detalyeng kulang sa pagpapareserba.",
+  "Skip requested details?": "Hindi na kailangan ang mga detalye?",
+  "These details will no longer be required. Payment must still be verified before preparation.": "Hindi na hihingin ang mga detalyeng ito. Kailangang tiyakin pa rin ang bayad bago maghanda.",
+  "Delete account": "Burahin ang account",
+  "Check your obligations before permanently removing your account.": "Suriin ang mga pananagutan bago tuluyang burahin ang iyong account.",
+  "Confirm your password": "Kumpirmahin ang iyong kontrasenyas",
+  "Check account": "Suriin ang account",
+  "Checking account obligations…": "Sinusuri ang mga pananagutan ng account…",
+  "Resume cleanup": "Ipagpatuloy ang paglilinis",
+  "Cleanup progress": "Pag-usad ng paglilinis",
+  "Removing account data. Keep this window open; you can resume if interrupted.": "Binubura ang datos ng account. Panatilihing bukas ang pahina; maaaring ituloy kapag naputol.",
+  "Account cleanup was started. Resume to finish.": "Nagsimula na ang paglilinis ng account. Ipagpatuloy upang matapos.",
+  "Account cleanup was started. Confirm your password to resume.": "Nagsimula na ang paglilinis ng account. Kumpirmahin ang kontrasenyas upang magpatuloy.",
+  "Your account was deleted.": "Nabura na ang iyong account.",
+  "Your account was deleted. Shared transaction records retain only essential history without your profile details.": "Nabura na ang iyong account. Mahahalagang tala lamang ng pinagsaluhang transaksiyon ang nananatili, nang wala ang mga detalye ng iyong pagkakakilanlan.",
+  "Transfer administrator responsibilities before deleting this account.": "Ilipat muna ang mga tungkulin ng tagapangasiwa bago burahin ang account.",
+  "Complete or properly cancel active transactions first.": "Tapusin o wastong kanselahin muna ang mga kasalukuyang transaksiyon.",
+  "Resolve refunds and obtain receipt confirmation first.": "Ayusin muna ang pagsasauli ng bayad at kumpirmahin ang pagtanggap nito.",
+  "Resolve or withdraw pending business claims first.": "Ayusin o bawiin muna ang nakabinbing pag-angkin ng negosyo.",
+  "Accept or cancel pending ownership transfers first.": "Tanggapin o kanselahin muna ang nakabinbing paglilipat ng pagmamay-ari.",
+  "Contact support to process this account.": "Makipag-ugnayan sa tagapangasiwa upang maproseso ang account.",
+  "Deletion is blocked. Nothing has been deleted.": "Hindi pa maaaring burahin ang account. Wala pang nabura.",
+  "Close my establishments permanently instead of transferring them.": "Tuluyang isara ang aking mga establisimyento sa halip na ilipat ang pagmamay-ari.",
+  "Your login, profiles and personal data will be removed. Essential shared transaction history and anonymous ratings remain. This cannot be undone.": "Buburahin ang iyong pagpasok sa account, pagkakakilanlan, at personal na datos. Mananatili ang mahahalagang tala ng transaksiyon at mga markang walang pagkakakilanlan. Hindi na ito maibabalik.",
+  "Account checks passed. Confirm only when you are ready.": "Pumasa ang pagsusuri sa account. Kumpirmahin lamang kapag handa ka na.",
+  "Permanently delete account": "Tuluyang burahin ang account",
+  "Transfer ownership": "Ilipat ang pagmamay-ari",
+  "Ownership transfers": "Mga paglilipat ng pagmamay-ari",
+  "Ownership transfer": "Paglilipat ng pagmamay-ari",
+  "Enter the email of a verified business account. Your password confirms this request. Ownership changes only after the recipient accepts.": "Ilagay ang adres ng elektronikong liham ng isang napatunayang account ng negosyo. Kumpirmahin gamit ang iyong kontrasenyas. Magbabago lamang ang may-ari kapag tinanggap ng tatanggap.",
+  "New owner email": "Adres ng elektronikong liham ng bagong may-ari",
+  "Your current password": "Iyong kasalukuyang kontrasenyas",
+  "Confirm and request transfer": "Kumpirmahin at hilingin ang paglilipat",
+  "Transfer requested. The new owner must accept before ownership changes.": "Naipadala ang kahilingan. Kailangang tanggapin ito ng bagong may-ari bago magbago ang pagmamay-ari.",
+  "Loading transfers…": "Inihahanda ang mga paglilipat…",
+  "Choose a pending transfer to review.": "Pumili ng nakabinbing paglilipat na susuriin.",
+  "No ownership transfers.": "Walang paglilipat ng pagmamay-ari.",
+  "From": "Mula kay",
+  "To": "Para kay",
+  "Accept ownership": "Tanggapin ang pagmamay-ari",
+  "Decline transfer": "Tanggihan ang paglilipat",
+  "Cancel transfer": "Kanselahin ang paglilipat",
+  "Accept this establishment and become its owner?": "Tanggapin ang establisimyentong ito at maging may-ari nito?",
+  "Decline this ownership transfer?": "Tanggihan ang paglilipat ng pagmamay-ari?",
+  "Cancel this ownership transfer?": "Kanselahin ang paglilipat ng pagmamay-ari?",
+  "This QR expired. Scan the current QR on the store screen.": "Paso na ang kodigong ito. Basahin ang kasalukuyang kodigo sa pahina ng tindahan.",
+  "This QR belongs to another establishment.": "Para sa ibang establisimyento ang kodigong ito.",
+  "This is not a Vicinify Suki QR.": "Hindi ito kodigo ng Suki Kard ng Vicinify.",
+  "Transaction record retained after account deletion.": "Pinanatili ang tala ng transaksiyon matapos burahin ang account.",
+  "Deleted account": "Naburang account",
+  "Closed establishment": "Nagsarang establisimyento",
+  "Confirm your current password before requesting an ownership transfer.": "Kumpirmahin ang kasalukuyang kontrasenyas bago humiling ng paglilipat ng pagmamay-ari.",
+  "Choose another verified business account.": "Pumili ng ibang napatunayang account ng negosyo.",
+  "Complete transactions and refunds before transferring this establishment.": "Tapusin muna ang mga transaksiyon at pagsasauli ng bayad bago ilipat ang pagmamay-ari.",
+  "Transfer ownership first, or explicitly choose to close your establishments.": "Ilipat muna ang pagmamay-ari o piliing isara ang iyong mga establisimyento.",
+  "Enter your password.": "Ilagay ang iyong kontrasenyas.",
+  "QR changes every 30s · 1s left": "Nagbabago ang kodigo tuwing 30 segundo · 1 segundo ang natitira",
+  "QR changes every 30s · 2s left": "Nagbabago ang kodigo tuwing 30 segundo · 2 segundo ang natitira",
+  "QR changes every 30s · 3s left": "Nagbabago ang kodigo tuwing 30 segundo · 3 segundo ang natitira",
+  "QR changes every 30s · 4s left": "Nagbabago ang kodigo tuwing 30 segundo · 4 segundo ang natitira",
+  "QR changes every 30s · 5s left": "Nagbabago ang kodigo tuwing 30 segundo · 5 segundo ang natitira",
+  "QR changes every 30s · 6s left": "Nagbabago ang kodigo tuwing 30 segundo · 6 segundo ang natitira",
+  "QR changes every 30s · 7s left": "Nagbabago ang kodigo tuwing 30 segundo · 7 segundo ang natitira",
+  "QR changes every 30s · 8s left": "Nagbabago ang kodigo tuwing 30 segundo · 8 segundo ang natitira",
+  "QR changes every 30s · 9s left": "Nagbabago ang kodigo tuwing 30 segundo · 9 segundo ang natitira",
+  "QR changes every 30s · 10s left": "Nagbabago ang kodigo tuwing 30 segundo · 10 segundo ang natitira",
+  "QR changes every 30s · 11s left": "Nagbabago ang kodigo tuwing 30 segundo · 11 segundo ang natitira",
+  "QR changes every 30s · 12s left": "Nagbabago ang kodigo tuwing 30 segundo · 12 segundo ang natitira",
+  "QR changes every 30s · 13s left": "Nagbabago ang kodigo tuwing 30 segundo · 13 segundo ang natitira",
+  "QR changes every 30s · 14s left": "Nagbabago ang kodigo tuwing 30 segundo · 14 segundo ang natitira",
+  "QR changes every 30s · 15s left": "Nagbabago ang kodigo tuwing 30 segundo · 15 segundo ang natitira",
+  "QR changes every 30s · 16s left": "Nagbabago ang kodigo tuwing 30 segundo · 16 segundo ang natitira",
+  "QR changes every 30s · 17s left": "Nagbabago ang kodigo tuwing 30 segundo · 17 segundo ang natitira",
+  "QR changes every 30s · 18s left": "Nagbabago ang kodigo tuwing 30 segundo · 18 segundo ang natitira",
+  "QR changes every 30s · 19s left": "Nagbabago ang kodigo tuwing 30 segundo · 19 segundo ang natitira",
+  "QR changes every 30s · 20s left": "Nagbabago ang kodigo tuwing 30 segundo · 20 segundo ang natitira",
+  "QR changes every 30s · 21s left": "Nagbabago ang kodigo tuwing 30 segundo · 21 segundo ang natitira",
+  "QR changes every 30s · 22s left": "Nagbabago ang kodigo tuwing 30 segundo · 22 segundo ang natitira",
+  "QR changes every 30s · 23s left": "Nagbabago ang kodigo tuwing 30 segundo · 23 segundo ang natitira",
+  "QR changes every 30s · 24s left": "Nagbabago ang kodigo tuwing 30 segundo · 24 segundo ang natitira",
+  "QR changes every 30s · 25s left": "Nagbabago ang kodigo tuwing 30 segundo · 25 segundo ang natitira",
+  "QR changes every 30s · 26s left": "Nagbabago ang kodigo tuwing 30 segundo · 26 segundo ang natitira",
+  "QR changes every 30s · 27s left": "Nagbabago ang kodigo tuwing 30 segundo · 27 segundo ang natitira",
+  "QR changes every 30s · 28s left": "Nagbabago ang kodigo tuwing 30 segundo · 28 segundo ang natitira",
+  "QR changes every 30s · 29s left": "Nagbabago ang kodigo tuwing 30 segundo · 29 segundo ang natitira",
+  "QR changes every 30s · 30s left": "Nagbabago ang kodigo tuwing 30 segundo · 30 segundo ang natitira",
+  "Your login, profiles and personal data will be removed. Essential shared transaction history and anonymous ratings remain. Other participants retain their own transaction records. This cannot be undone.": "Buburahin ang iyong pagpasok sa account, pagkakakilanlan, at personal na datos. Mananatili ang mahahalagang tala ng transaksiyon at mga markang walang pagkakakilanlan. Mananatili rin ang sariling tala ng ibang kalahok. Hindi na ito maibabalik.",
+  "Could not verify your password. Please try again.": "Hindi makumpirma ang iyong kontrasenyas. Pakisubukan muli.",
+  "This protected administrator account cannot be deleted through self-service.": "Hindi maaaring burahin sa sariling pamamaraan ang protektadong account ng tagapangasiwang ito.",
+  "This establishment is closed. Open your transaction history instead.": "Sarado na ang establisimyentong ito. Buksan ang iyong tala ng transaksiyon.",
+  "Camera scanning requires a supported browser with HTTPS.": "Kailangan ng angkop na pang-browse na may HTTPS upang magamit ang kamera.",
+  "Enter the new owner email.": "Ilagay ang adres ng elektronikong liham ng bagong may-ari.",
+  "Only the current owner can transfer this establishment.": "Ang kasalukuyang may-ari lamang ang maaaring maglipat ng pagmamay-ari.",
+  "The recipient must have a registered, verified business account.": "Kailangang may nakarehistro at napatunayang account ng negosyo ang tatanggap.",
+  "Ownership or account status changed.": "Nagbago ang pagmamay-ari o kalagayan ng account.",
+  "A transfer is already pending. Cancel it before choosing another recipient.": "May nakabinbin nang paglilipat. Kanselahin ito bago pumili ng ibang tatanggap.",
+  "This transfer action is unavailable.": "Hindi magagamit ang hakbang na ito sa paglilipat.",
+  "Wait for the current transfer attempt to finish before cancelling.": "Hintaying matapos ang kasalukuyang pagtatangkang maglipat bago magkansela.",
+  "A business account is required.": "Kailangan ng account ng negosyo.",
+  "This transfer is unavailable.": "Hindi magagamit ang paglilipat na ito.",
+  "The transfer is still processing. Wait a minute before retrying.": "Pinoproseso pa ang paglilipat. Maghintay ng isang minuto bago muling subukan.",
+  "Transfer status changed. Retry or contact support.": "Nagbago ang kalagayan ng paglilipat. Subukan muli o makipag-ugnayan sa tagapangasiwa.",
+  "Transfer paused. The recipient can retry accepting it.": "Nahinto ang paglilipat. Maaaring subukang tanggapin itong muli ng tatanggap.",
+  "Cleanup is still running. Wait a minute, then resume.": "Tumatakbo pa ang paglilinis. Maghintay ng isang minuto bago magpatuloy.",
+  "Invalid deletion session.": "Hindi wasto ang pahintulot sa pagbura.",
+  "Sign in again before deleting your account.": "Pumasok muli sa account bago ito burahin.",
+  "Sign in again before resuming deletion.": "Pumasok muli sa account bago ipagpatuloy ang pagbura.",
+  "Deletion already started. Resume the cleanup.": "Nagsimula na ang pagbura. Ipagpatuloy ang paglilinis.",
+  "Resolve account obligations before deletion.": "Ayusin muna ang mga pananagutan ng account bago ito burahin.",
+  "An obligation changed. Resolve it before deleting.": "May nagbagong pananagutan. Ayusin muna ito bago magbura.",
+  "Account cleanup paused. Your deletion session is saved. Try resuming.": "Nahinto ang paglilinis ng account. Naka-save ang pahintulot sa pagbura. Subukang magpatuloy.",
+  "Sign in before deleting your account.": "Pumasok muna sa account bago ito burahin.",
+  "Deletion session is missing. Sign in again to resume.": "Nawawala ang pahintulot sa pagbura. Pumasok muli sa account upang magpatuloy.",
+  "Too many requests. Please wait a minute and try again.": "Masyadong maraming kahilingan. Maghintay ng isang minuto at subukan muli."
 };
 
     let languageFallback='en';
@@ -2150,7 +2278,13 @@ function showPage(pageId) {
 
     document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
     const page = document.getElementById(pageId);
-    if (page) page.classList.add("active");
+    if (page) {
+        page.classList.add("active");
+        window._viciNavigationAnimation?.cancel();
+        if (AppState.activePage !== pageId && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches && typeof page.animate === 'function') {
+            window._viciNavigationAnimation = page.animate([{opacity:.35},{opacity:1}], {duration:160,easing:'ease-out'});
+        }
+    }
 
     applyViciPageScrollState(pageId);
     resetViciPageScroll(pageId);
@@ -2320,7 +2454,7 @@ function initLogin() {
             if (passInput.type === "password") {
                 passInput.type = "text";
                 eyeIcon.setAttribute("data-lucide", "eye-off");
-                togglePassBtn.style.color = "#3b82f6";
+                togglePassBtn.style.color = "var(--ui-accent)";
             } else {
                 passInput.type = "password";
                 eyeIcon.setAttribute("data-lucide", "eye");
@@ -2388,10 +2522,11 @@ function initLogin() {
             const val = e.target.value;
             let score = 0;
 
-            const hasLength = val.length >= 8;
-            const hasUpperLower = /[a-z]/.test(val) && /[A-Z]/.test(val);
-            const hasNum = /\d/.test(val);
-            const hasSpec = /[!@#$%^&*(),.?":{}|<>]/.test(val);
+            const checks = window.PasswordPolicy.check(val);
+            const hasLength = checks.length;
+            const hasUpperLower = checks.case;
+            const hasNum = checks.number;
+            const hasSpec = checks.special;
 
             if (reqLength) { reqLength.style.color = hasLength ? "#10b981" : "#64748b"; reqLength.classList.toggle("met", hasLength); }
             if (reqUpper) { reqUpper.style.color = hasUpperLower ? "#10b981" : "#64748b"; reqUpper.classList.toggle("met", hasUpperLower); }
@@ -2482,11 +2617,16 @@ function initLogin() {
         });
     }
     const openTermsLink = document.getElementById("openTermsLink");
+    window.closeTermsModal=()=>{const modal=document.getElementById('termsModal');modal?.classList.add('hidden');modal?.setAttribute('aria-hidden','true');openTermsLink?.focus();};
     if (openTermsLink) {
         openTermsLink.addEventListener("click", () => {
-            document.getElementById("termsModal")?.classList.remove("hidden");
+            const modal=document.getElementById('termsModal');modal?.classList.remove('hidden');modal?.setAttribute('aria-hidden','false');modal?.querySelector('.modalClose')?.focus();
         });
     }
+    document.getElementById('termsModal')?.addEventListener('keydown',event=>{
+        if(event.key==='Escape'){event.preventDefault();window.closeTermsModal();}
+        if(event.key==='Tab'){const buttons=[...event.currentTarget.querySelectorAll('button')];if(event.shiftKey&&document.activeElement===buttons[0]){event.preventDefault();buttons.at(-1)?.focus();}else if(!event.shiftKey&&document.activeElement===buttons.at(-1)){event.preventDefault();buttons[0]?.focus();}}
+    });
 
     if (loginBtn) {
         loginBtn.addEventListener("click", async () => {
@@ -2508,7 +2648,7 @@ function initLogin() {
             }
 
             // 💥 BAGO: I-block kung hindi pa strong ang password sa Sign Up 💥
-            if (!isLoginMode && !isPasswordStrong) {
+            if (!isLoginMode && !window.PasswordPolicy.isStrong(passInput.value)) {
                 return window.alert("Please create a Strong Password based on the requirements below.");
             }
 
@@ -2571,6 +2711,19 @@ window.resendVerificationEmail = async function() {
 let currentUserDocUnsub = null;
 
 // ---------- FIREBASE AUTH STATE LISTENER ----------
+window.clearAccountCredentials = function() {
+    for(const id of ['loginEmail','loginPass','regName','forgotEmail','settingsCurrentPass','settingsNewPass','settingsConfirmPass']){
+        const input=document.getElementById(id);if(input){input.value='';input.defaultValue='';if(id==='loginPass')input.type='password';}
+    }
+    document.querySelectorAll('#ownershipTransferModal input[type=password],#accountDeletionModal input[type=password]').forEach(input=>{input.value='';});
+    document.getElementById('ownershipTransferModal')?.remove();
+    if(!window.isSelfDeleting)document.getElementById('accountDeletionModal')?.remove();
+    const toggle=document.getElementById('togglePassBtn');if(toggle){toggle.setAttribute('aria-pressed','false');toggle.setAttribute('aria-label','Show password');toggle.style.color='';}
+    document.getElementById('eyeIcon')?.setAttribute('data-lucide','eye');
+    window.debouncedIcons?.();
+};
+window.addEventListener('pageshow',event=>{if(event.persisted&&!window.auth?.currentUser)window.clearAccountCredentials();});
+
 window.auth.onAuthStateChanged(async (user) => {
     const loginBtn = document.getElementById("loginBtn");
     const dashNavBtn = document.querySelector('.nav-item[data-goto="page-dashboard"]');
@@ -2582,8 +2735,10 @@ window.auth.onAuthStateChanged(async (user) => {
 
     if (user) {
         await user.reload();
+        if(await window.AccountDeletion?.resumeIfPending(user))return;
 
         AppState.user = window.auth.currentUser;
+        window.clearAccountCredentials();
 
         // Single user-doc read: the live snapshot below doubles as the
         // profile loader (previously a separate .get() duplicated this read).
@@ -2654,6 +2809,7 @@ window.auth.onAuthStateChanged(async (user) => {
             applyProfileToUI();
         });
     } else {
+        window.clearAccountCredentials();
         AppState.user = null;
         AppState.userProfile = null;
         if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = "Sign in"; }
@@ -3268,11 +3424,11 @@ return isOwnerView ? "flex-start" : "flex-end";
 
 }
 
-function injectPremiumChatStyles() {
-    if (document.getElementById("vicinifyPremiumChatStyles")) return;
+function injectChatStyles() {
+    if (document.getElementById("vicinifyChatStyles")) return;
 
     const style = document.createElement("style");
-    style.id = "vicinifyPremiumChatStyles";
+    style.id = "vicinifyChatStyles";
     style.innerHTML = `
         #chatModal { z-index: 9998 !important; }
         #chatModal .modalBackdrop { z-index: 9998 !important; }
@@ -3642,7 +3798,7 @@ function renderInlineTransactionProgress(docs) {
     const state = getTransactionState(docs);
     if (!state.booking && !state.req && !state.resp && !state.completion) return "";
 
-    injectPremiumChatStyles();
+    injectChatStyles();
 
     const meta = state.meta;
     const pct = progressPercent(state);
@@ -3714,7 +3870,7 @@ async function addSystemUpdate(placeId, placeName, userId, userName, text, stage
     }
 }
 
-window.openChatModal = async function(placeId, placeName, customerUid = null) {
+window.openChatModal = async function(placeId, placeName, customerUid = null, mode = "messages") {
 const user = window.auth?.currentUser;
 
 if (!user) {
@@ -3762,9 +3918,16 @@ if(ownsPlace && targetUid === user.uid) {
 const isOwnerView = targetUid !== user.uid;
 if(isOwnerView && !ownsPlace && !admin)
     return window.showToast('You cannot open another customer’s conversation.','error');
+if(placeData.accountDeleted&&mode!=='transaction')return window.showToast('This establishment is closed. Open your transaction history instead.','info');
 placeName = placeData.name || placeName || 'Establishment';
 document.getElementById('chatModal').dataset.autoReply=String(!isOwnerView && placeData.auto_reply_enabled===true);
 
+document.getElementById('chatModal').dataset.mode=mode==='transaction'?'transaction':'messages';
+let switcher=document.getElementById('chatModeSwitch');
+if(!switcher){switcher=document.createElement('button');switcher.id='chatModeSwitch';switcher.type='button';switcher.className='chat-mode-switch';document.querySelector('#chatModal .chat-header-copy')?.append(switcher);}
+if(switcher){switcher.textContent=window.LangManager?.translateKey?.(mode==='transaction'?'Open inquiries':'Open transactions')||(mode==='transaction'?'Open inquiries':'Open transactions');switcher.onclick=()=>window.openChatModal(placeId,placeName,targetUid,mode==='transaction'?'messages':'transaction');}
+const headerCopy=document.querySelector('#chatModal .chat-header-copy');
+for(const [node,label] of [[headerCopy?.querySelector('.chat-header-eyebrow'),mode==='transaction'?'Transaction':'Inquiries'],[headerCopy?.querySelector('p'),mode==='transaction'?'Request, payment and progress':'Questions and messages']])if(node){node.dataset.i18n=label;node.textContent=window.LangManager?.translateKey?.(label)||label;}
 document.getElementById("chatPlaceId").value = placeId;
 document.getElementById("chatPlaceName").value = placeName || "Establishment";
 document.getElementById("chatCustomerUid").value = targetUid;
@@ -3783,7 +3946,7 @@ if (reqBtn) {
     reqBtn.style.display = isOwnerView ? "inline-flex" : "none";
 }
 
-injectPremiumChatStyles();
+injectChatStyles();
 updateChatQuickActions(isOwnerView, null);
 document.getElementById("chatModal").classList.remove("hidden");
 document.getElementById("chatModal").setAttribute("aria-hidden", "false");
@@ -4312,6 +4475,10 @@ modal.querySelector(".modalBackdrop").onclick = close;
 const contextOrder=deskOrder(chatDeskSelected);
 if(contextOrder&&contextOrder.placeId===placeId&&contextOrder.userId===customerUid){
     modal.classList.add('requirements-only');
+    if(contextOrder.requestType==='table_reservation'){
+        for(const key of ['reqAddress','reqLocation']){const field=document.getElementById(`${key}_${modalId}`);if(field){field.checked=false;field.disabled=true;field.closest('label').hidden=true;}}
+        const field=document.getElementById(`reqOrder_${modalId}`);if(field){field.closest('label').querySelector('b').textContent='Additional reservation details';field.closest('label').querySelector('small').textContent='Only ask for information missing from the reservation.';}
+    }
     document.getElementById(`reqPayment_${modalId}`).closest('label').hidden=true;
     document.getElementById(`reqAmount_${modalId}`).closest('.req-field').hidden=true;
     document.getElementById(`reqMops_${modalId}`).closest('.req-field').hidden=true;
@@ -5171,6 +5338,15 @@ function renderLegacyMessage(d, isOwner, dateStr, replyDateStr) {
     return html;
 }
 
+function isConversationMessage(message) { return (!message.type || message.type==='text') && !message.bookingId && !message.transactionId; }
+window.isConversationMessage=isConversationMessage;
+function renderPinnedTransactionHistory(message, time, orders) {
+    const kinds={booking_card:'Request recorded',requirement_request:'Business requested transaction details.',requirement_response:'Customer submitted transaction details.',completion_request:'Transaction progress updated.'};
+    if(!kinds[message.type] || !orders.some(order=>[order.id,order.bookingId].filter(Boolean).some(id=>[message.bookingId,message.transactionId,message.type==='booking_card'?message.id:null].filter(Boolean).includes(id))))return null;
+    const translate=text=>window.LangManager?.translateKey?.(text)||text;
+    return `<div class="transaction-history-update"><i data-lucide="clipboard-check" aria-hidden="true"></i><span>${escapeHtml(translate(kinds[message.type]))}</span><time>${escapeHtml(time)}</time></div>`;
+}
+
 function chatDayInfo(message, now = new Date()) {
     const stamp = message.createdAt?.toDate?.();
     const date = stamp instanceof Date && Number.isFinite(stamp.getTime()) ? stamp : now;
@@ -5203,9 +5379,10 @@ function renderRequestProcess(order,requirements) {
     const active=!['cancelled','rejected'].includes(status);
     if(!active)return '';
     const requirementDone=!requirements||['confirmed','waived'].includes(requirements.status);
-    const steps=[['Request sent',true],['Acceptance',status!=='pending'],['Requirements',requirementDone&&flow.addressReady],[order.paymentMethod&&!flow.online?'Payment setup':'Payment',!order.paymentMethod || (!flow.online&&flow.termsReady) || flow.verified],['Preparation',['delivered','fulfilled','received'].includes(status)],['Completion',status==='received']];
+    const steps=[['Request sent',true],['Acceptance',status!=='pending'],['Requirements',requirementDone&&flow.addressReady],['Payment',flow.verified],['Preparation',['delivered','fulfilled','received'].includes(status)],['Completion',status==='received']];
     let current=active?steps.findIndex(([,done])=>!done):-1;
-    return `<ol class="transaction-process" aria-label="${escapeHtml(t('Request progress'))}">${steps.map(([label,done],index)=>`<li class="${(current===-1||index<current)?'is-done':index===current?'is-current':'is-pending'}"${index===current?' aria-current="step"':''}><span aria-hidden="true">${(current===-1||index<current)?'✓':index+1}</span>${escapeHtml(t(label))}</li>`).join('')}</ol>`;
+    const currentLabel=current>=0?steps[current][0]:status==='received'?'Completed':status;
+    return `<details class="transaction-process-details"><summary>${escapeHtml(t('Request progress'))} · ${escapeHtml(t(currentLabel))}</summary><ol class="transaction-process" aria-label="${escapeHtml(t('Request progress'))}">${steps.map(([label,done],index)=>`<li class="${(current===-1||index<current)?'is-done':index===current?'is-current':'is-pending'}"${index===current?' aria-current="step"':''}><span aria-hidden="true">${(current===-1||index<current)?'✓':index+1}</span>${escapeHtml(t(label))}</li>`).join('')}</ol></details>`;
 }
 function renderDeskRequirements(state) {
     const t=s=>window.LangManager?.translateKey?.(s)||s;
@@ -5231,10 +5408,10 @@ function renderTransactionDesk(order,isOwner,orders=[]) {
         next=requirements.status==='submitted'?(isOwner?'Review the submitted details before continuing.':'Your details were submitted. Wait for business review.'):(isOwner?'Waiting for the requested customer details.':'Complete the requested details to continue.');
         if(!isOwner&&requirements.status==='waiting_customer')buttons=action('requirements-submit','Submit requirements');
         if(isOwner&&requirements.status==='submitted'&&requirements.responseId)buttons=action('requirements-confirm','Confirm details');
-        if(isOwner&&requirements.canonical)buttons+=action('requirements-waive','Waive requirements');
+        if(isOwner&&requirements.canonical)buttons+=action('requirements-waive','Skip requested details');
     }
     else if(status==='accepted'&&!flow.addressReady){next='Add the delivery address before the final amount is set.';if(!isOwner)buttons=action('delivery-details','Add delivery address');}
-    else if(status==='accepted'&&!flow.termsReady){next='The business must set the amount and payment instructions first.';if(isOwner)buttons=action('terms','Set payment instructions');}
+    else if(status==='accepted'&&(!flow.termsReady||!flow.online||!order.paymentMethod)){next='The business must set the amount and payment instructions first.';if(isOwner)buttons=action('terms','Set payment instructions');}
     else if(status==='accepted'&&flow.online){
         const terms=order.paymentAmountDue&&order.paymentInstructions;
         next=terms?(isOwner?'Waiting for the customer to submit payment details.':'Pay the agreed amount once, then submit your reference.'): 'The business must set the amount and payment instructions first.';
@@ -5243,7 +5420,7 @@ function renderTransactionDesk(order,isOwner,orders=[]) {
         const legacy=currentChatDocsCache.find(d=>d.type==='requirement_response'&&([d.bookingId,d.transactionId].includes(id)||(isOwner&&!d.bookingId))&&d.paymentReference);
         if(legacy)buttons+=`<button type="button" data-tx-action="import" data-booking-id="${esc(id)}" data-message-id="${esc(legacy.id)}">${esc(t('Use earlier payment details'))}</button>`;
     } else if(status==='payment_submitted'){next=isOwner?'Check the reference and money received before verifying payment.':'Payment is under review. Do not pay again.';if(isOwner)buttons=action('verify','Verify payment')+action('decline','Request correction');}
-    else if(flow.canPrepare){next='Payment and preparation are separate steps.';if(isOwner)buttons=action('prepare','Start preparing');}
+    else if(flow.canPrepare){next='Payment verified. The business can now prepare your request.';if(isOwner)buttons=action('prepare','Start preparing');}
     else if(status==='preparing'){next='The business is preparing your request.';if(isOwner)buttons=action(['delivery','delivery_order'].includes(order.requestType)?'dispatch':'ready',['delivery','delivery_order'].includes(order.requestType)?'Mark out for delivery':'Mark ready');}
     else if(status==='ready'){next='Your request is ready.';if(isOwner)buttons=action('fulfill','Mark fulfilled');}
     else if(status==='out_for_delivery'){next='Your order is on the way.';if(isOwner)buttons=action('deliver','Mark delivered');}
@@ -5262,9 +5439,11 @@ function renderTransactionDesk(order,isOwner,orders=[]) {
     if(!isOwner&&window.PaymentPolicy.cancellation(order).allowed)buttons+=action('cancel','Cancel request');
     const value=(label,value,personal=false)=>value?`<div><dt>${esc(t(label))}</dt><dd${personal?' data-no-translate':''}>${esc(String(value))}</dd></div>`:'';
     const selector=orders.length>1?`<select aria-label="Choose transaction" id="chatTransactionSelect">${orders.map(d=>`<option value="${esc(d.id)}"${d.id===id?' selected':''}>${esc(t(d.requestLabel||'Request')+' · '+String(d.id).slice(-6))}</option>`).join('')}</select>`:'';
-    return `<div class="transaction-desk-top"><b>${esc(t('Current transaction'))}</b><span>${esc(t(status.replace(/_/g,' ')))}</span></div>${selector}${renderRequestProcess(order,requirements)}<p class="transaction-desk-next">${esc(t(next))}</p>${!['cancelled','rejected'].includes(status)?renderDeskRequirements(requirements):''}${status==='accepted'&&flow.online&&flow.termsReady&&detailsReady&&order.paymentInstructions?`<p class="transaction-desk-payto" data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl class="transaction-desk-money">${value('Amount due',flow.termsReady&&detailsReady&&order.paymentAmountDue?'₱'+order.paymentAmountDue:'')}${value('Submitted payment',order.paymentAmount?'₱'+order.paymentAmount:'')}${value('Reference',order.paymentReference,true)}${value('Refund amount',order.refundAmount!=null?'₱'+order.refundAmount:'')}${value('Refund calculation',order.refundBaseAmount&&order.refundAmount!=null?'₱'+order.refundBaseAmount+' × '+order.refundPercent+'%':'')}${value('Refund reference',order.refundReference,true)}</dl><details class="transaction-desk-details"><summary>${esc(t('Payment and request details'))}</summary><p class="transaction-desk-id" data-no-translate>TX-${esc(String(id).slice(-8))}</p>${flow.termsReady&&detailsReady&&order.paymentInstructions?`<p data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl>${value('Reference',order.paymentReference,true)}${value('Refund reference',order.refundReference,true)}${value('Business note',order.paymentReviewNote||order.refundNote,true)}</dl>${order.paymentProofPath?`<div class="transaction-desk-proof" data-tx-proof="${esc(order.paymentProofPath)}" data-booking-id="${esc(id)}"></div>`:''}${renderRequestDetailRows(order)}<p>${esc(t('Vicinify records manual payments and refunds. It does not transfer money.'))}</p></details><div class="transaction-desk-actions">${buttons}</div>`;
+    return `<div class="transaction-desk-top"><b>${esc(t('Current transaction'))}</b><span>${esc(t(status.replace(/_/g,' ')))}</span></div>${selector}${renderRequestProcess(order,requirements)}<p class="transaction-desk-next">${esc(t(next))}</p>${!['cancelled','rejected'].includes(status)?renderDeskRequirements(requirements):''}${status==='accepted'&&flow.online&&flow.termsReady&&detailsReady&&order.paymentInstructions?`<p class="transaction-desk-payto" data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl class="transaction-desk-money">${value('Amount due',flow.termsReady&&detailsReady&&order.paymentAmountDue?'₱'+order.paymentAmountDue:'')}${value('Submitted payment',order.paymentAmount?'₱'+order.paymentAmount:'')}${value('Reference',order.paymentReference,true)}${value('Refund amount',order.refundAmount!=null?'₱'+order.refundAmount:'')}${value('Refund calculation',order.refundBaseAmount&&order.refundAmount!=null?'₱'+order.refundBaseAmount+' × '+order.refundPercent+'%':'')}${value('Refund reference',order.refundReference,true)}</dl><details class="transaction-desk-details"><summary>${esc(t('Payment and request details'))}</summary><p class="transaction-desk-next">${esc(t('Refund rate before preparation'))}: ${esc(String(order.refundPercent ?? 50))}% · ${esc(t('Cancellation closes when preparation starts.'))}</p><p class="transaction-desk-id" data-no-translate>TX-${esc(String(id).slice(-8))}</p>${flow.termsReady&&detailsReady&&order.paymentInstructions?`<p data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl>${value('Reference',order.paymentReference,true)}${value('Refund reference',order.refundReference,true)}${value('Business note',order.paymentReviewNote||order.refundNote,true)}</dl>${order.paymentProofPath?`<div class="transaction-desk-proof" data-tx-proof="${esc(order.paymentProofPath)}" data-booking-id="${esc(id)}"></div>`:''}${renderRequestDetailRows(order)}<p>${esc(t('Vicinify records manual payments and refunds. It does not transfer money.'))}</p></details><div class="transaction-desk-actions">${buttons}</div>`;
 }
 function refreshTransactionDesk(isOwner) {
+    if(document.getElementById('chatModal')?.dataset.mode==='messages'){document.getElementById('chatTransactionSummary')?.classList.add('hidden');return;}
+
     const wrap=document.getElementById('chatTransactionSummary');if(!wrap)return;
     const fallback=currentChatDocsCache.filter(d=>d.type==='booking_card').map(d=>({...d,id:d.bookingId}));
     const orders=chatDeskOrders.length?chatDeskOrders:fallback;
@@ -5277,9 +5456,11 @@ function refreshTransactionDesk(isOwner) {
     if(wrap.__transactionMarkup===markup)return;
     const same=wrap.dataset.bookingId===(order?.bookingId||order?.id||'');
     const openRequirements=same&&!!wrap.querySelector('.transaction-requirements')?.open,openDetails=same&&!!wrap.querySelector('.transaction-desk-details')?.open;
+    const openProcess=same&&!!wrap.querySelector('.transaction-process-details')?.open;
     const oldScroll=same?wrap.scrollTop:0,focused=document.activeElement;
     const focusAction=wrap.contains(focused)?focused?.dataset?.txAction:null;
     wrap.__transactionMarkup=markup;wrap.dataset.bookingId=order?.bookingId||order?.id||'';wrap.innerHTML=markup;
+    if(openProcess&&wrap.querySelector('.transaction-process-details'))wrap.querySelector('.transaction-process-details').open=true;
     if(openRequirements&&wrap.querySelector('.transaction-requirements'))wrap.querySelector('.transaction-requirements').open=true;
     if(openDetails&&wrap.querySelector('.transaction-desk-details'))wrap.querySelector('.transaction-desk-details').open=true;
     wrap.scrollTop=oldScroll;
@@ -5318,7 +5499,7 @@ window.transactionDeskAction=async function(action,id,messageId){
         if(action==='requirements-confirm'){const req=deskRequirements(order);if(req?.responseId)return await window.confirmRequirementResponse(req.responseId);return;}
         if(action==='requirements-waive'){
             const req=deskRequirements(order);if(!req)return;
-            if(!await window.vConfirm('Waive these requirements?','Continue without the requested details? This does not confirm payment.','Continue'))return;
+            if(!await window.vConfirm('Skip requested details?','These details will no longer be required. Payment must still be verified before preparation.','Continue'))return;
             patch={requirements:{action:'waive',requestId:req.requestId}};
         }else if(action==='proof')return await window.uploadPaymentProof(id,'');
         if(['verify','decline'].includes(action))return await window.reviewPaymentProof(id,'',action==='verify'?'confirm':'resubmit');
@@ -5328,7 +5509,7 @@ window.transactionDeskAction=async function(action,id,messageId){
         }else if(action==='delivery-details'){
             const input=await transactionInputDialog('Delivery address',[{name:'houseStreet',label:'House number, street or subdivision'},{name:'barangay',label:'Barangay'},{name:'city',label:'City / Municipality'},{name:'landmark',label:'Landmark'}],'The business uses this address to confirm the total and delivery fee.');if(!input)return;patch={deliveryDetails:input};
         }else if(action==='terms'){
-            const input=await transactionInputDialog('Set payment instructions',[{name:'amount',label:'Amount due now (₱)',money:true,value:order.paymentAmountDue},{name:'instructions',label:'Payment recipient and instructions',area:true,min:8,value:order.paymentInstructions}],'Include the recipient name, account number and agreed amount. This does not confirm a payment.');if(!input)return;patch={paymentTerms:input};
+            const input=await transactionInputDialog('Set payment instructions',[{name:'paymentMethod',label:'Payment Method',value:window.PaymentPolicy.isOnline(order)?order.paymentMethod:'GCash'},{name:'amount',label:'Amount due now (₱)',money:true,value:order.paymentAmountDue},{name:'instructions',label:'Payment recipient and instructions',area:true,min:8,value:order.paymentInstructions}],'Include the recipient name, account number and agreed amount. This does not confirm a payment.');if(!input)return;patch={paymentTerms:input};
         }else if(action==='refund-check'){
             const input=await transactionInputDialog('Verify received payment',[{name:'receivedAmount',label:'Amount actually received (₱)',money:true,value:order.paymentAmount}],'Check your account first. The refund will be calculated using the saved cancellation rate.');if(!input)return;patch={refundStatus:'pending',...input};
         }else if(action==='refund-missing'){
@@ -5374,8 +5555,10 @@ listWrap.innerHTML = `<div class="muted" style="text-align:center; padding:20px;
 // echo of our own seen-marker writes) render ONCE per frame with the
 // latest data instead of rebuilding the whole thread every time.
 let _pendingChatSnap = null;
+let _lastChatSnap = null;
 let _chatRenderQueued = false;
 const queueChatRender = (snap) => {
+    _lastChatSnap = snap;
     _pendingChatSnap = snap;
     if (_chatRenderQueued) return;
     _chatRenderQueued = true;
@@ -5405,10 +5588,11 @@ const stopMessages = window.db.collection("messages")
     });
 
 
-const stopOrders=window.ViciData.listen('chat-orders:'+placeId+':'+targetUid,
+const stopOrders=document.getElementById('chatModal')?.dataset.mode==='messages'?()=>{}:window.ViciData.listen('chat-orders:'+placeId+':'+targetUid,
     window.db.collection('bookings').where('placeId','==',placeId).where('userId','==',targetUid).orderBy('createdAt','desc').limit(5),snap=>{
         if(document.getElementById('chatPlaceId')?.value!==placeId||document.getElementById('chatCustomerUid')?.value!==targetUid)return;
         chatDeskOrders=snap.docs.map(d=>({...d.data(),id:d.id,bookingId:d.id}));refreshTransactionDesk(isOwner);
+        if(_lastChatSnap)queueChatRender(_lastChatSnap);
     },error=>{console.warn('Transaction summary unavailable:',error);window.showToast?.('Transaction summary could not load. Please try reopening the conversation.','error');});
 currentChatUnsub=()=>{stopMessages();stopOrders();chatDeskOrders=[];chatDeskSelected=null;const panel=document.getElementById('chatTransactionSummary');if(panel){panel.classList.add('hidden');panel.replaceChildren();panel.__transactionMarkup=null;delete panel.dataset.bookingId;}};
 
@@ -5422,6 +5606,7 @@ const renderChatSnap = (snap) => {
         let docs = snap.docs.map(d => ({ ...d.data(), id: d.id })).filter(d => !(d.deletedBy || []).includes(user?.uid));
         currentChatDocsCache = docs;
         refreshTransactionDesk(isOwner);
+        docs=docs.filter(d=>document.getElementById('chatModal')?.dataset.mode==='messages'?isConversationMessage(d):!isConversationMessage(d));
 
         if (docs.length === 0) {
             listWrap.innerHTML = `<div class="chat-empty"><span class="chat-empty-icon"><i data-lucide="messages-square"></i></span><h4>Start a conversation</h4><p>Ask about the menu, availability, or your request. Choose a quick question below to get started.</p></div>`;
@@ -5462,6 +5647,9 @@ const renderChatSnap = (snap) => {
                 html += renderSystemUpdate(d, dateStr);
                 return;
             }
+
+            const pinnedHistory = renderPinnedTransactionHistory(d, dateStr, chatDeskOrders);
+            if (pinnedHistory !== null) { html += pinnedHistory; return; }
 
             if (d.type === "booking_card") {
                 const status = d.bookingStatus || d.status || "pending";
@@ -5973,6 +6161,7 @@ window.GlobalNotifier = (() => {
     }
 
     function isOwnerUnreadMessage(data, uid) {
+        if(!isConversationMessage(data))return false;
         if (!uid) return false;
         if (hasReadBy(data, "ownerReadBy", uid)) return false;
         if (data.senderUid === uid || data.createdBy === uid || data.userId === uid) return false;
@@ -5990,6 +6179,7 @@ window.GlobalNotifier = (() => {
     }
 
     function isCustomerUnreadMessage(data, uid) {
+        if(!isConversationMessage(data))return false;
         if (!uid) return false;
         if (hasReadBy(data, "customerReadBy", uid)) return false;
         if (data.senderUid === uid || data.createdBy === uid) return false;
@@ -6433,9 +6623,6 @@ window.renderListView = function(filteredPlaces) {
             <div class="place-list-summary" style="display: flex; gap: 16px; position: relative;">
                 <div class="place-list-thumbnail" style="position: relative; width: 72px; height: 72px; flex-shrink: 0; border-radius: 8px; border: 1px solid #f1f5f9;">
                     ${imgHtml}
-                    <button type="button" class="place-list-action" data-action="favorite" data-place-id="${escapeHtml(place.id)}" aria-label="Save establishment" style="position: absolute; top: -6px; right: -6px; background: #facc15; border: 2px solid white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <i data-lucide="star" style="width: 12px; height: 12px; fill: white; color: white;"></i>
-                    </button>
                 </div>
                 <div class="place-list-info" style="flex: 1; min-width: 0;">
                     <div class="place-list-heading" style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -6642,7 +6829,7 @@ window.SukiDesign = (() => {
 
 window.Suki = (() => {
     const D = window.SukiDesign;
-    const TOKEN_WINDOW_MS = 10000; // ~10s rotating window (demo-grade)
+    const TOKEN_WINDOW_MS = 30000; // Client display rotates every 30s; not a server-issued challenge.
 
     function sukiEsc(str) {
         if (str == null) return "";
@@ -6900,7 +7087,7 @@ window.Suki = (() => {
     }
 
     /* ---------- rotating QR token (demo-grade) ---------- */
-    function tokenWindow(nowMs) { return Math.floor((nowMs || Date.now()) / TOKEN_WINDOW_MS); }
+    function tokenWindow(nowMs) { return Math.floor((nowMs ?? Date.now()) / TOKEN_WINDOW_MS); }
     // Token format: VICINIFY-SUKI|<placeId>|<windowId>
     function makeToken(placeId, nowMs) { return `VICINIFY-SUKI|${placeId}|${tokenWindow(nowMs)}`; }
     function parseToken(str) {
@@ -6916,26 +7103,25 @@ window.Suki = (() => {
         return parsed.windowId === cur || parsed.windowId === cur - 1;
     }
 
+    const sukiLibraryLoads = new Map();
     function loadScriptOnce(src) {
-        return new Promise((resolve, reject) => {
-            if (document.querySelector(`script[data-suki-lib="${src}"]`)) return resolve();
-            const s = document.createElement("script");
-            s.src = src;
-            s.async = true;
-            s.setAttribute("data-suki-lib", src);
-            s.onload = () => resolve();
-            s.onerror = () => reject(new Error("Failed to load " + src));
-            document.head.appendChild(s);
-        });
+        if(src.includes('qrcode')&&window.QRCode || src.includes('jsQR')&&window.jsQR)return Promise.resolve();
+        if(sukiLibraryLoads.has(src))return sukiLibraryLoads.get(src);
+        const promise=new Promise((resolve,reject)=>{
+            const script=document.createElement('script');script.src=src;script.async=true;script.dataset.sukiLib=src;
+            script.onload=()=>resolve();script.onerror=()=>{script.remove();sukiLibraryLoads.delete(src);reject(new Error('Failed to load scanner library.'));};
+            document.head.append(script);
+        });sukiLibraryLoads.set(src,promise);return promise;
     }
-    const QR_LIB = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
-    const JSQR_LIB = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js";
+    const QR_LIB = "/js/vendor/qrcode.min.js";
+    const JSQR_LIB = "/js/vendor/jsQR.js";
 
     // Owner-side: rotating QR display. The timer is module-level, not
     // element-tracked: mountPlaceSection replaces the [data-suki-qr]
     // element via innerHTML on every visit, which orphaned the timer
     // on the destroyed element — one leaked 1s interval per visit,
     // the reported establishment-page lag. (v53 lag fix)
+    let activeSukiScannerClose = null;
     let ownerQrTimer = null;
     let ownerQrGen = 0;
     async function renderOwnerQr(el, placeId) {
@@ -6956,7 +7142,7 @@ window.Suki = (() => {
         const paint = () => {
             box.innerHTML = "";
             const token = makeToken(placeId);
-            try { new window.QRCode(box, { text: token, width: 180, height: 180, correctLevel: window.QRCode.CorrectLevel.M }); }
+            try { new window.QRCode(box, { text: token, width: 224, height: 224, colorDark: "#000000", colorLight: "#ffffff", correctLevel: window.QRCode.CorrectLevel.M }); }
             catch (e) { box.textContent = token; }
             el.querySelector(".suki-qr-token").textContent = token;
         };
@@ -6964,9 +7150,9 @@ window.Suki = (() => {
         const tick = () => {
             const w = tokenWindow();
             if (w !== lastWindow) { lastWindow = w; paint(); }
-            const left = 10 - Math.floor(Date.now() / 1000) % 10;
+            const left = 30 - Math.floor(Date.now() / 1000) % 30;
             const countEl = el.querySelector(".suki-qr-count");
-            if (countEl) countEl.textContent = `Token refreshes every 10s • ${left}s left`;
+            if (countEl) countEl.textContent = `QR changes every 30s · ${left}s left`;
         };
         if (gen !== ownerQrGen) return; // superseded: a newer mount/unmount won the race
         paint();
@@ -6983,6 +7169,7 @@ window.Suki = (() => {
        with a generation counter: re-mounting increments the generation so stale
        async mounts abort, and unmounting clears the interval outright. */
     function unmountPlaceSection() {
+        activeSukiScannerClose?.();
         ownerQrGen++;
         if (ownerQrTimer) { clearInterval(ownerQrTimer); ownerQrTimer = null; }
         if (window.SukiPlaceRefresh) window.SukiPlaceRefresh = null;
@@ -7191,6 +7378,8 @@ window.Suki = (() => {
         });
     }
     async function openScanner(expectedPlace) {
+        activeSukiScannerClose?.();
+        if(!navigator.mediaDevices?.getUserMedia){window.showToast?.("Camera scanning requires a supported browser with HTTPS.","error");return;}
         const overlay = document.createElement("div");
         overlay.className = "suki-scan-overlay";
         overlay.innerHTML = `
@@ -7204,12 +7393,16 @@ window.Suki = (() => {
                 <div class="suki-scan-hint">Point the camera at the store's Suki QR. You must be at the establishment — your location will be verified.</div>
             </div>`;
         document.body.appendChild(overlay);
+        let cancelledWhileLoading=false;
+        activeSukiScannerClose=()=>{cancelledWhileLoading=true;overlay.remove();activeSukiScannerClose=null;};
+        overlay.querySelector('.suki-scan-close').onclick=activeSukiScannerClose;
         try { await loadScriptOnce(JSQR_LIB); }
         catch (e) {
             overlay.remove();
             window.showToast?.("Could not load the scanner. Please check your connection and try again.", "error");
             return;
         }
+        if(cancelledWhileLoading||!overlay.isConnected)return;
         const video = overlay.querySelector("video");
         const canvas = overlay.querySelector("canvas");
         const ctx = canvas.getContext("2d", { willReadFrequently: true });
@@ -7219,23 +7412,32 @@ window.Suki = (() => {
             cancelAnimationFrame(raf);
             if (stream) stream.getTracks().forEach(t => t.stop());
             overlay.remove();
+            activeSukiScannerClose=null;
         };
+        activeSukiScannerClose=close;
         overlay.querySelector(".suki-scan-close").onclick = close;
         try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: {ideal:"environment"}, width:{ideal:1280}, height:{ideal:720}, frameRate:{ideal:24,max:30} }, audio: false });
         } catch (e) {
             close();
             window.showToast?.("Could not open the camera. Please allow camera access and try again.", "error");
             return;
         }
+        if(done||!overlay.isConnected){stream.getTracks().forEach(track=>track.stop());return;}
         video.srcObject = stream;
         try { await video.play(); } catch (e) { close(); return; }
+        let lastDecode=0;
         const loop = () => {
             if (done) return;
+            if(!overlay.isConnected){close();return;}
+            const now=performance.now();
+            if(now-lastDecode<100){raf=requestAnimationFrame(loop);return;}
+            lastDecode=now;
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0);
+                const scale=Math.min(1,960/video.videoWidth);
+                canvas.width = Math.round(video.videoWidth*scale);
+                canvas.height = Math.round(video.videoHeight*scale);
+                ctx.drawImage(video, 0, 0,canvas.width,canvas.height);
                 try {
                     const code = window.jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
                     if (code && code.data) {
@@ -7245,6 +7447,7 @@ window.Suki = (() => {
                             requestStampForPlaceId(parsed.placeId);
                             return;
                         }
+                        overlay.querySelector('.suki-scan-hint').textContent=parsed?(!tokenValid(parsed)?'This QR expired. Scan the current QR on the store screen.':'This QR belongs to another establishment.'):'This is not a Vicinify Suki QR.';
                     }
                 } catch (e) { /* keep scanning */ }
             }

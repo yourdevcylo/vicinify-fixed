@@ -5,7 +5,8 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function signedIn() {
-      return request.auth != null;
+      return request.auth != null
+        && !exists(/databases/$(database)/documents/account_deletions/$(request.auth.uid));
     }
 
     // Email must be verified for WRITES (spam/abuse gate).
@@ -125,6 +126,9 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/places/$(placeId)).data.owner_uid == request.auth.uid;
     }
 
+    match /account_deletions/{userId} { allow read, write: if false; }
+    match /ownership_transfers/{placeId} { allow read, write: if false; }
+
     match /users/{userId} {
       // Single profile lookup (owners see a customer's display name).
       allow get: if signedIn() && (request.auth.uid == userId || isAdmin());
@@ -154,13 +158,8 @@ service cloud.firestore {
           && request.resource.data.role != "admin"
         );
 
-      // Settings → Delete Account deletes your own profile doc first.
-      // The permanent admin's doc can never be deleted.
-      allow delete: if !isPermanentAdminId(userId)
-        && (
-          isAdmin()
-          || (signedIn() && request.auth.uid == userId)
-        );
+      // Account removal is performed by the resumable server workflow.
+      allow delete: if false;
     }
 
     match /public_profiles/{userId} {
@@ -168,7 +167,7 @@ service cloud.firestore {
       allow create, update: if signedIn() && request.auth.uid == userId
         && request.resource.data.keys().hasOnly(["fullName"])
         && validName(request.resource.data.fullName);
-      allow delete: if signedIn() && request.auth.uid == userId;
+      allow delete: if false;
     }
 
     // Administrative ownership contact data must not live in public place documents.
@@ -177,7 +176,8 @@ service cloud.firestore {
     }
 
     match /places/{placeId} {
-      allow read: if resource.data.approval_status == "approved" || isAdmin()
+      allow read: if resource.data.approval_status == "approved"
+        || (resource.data.get("accountDeleted",false) == true && resource.data.approval_status == "archived") || isAdmin()
         || (signedIn() && (resource.data.owner_uid == request.auth.uid || resource.data.addedBy == request.auth.uid));
 
       allow create: if verifiedEmail()
@@ -216,12 +216,12 @@ service cloud.firestore {
           // change who added it, approve their own place, or touch
           // verification/trust fields (self-verification hole closed).
           verifiedEmail()
-          && isPlaceOwner(placeId) && validAutoReplies(request.resource.data)
+          && isPlaceOwner(placeId) && !resource.data.get('ownershipTransferPending',false) && validAutoReplies(request.resource.data)
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['description']) || validDescription(request.resource.data.description))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['desc']) || validDescription(request.resource.data.desc))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['name']) || validPlaceName(request.resource.data.name))
           && !request.resource.data.diff(resource.data).affectedKeys()
-               .hasAny(["owner_uid", "owner_email", "addedBy", "approval_status",
+               .hasAny(["owner_uid", "owner_email", "addedBy", "approval_status", "ownershipTransferPending",
                         "is_verified", "claimStatus",
                         "is_premium", "is_featured", "avgRating", "reviewCount", "ratingSum"])
         );
@@ -298,6 +298,7 @@ service cloud.firestore {
         && msgId.matches('^[A-Za-z0-9_-]{1,180}$')
         && request.resource.data.placeId is string
         && request.resource.data.userId is string
+        && !exists(/databases/$(database)/documents/account_deletions/$(request.resource.data.userId))
         && request.resource.data.createdAt == request.time
         && messageGate(msgId,request.resource.data.type == "text")
         && !request.resource.data.keys().hasAny(['isAutoReply','autoReplyTopic','replyTo'])

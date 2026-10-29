@@ -136,38 +136,34 @@ window.AddPage = (() => {
         document.getElementById("lngOut").textContent = lng?.toFixed?.(6) ?? "—";
     }
 
-    // Reverse-geocode the pin into the Barangay select + Address line.
-    // Debounced (drags fire repeatedly); the street line is only filled
-    // when empty or previously auto-filled — never over the user's text.
-    let pinGeocodeTimer = null, lastPinBarangay = "";
+    // Debounce pin detection and apply only the newest result. Manual edits are preserved.
+    let pinGeocodeTimer = null, pinGeocodeVersion = 0, lastPinBarangay = "";
     function autofillFromPin(lat, lng) {
+        const version=++pinGeocodeVersion;
         clearTimeout(pinGeocodeTimer);
+        const fields=[document.getElementById('bizAddr'),document.getElementById('bizBrgy')];
+        fields.forEach(field=>{
+            if(!field||field.dataset.geoBound)return;
+            field.dataset.geoBound='1';
+            field.addEventListener(field.tagName==='SELECT'?'change':'input',()=>{field.dataset.geoManual=field.value.trim()?'1':'';delete field.dataset.geoValue;});
+        });
         pinGeocodeTimer = setTimeout(async () => {
             if (!window.reverseGeocode) return;
             const geo = await window.reverseGeocode(lat, lng);
-            if (!geo) return;
+            if (version!==pinGeocodeVersion || !geo) return;
+            const canFill=field=>field&&field.dataset.geoManual!=='1'&&(!field.value.trim()||field.value===field.dataset.geoValue);
+            const assign=(field,value)=>{field.value=value;field.dataset.geoValue=value;};
             const sel = document.getElementById("bizBrgy");
-            if (sel && geo.barangay) {
-                const norm = s => String(s || "").toLowerCase().replace(/^barangay\s+/, "").trim();
-                const want = norm(geo.barangay);
-                let opt = Array.from(sel.options).find(o => norm(o.value) === want);
-                if (!opt) {
-                    const hits = Array.from(sel.options).filter(o => want && norm(o.value).includes(want));
-                    if (hits.length === 1) opt = hits[0];
-                }
-                if (opt) sel.value = opt.value;
+            if (canFill(sel)) {
+                const norm = value => String(value || "").toLowerCase().replace(/^(?:barangay|brgy\.?)\s+/i, "").trim();
+                const want=norm(geo.barangay);
+                let opt=Array.from(sel.options).find(option=>want&&norm(option.value)===want);
+                if(!opt){const hits=Array.from(sel.options).filter(option=>want&&norm(option.value).includes(want));if(hits.length===1)opt=hits[0];}
+                assign(sel,opt?.value||'');
             }
-            const addr = document.getElementById("bizAddr");
-            if (addr) {
-                if (!addr.dataset.geoBound) {
-                    addr.dataset.geoBound = "1";
-                    addr.addEventListener("input", () => { delete addr.dataset.autofilled; });
-                }
-                if (geo.road && (!addr.value.trim() || addr.dataset.autofilled === "1")) {
-                    addr.value = geo.road + (geo.barangay ? `, Brgy. ${geo.barangay}` : "");
-                    addr.dataset.autofilled = "1";
-                }
-            }
+            const addr=document.getElementById('bizAddr');
+            const address=[geo.road,geo.barangay?`Brgy. ${geo.barangay}`:'',geo.city,geo.province].filter(Boolean).join(', ');
+            if(canFill(addr))assign(addr,address);
             if (geo.barangay && geo.barangay !== lastPinBarangay) {
                 lastPinBarangay = geo.barangay;
                 window.showToast?.(`Address detected: ${geo.label}`, "success");

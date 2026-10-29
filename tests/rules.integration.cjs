@@ -210,3 +210,14 @@ test('only the business can configure bounded auto replies; customers cannot for
  await assertFails(gatedWrite(uid,'chat','forgedauto',{...data,isAutoReply:true}));
  await assertSucceeds(gatedWrite(uid,'chat','validfaq',data));
 });
+
+test('deleting accounts cannot write, recreate profiles, upload or self-transfer ownership',async()=>{
+ const {deleteDoc}=require('firebase/firestore'),{ref,uploadBytes}=require('firebase/storage');
+ await env.withSecurityRulesDisabled(async ctx=>{await setDoc(doc(ctx.firestore(),'users/deleting'),{uid:'deleting',role:'user',fullName:'Deleting User'});await setDoc(doc(ctx.firestore(),'account_deletions/deleting'),{state:'running'});});
+ await assertFails(updateDoc(doc(dbFor('deleting'),'users/deleting'),{fullName:'Changed Name'}));
+ await assertFails(setDoc(doc(dbFor('deleting'),'ownership_transfers/shop'),{fromUid:'deleting',toUid:'other',status:'accepted'}));
+ await assertFails(setDoc(doc(dbFor('deleting'),'account_deletions/deleting'),{state:'complete'}));
+ await assertFails(deleteDoc(doc(dbFor('customer'),'users/customer')));
+ await assertFails(uploadBytes(ref(env.authenticatedContext('deleting',verified).storage(),'places/deleting/photo.jpg'),new Uint8Array([255,216,255,217]),{contentType:'image/jpeg'}));
+});
+test('closed-owner tombstones expose only server-sanitized listing records for retained transaction history',async()=>{await env.withSecurityRulesDisabled(async ctx=>setDoc(doc(ctx.firestore(),'places/closed_deleted'),{name:'Closed establishment',owner_uid:'deleted_random',approval_status:'archived',status:'closed',accountDeleted:true}));await assertSucceeds(getDoc(doc(env.unauthenticatedContext().firestore(),'places/closed_deleted')));await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(),'places/pending')));});

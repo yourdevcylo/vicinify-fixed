@@ -139,3 +139,15 @@ test('admin dropdown preserves completed and payment states instead of defaultin
  for(const status of ['pending','accepted','rejected','fulfilled','received','cancelled','payment_submitted','payment_confirmed','ready','out_for_delivery','delivered','legacy_completed']){const select=w.document.querySelector('select');select.innerHTML=w.adminBookingStatusOptions(status);assert.equal(select.value,status);}
  }finally{w.close()}
 });
+
+test('navigation fades changed pages without delaying activation and respects reduced motion',()=>{
+ const {JSDOM}=require('jsdom');const dom=new JSDOM('<section id="page-map" class="page active"></section><section id="page-place" class="page"></section>',{runScripts:'outside-only'}),w=dom.window;
+ const source=require('fs').readFileSync(require.resolve('../js/common.js'),'utf8');let calls=0,cancelled=0,reduced=false;
+ w.AppState={activePage:'page-map'};w.applyViciPageScrollState=()=>{};w.resetViciPageScroll=()=>{};w.requestAnimationFrame=()=>{};w.setTimeout=()=>{};w.matchMedia=()=>({matches:reduced});
+ w.document.getElementById('page-place').animate=(frames,options)=>{calls++;assert.equal(options.duration,160);assert.deepEqual(Array.from(frames,f=>f.opacity),[.35,1]);return{cancel(){cancelled++;}}};
+ w.eval(source.slice(source.indexOf('function showPage(pageId)'),source.indexOf('function initNav()')));
+ w.showPage('page-place');assert(w.document.getElementById('page-place').classList.contains('active'));assert.equal(calls,1);
+ w.showPage('page-place');assert.equal(calls,1);assert.equal(cancelled,1);
+ reduced=true;w.AppState.activePage='page-map';w.showPage('page-place');assert.equal(calls,1);dom.window.close();
+});
+test('logout clears login/settings passwords and email and resets password visibility',()=>{const {JSDOM}=require('jsdom');const dom=new JSDOM('<input id="loginEmail"><input id="loginPass" type="text"><input id="settingsCurrentPass"><input id="settingsNewPass"><input id="settingsConfirmPass"><button id="togglePassBtn" aria-pressed="true"></button><i id="eyeIcon"></i>',{runScripts:'outside-only'}),w=dom.window;for(const field of w.document.querySelectorAll('input')){field.value='Sensitive';field.defaultValue='Sensitive';}const source=fs.readFileSync(require.resolve('../js/common.js'),'utf8');w.eval(source.slice(source.indexOf('window.clearAccountCredentials ='),source.indexOf("window.addEventListener('pageshow'")));w.clearAccountCredentials();for(const field of w.document.querySelectorAll('input')){assert.equal(field.value,'');assert.equal(field.defaultValue,'');}assert.equal(w.document.getElementById('loginPass').type,'password');assert.equal(w.document.getElementById('togglePassBtn').getAttribute('aria-pressed'),'false');dom.window.close();});

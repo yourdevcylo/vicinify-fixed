@@ -8,6 +8,7 @@ function activity(){
  w.MapPage={getCachedPlace:()=>({name:'Neighborhood Café'})};w.markDocsCustomerRead=async()=>{};
  w.db={collection:name=>({where(){return this},limit(){return this},onSnapshot(next){calls.push(name);next(empty);return()=>{};}})};
  w.ViciData={customerFeed(name,uid,next){calls.push(name);next(name==='messages'?messages:empty);return()=>{};},sukiFeed(uid,next){calls.push('suki');next(empty);return()=>{};}};
+ const common=fs.readFileSync(require.resolve('../js/common.js'),'utf8');w.eval(common.slice(common.indexOf('function isConversationMessage('),common.indexOf('function renderPinnedTransactionHistory(')));
  w.eval(fs.readFileSync(require.resolve('../js/settings.js'),'utf8'));
  return{dom,w,calls};
 }

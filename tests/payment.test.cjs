@@ -6,7 +6,7 @@ test('cash/COD/pay-on-pickup have no online proof requirement; wallets/bank do',
 });
 test('online payment cannot skip proof verification to preparing or fulfilled',()=>{
  for(const paymentMethod of ['GCash','Maya','Bank Transfer'])for(const status of ['preparing','fulfilled'])assert.throws(()=>transition({status:'accepted',paymentMethod},'owner',{status}),{status:409});
- assert.deepEqual(transition({status:'accepted',paymentMethod:'COD'},'owner',{status:'preparing'}),{status:'preparing'});
+ assert.throws(()=>transition({status:'accepted',paymentMethod:'COD'},'owner',{status:'preparing'}),{status:409});
 });
 test('only owner can verify submitted proof and no proof cannot become confirmed',()=>{
  assert.throws(()=>transition({status:'payment_submitted',paymentMethod:'GCash'},'owner',{status:'payment_confirmed'}),{status:409});
@@ -23,7 +23,7 @@ test('payment UI separates proof review from verification and no false pending v
  assert.equal(policy.flow({status:'pending',paymentStatus:'confirmed'}).verified,false);
  assert.equal(policy.flow({status:'payment_submitted',paymentMethod:'GCash'}).verified,false);
  assert.equal(policy.flow({status:'accepted',paymentMethod:'GCash'}).canPrepare,false);
- assert.equal(policy.flow({status:'accepted',paymentMethod:'COD'}).canPrepare,true);
+ assert.equal(policy.flow({status:'accepted',paymentMethod:'COD'}).canPrepare,false);
  assert.equal(policy.flow({status:'preparing',paymentStatus:'confirmed',paymentMethod:'GCash'}).verified,true);
 });
 function renderers(){const s=fs.readFileSync(require.resolve('../js/common.js'),'utf8'),context={window:{PaymentPolicy:policy},escapeHtml:x=>String(x??'').replace(/</g,'&lt;')};vm.createContext(context);vm.runInContext(s.slice(s.indexOf('function renderPaymentFlowCard('),s.indexOf('function renderInlineTransactionProgress')),context);return context;}
@@ -99,8 +99,11 @@ test('new delivery flow collects an address before quoting and preparing, includ
  assert.equal(policy.flow(order).canPrepare,false);assert.throws(()=>transition(order,'owner',{paymentTerms:{amount:'500',instructions:'Cash on delivery'}}),{status:409});assert.throws(()=>transition(order,'owner',{status:'preparing'}),{status:409});
  assert.throws(()=>transition(order,'owner',{deliveryDetails:{houseStreet:'10 Test',barangay:'West',city:'Lipa',landmark:'Gate'}}),{status:409});
  const address=transition(order,'customer',{deliveryDetails:{houseStreet:'10 Test',barangay:'West',city:'Lipa',landmark:'Gate'}});assert.equal(address.deliveryAddress,'10 Test, West, Lipa, Gate');
- const located={...order,...address};const terms=transition(located,'owner',{paymentTerms:{amount:'500',instructions:'Cash on delivery'}});assert.equal(policy.flow({...located,...terms}).canPrepare,true);assert.equal(policy.flow({...located,...terms}).awaitingProof,false);
- assert.deepEqual(transition({...located,...terms},'owner',{status:'preparing'}),{status:'preparing'});
+ const located={...order,...address};
+ assert.throws(()=>transition(located,'owner',{paymentTerms:{amount:'500',instructions:'Cash on delivery'}}),{status:400});
+ const terms=transition(located,'owner',{paymentTerms:{paymentMethod:'GCash',amount:'500',instructions:'GCash recipient account'}});assert.equal(policy.flow({...located,...terms}).canPrepare,false);assert.equal(policy.flow({...located,...terms}).awaitingProof,true);
+ assert.throws(()=>transition({...located,...terms},'owner',{status:'preparing'}),{status:409});
+ assert.deepEqual(transition({...located,...terms,status:'payment_confirmed'},'owner',{status:'preparing'}),{status:'preparing'});
 });
 
 test('requirements are transaction-scoped, role-restricted and distinct from payment verification',()=>{
@@ -126,3 +129,5 @@ test('owner can waive unavailable requirements; invalid location and stale respo
  order={...order,...requirementsTransition(order,'owner',{action:'waive',requestId:'req'})};assert.equal(policy.flow(order).requirementsReady,true);
  assert.throws(()=>requirementsTransition(order,'customer',{action:'submit',requestId:'req',responseId:'resp',data:{lat:14,lng:121}}),{status:409});
 });
+test('all requests need verified payment before preparation, including legacy no-payment reservations',()=>{for(const requestType of ['table_reservation','food_reservation','pickup_order','delivery_order','advance_order'])for(const paymentMethod of [undefined,'COD','Cash on Pickup','GCash'])assert.throws(()=>transition({status:'accepted',requestType,paymentMethod},'owner',{status:'preparing'}),{status:409});});
+test('new reservations accept prepaid methods only and never accept client-confirmed payment',()=>{const {createBooking}=require('../netlify/functions/lib/booking-create');const input={placeId:'shop',requestType:'table_reservation',bookingDate:'2026-11-02',bookingTime:'12:00',guestCount:2},user={uid:'customer'},place={approval_status:'approved',owner_uid:'owner'},now=new Date('2026-10-29T00:00:00Z').getTime();for(const paymentMethod of ['Cash','Cash on Pickup','COD','Others'])assert.throws(()=>createBooking({...input,paymentMethod},user,place,{},now),{status:400});const order=createBooking({...input,paymentMethod:'GCash',paymentStatus:'confirmed'},user,place,{},now);assert.equal(order.paymentMethod,'GCash');assert.equal(order.status,'pending');assert.notEqual(order.paymentStatus,'confirmed');});

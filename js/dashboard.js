@@ -151,6 +151,7 @@ window.DashboardPage = (() => {
     }
 
     function isOwnerUnreadMessage(data, ownerUid) {
+        if(!window.isConversationMessage(data))return false;
         if (!ownerUid) return false;
         if (ownerHasRead(data, ownerUid)) return false;
         if (data.senderUid === ownerUid || data.createdBy === ownerUid) return false;
@@ -433,7 +434,7 @@ updateDashboardKpis(places);
                     }
                 });
             });
-            wrap.querySelectorAll("[data-edit]").forEach(btn => { btn.addEventListener("click", () => openPremiumBizPortal(btn.dataset.edit)); });
+            wrap.querySelectorAll("[data-edit]").forEach(btn => { btn.addEventListener("click", () => openBusinessPortal(btn.dataset.edit)); });
             wrap.querySelectorAll("[data-suki-edit]").forEach(btn => {
                 btn.addEventListener("click", () => openSukiStudio(btn.dataset.sukiEdit));
             });
@@ -647,7 +648,7 @@ globalMessagesUnsub = [];
                             </div>
                         `
                     }
-                    <button type="button" class="payment-conversation-action" onclick="window.openChatModal('${d.placeId}', '${safeString(d.placeName || "Establishment")}', '${d.userId}')"><i data-lucide="message-square"></i> Open conversation</button>
+                    <button type="button" class="payment-conversation-action" onclick="window.openChatModal('${d.placeId}', '${safeString(d.placeName || "Establishment")}', '${d.userId}', 'transaction')"><i data-lucide="clipboard-list"></i> Open transaction</button>
                 </article>
             `;
         });
@@ -663,7 +664,7 @@ globalMessagesUnsub = [];
     const deletedBy = d.deletedBy || [];
 
     return (
-        d.userId !== currentUserUid &&
+        window.isConversationMessage(d) && d.userId !== currentUserUid &&
         !deletedBy.includes(currentUserUid) &&
         !deletedBy.includes("owner_deleted")
     );
@@ -948,11 +949,9 @@ globalBookingsUnsub.push(bookingUnsub);
         const selCats = Array.from(document.querySelectorAll("#fgroup-category input:checked")).map(cb => cb.value);
         const selApp = Array.from(document.querySelectorAll("#fgroup-approval_status input:checked")).map(cb => cb.value);
         const selVer = Array.from(document.querySelectorAll("#fgroup-is_verified input:checked")).map(cb => cb.value);
-        const selPrem = Array.from(document.querySelectorAll("#fgroup-is_premium input:checked")).map(cb => cb.value);
-        const selFeat = Array.from(document.querySelectorAll("#fgroup-is_featured input:checked")).map(cb => cb.value);
         const selBook = Array.from(document.querySelectorAll("#fgroup-accepts_booking input:checked")).map(cb => cb.value);
 
-        const totalFilters = selCats.length + selApp.length + selVer.length + selPrem.length + selFeat.length + selBook.length;
+        const totalFilters = selCats.length + selApp.length + selVer.length + selBook.length;
 
         document.getElementById("filterCountText").textContent = totalFilters === 1 ? `1 filter applied` : `${totalFilters} filters applied`;
 
@@ -970,11 +969,9 @@ globalBookingsUnsub.push(bookingUnsub);
             const catMatch = selCats.length === 0 || selCats.includes(row.dataset.category);
             const appMatch = selApp.length === 0 || selApp.includes(row.dataset.approval);
             const verMatch = selVer.length === 0 || selVer.includes(row.dataset.verified);
-            const premMatch = selPrem.length === 0 || selPrem.includes(row.dataset.premium);
-            const featMatch = selFeat.length === 0 || selFeat.includes(row.dataset.featured);
             const bookMatch = selBook.length === 0 || selBook.includes(row.dataset.booking);
 
-            row.style.display = (textMatch && catMatch && appMatch && verMatch && premMatch && featMatch && bookMatch) ? "" : "none";
+            row.style.display = (textMatch && catMatch && appMatch && verMatch && bookMatch) ? "" : "none";
         });
     }
 
@@ -1078,8 +1075,6 @@ globalBookingsUnsub.push(bookingUnsub);
                                         <div class="filter-sidebar custom-scrollbar">
                                             <button class="filter-tab active" onclick="window.DashboardPage.switchFilterTab('category', this)">Category <i data-lucide="chevron-right"></i></button>
                                             <button class="filter-tab" onclick="window.DashboardPage.switchFilterTab('is_verified', this)">Is verified <i data-lucide="chevron-right"></i></button>
-                                            <button class="filter-tab" onclick="window.DashboardPage.switchFilterTab('is_premium', this)">Is premium <i data-lucide="chevron-right"></i></button>
-                                            <button class="filter-tab" onclick="window.DashboardPage.switchFilterTab('is_featured', this)">Is featured <i data-lucide="chevron-right"></i></button>
                                             <button class="filter-tab" onclick="window.DashboardPage.switchFilterTab('accepts_booking', this)">Accepts booking <i data-lucide="chevron-right"></i></button>
                                             <button class="filter-tab" onclick="window.DashboardPage.switchFilterTab('approval_status', this)">Approval status <i data-lucide="chevron-right"></i></button>
                                         </div>
@@ -1102,40 +1097,6 @@ globalBookingsUnsub.push(bookingUnsub);
                                                     <label class="filter-checkbox-label"><input type="checkbox" value="false" onchange="window.DashboardPage.applyAdminFilters()"> false</label>
                                                 </div>
                                             </div>
-
-                                            <div id="fgroup-is_premium" class="fgroup-panel hidden">
-                                                <div class="fgroup-header"><span class="fgroup-title">Is premium</span><button class="btn-clear-group" onclick="window.DashboardPage.clearFilterGroup('is_premium')">Clear filter</button></div>
-                                                <div class="fgroup-list">
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="true" onchange="window.DashboardPage.applyAdminFilters()"> true</label>
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="false" onchange="window.DashboardPage.applyAdminFilters()"> false</label>
-                                                </div>
-                                            </div>
-
-                                            <div id="fgroup-is_featured" class="fgroup-panel hidden">
-                                                <div class="fgroup-header"><span class="fgroup-title">Is featured</span><button class="btn-clear-group" onclick="window.DashboardPage.clearFilterGroup('is_featured')">Clear filter</button></div>
-                                                <div class="fgroup-list">
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="true" onchange="window.DashboardPage.applyAdminFilters()"> true</label>
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="false" onchange="window.DashboardPage.applyAdminFilters()"> false</label>
-                                                </div>
-                                            </div>
-
-                                            <div id="fgroup-accepts_booking" class="fgroup-panel hidden">
-                                                <div class="fgroup-header"><span class="fgroup-title">Accepts booking</span><button class="btn-clear-group" onclick="window.DashboardPage.clearFilterGroup('accepts_booking')">Clear filter</button></div>
-                                                <div class="fgroup-list">
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="true" onchange="window.DashboardPage.applyAdminFilters()"> true</label>
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="false" onchange="window.DashboardPage.applyAdminFilters()"> false</label>
-                                                </div>
-                                            </div>
-
-                                            <div id="fgroup-approval_status" class="fgroup-panel hidden">
-                                                <div class="fgroup-header"><span class="fgroup-title">Approval status</span><button class="btn-clear-group" onclick="window.DashboardPage.clearFilterGroup('approval_status')">Clear filter</button></div>
-                                                <div class="fgroup-list">
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="pending" onchange="window.DashboardPage.applyAdminFilters()"> pending</label>
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="approved" onchange="window.DashboardPage.applyAdminFilters()"> approved</label>
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="rejected" onchange="window.DashboardPage.applyAdminFilters()"> rejected</label>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                     <div class="filter-popover-footer">
                                         <span id="filterCountText">0 filters applied</span>
@@ -1154,8 +1115,6 @@ globalBookingsUnsub.push(bookingUnsub);
                                         data-category="${(p.category || p.cat || 'default').toLowerCase()}"
                                         data-approval="${(p.approval_status || p.status || 'pending').toLowerCase()}"
                                         data-verified="${p.is_verified ? 'true' : 'false'}"
-                                        data-premium="${p.is_premium ? 'true' : 'false'}"
-                                        data-featured="${p.is_featured ? 'true' : 'false'}"
                                         data-booking="${p.accepts_booking ? 'true' : 'false'}">
                                         <td data-no-translate style="font-weight: 700;">${escapeHtml(p.name || "N/A")}</td>
                                         <td>${escapeHtml(p.category || p.cat || "N/A")}</td>
@@ -1743,8 +1702,7 @@ async function updateBookingStatus(id, stat) {
                 owner_email: firebase.firestore.FieldValue.delete(),
                 approval_status: "approved",
                 claimStatus: "verified",
-                is_verified: true,
-                is_premium: true 
+                is_verified: true 
             });
 
             await batch.commit();
@@ -1810,8 +1768,6 @@ panelTitle.textContent = "Edit Establishment";
                     </select>
                 </div>
                 <div class="admin-checkbox-field"><div><label style="font-size: 15px;">is_verified</label><div class="sub-label">Verified by admin</div></div><input type="checkbox" id="dynVerified" ${data.is_verified ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
-                <div class="admin-checkbox-field"><div><label style="font-size: 15px;">is_premium</label><div class="sub-label">Premium business listing</div></div><input type="checkbox" id="dynPremium" ${data.is_premium ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
-                <div class="admin-checkbox-field"><div><label style="font-size: 15px;">is_featured</label><div class="sub-label">Featured on map</div></div><input type="checkbox" id="dynFeatured" ${data.is_featured ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
                 <div class="admin-checkbox-field"><div><label style="font-size: 15px;">accepts_booking</label><div class="sub-label">Allow customers to book</div></div><input type="checkbox" id="dynBooking" ${data.accepts_booking ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
 
                 <div class="admin-checkbox-field"><div><label style="font-size: 15px;">delivery_grab</label><div class="sub-label">Available on Grab/Foodpanda</div></div><input type="checkbox" id="dynGrab" ${data.delivery_grab ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
@@ -1933,8 +1889,6 @@ if (description.length < 10) {
         brgy: barangay,
 
         is_verified: document.getElementById("dynVerified").checked,
-        is_premium: document.getElementById("dynPremium").checked,
-        is_featured: document.getElementById("dynFeatured").checked,
         accepts_booking: document.getElementById("dynBooking").checked,
         approval_status: document.getElementById("dynApproval").value,
 
@@ -2235,7 +2189,7 @@ if (description.length < 10) {
     }
 
     // =====================================
-    function openPremiumBizPortal(id) {
+    function openBusinessPortal(id) {
         const place = currentAdminPlaces.find(p => p.id === id);
         if (!place) return;
         document.getElementById("bizPortalId").value = place.id;
@@ -2255,7 +2209,7 @@ if (description.length < 10) {
         const bizPriceEl = document.getElementById("bizPortalPriceRange");
         if (bizPriceEl) bizPriceEl.value = place.priceRange || "";
 
-        // Sa loob ng openPremiumBizPortal function:
+        // Sa loob ng openBusinessPortal function:
         document.getElementById("bizGrab").checked = place.delivery_grab || false;
         document.getElementById("bizInHouse").checked = place.delivery_inhouse || false;
         document.getElementById("bizRadius").value = place.delivery_radius || "";
@@ -2392,7 +2346,7 @@ if (description.length < 10) {
         finally { btn.innerHTML = `<i data-lucide="save" style="width: 16px; height: 16px;"></i> Save`; window.debouncedIcons?.(); btn.disabled = false; }
     }
 
-    async function savePremiumBizPortal() {
+    async function saveBusinessPortal() {
         const id = document.getElementById("bizPortalId").value;
         const btn = document.getElementById("saveBizPortalBtn");
 
@@ -2620,7 +2574,7 @@ let updateData = {
 
     document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("closePanelBtn")?.addEventListener("click", closeSidePanel);
-        document.getElementById("saveBizPortalBtn")?.addEventListener("click", savePremiumBizPortal);
+        document.getElementById("saveBizPortalBtn")?.addEventListener("click", saveBusinessPortal);
 
         // Handle Popover / Overlay Clicks
         document.addEventListener("click", (e) => {

@@ -17,7 +17,10 @@ exports.handler = async event => {
             const ref = db.collection('bookings').doc();
             const card = db.collection('messages').doc();
             await db.runTransaction(async transaction => {
+                const deletionLock = await transaction.get(db.collection('account_deletions').doc(user.uid));
+                if(deletionLock.exists)throw Object.assign(new Error('Account deletion is in progress.'),{status:409});
                 const place = await transaction.get(placeRef);
+                if(place.data()?.owner_uid && (await transaction.get(db.collection('account_deletions').doc(place.data().owner_uid))).exists)throw Object.assign(new Error('This business is closing its account.'),{status:409});
                 const profile = await transaction.get(db.collection('users').doc(user.uid));
                 if (!place.exists) throw Object.assign(new Error('Establishment not found.'), {status:404});
                 const order = {...createBooking(input,user,place.data(),profile.data()), transactionId:ref.id,

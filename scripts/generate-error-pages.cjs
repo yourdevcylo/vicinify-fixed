@@ -1,0 +1,2 @@
+const fs=require('node:fs'),path=require('node:path');
+(async()=>{const file=path.resolve(__dirname,'../netlify/edge-functions/lib/http-errors.js');const source=fs.readFileSync(file,'utf8');const {renderErrorHtml}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));fs.writeFileSync(path.resolve(__dirname,'../404.html'),renderErrorHtml(404));})().catch(error=>{console.error(error);process.exit(1);});

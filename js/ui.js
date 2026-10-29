@@ -72,7 +72,8 @@ window.AppShell = (() => {
   const button=document.getElementById('installVicinifyBtn'), help=document.getElementById('installVicinifyHelp');
   if(!button||!help)return;
   button.disabled=installed();
-  button.textContent=installed()?'App installed':deferredInstall?'Install app':'How to install';
+  button.dataset.i18n=installed()?'App installed':deferredInstall?'Install app':'How to install';
+  button.textContent=window.LangManager?.translateKey?.(button.dataset.i18n)||button.dataset.i18n;
   help.textContent=installed()?'Vicinify is running as an installed app.':'Add Vicinify to your home screen for quick access.';
  }
  window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstall=event;syncInstall();});
@@ -124,4 +125,23 @@ window.ViciPhotoPicker=(()=>{
  function init(){enhance();new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)if(node.nodeType===1)enhance(node);}).observe(document.body,{childList:true,subtree:true});}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
  return {enhance};
+})();
+
+// Fit translated single-line labels after resize and language changes, without reads from the network.
+window.ViciLabelFit = (()=>{
+ const selector='#catChips .chip > span, #page-settings .settings-segment button > span';
+ let frame=0;
+ function fit(){frame=0;document.querySelectorAll(selector).forEach(label=>{
+  const button=label.parentElement;if(!button.clientWidth)return;
+  label.style.removeProperty('--fit-label-size');
+  const cs=getComputedStyle(button),text=getComputedStyle(label),icon=button.querySelector('svg,i');
+  const width=button.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-(icon?icon.getBoundingClientRect().width+(parseFloat(cs.columnGap)||0):0);
+  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');if(!ctx)return;
+  ctx.font=`${text.fontWeight} ${text.fontSize} ${text.fontFamily}`;
+  const measured=ctx.measureText(label.textContent).width;
+  if(measured>width&&width>0)label.style.setProperty('--fit-label-size',Math.max(8,parseFloat(text.fontSize)*width/measured-.2)+'px');
+ });}
+ function schedule(){if(!frame)frame=(window.requestAnimationFrame||window.setTimeout)(fit);}
+ function init(){const observer=new MutationObserver(schedule);for(const container of document.querySelectorAll('#catChips,.settings-segment')){observer.observe(container,{childList:true,subtree:true,characterData:true});if(window.ResizeObserver)new ResizeObserver(schedule).observe(container);}window.addEventListener('resize',schedule);window.addEventListener('vicinify:languagechange',schedule);document.fonts?.ready.then(schedule);schedule();}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();return{fit};
 })();

@@ -20,7 +20,10 @@ test('all shipped JavaScript parses',()=>{
  function visit(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
   if(['node_modules','.git'].includes(entry.name))continue;
   const p=path.join(dir,entry.name);if(entry.isDirectory())visit(p);
-  else if(p.endsWith('.js'))assert.doesNotThrow(()=>new vm.Script(fs.readFileSync(p,'utf8'),{filename:p}));
+  else if(p.endsWith('.js')){
+   if(p.includes(path.sep+'netlify'+path.sep+'edge-functions'+path.sep)){const result=require('node:child_process').spawnSync(process.execPath,['--input-type=module','--check'],{input:fs.readFileSync(p,'utf8'),encoding:'utf8'});assert.equal(result.status,0,p+' '+result.stderr);}
+   else assert.doesNotThrow(()=>new vm.Script(fs.readFileSync(p,'utf8'),{filename:p}));
+  }
  }}visit(path.resolve(__dirname,'..'));
 });
 test('API and payment responses never enter service worker cache',()=>{
