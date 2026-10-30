@@ -20,8 +20,16 @@
   let current = null;
   let menuBound = false;
   const show = (el, value) => { if (el) el.hidden = !value; };
-  const selectedAccount = () => accounts[requestedRole];
-  const activeRole = () => requestedRole || roleFromEmail(current?.email);
+  const targetRole = () => requestedRole || readBootstrap();
+  const selectedAccount = () => accounts[targetRole()];
+  const activeRole = () => requestedRole || roleFromEmail(current?.email) || readBootstrap();
+  const canNavigate = user => {
+    const actualRole = roleFromEmail(user?.email);
+    // Once a demo account has authenticated in this browser, allow its other
+    // slots to be selected before their first sign-in. This is navigation only.
+    // A non-demo signed-in account must never get the demo controls.
+    return !!actualRole || (!user && !!readBootstrap());
+  };
 
   function initializeFirebaseApp(config) {
     // Default app retains the original session of the first demo account.
@@ -34,7 +42,7 @@
     const note = document.getElementById('demoSignInHint');
     const chooser = document.getElementById('demoLoginOptions');
     const target = selectedAccount();
-    const isCorrect = !!target && roleFromEmail(user?.email) === requestedRole;
+    const isCorrect = !!target && roleFromEmail(user?.email) === targetRole();
     const hasDemoSetup = !!readBootstrap();
     // Keep normal registration and non-demo login unchanged.
     const needsSelection = !!target && !isCorrect;
@@ -51,14 +59,14 @@
     }
     chooser?.querySelectorAll('[data-demo-login-role]').forEach(button => {
       const role=button.getAttribute('data-demo-login-role');
-      button.setAttribute('aria-current',role===requestedRole?'true':'false');
-      button.disabled=role===requestedRole;
+      button.setAttribute('aria-current',role===targetRole()?'true':'false');
+      button.disabled=role===targetRole();
     });
     const back = document.getElementById('demoLoginBack');
     if (back) {
       const previous = previousRole();
-      show(back, !!previous && previous!==requestedRole && hasDemoSetup);
-      if (previous && previous!==requestedRole) back.textContent='← Back to '+accounts[previous].label;
+      show(back, !!previous && previous!==targetRole() && hasDemoSetup);
+      if (previous && previous!==targetRole()) back.textContent='← Back to '+accounts[previous].label;
     }
   }
   function closeMenu() {
@@ -71,24 +79,27 @@
     current = user;
     const role = roleFromEmail(user?.email);
     if (role && !requestedRole) writeBootstrap(role);
-    const enabled = !!role && (!requestedRole || role === requestedRole);
+    const enabled = canNavigate(user);
+    // Keep the header controls visible on first-time sign-in screens. The
+    // standard login header is otherwise hidden with body.on-login.
+    document.body?.classList?.toggle('demo-switch-visible',enabled);
     const container = document.getElementById('demoQuickSwitch');
     show(container, enabled);
     loginHint(user);
     if (!enabled) { closeMenu(); return; }
-    const chosen = accounts[role];
+    const chosen = accounts[requestedRole || role || readBootstrap()];
     const currentEl = document.getElementById('demoSwitchCurrent');
-    if (currentEl) currentEl.textContent = chosen.label;
+    if (currentEl) currentEl.textContent = chosen.label + (!user ? ' · Sign in' : '');
     document.querySelectorAll('[data-demo-switch-role]').forEach(button => {
       const chosenRole=button.getAttribute('data-demo-switch-role');
-      const isCurrent=role===chosenRole;
+      const isCurrent=(requestedRole || role || readBootstrap())===chosenRole;
       button.setAttribute('aria-current',isCurrent?'true':'false');
       const check=button.querySelector('.demo-role-check');
       if (check) check.textContent=isCurrent?'✓':'';
     });
   }
   function switchTo(role) {
-    if (!Object.hasOwn(accounts, role) || !roleFromEmail(auth?.currentUser?.email)) return;
+    if (!Object.hasOwn(accounts, role) || !canNavigate(auth?.currentUser)) return;
     closeMenu();
     if (role === activeRole()) return;
     try { localStorage.setItem(previousKey, activeRole()); } catch {}

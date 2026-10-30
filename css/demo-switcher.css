@@ -21,3 +21,28 @@ html body.vicinify-ui .demo-login-roles button[aria-current=true]{color:#117468;
 html body.vicinify-ui .demo-login-back{min-height:40px;padding:9px 11px;border:1px solid #87caba;border-radius:9px;background:var(--ui-surface,#fff);color:var(--ui-accent,#137d6d);text-align:center;font-size:12px;font-weight:700;cursor:pointer}
 html body.vicinify-ui .demo-login-back[hidden]{display:none!important}
 html body.vicinify-ui #demoSignInHint { font-size:13px;line-height:1.55;overflow-wrap:anywhere }
+
+
+/* Capstone demo first-login recovery: keep the role selector visible even
+   when the auth form hides the normal workspace header. */
+html body.vicinify-ui.on-login.demo-switch-visible #main-content .workspace-header {
+  display:flex !important; position:fixed !important; top:0 !important; left:0 !important; right:0 !important;
+  height:64px !important; padding:0 max(14px,env(safe-area-inset-right)) 0 max(14px,env(safe-area-inset-left)) !important;
+  justify-content:flex-end !important; align-items:center !important;
+  background:var(--ui-surface,#fff) !important; border-bottom:1px solid var(--ui-border,#d8e4df) !important;
+  z-index:11000 !important; box-sizing:border-box !important; pointer-events:auto !important;
+}
+html body.vicinify-ui.on-login.demo-switch-visible #main-content .workspace-heading,
+html body.vicinify-ui.on-login.demo-switch-visible #main-content .mobile-brand,
+html body.vicinify-ui.on-login.demo-switch-visible #main-content .workspace-actions > :not(#demoQuickSwitch) { display:none !important; }
+html body.vicinify-ui.on-login.demo-switch-visible #main-content .workspace-actions { display:flex !important; margin-left:auto !important; }
+html body.vicinify-ui.on-login.demo-switch-visible #main-content #page-login.active {
+  padding-top:max(64px, calc(64px + env(safe-area-inset-top,0px))) !important;
+  box-sizing:border-box;
+}
+/* Keep the menu contained in the visible viewport, including mobile. */
+html body.vicinify-ui #demoSwitchOptions { max-width:calc(100vw - 24px); max-height:min(65vh,400px); overflow-y:auto; }
+@media (max-width:480px) {
+  html body.vicinify-ui #demoSwitchTrigger { min-height:40px; font-size:11px; }
+  html body.vicinify-ui #demoSwitchOptions { right:0 !important; }
+}

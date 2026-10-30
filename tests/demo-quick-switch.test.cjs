@@ -28,7 +28,8 @@ function boot({query='',stored='',userEmail=''} = {}) {
     demoLoginBack:{hidden:true,textContent:'',addEventListener(n,fn){if(n==='click')this.onClick=fn;}},
     loginEmail: {value:''}
   };
-  const document = {readyState:'complete', getElementById(k){return elements[k]||null;},querySelectorAll(){return [];},addEventListener(){}};
+  const classNames=new Set(['vicinify-ui','on-login']);
+  const document = {readyState:'complete',body:{classList:{toggle(k,enabled){if(enabled)classNames.add(k);else classNames.delete(k);},contains(k){return classNames.has(k);}}},getElementById(k){return elements[k]||null;},querySelectorAll(){return [];},addEventListener(){}};
   const location = {search:query,href:'https://viciweb.netlify.app/'+query,pathname:'/',assign(v){calls.push(['navigate',v]);}};
   const window = {};
   const ctx={window,document,location,localStorage:{getItem(k){return storage.get(k)||null;},setItem(k,v){storage.set(k,v);}},URLSearchParams,URL,Object,console};
@@ -38,7 +39,7 @@ function boot({query='',stored='',userEmail=''} = {}) {
   ctx.firebase=firebase;
   const app=window.VicinifyDemoSwitch.initializeFirebaseApp({});
   window.VicinifyDemoSwitch.init(mockAuth);
-  return {app,calls,elements,mockAuth,storage,window,buttons,loginButtons};
+  return {app,calls,elements,mockAuth,storage,window,buttons,loginButtons,document};
 }
 test('normal non-demo visitors remain on the default Firebase app without demo controls',()=>{
   const r=boot({userEmail:'someone@example.com'});
@@ -55,7 +56,9 @@ test('initial demo login retains original default Firebase session as bootstrap 
 test('standard user role uses independent named app when business session is bootstrap',()=>{
   const r=boot({query:'?demoRole=standard',stored:'business'});
   assert.equal(r.app.name,'vicinify-capstone-standard');
-  assert.equal(r.elements.demoQuickSwitch.hidden,true);
+  assert.equal(r.elements.demoQuickSwitch.hidden,false);
+  assert.equal(r.document.body.classList.contains('demo-switch-visible'),true);
+  assert.equal(r.elements.demoSwitchCurrent.textContent,'Standard User · Sign in');
   assert.equal(r.elements.loginEmail.value,'projectfreedom12110@gmail.com');
 });
 test('admin role uses independent named app and prefilled email, with no password cached',()=>{
@@ -70,9 +73,12 @@ test('returning to bootstrap role uses existing default Firebase auth persistenc
   assert.equal(r.app.name,'[DEFAULT]');
   assert.equal(r.elements.demoQuickSwitch.hidden,false);
 });
-test('mismatched Firebase user never receives a demo account switcher',()=>{
+test('authenticated demo user can recover via dropdown even when wrong slot is selected',()=>{
   const r=boot({query:'?demoRole=admin',stored:'business',userEmail:'detorresmarc08@gmail.com'});
-  assert.equal(r.elements.demoQuickSwitch.hidden,true);
+  assert.equal(r.elements.demoQuickSwitch.hidden,false);
+  assert.match(r.elements.demoSignInHint.textContent,/different account/);
+  r.buttons.business.onClick();
+  assert.ok(r.calls.some(c=>c[0]==='navigate'&&c[1]==='/?demoRole=business'));
 });
 
 test('authenticated demo user switches to a different actual Firebase role session by URL',()=>{
@@ -113,4 +119,42 @@ test('switching stores previous role for one-tap return without saving credentia
   assert.equal(r.storage.get('vicinify.capstone.previousRole.v1'),'standard');
   assert.equal(r.storage.get('vicinify.capstone.defaultRole.v1'),'standard');
   assert.ok(![...r.storage.keys()].some(k=>/password|token/i.test(k)));
+});
+
+test('logged-out demo target can use top dropdown to return to an authenticated slot',()=>{
+  const r=boot({query:'?demoRole=admin',stored:'business'});
+  assert.equal(r.elements.demoQuickSwitch.hidden,false);
+  r.buttons.business.onClick();
+  assert.ok(r.calls.some(c=>c[0]==='navigate'&&c[1]==='/?demoRole=business'));
+});
+test('signing out one demo slot does not reveal a non-demo visitor controls',()=>{
+  const r=boot({query:'?demoRole=standard',stored:'business',userEmail:'outside@example.com'});
+  assert.equal(r.elements.demoQuickSwitch.hidden,true);
+  assert.equal(r.document.body.classList.contains('demo-switch-visible'),false);
+  r.buttons.admin.onClick();
+  assert.equal(r.calls.filter(c=>c[0]==='navigate').length,0);
+});
+test('top header remains visible on demo first-sign-in screens only',()=>{
+  const css=fs.readFileSync(require('node:path').join(__dirname,'../css/demo-switcher.css'),'utf8');
+  assert.match(css,/on-login\.demo-switch-visible #main-content \.workspace-header/);
+  assert.match(css,/display:flex !important/);
+  const nonDemo=boot();
+  assert.equal(nonDemo.document.body.classList.contains('demo-switch-visible'),false);
+});
+test('switcher stays visible through a demo session auth loading and sign-out transition',()=>{
+  const r=boot({query:'?demoRole=admin',stored:'business',userEmail:'yourdevcylo@gmail.com'});
+  assert.equal(r.elements.demoQuickSwitch.hidden,false);
+  r.mockAuth.currentUser=null;
+  r.mockAuth.fire(null);
+  assert.equal(r.elements.demoQuickSwitch.hidden,false);
+  assert.equal(r.document.body.classList.contains('demo-switch-visible'),true);
+  assert.equal(r.elements.demoSwitchCurrent.textContent,'Admin User · Sign in');
+});
+test('switcher never grants administrator permission or stores credentials',()=>{
+  assert.doesNotMatch(source,/setCustomUserClaims|\.update\(\{\s*role\s*:/);
+  const r=boot({query:'?demoRole=admin',stored:'standard'});
+  assert.equal(r.app.name,'vicinify-capstone-admin');
+  assert.equal(r.elements.demoQuickSwitch.hidden,false);
+  assert.equal(r.mockAuth.currentUser,null);
+  assert.equal(r.storage.get('vicinify.capstone.defaultRole.v1'),'standard');
 });

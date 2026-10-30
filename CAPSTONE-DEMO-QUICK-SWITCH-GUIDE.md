@@ -17,3 +17,10 @@ The selector never grants roles or copies credentials. The selected account must
 If a role redirects you to login, it means that account has not yet signed in on this browser/session or the session expired. Use **Back to previous account** and try again. Use the same browser profile, not private mode. If the account is signed in but cannot access a restricted dashboard, confirm its actual Firestore role permissions.
 
 After the defense, sign out each demo account and clear browser site data on shared computers.
+
+
+## Persistent top DEMO dropdown fix (2026-10-31)
+
+The DEMO selector remains visible at the top while switching between already authenticated demo accounts. If you select a demo account that has not signed in yet, the selector stays visible on that account's login page as well. Choose another role to return immediately; no password is stored. The selector still does not grant access to any account's data: Firebase requires separate authentication and actual backend permissions.
+
+If a non-demo account signs in, no demo controls are displayed.
