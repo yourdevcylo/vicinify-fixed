@@ -1906,9 +1906,10 @@ const firebaseConfig = {
     appId: "1:198267160268:web:1604e14237653546836469"
 };
 
-firebase.initializeApp(firebaseConfig);
-window.auth = firebase.auth();
-window.db = firebase.firestore();
+const vicinifyFirebaseApp = window.VicinifyDemoSwitch?.initializeFirebaseApp(firebaseConfig) || firebase.initializeApp(firebaseConfig);
+window.auth = firebase.auth(vicinifyFirebaseApp);
+window.db = firebase.firestore(vicinifyFirebaseApp);
+window.VicinifyDemoSwitch?.init(window.auth);
 
 // Local cache first: reloads and repeat visits read from this device's cache
 // instead of re-billing every document from the server (Spark quota saver).
@@ -1920,7 +1921,7 @@ window.db = firebase.firestore();
 try {
     window.db.enablePersistence().catch(() => {});
 } catch (e) { /* cache unavailable (private mode etc.) — app still works without it */ }
-window.storage = firebase.storage();
+window.storage = firebase.storage(vicinifyFirebaseApp);
 
 // v53BH: Debounced lucide — scanning entire DOM 66x is a major lag source
 // Queues icon renders and batches them into one DOM scan per frame
@@ -5454,7 +5455,7 @@ function renderTextBubble(d, currentUid, dateStr, options = {}) {
             ${!isMine && !options.grouped && d.senderName ? `<span data-no-translate class="chat-message-sender">${escapeHtml(d.senderName)}</span>` : ""}
             ${d.isAutoReply ? '<span class="chat-auto-reply-label">Automatic reply</span>' : ''}
             <div class="chat-message-text">${escapeHtml(d.text || "")}</div>
-            ${d.isAutoReply && d.autoReplyTopic==='menu' ? `<button type="button" class="chat-auto-menu" data-auto-menu="${escapeHtml(d.placeId)}">View menu</button>` : ''}
+            ${d.isAutoReply && d.autoReplyTopic==='menu' ? `<button type="button" class="chat-auto-menu" data-auto-menu="${escapeHtml(d.placeId)}">View Menu</button>` : ''}
             <div class="chat-message-meta">${isMine ? receiptHtml(d, currentUid, { time: dateStr }) : escapeHtml(dateStr)}</div>
         </div>
     </div>`;
@@ -6080,10 +6081,23 @@ const renderChatSnap = (snap) => {
         const wasAtBottom = (prevH - prevTop - listWrap.clientHeight) < 90;
 
         listWrap.innerHTML = html;
-        listWrap.querySelectorAll('[data-auto-menu]').forEach(button=>button.onclick=()=>{
-            const id=button.dataset.autoMenu,cached=window.MapPage?.getCachedPlace?.(id);
-            window.closeChatModal();
-            if(cached && window.PlacePreview)window.PlacePreview.open(cached);else window.viewPlace?.(id);
+        listWrap.querySelectorAll('[data-auto-menu]').forEach(button=>button.onclick=async()=>{
+            const id=button.dataset.autoMenu;
+            if(button.disabled || !id)return;
+            // Keep the chat and draft intact: the native menu dialog opens above it.
+            // Use the same real Firestore-backed menu as Business Hub and Vici AI.
+            button.disabled=true;
+            const original=button.textContent;
+            button.textContent='Opening menu…';
+            try {
+                if(!window.ViciCommerce?.openMenu)throw new Error('Menu viewer is unavailable. Reload the page and try again.');
+                await window.ViciCommerce.openMenu(id);
+            }catch(error){
+                console.warn('Unable to show auto-reply menu:',error);
+                window.showToast?.('Could not open the menu. Please try again.','error');
+            }finally{
+                if(button.isConnected){button.disabled=false;button.textContent=original;}
+            }
         });
 
         if (wasAtBottom || prevH === 0) {
@@ -6860,10 +6874,11 @@ window.renderListView = function(filteredPlaces) {
             statusText = "Busy"; statusColor = "#b45309"; statusBorder = "#fef08a"; statusBg = "#fefce8"; statusDot = "#eab308";
         }
 
-        let coverImg = place.coverPhoto ? place.coverPhoto : (place.photos && place.photos.length > 0 ? place.photos[0] : null);
-        coverImg = safeImageUrl(coverImg);
-        let imgHtml = coverImg
-            ? `<img src="${escapeHtml(coverImg)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" loading="lazy" onerror="this.remove()" />`
+        // The list thumbnail represents the business identity (logo), not its banner.
+        // Never fall back to the cover here: the two uploaded photos have different purposes.
+        const profilePhoto = safeImageUrl(place.logoUrl || place.logoURL || place.logo || place.brandLogo || place.brand_logo || place.profileLogo || place.avatarUrl);
+        let imgHtml = profilePhoto
+            ? `<img src="${escapeHtml(profilePhoto)}" alt="${escapeHtml(place.name || 'Establishment')} profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" loading="lazy" onerror="this.remove()" />`
             : `<div style="width: 100%; height: 100%; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i data-lucide="map-pin" style="color: #cbd5e1; width: 28px; height: 28px;"></i></div>`;
 
         let ratingHtml = place.avgRating

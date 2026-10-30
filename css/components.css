@@ -1041,6 +1041,8 @@ html body.vicinify-ui :is(#customerActivitySection,#ownerInboxSection) .inbox-un
 html body.vicinify-ui :is(#customerActivitySection,#ownerInboxSection) .inbox-row>button { color:var(--ui-muted) !important; }
 html body.vicinify-ui .chat-auto-reply-label { display:block; font-size:9px; color:var(--ui-success-ink); margin-bottom:5px; font-weight:600; }
 html body.vicinify-ui .chat-auto-menu { display:inline-flex; border:1px solid var(--ui-success-line); background:var(--ui-success-bg); color:var(--ui-success-ink); border-radius:8px; padding:7px 10px; font-family:inherit; font-size:11px; margin-top:8px; cursor:pointer; }
+html body.vicinify-ui .chat-auto-menu:disabled { opacity:.6; cursor:wait; }
+html body.vicinify-ui .chat-auto-menu:focus-visible { outline:2px solid var(--ui-success-ink); outline-offset:2px; }
 html body.vicinify-ui .auto-reply-settings .auto-reply-switch { display:flex; align-items:center; gap:10px; font-weight:600; font-size:13px; color:var(--ui-ink); }
 html body.vicinify-ui .auto-reply-switch input { accent-color:#237e72; width:17px; height:17px; }
 html body.vicinify-ui .auto-reply-fields { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
@@ -1351,8 +1353,10 @@ html body.vicinify-ui #main-content #dashboardKpiGrid .dash-kpi-card.accent-blue
 html body.vicinify-ui #main-content #dashboardKpiGrid .dash-kpi-card.accent-blue .dash-kpi-icon svg { color:var(--ui-success-ink) !important; }
 html body.vicinify-ui #main-content #adminReviewCard.dark-mode #adminFilterBtn { background:var(--ui-soft) !important; }
 html body.vicinify-ui .vici-photo-picker { position:relative; display:flex; align-items:center; flex-wrap:wrap; gap:10px; min-width:0; max-width:100%; padding:10px; border:1px dashed var(--ui-border); border-radius:10px; background:var(--ui-soft); }
-html body.vicinify-ui .vici-photo-picker>input[type=file] { position:absolute !important; width:1px !important; height:1px !important; min-width:0 !important; min-height:0 !important; margin:0 !important; padding:0 !important; border:0 !important; opacity:0; overflow:hidden; clip-path:inset(50%); pointer-events:none; }
-html body.vicinify-ui .vici-photo-picker>button { flex:0 0 auto; min-height:38px; max-width:100%; padding:8px 11px; border:1px solid var(--ui-success-line); border-radius:8px; background:var(--ui-success-bg); color:var(--ui-success-ink); font-family:inherit; font-size:12px; font-weight:600; line-height:1.4; }
+/* Photo triggers use a real label and directly tappable native file input. */
+html body.vicinify-ui .vici-photo-picker>.vici-photo-trigger { position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:38px;max-width:100%;padding:8px 11px;border:1px solid var(--ui-success-line);border-radius:8px;background:var(--ui-success-bg);color:var(--ui-success-ink);font-family:inherit;font-size:12px;font-weight:600;line-height:1.4;cursor:pointer;overflow:hidden; }
+html body.vicinify-ui .vici-photo-picker>.vici-photo-trigger:focus-within{outline:2px solid var(--ui-accent);outline-offset:2px}
+html body.vicinify-ui .vici-photo-picker>.vici-photo-trigger>input[type=file]{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;margin:0!important;padding:0!important;border:0!important;opacity:0!important;clip-path:none!important;overflow:visible!important;pointer-events:auto!important;cursor:pointer!important;z-index:2!important;-webkit-appearance:none!important}
 html body.vicinify-ui .vici-photo-selection { min-width:0; flex:1 1 100px; font-size:11px; line-height:1.5; overflow-wrap:anywhere; color:var(--ui-muted); }
 html body.vicinify-ui #main-content #page-dashboard .business-empty-state .dash-action-btn { background:#237e72 !important; border-color:#237e72 !important; color:#fff !important; }
 
@@ -1930,3 +1934,25 @@ html body.vicinify-ui #page-biz-edit .biz-upload-spinner {
     html body.vicinify-ui #page-biz-edit .biz-upload-spinner { animation-duration:1.7s; }
 }
 @media(max-width:640px) { html body.vicinify-ui #page-biz-edit .biz-upload-status { margin:8px 12px 0; } }
+
+
+/* Establishment photo roles (2026-10-31): banner = cover, avatar = profile/logo.
+   Render the Firestore WebP cover as an image independently of theme backgrounds. */
+html body.vicinify-ui #page-place .placeCover > .place-cover-photo {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 0;
+    pointer-events: none;
+}
+html body.vicinify-ui #page-place .placeCover.has-cover::after {
+    z-index: 1;
+}
+html body.vicinify-ui #page-place .placeCover > .placeTopBar,
+html body.vicinify-ui #page-place .placeCover > .placeCoverBrand {
+    z-index: 3;
+}

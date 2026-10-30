@@ -1,0 +1,105 @@
+/* Service Management — responsive, self-contained controls for Business Hub.
+   Loaded after mobile/brand styles to prevent older editor rules from
+   collapsing card padding when a desktop window is half-size. */
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-card > .bizedit-hint:first-child {
+  display:block;
+  margin:0 0 16px !important;
+  line-height:1.6;
+  overflow-wrap:anywhere;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-service-grid {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  width:100%;
+  min-width:0;
+  gap:12px;
+  margin:0 0 20px;
+  padding:0;
+  box-sizing:border-box;
+  container-type:inline-size;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-service-grid > label.bizedit-toggle-row {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 22px;
+  align-items:center !important;
+  gap:14px !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  min-height:74px;
+  height:auto !important;
+  padding:14px 16px !important;
+  margin:0 !important;
+  border:1px solid var(--ui-border, #d9e7e2) !important;
+  border-radius:12px;
+  background:var(--ui-surface, #fff);
+  box-sizing:border-box;
+  cursor:pointer;
+  overflow:visible;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-service-grid > .bizedit-toggle-row > span {
+  display:block;
+  min-width:0;
+  width:100%;
+  max-width:100%;
+  margin:0;
+  padding:0;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-service-grid > .bizedit-toggle-row strong {
+  display:block;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.4;
+  color:var(--ui-ink, #1b302b);
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-service-grid > .bizedit-toggle-row small {
+  display:block;
+  margin:5px 0 0;
+  font-size:11px;
+  font-weight:400;
+  line-height:1.5;
+  color:var(--ui-muted, #64748b);
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-service-grid > .bizedit-toggle-row > input.bizedit-switch[type="checkbox"] {
+  display:block !important;
+  position:static !important;
+  inset:auto !important;
+  justify-self:end;
+  align-self:center;
+  width:20px !important;
+  height:20px !important;
+  min-width:20px !important;
+  min-height:20px !important;
+  max-width:20px !important;
+  max-height:20px !important;
+  margin:0 !important;
+  padding:0 !important;
+  box-sizing:border-box;
+  transform:none !important;
+  cursor:pointer;
+  accent-color:#237e72 !important;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-service-grid > .bizedit-toggle-row:focus-within {
+  outline:2px solid var(--ui-success-line, #88c8bb);
+  outline-offset:2px;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-service-grid > .bizedit-toggle-row:has(input:checked) {
+  border-color:var(--ui-success-line, #88c8bb) !important;
+  background:var(--ui-success-bg, #edf8f3);
+}
+@container (max-width:350px) {
+  html body.vicinify-ui #main-content #page-biz-edit .bizedit-service-grid > label.bizedit-toggle-row {
+    gap:8px !important;
+    padding:12px !important;
+  }
+}
+@media (max-width:480px) {
+  html body.vicinify-ui #main-content #page-biz-edit .bizedit-service-grid > label.bizedit-toggle-row {
+    min-height:78px;
+    padding:12px 13px !important;
+  }
+}

@@ -114,10 +114,14 @@ window.ViciPhotoPicker=(()=>{
   for(const input of inputs){
    if(!input.accept.includes('image')||input.closest('.vici-photo-picker')||input.closest('.commerce-photo-dropzone'))continue;
    const wrap=document.createElement('div');wrap.className='vici-photo-picker';
-   input.before(wrap);wrap.append(input);input.tabIndex=-1;
-   const button=document.createElement('button');button.type='button';button.dataset.i18n=input.multiple?'Choose photos':'Choose photo';button.textContent=button.dataset.i18n;
+   input.before(wrap);
+   // A real label wrapping the native input allows direct touch selection on iOS
+   // Safari, Android Chrome, and installed PWAs without a synthetic input.click().
+   const button=document.createElement('label');button.className='vici-photo-trigger';
+   button.dataset.i18n=input.multiple?'Choose photos':'Choose photo';button.textContent=button.dataset.i18n;
    const status=document.createElement('span');status.className='vici-photo-selection';
-   wrap.append(button,status);button.addEventListener('click',()=>input.click());
+   button.append(input);input.removeAttribute('tabindex');
+   wrap.append(button,status);
    function sync(){const files=[...input.files];if(files.length){status.removeAttribute('data-i18n');status.setAttribute('data-no-translate','');status.textContent=files.map(file=>file.name).join(', ');}else{status.removeAttribute('data-no-translate');status.dataset.i18n='No photo selected';status.textContent='No photo selected';}window.LangManager?.translateDOM?.(undefined,wrap);}
    input.addEventListener('change',sync);input.form?.addEventListener('reset',()=>setTimeout(sync,0));sync();
   }

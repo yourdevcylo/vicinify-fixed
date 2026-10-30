@@ -5,10 +5,13 @@ const path=require('node:path');
 const commerce=fs.readFileSync(path.join(__dirname,'../js/vici-commerce.js'),'utf8');
 const ui=fs.readFileSync(path.join(__dirname,'../js/ui.js'),'utf8');
 const css=fs.readFileSync(path.join(__dirname,'../css/vici-chat.css'),'utf8');
-test('menu form has a focusable drop area with a native fallback picker',()=>{
- assert.match(commerce,/data-menu-photo-drop role="button" tabindex="0"/);
- assert.match(commerce,/data-menu-photo-file hidden/);
- assert.match(commerce,/photoZone\.addEventListener\('keydown'/);
+test('menu form uses a directly tappable native input instead of a hidden synthetic picker',()=>{
+ assert.match(commerce,/<label class="commerce-photo-dropzone" data-menu-photo-drop>/);
+ assert.match(commerce,/data-menu-photo-file aria-label=/);
+ assert.doesNotMatch(commerce,/data-menu-photo-file hidden/);
+ assert.doesNotMatch(commerce,/photoInput\.click\(\)/);
+ assert.match(css,/commerce-photo-dropzone input\[type=file\]\{position:absolute/);
+ assert.match(css,/pointer-events:auto!important/);
 });
 test('drop selects file for Firestore save without relying on setting input.files',()=>{
  assert.match(commerce,/photoZone\.addEventListener\('drop'/);

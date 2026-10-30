@@ -1,9 +1,9 @@
 const {services,authenticate,identifier,limit,reply}=require('./lib/admin');
-const {quickQuestions,error:contentError}=require('../../js/content-policy');
+const {quickQuestions,topicFor,error:contentError}=require('../../js/content-policy');
 function replyFor(place,topic){
  const custom=place.auto_reply_answers?.[topic];
  if(typeof custom==='string' && custom.trim() && !contentError('post',custom))return custom.trim();
- if(topic==='menu')return 'You can view our latest menu and store posts below. Please confirm current prices and availability with our team.';
+ if(topic==='menu')return 'You can browse our listed menu using the View Menu button below. Please confirm current prices and availability with our team.';
  if(topic==='hours'){
   const hours=place.operating_hours||place.operatingHours||place.hours;
   if(typeof hours==='string'&&hours.trim())return 'Our listed hours: '+hours.trim().slice(0,500);
@@ -37,7 +37,7 @@ exports.handler=async event=>{
   await db.runTransaction(async tx=>{
    const original=await tx.get(source);if(!original.exists)throw Object.assign(new Error('Question not found.'),{status:404});
    const msg=original.data();
-   if(msg.type!=='text'||msg.senderRole!=='customer'||msg.senderUid!==user.uid||msg.userId!==user.uid||msg.quickQuestion!==topic||msg.text!==quickQuestions[topic].text)
+   if(msg.type!=='text'||msg.senderRole!=='customer'||msg.senderUid!==user.uid||msg.userId!==user.uid||msg.quickQuestion!==topic||topicFor(msg.text)!==topic)
     throw Object.assign(new Error('This question is not eligible for an automatic reply.'),{status:403});
    const stamp=msg.createdAt?.toMillis?.();
    if(!Number.isFinite(stamp)||Date.now()-stamp>120000||stamp>Date.now()+5000)throw Object.assign(new Error('Send a new question to request an automatic reply.'),{status:409});

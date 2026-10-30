@@ -239,7 +239,7 @@ window.MapPage = (() => {
         try { return await run; }
         finally { if (_placesInFlight === run) _placesInFlight = null; }
     }
-    const publicCacheKey='vicinify:approved-catalog:20261028';
+    const publicCacheKey='vicinify:approved-catalog:20261031-photo-roles';
     const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','hours','operatingHours','operating_hours','is_verified','owner_uid','addedBy','approval_status','avgRating','reviewCount','ratingCount','priceRange','accepts_booking','accepts_orders','accepts_advance_booking','accepts_requests','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
     function readPublicSessionCache(now) {
         try {
@@ -886,7 +886,7 @@ window.MapPage = (() => {
             const selectedPlaces=recommendations.filter(p=>ids.has(p.id)).slice(0,3);
             return { ...reply, memory:reply.error?context.memory:{searchQuery:query,placeIds:selectedPlaces.map(p=>p.id)}, picks: reply.error ? [] : reply.placeCards?.length?reply.placeCards:selectedPlaces.map(p => ({
                 id:p.id,name:p.name,category:p.cat || p.category,rating:p.avgRating || 0,reviewCount:p.reviewCount || 0,
-                distance:p._distance != null ? formatDistance(p._distance) : "",photo:getSafeImageUrl(p.coverPhoto || p.photos?.[0]) || ""
+                distance:p._distance != null ? formatDistance(p._distance) : "",photo:getSafeImageUrl(p.logoUrl || p.logoURL || p.logo || p.brandLogo || p.brand_logo || p.profileLogo || p.avatarUrl) || ""
             })) };
         },
         reviewRequest: async draft => {
@@ -2217,9 +2217,12 @@ window.MapPage = (() => {
         let finalCoverImg = p.coverPhoto ? p.coverPhoto : (p.photos && p.photos.length > 0 ? p.photos[0] : null);
         finalCoverImg = getSafeImageUrl(finalCoverImg);
 
-        const coverStyle = finalCoverImg
-            ? `background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0) 100%), url("${finalCoverImg}") center/cover no-repeat;`
-            : `background: linear-gradient(120deg, #dceee5 0%, #edf5f0 55%, #c9e3d7 100%);`;
+        // Keep cover and profile photos distinct. A real <img> is more reliable for
+        // Firestore WebP data URLs than CSS background-image (especially in dark mode).
+        const coverStyle = `background: linear-gradient(120deg, #dceee5 0%, #edf5f0 55%, #c9e3d7 100%);`;
+        const coverPhotoHtml = finalCoverImg
+            ? `<img class="place-cover-photo" src="${escapeHtml(finalCoverImg)}" alt="${escapeHtml(p.name || 'Establishment')} cover photo" loading="eager" decoding="async" onerror="this.remove()" />`
+            : '';
         const logoUrl = getSafeImageUrl(p.logoUrl || p.logoURL || p.logo || p.brandLogo || p.brand_logo || p.profileLogo || p.avatarUrl);
         const placeInitial = escapeHtml((p.name || "V").charAt(0).toUpperCase());
         const brandLogoHtml = logoUrl
@@ -2246,6 +2249,7 @@ window.MapPage = (() => {
         wrap.classList.add("place-detail-shell");
         wrap.innerHTML = `
             <div class="placeCover ${finalCoverImg ? 'has-cover' : 'no-cover'}" style="${coverStyle}">
+                ${coverPhotoHtml}
                 <div class="placeTopBar">
                     <button class="circleBackBtn" aria-label="Back to previous page" onclick="window.viciGoBack('page-map')"><i data-lucide="arrow-left"></i></button>
 

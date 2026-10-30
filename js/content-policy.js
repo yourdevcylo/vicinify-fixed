@@ -2,7 +2,20 @@
 (function(root){
  const limits={name:{min:2,max:80,words:12,label:'Name'},place:{min:3,max:120,words:20,label:'Business name'},post:{min:3,max:500,words:100,label:'Post'},report:{min:3,max:500,words:100,label:'Report'},chat:{min:1,max:2000,words:300,label:'Message'},comment:{min:1,max:500,words:100,label:'Comment'},review:{min:3,max:2000,words:300,label:'Feedback'},description:{min:0,max:1000,words:200,label:'Description'}};
  const quickQuestions={menu:{label:'View menu',text:'Hi! Can I see your menu, please?'},hours:{label:'Opening hours',text:'Hi! What are your opening hours?'},delivery:{label:'Delivery options',text:'Hi! Do you offer delivery, and which areas do you cover?'},booking:{label:'Book a table',text:'Hi! Can I reserve a table? What details do you need?'}};
- const topicFor=text=>Object.keys(quickQuestions).find(key=>quickQuestions[key].text===String(text||'').trim())||null;
+ // Recognize short, explicit menu requests in English or Filipino, including typed chat.
+ // Other FAQ topics remain preset-only to avoid unintended automated answers.
+ const topicFor=text=>{
+  const value=String(text||'').trim();
+  const preset=Object.keys(quickQuestions).find(key=>quickQuestions[key].text===value);
+  if(preset)return preset;
+  if(!value || value.length>160)return null;
+  const question=value.toLowerCase().replace(/\s+/g,' ').replace(/[.!]+$/g,'').trim();
+  if(!/\bmenu\b/.test(question))return null;
+  if(/\b(?:don't|do not|dont|huwag|wag)\b.{0,40}\b(?:send|show|pakita|ibigay)\b/.test(question))return null;
+  const brief=/^(?:menu|menu po|menu pls|menu please|your menu|menu nyo|menu ninyo|menu nila|menu\?)\??$/;
+  const requested=/(?:\?|\b(?:may|meron|meron po|can|could|would|please|pls|paki|pakita|patingin|tingnan|tingin|pwede|puwede|pede|pasend|send|show|see|view|available|ano|what|where|list|price|presyo)\b)/;
+  return brief.test(question)||requested.test(question)?'menu':null;
+ };
  function error(kind,value){
   const rule=limits[kind],text=typeof value==='string'?value.trim():'';
   if(!rule)return 'Invalid content type.';

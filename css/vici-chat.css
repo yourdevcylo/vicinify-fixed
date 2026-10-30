@@ -223,10 +223,13 @@ html body.vicinify-ui #smartAnswerPanel.vici-workspace .vici-workspace-title spa
 /* Menu photo drag-and-drop area. The separate native input remains available for mobile. */
 html body.vicinify-ui .commerce-photo-field{display:grid;gap:8px;min-width:0}
 html body.vicinify-ui .commerce-photo-field-label{font-size:12px;font-weight:600}
-html body.vicinify-ui .commerce-photo-dropzone{display:grid;align-items:center;justify-items:center;min-width:0;min-height:146px;padding:16px;border:2px dashed var(--ui-border);border-radius:12px;background:var(--ui-soft);color:var(--ui-ink);cursor:pointer;transition:border-color .15s ease,background .15s ease;text-align:center}
+html body.vicinify-ui .commerce-photo-dropzone{position:relative;overflow:hidden;display:grid;align-items:center;justify-items:center;min-width:0;min-height:146px;padding:16px;border:2px dashed var(--ui-border);border-radius:12px;background:var(--ui-soft);color:var(--ui-ink);cursor:pointer;transition:border-color .15s ease,background .15s ease;text-align:center}
 html body.vicinify-ui .commerce-photo-dropzone:hover,html body.vicinify-ui .commerce-photo-dropzone.is-dragover{border-color:var(--ui-accent);background:var(--ui-accent-soft)}
-html body.vicinify-ui .commerce-photo-dropzone:focus-visible{outline:3px solid var(--ui-accent);outline-offset:2px}
-html body.vicinify-ui .commerce-photo-dropzone input[type=file]{display:none!important}
+html body.vicinify-ui .commerce-photo-dropzone:focus-within{outline:3px solid var(--ui-accent);outline-offset:2px}
+/* Native, visible-to-touch file input: mobile Safari/installed PWA opens Photos reliably.
+   The transparent input fills the dropzone, while preview and text remain underneath. */
+html body.vicinify-ui .commerce-photo-dropzone input[type=file]{position:absolute!important;inset:0!important;display:block!important;opacity:0!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;padding:0!important;margin:0!important;border:0!important;clip-path:none!important;pointer-events:auto!important;cursor:pointer!important;z-index:2!important;-webkit-appearance:none!important}
+
 html body.vicinify-ui .commerce-photo-empty{display:grid;justify-items:center;gap:5px;font-size:12px;line-height:1.5}
 html body.vicinify-ui .commerce-photo-icon{font-size:27px;line-height:1.1;color:var(--ui-primary)}
 html body.vicinify-ui .commerce-photo-empty strong{font-size:14px}

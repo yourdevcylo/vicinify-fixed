@@ -1,0 +1,12 @@
+/* Capstone Demo switcher: isolated to three explicitly approved demo emails. */
+#demoQuickSwitch { position:relative; flex:0 0 auto; z-index:1050; }
+#demoSwitchTrigger { display:flex; gap:8px; align-items:center; border:1px solid var(--ui-border,#d8e4df); background:var(--ui-accent-soft,#e6f5ef); color:var(--ui-ink,#183d34); border-radius:12px; padding:8px 10px; cursor:pointer; font-size:12px; white-space:nowrap; min-height:40px; }
+#demoSwitchTrigger .demo-switch-tag { font-size:9px; font-weight:800; letter-spacing:.05em; color:#137d6d; border-radius:6px; padding:3px 5px; background:#fff; }
+#demoSwitchOptions { position:absolute; top:calc(100% + 8px); right:0; min-width:234px; border-radius:14px; background:var(--ui-surface,#fff); border:1px solid var(--ui-border,#d8e4df); box-shadow:0 12px 30px #0d3b2a24; padding:7px; z-index:3000; }
+#demoSwitchOptions button { display:flex; align-items:center; gap:10px; width:100%; min-height:44px; border:0; padding:9px 11px; border-radius:9px; background:transparent; color:var(--ui-ink,#16382f); cursor:pointer; text-align:left; font-size:13px; }
+#demoSwitchOptions button:hover, #demoSwitchOptions button:focus-visible { background:var(--ui-accent-soft,#e6f5ef); }
+#demoSwitchOptions button[aria-current=true] { font-weight:700; color:var(--ui-accent,#147d70); }
+#demoSwitchOptions .demo-role-check { margin-left:auto; color:#147d70; }
+#demoSignInHint { color:#137d6d; background:#effbf5; border:1px solid #bce6d2; padding:12px; margin:12px 0; border-radius:10px; font-size:12px; line-height:1.5; }
+@media(max-width:800px) { .workspace-actions { gap:8px; } #demoSwitchTrigger { padding:7px 8px; } #demoSwitchTrigger .demo-switch-label { max-width:90px; overflow:hidden; text-overflow:ellipsis; } #demoSwitchOptions { right:-43px; min-width:min(252px,calc(100vw - 24px)); } }
+@media(max-width:360px) { #demoSwitchTrigger .demo-switch-label { max-width:58px; } }
