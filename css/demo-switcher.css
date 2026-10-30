@@ -1,48 +1,42 @@
-/* Capstone Demo switcher: isolated to three explicitly approved demo emails. */
-#demoQuickSwitch { position:relative; flex:0 0 auto; z-index:1050; }
-#demoSwitchTrigger { display:flex; gap:8px; align-items:center; border:1px solid var(--ui-border,#d8e4df); background:var(--ui-accent-soft,#e6f5ef); color:var(--ui-ink,#183d34); border-radius:12px; padding:8px 10px; cursor:pointer; font-size:12px; white-space:nowrap; min-height:40px; }
-#demoSwitchTrigger .demo-switch-tag { font-size:9px; font-weight:800; letter-spacing:.05em; color:#137d6d; border-radius:6px; padding:3px 5px; background:#fff; }
-#demoSwitchOptions { position:absolute; top:calc(100% + 8px); right:0; min-width:234px; border-radius:14px; background:var(--ui-surface,#fff); border:1px solid var(--ui-border,#d8e4df); box-shadow:0 12px 30px #0d3b2a24; padding:7px; z-index:3000; }
-#demoSwitchOptions button { display:flex; align-items:center; gap:10px; width:100%; min-height:44px; border:0; padding:9px 11px; border-radius:9px; background:transparent; color:var(--ui-ink,#16382f); cursor:pointer; text-align:left; font-size:13px; }
-#demoSwitchOptions button:hover, #demoSwitchOptions button:focus-visible { background:var(--ui-accent-soft,#e6f5ef); }
-#demoSwitchOptions button[aria-current=true] { font-weight:700; color:var(--ui-accent,#147d70); }
-#demoSwitchOptions .demo-role-check { margin-left:auto; color:#147d70; }
-#demoSignInHint { color:#137d6d; background:#effbf5; border:1px solid #bce6d2; padding:12px; margin:12px 0; border-radius:10px; font-size:12px; line-height:1.5; }
-@media(max-width:800px) { .workspace-actions { gap:8px; } #demoSwitchTrigger { padding:7px 8px; } #demoSwitchTrigger .demo-switch-label { max-width:90px; overflow:hidden; text-overflow:ellipsis; } #demoSwitchOptions { right:-43px; min-width:min(252px,calc(100vw - 24px)); } }
-@media(max-width:360px) { #demoSwitchTrigger .demo-switch-label { max-width:58px; } }
-
-/* Clear first-time role selection instead of a confusing dead-end login page. */
-html body.vicinify-ui .demo-login-options{display:grid;gap:10px;margin:0 0 16px;padding:13px;border:1px solid var(--ui-border,#d8e4df);border-radius:12px;background:var(--ui-soft,#f0f6f2)}
-html body.vicinify-ui .demo-login-options[hidden]{display:none!important}
-html body.vicinify-ui .demo-login-options-title{font-size:11px;font-weight:750;color:var(--ui-ink,#183d34)}
-html body.vicinify-ui .demo-login-roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-html body.vicinify-ui .demo-login-roles button{min-width:0;min-height:42px;padding:8px 3px;font-size:12px;font-weight:650;border:1px solid var(--ui-border,#d8e4df);border-radius:9px;background:var(--ui-surface,#fff);color:var(--ui-ink,#183d34);cursor:pointer}
-html body.vicinify-ui .demo-login-roles button[aria-current=true]{color:#117468;border-color:#79bca8;background:#e6f5ef;cursor:default}
-html body.vicinify-ui .demo-login-back{min-height:40px;padding:9px 11px;border:1px solid #87caba;border-radius:9px;background:var(--ui-surface,#fff);color:var(--ui-accent,#137d6d);text-align:center;font-size:12px;font-weight:700;cursor:pointer}
-html body.vicinify-ui .demo-login-back[hidden]{display:none!important}
-html body.vicinify-ui #demoSignInHint { font-size:13px;line-height:1.55;overflow-wrap:anywhere }
-
-
-/* Capstone demo first-login recovery: keep the role selector visible even
-   when the auth form hides the normal workspace header. */
-html body.vicinify-ui.on-login.demo-switch-visible #main-content .workspace-header {
-  display:flex !important; position:fixed !important; top:0 !important; left:0 !important; right:0 !important;
-  height:64px !important; padding:0 max(14px,env(safe-area-inset-right)) 0 max(14px,env(safe-area-inset-left)) !important;
-  justify-content:flex-end !important; align-items:center !important;
-  background:var(--ui-surface,#fff) !important; border-bottom:1px solid var(--ui-border,#d8e4df) !important;
-  z-index:11000 !important; box-sizing:border-box !important; pointer-events:auto !important;
+/* Hidden-until-shortcut Capstone Demo Console.
+   No header launcher; does not alter the actual Vicinify navigation layout. */
+html body.vicinify-ui .demo-dev-overlay[hidden] { display:none !important; }
+html body.vicinify-ui .demo-dev-overlay {
+  position:fixed;inset:0;z-index:25000;display:grid;place-items:center;
+  padding:clamp(12px,3vw,28px);box-sizing:border-box;
+  isolation:isolate;
 }
-html body.vicinify-ui.on-login.demo-switch-visible #main-content .workspace-heading,
-html body.vicinify-ui.on-login.demo-switch-visible #main-content .mobile-brand,
-html body.vicinify-ui.on-login.demo-switch-visible #main-content .workspace-actions > :not(#demoQuickSwitch) { display:none !important; }
-html body.vicinify-ui.on-login.demo-switch-visible #main-content .workspace-actions { display:flex !important; margin-left:auto !important; }
-html body.vicinify-ui.on-login.demo-switch-visible #main-content #page-login.active {
-  padding-top:max(64px, calc(64px + env(safe-area-inset-top,0px))) !important;
-  box-sizing:border-box;
+html body.vicinify-ui .demo-dev-backdrop { position:absolute;inset:0;background:rgba(7,28,25,.64);backdrop-filter:blur(5px); }
+html body.vicinify-ui .demo-dev-dialog {
+  position:relative;z-index:1;width:min(100%,440px);max-height:min(90dvh,740px);
+  overflow-y:auto;box-sizing:border-box;outline:none;
+  padding:24px;border:1px solid var(--ui-border,#d6e5de);
+  border-radius:20px;background:var(--ui-surface,#fff);color:var(--ui-ink,#102d27);
+  box-shadow:0 26px 90px rgba(4,25,22,.34);
+  font-family:Inter,system-ui,sans-serif;
 }
-/* Keep the menu contained in the visible viewport, including mobile. */
-html body.vicinify-ui #demoSwitchOptions { max-width:calc(100vw - 24px); max-height:min(65vh,400px); overflow-y:auto; }
-@media (max-width:480px) {
-  html body.vicinify-ui #demoSwitchTrigger { min-height:40px; font-size:11px; }
-  html body.vicinify-ui #demoSwitchOptions { right:0 !important; }
+html body.vicinify-ui .demo-dev-titlebar {display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+html body.vicinify-ui .demo-dev-eyebrow {display:block;font-size:10px;font-weight:800;letter-spacing:1.6px;color:var(--ui-accent,#188773);margin-bottom:7px;}
+html body.vicinify-ui #demoDevTitle {color:var(--ui-ink,#102d27);font-size:20px!important;line-height:1.2!important;font-weight:800!important;margin:0!important;}
+html body.vicinify-ui #demoDevDescription {color:var(--ui-muted,#63766f);font-size:12px;line-height:1.65;margin:9px 0 18px;}
+html body.vicinify-ui #demoDevClose {flex:0 0 36px;height:36px;border:1px solid var(--ui-border,#d6e5de);border-radius:10px;background:var(--ui-surface,#fff);color:var(--ui-ink,#102d27);font-size:24px;line-height:1;cursor:pointer;}
+html body.vicinify-ui .demo-dev-roles {display:grid;gap:10px;}
+html body.vicinify-ui .demo-dev-role {display:flex;align-items:center;gap:11px;width:100%;min-width:0;min-height:72px;border:1px solid var(--ui-border,#d6e5de);border-radius:13px;padding:12px;background:var(--ui-surface,#fff);color:var(--ui-ink,#102d27);text-align:left;cursor:pointer;transition:border-color .15s,background .15s;}
+html body.vicinify-ui .demo-dev-role:hover,html body.vicinify-ui .demo-dev-role:focus-visible {border-color:#40a78f;background:var(--ui-soft,#eef8f3);}
+html body.vicinify-ui .demo-dev-role[aria-current="true"] {border-color:#66b8a2;background:var(--ui-soft,#eef8f3);}
+html body.vicinify-ui .demo-dev-role-icon {display:grid;place-items:center;flex:0 0 39px;width:39px;height:39px;border-radius:11px;background:#d9f2e8;color:#147e70;font-size:11px;font-weight:800;letter-spacing:.3px;}
+html body.vicinify-ui .demo-dev-role-text {display:flex;flex-direction:column;gap:4px;min-width:0;flex:1;}
+html body.vicinify-ui .demo-dev-role-text strong {color:var(--ui-ink,#102d27);font-size:13px;font-weight:750;}
+html body.vicinify-ui .demo-dev-role-text small {color:var(--ui-muted,#63766f);font-size:11px;}
+html body.vicinify-ui .demo-dev-role-indicator {color:var(--ui-accent,#188773);font-size:9px;font-weight:800;letter-spacing:.6px;}
+html body.vicinify-ui .demo-dev-status {font-size:11px;line-height:1.6;color:var(--ui-muted,#63766f);background:var(--ui-soft,#f1f8f4);border-radius:9px;padding:11px 12px;margin:15px 0 0;overflow-wrap:anywhere;}
+html body.vicinify-ui .demo-dev-footer {text-align:center;font-size:11px;color:var(--ui-muted,#63766f);margin-top:17px;}
+html body.vicinify-ui .demo-dev-footer span:not(.demo-dev-shortcut-dot) {display:inline-block;border:1px solid var(--ui-border,#d6e5de);padding:3px 6px;border-radius:5px;font-size:10px;}
+html body.vicinify-ui .demo-dev-shortcut-dot {margin:0 6px;}
+@media(max-width:480px) {
+  html body.vicinify-ui .demo-dev-overlay {padding:12px;}
+  html body.vicinify-ui .demo-dev-dialog {padding:18px;border-radius:16px;max-height:calc(100dvh - 24px);}
+  html body.vicinify-ui #demoDevTitle {font-size:18px!important;}
+  html body.vicinify-ui .demo-dev-role {min-height:67px;}
 }
+@media(prefers-reduced-motion:reduce) {html body.vicinify-ui .demo-dev-role{transition:none;}}
