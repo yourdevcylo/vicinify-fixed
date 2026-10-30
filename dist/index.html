@@ -22,17 +22,17 @@
     <link rel="dns-prefetch" href="https://tile.openstreetmap.org" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <link rel="stylesheet" href="css/style.css?v=VICI_39ffe5dc4c3f20cf" />
-    <link rel="stylesheet" href="css/ui.css?v=VICI_39ffe5dc4c3f20cf" />
-    <link rel="stylesheet" href="css/reference.css?v=VICI_39ffe5dc4c3f20cf" />
-    <link rel="stylesheet" href="css/components.css?v=VICI_39ffe5dc4c3f20cf" />
-    <link rel="stylesheet" href="css/place-preview.css?v=VICI_39ffe5dc4c3f20cf">
-    <link rel="stylesheet" href="css/suki-polish.css?v=VICI_39ffe5dc4c3f20cf">
-    <link rel="stylesheet" href="css/vici-chat.css?v=VICI_39ffe5dc4c3f20cf" />
+    <link rel="stylesheet" href="css/style.css?v=VICI_75315e1405ef1e25" />
+    <link rel="stylesheet" href="css/ui.css?v=VICI_75315e1405ef1e25" />
+    <link rel="stylesheet" href="css/reference.css?v=VICI_75315e1405ef1e25" />
+    <link rel="stylesheet" href="css/components.css?v=VICI_75315e1405ef1e25" />
+    <link rel="stylesheet" href="css/place-preview.css?v=VICI_75315e1405ef1e25">
+    <link rel="stylesheet" href="css/suki-polish.css?v=VICI_75315e1405ef1e25">
+    <link rel="stylesheet" href="css/vici-chat.css?v=VICI_75315e1405ef1e25" />
     <link rel="stylesheet" href="css/amenities-layout-fix.css?v=20261030b" />
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="icons/icon-192.png">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="icon" href="icons/icon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="icons/icon-180.png" sizes="180x180">
     <meta name="theme-color" content="#147d70">
 
 
@@ -44,7 +44,7 @@
 
         <header class="workspace-header">
             <div class="workspace-heading"><span class="workspace-eyebrow">YOUR LOCAL COMPANION</span><strong id="workspaceTitle">Explore Lipa</strong></div>
-            <a class="mobile-brand" href="#" data-goto="page-map"><span class="brand-symbol"><i data-lucide="map-pin"></i></span><span class="brand-wordmark">vicinify<span class="brand-dot">.</span></span></a>
+            <a class="mobile-brand" href="#" data-goto="page-map"><span class="brand-symbol"><img src="icons/vicinify-mark.png" alt="" width="28" height="28" decoding="async"></span><span class="brand-wordmark">vicinify<span class="brand-dot">.</span></span></a>
             <div class="workspace-actions"><span class="city-label"><i data-lucide="map-pin"></i> Lipa City, Batangas</span><button type="button" class="account-button" data-goto="page-settings" aria-label="Open profile and settings"><span id="accountInitials">V</span><span class="account-copy"><strong id="accountName">Your account</strong><small id="accountRole">Standard</small></span><i data-lucide="chevron-down"></i></button></div>
             <div id="connectionNotice" class="connection-notice" role="status" hidden>You’re offline. Some features need an internet connection.</div>
         </header>
@@ -52,14 +52,14 @@
         <main id="page-login" class="page active">
             <div class="login-wrapper">
                 <aside class="auth-story" aria-label="Discover Vicinify">
-                    <div class="story-brand"><span class="brand-symbol"><i data-lucide="map-pin"></i></span><span class="brand-wordmark">vicinify<span class="brand-dot">.</span></span></div>
+                    <div class="story-brand"><span class="brand-symbol"><img src="icons/vicinify-mark.png" alt="" width="28" height="28" decoding="async"></span><span class="brand-wordmark">vicinify<span class="brand-dot">.</span></span></div>
                     <div class="story-content"><span class="story-kicker"><span></span> MADE FOR LIPA CITY</span><h2>Go somewhere <br>good. <br><em>Around the<br>neighborhood.</em></h2><p>From your morning kapeng barako to a new neighborhood find. Discover the local places that make Lipa, Lipa.</p></div>
                     <div class="neighborhood-art" aria-hidden="true"><svg viewBox="0 0 540 270" fill="none"><rect x="12" y="20" width="516" height="240" rx="28" fill="#e5eeeb"/><path d="M0 206 540 80M122 0 250 280M332 0 406 280M0 76 540 230" stroke="#fff" stroke-width="23"/><path d="M-5 206 540 80M122 0 250 280M332 0 406 280M0 76 540 230" stroke="#cbdcd6" stroke-width="1.5" stroke-dasharray="5 6"/><rect x="60" y="105" width="68" height="43" rx="9" fill="#bfd8cc" transform="rotate(-14 60 105)"/><rect x="245" y="62" width="67" height="48" rx="9" fill="#c6d4cb" transform="rotate(-14 245 62)"/><rect x="288" y="184" width="66" height="45" rx="9" fill="#bfd8cc" transform="rotate(14 288 184)"/><circle cx="268" cy="142" r="39" fill="#137e72" fill-opacity=".08"/><circle cx="268" cy="142" r="25" fill="#137e72" fill-opacity=".12"/><circle cx="268" cy="142" r="9" fill="#137e72" stroke="#fff" stroke-width="4"/><g transform="translate(109 54)"><rect width="52" height="52" rx="17" fill="#fff"/><path d="M17 17h18v13a8 8 0 0 1-8 8h-2a8 8 0 0 1-8-8V17Zm18 3h3a5 5 0 0 1 0 10h-3M20 12v-3m7 3V7m6 5V9" stroke="#b77b44" stroke-width="2.5" stroke-linecap="round"/></g><g transform="translate(365 125)"><rect width="52" height="52" rx="17" fill="#fff"/><path d="M14 25h24l-3-10H17l-3 10Zm3 2v12h18V27M23 39v-9h6v9" stroke="#137e72" stroke-width="2.5" stroke-linejoin="round"/></g></svg><div class="art-label"><i data-lucide="navigation"></i><span>A little closer to your community.</span></div></div>
                     <div class="story-footer"><span><i data-lucide="compass"></i> Discover local</span><span><i data-lucide="heart-handshake"></i> Support local</span><span><i data-lucide="sparkles"></i> Ask Vici</span></div>
                 </aside>
                 <div class="login-card" id="authBox">
                     <div class="login-header">
-                        <div class="login-logo-circle"><i data-lucide="map-pin" style="color:white; width:28px; height:28px;"></i></div>
+                        <div class="login-logo-circle"><img src="icons/vicinify-mark.png" alt="Vicinify logo" width="30" height="30" decoding="async"></div>
                         <h1 id="authTitle">Welcome to Vicinify</h1>
                         <p id="authSubtitle">Sign in to continue to Lipa’s local guide</p>
                         <div class="auth-brand-chip"><i data-lucide="map-pin"></i> Lipa City &middot; Local Guide</div>
@@ -598,6 +598,7 @@
                     <i data-lucide="save"></i> Save
                 </button>
             </div>
+            <div id="bizPortalSaveStatus" class="biz-upload-status" role="status" aria-live="polite" aria-atomic="true" hidden></div>
 
             <div class="bizedit-wrap">
                 <input type="hidden" id="bizPortalId" />
@@ -640,8 +641,8 @@
                             <i data-lucide="image"></i> Store Cover Photo
                         </label>
                         <div id="bizPortalCoverPreview" class="bizedit-cover-preview"></div>
-                        <input type="file" id="bizPortalCover" class="bizedit-cover-input" accept="image/*" />
-                        <p class="bizedit-hint">This large photo appears when a customer taps your store on the map.</p>
+                        <input type="file" id="bizPortalCover" class="bizedit-cover-input" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+                        <p class="bizedit-hint">Shown on your establishment page. JPG, PNG, or WebP (up to 5 MB); converted to a small WebP and saved in Firestore.</p>
                     </div>
 
                     <div class="bizedit-cover">
@@ -649,9 +650,9 @@
                             <i data-lucide="badge-check"></i> Profile Picture / Store Logo (optional)
                         </label>
                         <div id="bizPortalLogoPreview" class="bizedit-cover-preview" style="height:110px; background-size:contain; background-repeat:no-repeat; background-position:center;"></div>
-                        <input type="file" id="bizPortalLogo" class="bizedit-cover-input" accept="image/*" />
+                        <input type="file" id="bizPortalLogo" class="bizedit-cover-input" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
                         <button type="button" id="bizPortalLogoRemove" class="btn-deny" style="display:none; margin-top:8px; font-size:12px; padding:7px 10px;">Remove logo</button>
-                        <p class="bizedit-hint">Your logo appears beside your store name in the list view. Square images work best.</p>
+                        <p class="bizedit-hint">Shown beside your store name. Square JPG, PNG, or WebP photos work best. Saved as a small WebP in Firestore.</p>
                     </div>
                 </div>
 
@@ -1072,7 +1073,7 @@
             </div>
         </div>
         <nav class="bottom-nav" aria-label="Main navigation">
-            <a class="nav-brand" href="#" data-goto="page-map" aria-label="Vicinify home"><span class="brand-symbol"><i data-lucide="map-pin"></i></span><span class="brand-wordmark">vicinify<span class="brand-dot">.</span></span></a>
+            <a class="nav-brand" href="#" data-goto="page-map" aria-label="Vicinify home"><span class="brand-symbol"><img src="icons/vicinify-mark.png" alt="" width="28" height="28" decoding="async"></span><span class="brand-wordmark">vicinify<span class="brand-dot">.</span></span></a>
             <span class="nav-section-label">WORKSPACE</span>
             <button type="button" class="nav-item" data-goto="page-map">
                 <span class="navIcon">
@@ -1117,27 +1118,27 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-    <script src="js/data.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/payment-policy.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/place-features.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/place-preview.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/content-policy.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/account-deletion.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/password-policy.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/common.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/vici-request.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/vici-commerce.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/vici-chat.js?v=VICI_39ffe5dc4c3f20cf"></script>
+    <script src="js/data.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/payment-policy.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/place-features.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/place-preview.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/content-policy.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/account-deletion.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/password-policy.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/common.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/vici-request.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/vici-commerce.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/vici-chat.js?v=VICI_75315e1405ef1e25"></script>
     <link rel="stylesheet" href="css/categories.css?v=VICINIFY_CATEGORIES_20261030">
     <link rel="stylesheet" href="css/database-management.css?v=VICINIFY_DB_MANAGEMENT_20261030">
     <script src="js/categories.js?v=VICINIFY_CATEGORIES_20261030"></script>
-    <script src="js/map.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/add.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/buzz.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/dashboard.js?v=VICI_39ffe5dc4c3f20cf"></script>
+    <script src="js/map.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/add.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/buzz.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/dashboard.js?v=VICI_75315e1405ef1e25"></script>
     <script src="js/database-management.js?v=VICINIFY_DB_MANAGEMENT_20261030"></script>
-    <script src="js/ownership-transfer.js?v=VICI_39ffe5dc4c3f20cf"></script>
-    <script src="js/settings.js?v=VICI_39ffe5dc4c3f20cf"></script>
+    <script src="js/ownership-transfer.js?v=VICI_75315e1405ef1e25"></script>
+    <script src="js/settings.js?v=VICI_75315e1405ef1e25"></script>
 
     <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
     <script>lucide.createIcons();</script>
@@ -1222,8 +1223,9 @@ html body #page-place.active #placeUpdatesList > .place-menu-card {
 }
 </style>
 
-<link rel="stylesheet" href="css/mobile.css?v=VICI_39ffe5dc4c3f20cf" />
+<link rel="stylesheet" href="css/mobile.css?v=VICI_75315e1405ef1e25" />
+<link rel="stylesheet" href="css/brand-icon.css?v=VICI_75315e1405ef1e25" />
 <!-- build: VICINIFY_MODERN_FINAL_20261003 -->
-    <script src="js/ui.js?v=VICI_39ffe5dc4c3f20cf"></script>
+    <script src="js/ui.js?v=VICI_75315e1405ef1e25"></script>
 </body>
 </html>

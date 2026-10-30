@@ -3,9 +3,9 @@
   "short_name": "Vicinify",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#eef5f2",
-  "theme_color": "#237e72",
-  "description": "Vicinify \u2014 AI-powered service locator for Lipa City.",
+  "background_color": "#f0faf7",
+  "theme_color": "#168f7c",
+  "description": "Vicinify — AI-powered service locator for Lipa City.",
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -17,7 +17,13 @@
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "id": "/",

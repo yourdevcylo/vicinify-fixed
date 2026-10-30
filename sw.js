@@ -34,6 +34,11 @@ const APP_SHELL = [
     "./js/vendor/qrcode.min.js",
     "./js/vendor/jsQR.js",
     "./manifest.json",
+    "./css/brand-icon.css?v=VICINIFY_SUKI_REALTIME_20261030",
+    "./icons/vicinify-mark.png",
+    "./icons/icon-32.png",
+    "./icons/icon-180.png",
+    "./icons/icon-512-maskable.png",
     "./icons/icon-192.png",
     "./icons/icon-512.png",
     "./notif.mp3"

@@ -1,0 +1,30 @@
+/* Vicinify brand symbol — centered image mark, used across auth, desktop and mobile. */
+html body.vicinify-ui #main-content .brand-symbol {
+  display: grid !important; place-items: center !important;
+  aspect-ratio: 1 / 1 !important; width: 36px !important; height: 36px !important;
+  min-width: 36px !important; flex: 0 0 36px !important;
+  border-radius: 11px !important;
+  background: linear-gradient(150deg, #f0fcf8, #d8f3e9) !important;
+  border: 1px solid rgba(24,158,133,.16) !important;
+  box-shadow: none !important; overflow: hidden;
+}
+html body.vicinify-ui #main-content .brand-symbol img {
+  display:block !important; width: 82% !important; height: 82% !important;
+  object-fit: contain !important; object-position: center center !important;
+  margin: 0 !important; padding:0 !important;
+}
+html body.dark-mode.vicinify-ui #main-content .brand-symbol,
+html body.dark.vicinify-ui #main-content .brand-symbol {
+  background: linear-gradient(150deg, #123e37, #164d43) !important;
+  border-color: rgba(115,226,191,.25) !important;
+}
+html body.vicinify-ui #main-content .login-logo-circle img {
+  width: 30px !important; height: 30px !important; object-fit: contain;
+}
+@media (max-width: 767px) {
+  html body.vicinify-ui #main-content .mobile-brand .brand-symbol {
+    width: 30px !important; height: 30px !important;
+    min-width: 30px !important; flex: 0 0 30px !important;
+    border-radius: 9px !important;
+  }
+}

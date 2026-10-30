@@ -2453,7 +2453,10 @@ function showPage(pageId, options = {}) {
 
     if (pageId === "page-map") {
         // Return to the user's selected discovery view, including after Place details.
-        const discoveryView = document.getElementById('page-map')?.dataset.view === 'list' ? 'list' : 'map';
+        const requestedView = options.discoveryView;
+        const discoveryView = (requestedView === 'map' || requestedView === 'list')
+            ? requestedView
+            : (document.getElementById('page-map')?.dataset.view === 'list' ? 'list' : 'map');
         if (typeof window.toggleView === "function") {
             try { window.toggleView(discoveryView); } catch (e) { setTimeout(() => window.MapPage?.refresh?.(), 200); }
         } else {

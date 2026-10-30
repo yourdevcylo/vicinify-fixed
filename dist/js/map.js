@@ -898,19 +898,34 @@ window.MapPage = (() => {
         messageBusiness:async id=>{await getAcceptedPlaces();const p=cloudPlaces.find(p=>p.id===id);if(!p)return false;await window.openChatModal?.(p.id,p.name);return true;},
         viewPlace:async id=>{await window.viewPlace(id);return true;},
         viewMenu:async id=>window.openViciMenu(id),
-        directions:async id=>{await getAcceptedPlaces();const p=cloudPlaces.find(p=>p.id===id);if(!p||!Number.isFinite(Number(p.lat))||!Number.isFinite(Number(p.lng)))return false;window.routeToPlace(Number(p.lat),Number(p.lng));return true;},
+        directions:async id=>{
+            await getAcceptedPlaces();
+            const p=cloudPlaces.find(p=>p.id===id);
+            const lat=Number(p?.lat), lng=Number(p?.lng);
+            if(!p || p.lat == null || p.lng == null || !Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat)>90 || Math.abs(lng)>180){
+                window.showToast?.("This establishment has no valid map location.", "error");
+                return false;
+            }
+            return window.routeToPlace(lat, lng, p.name || "Establishment") === true;
+        },
         viewOnMap: async id => {
             await getAcceptedPlaces();
             const place = cloudPlaces.find(p => p.id === id);
             if (!place || place.lat == null || place.lng == null || !Number.isFinite(Number(place.lat)) || !Number.isFinite(Number(place.lng))) {
                 window.showToast?.("This place is no longer available on the map.", "info"); return false;
             }
-            window.PlacePreview?.close?.();
-            window.toggleView?.("map");
-            showPage("page-map");
+            // The Map page remembers the last selected List/Map view. Opening
+            // a location must explicitly override that remembered List state.
+            if(!focusMapForNavigation()){
+                window.showToast?.("Could not open the map. Please refresh and retry.", "error");
+                return false;
+            }
             setTimeout(() => {
-                if (!map) return;
-                map.invalidateSize(); map.flyTo([place.lat, place.lng], 16, { duration:.7 });
+                if (!map) {
+                    window.showToast?.("Map is unavailable. Please check your connection.", "error");
+                    return;
+                }
+                map.invalidateSize(); map.flyTo([Number(place.lat), Number(place.lng)], 16, { duration:.7 });
                 const marker = markerMap.get(id)?.marker;
                 if (marker) marker.openPopup();
                 else L.popup({className:"vici-place-popup",maxWidth:300}).setLatLng([place.lat,place.lng]).setContent(buildPlaceCard(place)).openOn(map);
@@ -1771,18 +1786,57 @@ window.MapPage = (() => {
         if (window.showToast) window.showToast("Navigation stopped.", "info");
     };
 
+    // One entry point for any map-directed action: Vici AI, place card,
+    // list preview, directions, or a saved recommendation. Always reveal
+    // the actual Leaflet map before placing a marker or starting routing.
+    function focusMapForNavigation() {
+        window.PlacePreview?.close?.();
+        if (typeof showPage === "function") showPage("page-map", { discoveryView: "map" });
+        // Reassert after showPage: its normal behavior restores the last
+        // user-selected discovery view, which may have been List.
+        window.toggleView?.("map");
+        if (!map) refresh();
+        if (map) {
+            const resize = () => {
+                if (document.getElementById("page-map")?.classList.contains("active") &&
+                    document.getElementById("page-map")?.dataset.view === "map") map.invalidateSize();
+            };
+            requestAnimationFrame(resize);
+            setTimeout(resize, 180);
+        }
+        return document.getElementById("page-map")?.dataset.view === "map";
+    }
+    window.focusViciMap = focusMapForNavigation;
+
     window.routeToPlace = function (destLat, destLng, destName) {
         destLat=Number(destLat);destLng=Number(destLng);
-        if(!Number.isFinite(destLat)||!Number.isFinite(destLng)||Math.abs(destLat)>90||Math.abs(destLng)>180)return;
-        if(navDest?.lat===destLat&&navDest?.lng===destLng&&(navPending||navRoute))return;
-        if (!AppState.userLocation || AppState.userLocation.lat == null || AppState.userLocation.lng == null) {
-            window.showToast("We need your location to start navigation.", "error");
-            locate().then(ok=>{if(ok)window.routeToPlace(destLat,destLng,destName);});
-            return;
+        if(!Number.isFinite(destLat)||!Number.isFinite(destLng)||Math.abs(destLat)>90||Math.abs(destLng)>180){
+            window.showToast?.("This establishment has no valid map location.", "error");
+            return false;
         }
-        if (typeof L.Routing === "undefined") {
-            window.showToast("Navigation is still loading. Check your connection.", "info");
-            return;
+        if(!focusMapForNavigation()){
+            window.showToast?.("Could not open the map. Please refresh and retry.", "error");
+            return false;
+        }
+        if(navDest?.lat===destLat&&navDest?.lng===destLng&&(navPending||navRoute))return true;
+        // Show the destination even if GPS permission or the routing service
+        // fails. The user must never remain looking at a stale List view.
+        if (map?.flyTo) map.flyTo([destLat, destLng], 15, {duration:.45});
+        if (!AppState.userLocation || AppState.userLocation.lat == null || AppState.userLocation.lng == null) {
+            window.showToast?.("We need your location to start navigation.", "info");
+            locate().then(ok=>{
+                if(ok)window.routeToPlace(destLat,destLng,destName);
+                else window.showToast?.("Location unavailable. Enable location permission to get directions.", "error");
+            }).catch(()=>window.showToast?.("Could not access your location.", "error"));
+            return true;
+        }
+        if (typeof L === "undefined" || typeof L.Routing === "undefined") {
+            window.showToast?.("Navigation is still loading. Check your connection.", "info");
+            return false;
+        }
+        if (!map) {
+            window.showToast?.("Map is not ready yet. Please try again.", "error");
+            return false;
         }
         if (routingControl) { try { map.removeControl(routingControl); } catch (e) {} routingControl = null; }
         if (navOverlay) { try { map.removeLayer(navOverlay); } catch (e) {} navOverlay = null; }
@@ -1791,13 +1845,14 @@ window.MapPage = (() => {
         navSpeechRouteKey=null;navSessionStarted=false;navSpokenManeuvers.clear();navAnnouncedIdx=-1;navArrivalAnnounced=false;
         map?.stop?.();
 
-        if (typeof showPage === "function") showPage("page-map");
-
+        // The map was already made visible by focusMapForNavigation().
         ensureNavUI();
         navStartTimer=setTimeout(() => {
             navStartTimer=null;
             if(ticket!==navGeneration)return;
-            if(!map){navPending=false;return;}
+            if(!map){navPending=false;window.showToast?.("Map failed to initialize. Please retry.", "error");return;}
+            // AI overlay may have just closed, so resize the visible map.
+            window.toggleView?.("map");
             map.invalidateSize();
             ensureNavUI();
             const title = document.querySelector("#navCard .nav-card-title");
@@ -1896,7 +1951,8 @@ window.MapPage = (() => {
                     if (navDest) checkNavVoice(lat, lng);
                 }, () => {}, { enableHighAccuracy: true, maximumAge: 3000 });
             }
-        }, 0);
+        }, 120);
+        return true;
     };
 
     // v53BA: show user message + typing indicator immediately (no more "disappearing" feeling)
@@ -3676,55 +3732,6 @@ window.MapPage = (() => {
     };
 })();
 
-document.addEventListener("click", function(e) {
-    const btnMap = e.target.closest("#btnMapView");
-    const btnList = e.target.closest("#btnListView");
-
-    if (btnList) {
-        const mapCont = document.getElementById("map");
-        const listCont = document.getElementById("listViewContainer");
-        const btnM = document.getElementById("btnMapView");
-
-        btnList.classList.add("active");
-        if (btnM) btnM.classList.remove("active");
-
-        btnList.style.background = "white";
-        btnList.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-        if (btnM) {
-            btnM.style.background = "transparent";
-            btnM.style.boxShadow = "none";
-        }
-
-        if (mapCont) mapCont.style.display = "none";
-        if (listCont) listCont.style.display = "block";
-    }
-
-    if (btnMap) {
-        const mapCont = document.getElementById("map");
-        const listCont = document.getElementById("listViewContainer");
-        const btnL = document.getElementById("btnListView");
-
-        btnMap.classList.add("active");
-        if (btnL) btnL.classList.remove("active");
-
-        btnMap.style.background = "white";
-        btnMap.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-        if (btnL) {
-            btnL.style.background = "transparent";
-            btnL.style.boxShadow = "none";
-        }
-
-        if (listCont) listCont.style.display = "none";
-        if (mapCont) mapCont.style.display = "block";
-
-        if (window.MapPage && typeof window.MapPage.refresh === 'function') {
-            setTimeout(() => window.MapPage.refresh(), 200);
-        }
-    }
-});
-
-window.addEventListener('load', function() {
-    setTimeout(() => {
-        window.dispatchEvent(new Event('resize'));
-    }, 500);
-});
+// Map/List toggle is controlled solely by window.toggleView (index.html).
+// Do not add another click handler changing display without changing hidden,
+// aria-pressed and page.dataset.view: that causes a stale List view during navigation.

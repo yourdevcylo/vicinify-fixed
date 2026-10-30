@@ -125,12 +125,74 @@
  }
  async function editItem(place,existing,after){
   const d=dialog(existing?'Edit menu item':'Add menu item'),body=d.querySelector('.commerce-body');let groups=structuredClone(existing?.optionGroups||[]);
-  body.innerHTML=`<form class="commerce-form"><label>Item name<input name="name" maxlength="100" required value="${esc(existing?.name||'')}"></label><label>Description<textarea name="description" maxlength="1000">${esc(existing?.description||'')}</textarea></label><div class="commerce-columns"><label>Price (₱)<input name="price" type="number" min="0" max="100000" step="0.01" required value="${existing?existing.priceCents/100:''}"></label><label>Category<input name="category" maxlength="60" required value="${esc(existing?.category||'Meals')}"></label></div><label>Add Photo (optional)<input name="photoFile" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label>${existing?.photoData||existing?.photoUrl?`<p class="commerce-hint">Current photo will remain unless you select a replacement.</p>`:''}<label class="commerce-check"><input name="available" type="checkbox" ${existing?.available!==false?'checked':''}> Available for requests</label><h3>Options and add-ons</h3><div data-groups></div><button type="button" data-group>Add option group</button><p class="commerce-hint">Example: required Size; optional Extra cheese. Photo is optional. JPG, PNG, or WebP only (max 5 MB). Menu photos are automatically compressed and saved in Firestore (no Firebase Storage).</p><p role="alert" data-error></p><div class="commerce-actions"><button type="submit">Save menu item</button>${existing?'<button type="button" data-archive>Remove from menu</button>':''}</div></form>`;
+  body.innerHTML=`<form class="commerce-form"><label>Item name<input name="name" maxlength="100" required value="${esc(existing?.name||'')}"></label><label>Description<textarea name="description" maxlength="1000">${esc(existing?.description||'')}</textarea></label><div class="commerce-columns"><label>Price (₱)<input name="price" type="number" min="0" max="100000" step="0.01" required value="${existing?existing.priceCents/100:''}"></label><label>Category<input name="category" maxlength="60" required value="${esc(existing?.category||'Meals')}"></label></div><div class="commerce-photo-field"><span class="commerce-photo-field-label">Add Photo (optional)</span><div class="commerce-photo-dropzone" data-menu-photo-drop role="button" tabindex="0" aria-label="Drop a photo here or press Enter to select a file"><input name="photoFile" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" data-menu-photo-file hidden tabindex="-1" aria-hidden="true"><div class="commerce-photo-empty" data-menu-photo-empty><span class="commerce-photo-icon" aria-hidden="true">⇧</span><strong>Drag & drop photo here</strong><span>or click to choose a photo</span><small>JPG, PNG or WebP · max 5 MB</small></div><div class="commerce-photo-preview" data-menu-photo-preview hidden><img data-menu-photo-image alt="Menu photo preview"><div><strong data-menu-photo-name></strong><span data-menu-photo-state></span></div></div></div><div class="commerce-photo-controls"><button type="button" data-menu-photo-clear hidden>Clear selection</button></div><p class="commerce-photo-error" role="alert" data-menu-photo-error></p></div>${existing?.photoData||existing?.photoUrl?`<p class="commerce-hint">Current photo will remain unless you select a replacement.</p>`:''}<label class="commerce-check"><input name="available" type="checkbox" ${existing?.available!==false?'checked':''}> Available for requests</label><h3>Options and add-ons</h3><div data-groups></div><button type="button" data-group>Add option group</button><p class="commerce-hint">Example: required Size; optional Extra cheese. Photo is optional. JPG, PNG, or WebP only (max 5 MB). Menu photos are automatically compressed and saved in Firestore (no Firebase Storage).</p><p role="alert" data-error></p><div class="commerce-actions"><button type="submit">Save menu item</button>${existing?'<button type="button" data-archive>Remove from menu</button>':''}</div></form>`;
+  // Photo dropzone: selection is kept separately because DataTransfer -> input.files
+  // assignment is not supported consistently by all mobile/desktop browsers.
+  const photoInput=body.querySelector('[data-menu-photo-file]');
+  const photoZone=body.querySelector('[data-menu-photo-drop]');
+  const photoPreview=body.querySelector('[data-menu-photo-preview]');
+  const photoEmpty=body.querySelector('[data-menu-photo-empty]');
+  const photoImage=body.querySelector('[data-menu-photo-image]');
+  const photoName=body.querySelector('[data-menu-photo-name]');
+  const photoState=body.querySelector('[data-menu-photo-state]');
+  const photoClear=body.querySelector('[data-menu-photo-clear]');
+  const photoError=body.querySelector('[data-menu-photo-error]');
+  let selectedPhotoFile=null, previewObjectUrl=null, dragDepth=0;
+  const oldPhoto=photo(existing?.photoData||existing?.photoUrl||'');
+  function releasePreview(){if(previewObjectUrl){URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=null;}}
+  function showPhotoPreview(){
+   releasePreview();photoError.textContent='';
+   if(selectedPhotoFile){
+    previewObjectUrl=URL.createObjectURL(selectedPhotoFile);
+    photoImage.src=previewObjectUrl;photoName.textContent=selectedPhotoFile.name;
+    photoState.textContent='Ready to save with this menu item';
+   }else if(oldPhoto){
+    photoImage.src=oldPhoto;photoName.textContent='Current menu photo';
+    photoState.textContent='Drop a new photo to replace it';
+   }else{photoImage.removeAttribute('src');}
+   const hasPreview=!!(selectedPhotoFile||oldPhoto);
+   photoPreview.hidden=!hasPreview;photoEmpty.hidden=hasPreview;
+   photoClear.hidden=!selectedPhotoFile;
+  }
+  function rejectPhoto(message){
+   selectedPhotoFile=null;photoInput.value='';showPhotoPreview();
+   photoError.textContent=message;
+  }
+  function choosePhoto(file){
+   if(!file)return;
+   if(!/\.(?:jpe?g|png|webp)$/i.test(file.name)||!['image/jpeg','image/png','image/webp'].includes(file.type)){
+    rejectPhoto('Only JPG, PNG or WebP photos are allowed.');return;
+   }
+   if(!file.size||file.size>5*1024*1024){
+    rejectPhoto('Choose a photo smaller than 5 MB.');return;
+   }
+   selectedPhotoFile=file;showPhotoPreview();
+  }
+  photoZone.addEventListener('click',event=>{if(event.target!==photoInput)photoInput.click();});
+  photoZone.addEventListener('keydown',event=>{
+   if(event.key==='Enter'||event.key===' '){event.preventDefault();photoInput.click();}
+  });
+  photoInput.addEventListener('change',()=>{choosePhoto(photoInput.files?.[0]);});
+  const containsFiles=event=>Array.from(event.dataTransfer?.types||[]).includes('Files');
+  photoZone.addEventListener('dragenter',event=>{if(!containsFiles(event))return;event.preventDefault();dragDepth++;photoZone.classList.add('is-dragover');});
+  photoZone.addEventListener('dragover',event=>{if(!containsFiles(event))return;event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect='copy';photoZone.classList.add('is-dragover');});
+  photoZone.addEventListener('dragleave',event=>{if(!containsFiles(event))return;event.preventDefault();dragDepth=Math.max(0,dragDepth-1);if(!dragDepth)photoZone.classList.remove('is-dragover');});
+  photoZone.addEventListener('drop',event=>{
+   event.preventDefault();dragDepth=0;photoZone.classList.remove('is-dragover');
+   const files=Array.from(event.dataTransfer?.files||[]);
+   if(files.length!==1){rejectPhoto('Drop exactly one JPG, PNG or WebP image.');return;}
+   choosePhoto(files[0]);
+  });
+  photoClear.addEventListener('click',()=>{
+   selectedPhotoFile=null;photoInput.value='';showPhotoPreview();photoZone.focus();
+  });
+  d.addEventListener('close',releasePreview,{once:true});
+  showPhotoPreview();
   const capture=()=>{body.querySelectorAll('[data-group-index]').forEach(box=>{const g=groups[Number(box.dataset.groupIndex)];g.name=box.querySelector('[data-group-name]').value;g.required=box.querySelector('[data-required]').checked;g.maxSelect=Number(box.querySelector('[data-max]').value);g.choices=[...box.querySelectorAll('[data-choice]')].map((row,i)=>({id:g.choices[i]?.id||'c'+i,name:row.querySelector('[data-choice-name]').value,priceCents:Math.round(Number(row.querySelector('[data-choice-price]').value)*100),available:row.querySelector('[data-choice-available]').checked}));});};
   const render=()=>{body.querySelector('[data-groups]').innerHTML=groups.map((g,index)=>`<fieldset data-group-index="${index}"><legend>Option group ${index+1}</legend><input data-group-name aria-label="Group name" placeholder="Size / Add-ons" value="${esc(g.name)}" required><label class="commerce-check"><input data-required type="checkbox" ${g.required?'checked':''}> Required</label><label>Maximum selections<input data-max type="number" min="1" max="12" value="${g.maxSelect||1}" required></label>${g.choices.map(c=>`<div class="commerce-choice" data-choice><input data-choice-name placeholder="Choice name" aria-label="Choice name" maxlength="80" value="${esc(c.name)}" required><input data-choice-price aria-label="Additional price" type="number" min="0" step="0.01" value="${c.priceCents/100}" required><label class="commerce-check"><input data-choice-available type="checkbox" ${c.available!==false?'checked':''}>Available</label></div>`).join('')}<button type="button" data-choice-add="${index}">Add choice</button><button type="button" data-group-remove="${index}">Remove group</button></fieldset>`).join('');};
   body.querySelector('[data-group]').onclick=()=>{capture();if(groups.length>=4)return;groups.push({id:'g'+crypto.randomUUID().replace(/-/g,''),name:'',required:false,maxSelect:1,choices:[{id:'c0',name:'',priceCents:0,available:true}]});render();};
   body.onclick=e=>{const b=e.target.closest('button');if(b?.dataset.choiceAdd!=null){capture();const g=groups[Number(b.dataset.choiceAdd)];if(g.choices.length<12)g.choices.push({id:'c'+crypto.randomUUID().replace(/-/g,''),name:'',priceCents:0,available:true});render();}if(b?.dataset.groupRemove!=null){capture();groups.splice(Number(b.dataset.groupRemove),1);render();}};
-  body.querySelector('form').onsubmit=async e=>{e.preventDefault();capture();const f=e.target;if(!f.reportValidity())return;const button=f.querySelector('[type=submit]');const originalLabel=button.textContent;button.disabled=true;button.textContent='Processing & saving…';try{let photoUrl=existing?.photoUrl||'';let photoData=existing?.photoData||'';const selected=f.elements.photoFile?.files?.[0];if(selected){photoData=await photoToFirestoreData(selected);photoUrl='';}await root.ViciData.command('menu',{action:'save',placeId:place.id,itemId:existing?.id,item:{name:f.elements.name.value,description:f.elements.description.value,priceCents:Math.round(Number(f.elements.price.value)*100),category:f.elements.category.value,photoUrl,photoData,available:f.elements.available.checked,optionGroups:groups}});d.close();after();}catch(error){body.querySelector('[data-error]').textContent=error.message;}finally{button.disabled=false;button.textContent=originalLabel;}};
+  body.querySelector('form').onsubmit=async e=>{e.preventDefault();capture();const f=e.target;if(!f.reportValidity())return;const button=f.querySelector('[type=submit]');const originalLabel=button.textContent;button.disabled=true;button.textContent='Processing & saving…';try{let photoUrl=existing?.photoUrl||'';let photoData=existing?.photoData||'';const selected=selectedPhotoFile||f.elements.photoFile?.files?.[0];if(selected){photoData=await photoToFirestoreData(selected);photoUrl='';}await root.ViciData.command('menu',{action:'save',placeId:place.id,itemId:existing?.id,item:{name:f.elements.name.value,description:f.elements.description.value,priceCents:Math.round(Number(f.elements.price.value)*100),category:f.elements.category.value,photoUrl,photoData,available:f.elements.available.checked,optionGroups:groups}});d.close();after();}catch(error){body.querySelector('[data-error]').textContent=error.message;}finally{button.disabled=false;button.textContent=originalLabel;}};
   body.querySelector('[data-archive]')?.addEventListener('click',async()=>{if(!await root.vConfirm('Remove menu item','Existing request records will remain unchanged.','Remove'))return;try{await root.ViciData.command('menu',{action:'archive',placeId:place.id,itemId:existing.id});d.close();after();}catch(e){body.querySelector('[data-error]').textContent=e.message;}});render();
  }
  async function openCart(initial){

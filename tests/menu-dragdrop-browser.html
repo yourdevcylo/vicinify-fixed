@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Menu drag/drop regression check</title>
+<style>body.vicinify-ui{--ui-border:#b6cdc4;--ui-accent:#16705c;--ui-accent-soft:#e6f3ed;--ui-soft:#f2f7f5;--ui-ink:#192723;--ui-primary:#187e6c;--ui-surface:white;--ui-muted:#526660;--ui-danger:#b42318;font-family:system-ui,sans-serif}</style>
+<link rel="stylesheet" href="../css/vici-chat.css"></head><body class="vicinify-ui">
+<h1>Menu photo dropzone test</h1><pre id="result">RUNNING</pre>
+<script src="../js/vici-commerce.js"></script>
+<script>
+(async()=>{
+ const results=[];
+ function check(test,ok){results.push({test,ok});if(!ok)throw Error('FAILED: '+test);}
+ let saved=null,after=false;
+ window.ViciData={command:async(type,payload)=>{saved={type,payload};return {id:'menu1'};}};
+ // Browser compression function is mocked; test verifies the integration contract.
+ window.compressImageFile=async()=>({blob:new Blob(['webp'],{type:'image/webp'})});
+ window.ViciCommerce.editItem({id:'test-place'},null,()=>after=true);
+ const d=document.querySelector('.commerce-dialog'),form=d.querySelector('form');
+ const zone=d.querySelector('[data-menu-photo-drop]'),input=d.querySelector('[data-menu-photo-file]');
+ check('dropzone is present and focusable',!!zone&&zone.tabIndex===0);
+ check('accepts image formats',input.accept.includes('image/webp')&&input.accept.includes('image/png'));
+ const wrong=new DataTransfer();wrong.items.add(new File(['x'],'payload.exe',{type:'application/x-msdownload'}));
+ zone.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:wrong}));
+ check('rejects executable',d.querySelector('[data-menu-photo-error]').textContent.includes('Only JPG'));
+ const big=new DataTransfer();big.items.add(new File([new Uint8Array(5*1024*1024+1)],'giant.jpg',{type:'image/jpeg'}));
+ zone.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:big}));
+ check('rejects oversized',d.querySelector('[data-menu-photo-error]').textContent.includes('5 MB'));
+ const dt=new DataTransfer();dt.items.add(new File(['photo'],'meal.png',{type:'image/png'}));
+ zone.dispatchEvent(new DragEvent('dragenter',{bubbles:true,cancelable:true,dataTransfer:dt}));
+ check('drag highlights zone',zone.classList.contains('is-dragover'));
+ zone.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt}));
+ check('drop clears active style',!zone.classList.contains('is-dragover'));
+ check('preview renders dropped file',!d.querySelector('[data-menu-photo-preview]').hidden&&d.querySelector('[data-menu-photo-name]').textContent==='meal.png');
+ check('no stale invalid error',d.querySelector('[data-menu-photo-error]').textContent==='');
+ const fields=form.elements;fields.name.value='Sample Meal';fields.price.value='150';fields.category.value='Meals';
+ form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+ await new Promise(r=>setTimeout(r,200));
+ check('saves dropped photo in Firestore menu payload',saved?.type==='menu'&&saved?.payload?.item?.photoData.startsWith('data:image/webp;base64,'));
+ check('calls save completion callback',after);
+ document.getElementById('result').textContent=JSON.stringify(results,null,2);
+ document.body.setAttribute('data-test-result','PASS');
+})().catch(e=>{document.getElementById('result').textContent=e.stack;document.body.setAttribute('data-test-result','FAIL');});
+</script></body></html>

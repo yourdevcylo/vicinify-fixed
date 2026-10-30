@@ -112,7 +112,7 @@ window.ViciPhotoPicker=(()=>{
   const inputs=[];if(root.matches?.('input[type=file]'))inputs.push(root);
   root.querySelectorAll?.('input[type=file]').forEach(input=>inputs.push(input));
   for(const input of inputs){
-   if(!input.accept.includes('image')||input.closest('.vici-photo-picker'))continue;
+   if(!input.accept.includes('image')||input.closest('.vici-photo-picker')||input.closest('.commerce-photo-dropzone'))continue;
    const wrap=document.createElement('div');wrap.className='vici-photo-picker';
    input.before(wrap);wrap.append(input);input.tabIndex=-1;
    const button=document.createElement('button');button.type='button';button.dataset.i18n=input.multiple?'Choose photos':'Choose photo';button.textContent=button.dataset.i18n;

@@ -1938,7 +1938,7 @@ if (name.length < 3) {
 }
 
 if (description.length < 10) {
-    alert("Description must be at least 10 characters.");
+    setBizSaveState("Description must be at least 10 characters.", "error");
     btn.textContent = "Submit Changes";
     btn.disabled = false;
     return;
@@ -2274,6 +2274,7 @@ if (description.length < 10) {
     function openBusinessPortal(id) {
         const place = currentAdminPlaces.find(p => p.id === id);
         if (!place) return;
+        setBizSaveState("", "idle");
         document.getElementById("bizPortalId").value = place.id;
         document.getElementById("bizPortalName").value = place.name || "";
         document.getElementById("bizPortalCat").value = place.category || place.cat || "restaurant";
@@ -2515,7 +2516,63 @@ if (description.length < 10) {
         }
     }
 
+    // Cap photos stored in Firestore; we do not require Firebase Storage for
+    // the establishment editor. Original image bytes are never uploaded.
+    async function bizSmallWebPData(file, kind = "cover") {
+        if (typeof window.compressImageFile !== "function") throw new Error("Photo processing is unavailable. Reload Vicinify.");
+        const limit = kind === "cover" ? 40 * 1024 : 24 * 1024;
+        const choices = kind === "cover"
+            ? [[640,0.55],[520,0.48],[420,0.43],[320,0.37],[256,0.32],[192,0.26],[144,0.23]]
+            : [[320,0.55],[256,0.48],[200,0.41],[160,0.34],[128,0.28],[96,0.23]];
+        for (const [size, quality] of choices) {
+            const { blob } = await window.compressImageFile(file, size, quality);
+            if (blob.type !== "image/webp") throw new Error("WebP conversion is not supported by this browser.");
+            if (blob.size > limit) continue;
+            const data = await new Promise((resolve,reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error("Could not read the optimized photo."));
+                reader.readAsDataURL(blob);
+            });
+            if (typeof data === "string" && /^data:image\/webp;base64,[A-Za-z0-9+/]+={0,2}$/.test(data)
+                && data.length <= Math.ceil(limit * 4 / 3) + 40) return data;
+        }
+        throw new Error("Photo is too detailed to store safely. Try a simpler or smaller photo.");
+    }
+
+    function setBizSaveState(message, state = "saving") {
+        const btn = document.getElementById("saveBizPortalBtn");
+        const status = document.getElementById("bizPortalSaveStatus");
+        if (status) {
+            status.hidden = !message;
+            status.dataset.state = state;
+            status.textContent = message || "";
+        }
+        if (!btn) return;
+        btn.disabled = state === "saving";
+        btn.setAttribute("aria-busy", state === "saving" ? "true" : "false");
+        // Render a CSS spinner rather than relying on async Lucide hydration.
+        btn.innerHTML = state === "saving"
+            ? '<span class="biz-upload-spinner" aria-hidden="true"></span><span>' + (message?.startsWith("Preparing") ? "Preparing..." : message?.startsWith("Saving") ? "Saving..." : "Uploading...") + '</span>'
+            : '<i data-lucide="save" aria-hidden="true"></i> ' + (state === "error" ? "Try again" : "Save");
+        if (state !== "saving") window.debouncedIcons?.();
+    }
+
+    async function bizSaveWithDeadline(promise, ms = 25000) {
+        let timer;
+        try {
+            return await Promise.race([
+                promise,
+                new Promise((_,reject) => { timer = setTimeout(() => reject(new Error(
+                    "Save did not finish in 25 seconds. Please check your connection and refresh to verify before retrying."
+                )), ms); })
+            ]);
+        } finally { clearTimeout(timer); }
+    }
+
+    let bizProfileSaving = false;
     async function saveBusinessPortal() {
+        if (bizProfileSaving) return;
         const id = document.getElementById("bizPortalId").value;
         const btn = document.getElementById("saveBizPortalBtn");
 
@@ -2527,23 +2584,23 @@ const phone = document.getElementById("bizPortalPhone").value.trim();
 const email = document.getElementById("bizPortalEmail").value.trim();
 
 if (!name || !category || !description || !address) {
-    alert("Please fill Business Name, Category, Description, and Address.");
+    setBizSaveState("Please fill Business Name, Category, Description, and Address.", "error");
     return;
 }
 
 if (name.length < 3) {
-    alert("Business name must be at least 3 characters.");
+    setBizSaveState("Business name must be at least 3 characters.", "error");
     return;
 }
 
 if (description.length < 10) {
-    alert("Description must be at least 10 characters.");
+    setBizSaveState("Description must be at least 10 characters.", "error");
     return;
 }
 
         const allowed = await canManagePlaceId(id);
         if (!allowed) {
-            alert("Only the owner or an admin can edit this business profile.");
+            setBizSaveState("Only the owner or an admin can edit this business profile.", "error");
             return;
         }
 
@@ -2551,10 +2608,11 @@ if (description.length < 10) {
         for(const [topic,suffix] of Object.entries({menu:'Menu',hours:'Hours',delivery:'Delivery',booking:'Booking'})){
             const value=document.getElementById('bizAuto'+suffix).value.trim();
             const error=value && window.ContentPolicy.error('post',value);
-            if(error)return window.alert(error);
+            if(error){ setBizSaveState(error, "error"); return; }
             autoAnswers[topic]=value;
         }
-        btn.textContent = "Saving..."; btn.disabled = true;
+        bizProfileSaving = true;
+        setBizSaveState("Preparing your establishment profile...", "saving");
         try {
 let updateData = {
     auto_reply_enabled:document.getElementById('bizAutoReplies').checked,
@@ -2600,34 +2658,45 @@ let updateData = {
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
 };
 
-        // 🔥 KASAMA ITO, HUWAG BURAHIN 🔥
+        // Compress cover and logo into small, safe WebP data URLs in the place
+        // document. This avoids Firebase Storage, which may be disabled.
         const coverInput = document.getElementById("bizPortalCover");
-        if (coverInput && coverInput.files && coverInput.files.length > 0) {
-            btn.textContent = "Uploading Cover...";
-            const newCoverPhoto = await window.uploadImageFileToStorage(coverInput.files[0], `place_covers/${id}`, { maxWidth: 1000, quality: 0.82 });
-            updateData.coverPhoto = newCoverPhoto;
+        if (coverInput?.files?.length) {
+            setBizSaveState("Uploading cover photo (optimizing for Firestore)...", "saving");
+            updateData.coverPhoto = await bizSaveWithDeadline(bizSmallWebPData(coverInput.files[0], "cover"));
         }
 
-        // PLUS49: Store Logo — remove flag wins; otherwise upload a newly chosen file
         const logoPreviewEl = document.getElementById("bizPortalLogoPreview");
         const logoInputEl = document.getElementById("bizPortalLogo");
-        if (logoPreviewEl && logoPreviewEl.dataset.removed === "1") {
+        if (logoPreviewEl?.dataset.removed === "1") {
             updateData.logoUrl = "";
-        } else if (logoInputEl && logoInputEl.files && logoInputEl.files.length > 0) {
-            btn.textContent = "Uploading Logo...";
-            updateData.logoUrl = await window.uploadImageFileToStorage(logoInputEl.files[0], `place_logos/${id}`, { maxWidth: 512, quality: 0.85 });
+        } else if (logoInputEl?.files?.length) {
+            setBizSaveState("Uploading logo (optimizing for Firestore)...", "saving");
+            updateData.logoUrl = await bizSaveWithDeadline(bizSmallWebPData(logoInputEl.files[0], "logo"));
         }
 
-            await window.db.collection("places").doc(id).update(updateData);
-            myPlacesCache=null;myPlacesCacheAt=0;
-            window.invalidatePlacesCache?.();
-            alert("Business Profile Updated Successfully!");
-            showPage("page-dashboard");
-            render();
-            window.MapPage?.refresh?.();
+        setBizSaveState("Saving changes to Firestore...", "saving");
+        await bizSaveWithDeadline(window.db.collection("places").doc(id).update(updateData));
+        myPlacesCache=null; myPlacesCacheAt=0;
+        window.invalidatePlacesCache?.();
+        setBizSaveState("Establishment saved successfully.", "success");
+        window.showToast?.("Business profile and photos saved successfully!", "success");
+        showPage("page-dashboard");
+        render();
+        window.MapPage?.refresh?.();
         }
-        catch (error) { window.handleFirestoreError(error); alert("Error saving: " + error.message); }
-        finally { btn.innerHTML = `<i data-lucide="save" style="width: 18px; height: 18px;"></i> Save`; window.debouncedIcons?.(); btn.disabled = false; }
+        catch (error) {
+            console.error("Business profile save failed:", error);
+            const detail = error?.code === "permission-denied"
+                ? "Permission denied. Check your owner account and Firestore rules."
+                : error?.message || "Upload or save failed. Please try again.";
+            setBizSaveState("Not saved: " + detail, "error");
+            window.showToast?.("Business profile not saved. " + detail, "error");
+        }
+        finally {
+            bizProfileSaving = false;
+            if (document.getElementById("bizPortalSaveStatus")?.dataset.state === "saving") setBizSaveState("", "idle");
+        }
     }
 
     // 🔥 ESTABLISHMENT POSTS — sariling page, hiwalay sa Edit Establishment 🔥
