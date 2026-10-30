@@ -864,7 +864,7 @@ window.MapPage = (() => {
                 const response = await fetch(endpoint, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", Authorization: `Bearer ${await window.auth.currentUser.getIdToken()}` },
-                    signal: context.signal && AbortSignal.any ? AbortSignal.any([context.signal, AbortSignal.timeout(28000)]) : AbortSignal.timeout(28000),
+                    signal: context.signal && AbortSignal.any ? AbortSignal.any([context.signal, AbortSignal.timeout(35000)]) : AbortSignal.timeout(35000),
                     body: JSON.stringify({
                         query: intent.query,
                         uiLanguage: window.LangManager?.getLanguage?.() || 'en',

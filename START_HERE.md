@@ -1,3 +1,11 @@
+## Gemini-only provider update — 30 October 2026
+
+Vici now calls only Gemini. OpenRouter fallback is removed. Complete the billing setup for the Google AI Studio project owning your key (API billing, not the Gemini app subscription), then set Netlify Functions/Production GEMINI_API_KEY and GEMINI_MODEL=gemini-2.5-flash. Keep your Firebase service-account/origin configuration. Delete the unused OpenRouter variable if desired. Redeploy this complete source. See AI_API_SETUP.md for exact steps and cost-control limits.
+
+This update changes no Firestore rules/indexes. The structured-menu rules below are still required if not deployed previously. Gemini timeout is now 25 seconds; default Flash thinking is disabled. Paid billing does not guarantee provider availability. Local tests pass; live API billing/key/model verification remains after deploy.
+
+---
+
 ## Current release — Smart Vici AI, structured menus and confirmed requests (30 October 2026)
 
 Read SMART-AI-COMMERCE.md first; it supersedes older AI instructions below. Menu and Establishment posts are separate tabs. Business Hub → Manage menu lets the current owner add priced items/options and enable menu ordering. Existing announcement posts remain intact; they are not treated as verified menu prices.

@@ -1,31 +1,37 @@
-# Vici AI — current setup
+# Gemini API only — current Vici setup
 
-Use `/.netlify/functions/askVici` on Netlify. Secrets remain server-side; no browser AI key or SDK is required.
+Vici now uses only Google's Gemini API through `/.netlify/functions/askVici`. OpenRouter is not called, even if an old OPENROUTER_API_KEY remains configured. No automatic provider/model fallback or retry is performed.
 
-## Environment variables (Functions / Production)
+## Billing setup
 
-- OPENROUTER_API_KEY: new secret key. The selected model is pinned to `google/gemma-4-31b-it:free`; there is no paid OpenRouter model fallback.
-- GEMINI_API_KEY: optional; when present, Gemini is tried first, then OpenRouter. Remove it if you want OpenRouter only. The app cannot guarantee Google's billing terms; use a free-tier project/model if budget is zero.
-- GEMINI_MODEL: optional, default `gemini-2.5-flash`.
-- FIREBASE_SERVICE_ACCOUNT: existing Firebase Admin credential for authenticated server operations.
-- ALLOWED_ORIGIN: exact deployed origin, including https:// and no trailing slash. Otherwise Netlify URL is used.
+1. Open https://aistudio.google.com/projects and locate the project that owns the Gemini API key you intend to use.
+2. Choose Set up billing / Upgrade for that project and complete Google Cloud Billing setup. This is Gemini API pay-as-you-go billing, not a Gemini app/Google AI subscription. Do not post card details or API keys in chat/screenshots.
+3. Confirm billing is active for the SAME project as the API key. Firebase Storage setup is not required for this AI integration or the structured text menu.
+4. In Cloud Billing, configure a budget alert you are comfortable with. A budget alert is a notification, not a hard spending cap.
 
-Redeploy after environment changes. Do not paste keys into code, GitHub, chat or screenshots.
+## Netlify environment variables (Functions / Production)
 
-## Actual AI behavior
+- GEMINI_API_KEY: the project's actual secret Gemini API key.
+- GEMINI_MODEL: `gemini-2.5-flash` (default). The selected model must be available to the project. Use an available compatible model ID if Google retires/changes access to it.
+- FIREBASE_SERVICE_ACCOUNT: retain the existing Firebase Admin credential.
+- ALLOWED_ORIGIN: retain the exact deployed origin, including https:// and no trailing slash; otherwise Netlify URL is used.
+- OPENROUTER_API_KEY: may be deleted; it is ignored by the code.
 
-All substantive messages go to the model for semantic interpretation with bounded recent conversation, approved public places, real menu previews and the customer's unsent drafts. Greetings/thanks are small local replies. No keyword booking parser or generic all-establishments fallback is used. New cravings/budgets must not be mistaken for guest-count corrections. Structured output is validated by the server; only supported public actions and unsent drafts are rendered.
+Redeploy the complete matching source after updating variables. Never include secret values in frontend code or GitHub.
 
-The model cannot execute writes, accept reservations, change prices, confirm payments, access other customers or submit without the customer's confirmation screen. Orders are quoted/validated again against live Firestore menus. See SMART-AI-COMMERCE.md for schema, permissions and owner/customer workflows.
+## Behavior and cost controls
 
-Provider calls request JSON and final answer content only, not internal reasoning. Timeouts are 5 seconds for Gemini, 18 seconds for OpenRouter, with 28-second browser transport timeout. No available provider or invalid structured output produces a clear failure message, not fake AI recommendations or simulated transactions. Application model limits remain 6 requests/minute and 50 per 24-hour account window; provider limits are separate and change over time.
+All substantive establishment conversations use actual Gemini interpretation with approved public place/menu data and bounded recent conversation/drafts. Greetings/thanks remain small local replies. Structured AI results cannot bypass customer confirmation, backend quote validation, permissions, or owner acceptance.
 
-## Verify after publishing
+The provider makes one call to the configured model, requests JSON output, and exposes final content only. Default Flash thinking is disabled to reduce latency/usage; Gemini timeout is 25 seconds and browser transport timeout is 35 seconds. App limits remain 6 model questions/minute and 50 per rolling 24-hour window PER ACCOUNT. These are not a global monetary cap and provider quotas still apply.
 
-1. Owner: add real menu items from Business Hub → Manage menu, and enable Accept menu orders only if supported.
-2. Customer: New chat → “I’m thirsty and have 500 pesos” → relevant suggestions/clarification; “yung pangalawa, ano menu nila?” → real listed menu; “dalawa nung chicken meal” → editable draft only if that item exists.
-3. Use Review current prices → Confirm request; owner must accept/decline before any confirmation claim.
-4. Check askVici Network JSON `source`: `openrouter` / `gemini` means the provider answered; `basic` is only greeting, `unavailable` is provider failure, `guard` is invalid/rejected output.
-5. Check OpenRouter Activity for actual successful requests. Netlify Functions logs report safe provider/status/reason only; share a sanitized status line, never authorization headers or keys.
+Billing does not guarantee uptime or eliminate all 429/503 errors. A rejected/timed-out request is shown clearly with no fake recommendations or simulated confirmations. Safe provider/status/reason messages appear in Netlify Functions logs.
 
-Unit/browser fixtures are local verification, not proof of live API credentials/model availability. The production smoke test is still required.
+## Verify after Published
+
+1. Customer: New chat → “May kape ba?” or ask a listed establishment's actual hours. Greeting alone is not an API test.
+2. Browser Network → askVici → Response: `source: gemini` confirms a model response was received and validated. `unavailable` or `guard` does not mean success.
+3. Check Google AI Studio usage/limits for the matching project and Netlify askVici logs if needed. Share only sanitized error/status lines.
+4. Owner: add real menu items from Business Hub → Manage menu; enable menu ordering only when supported. Test menu, order quote/confirmation, owner acceptance and editable reservation flow.
+
+See SMART-AI-COMMERCE.md for menu schema and transaction protections. This provider update adds no Firestore rule/index changes; the earlier structured-menu rules still need deployment if not done already.

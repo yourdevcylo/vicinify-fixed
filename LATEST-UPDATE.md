@@ -1,3 +1,10 @@
+Gemini-only provider — 2026-10-30
+- User requested removal of OpenRouter. Only GEMINI_API_KEY / configured GEMINI_MODEL is used; no OpenRouter, automatic provider/model fallback or retry.
+- Default model gemini-2.5-flash, structured JSON, final content only, disabled Flash thinking, 25-second upstream / 35-second browser timeout. Existing 6/minute and 50/24-hour per-account limits retained.
+- Actual semantic establishment/menu interpretation, structured Menu/Posts separation, editable customer-confirmed requests, quote checks, idempotency, real statuses and green theme all retained.
+- Billing must be enabled by the user for the Google AI Studio project owning the key. Gemini API billing is separate from a Gemini app subscription. Budget alerts are not hard spending caps.
+- 31 local test files and production build pass. Live billing/key/provider availability not verified here. No new rules/index changes for this provider update; earlier menu rules still apply. Read AI_API_SETUP.md.
+
 Smart Vici AI, separate menus and confirmed transactions — 2026-10-30
 - Actual model interpretation replaces keyword booking/diet/craving routing. Strict structured plans render only approved public IDs, supported UI actions and validated unsent drafts. Invalid/provider-failed responses are explicit, not fake recommendation lists.
 - Separate Menu and Establishment posts tabs; Business Hub Manage menu owner editor for name, description, PHP price, category, optional HTTPS photo, availability, required options/add-ons. Existing place_posts preserved; no automatic fake menu conversion or production seed data. Ordering capability is explicitly owner-enabled and separate from reservations.

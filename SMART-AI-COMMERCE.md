@@ -71,13 +71,13 @@ No request is marked accepted/confirmed merely because the AI generated it.
    `firebase deploy --only firestore:rules --project vicinify-c9828`
 2. Commit/push the complete matching frontend + Netlify functions; wait for Published. Build remains `npm run build`, publish `dist`, functions `netlify/functions`.
 3. New menu queries use a single `archived` filter in each menu subcollection, so there is no new composite index definition. Earlier indexes still need to be Enabled if not deployed already.
-4. Keep OPENROUTER_API_KEY secret in Netlify Functions/Production. Optional Gemini is tried first if its key is configured. See AI_API_SETUP.md.
+4. Keep GEMINI_API_KEY secret in Netlify Functions/Production. Gemini is the only provider; OpenRouter is no longer called. See AI_API_SETUP.md.
 5. Owner adds real menu items and enables ordering. No fake production records or automatic menu migration is performed.
-6. Test real customer/owner accounts after deployment: menu search, order options, quote, confirmation, actual acceptance/decline, customer status, reservation and existing payment/refund process. Check OpenRouter Activity or sanitized provider logs to verify the real model call.
+6. Test real customer/owner accounts after deployment: menu search, order options, quote, confirmation, actual acceptance/decline, customer status, reservation and existing payment/refund process. Check Google AI Studio usage or sanitized provider logs to verify the real model call.
 
 ## Validation and limits
 
 - 31 automated test files pass, including authorization, stale prices, unavailable choices, explicit confirmation, server-generated identity/status, duplicate/concurrent confirmation, lost-response retry, cancelled requests and private status-action binding.
 - Six Chromium workflows at 320/393/1280 widths in light/dark use the actual UI and actual local backend handlers with test authentication/model fixtures: owner publishes/edits menu, customer chooses options, price changes reject, interrupted confirmation recovers one request, owner acceptance updates status, editable reservation requires Review then Send, and Menu/Posts tabs remain separate.
 - Existing establishment layouts were checked at four widths in both themes. Static production build passes.
-- Firebase emulator integration tests were added but could not run here: npm/emulator startup was blocked by the environment proxy/network (EPERM). Latest rules still need CLI compilation/deployment and production authorization checks. Live Gemini/OpenRouter credentials, free-model availability and quotas were not verified here. Browser tests use mocked model responses, not a claim of live model intelligence.
+- Firebase emulator integration tests were added but could not run here: npm/emulator startup was blocked by the environment proxy/network (EPERM). Latest rules still need CLI compilation/deployment and production authorization checks. Live Gemini credentials, billing activation, model availability and quotas were not verified here. Browser tests use mocked model responses, not a claim of live model intelligence.
