@@ -1,3 +1,13 @@
+## Vici AI flow finalization — 30 October 2026
+
+Deploy the complete ZIP source through GitHub/Netlify and wait for Published. Keep OPENROUTER_API_KEY secret in Netlify Functions environment variables. Read AI_API_SETUP.md for current provider setup, public-data scope, memory and assisted requests. No new Firebase indexes/rules are introduced by this AI update; earlier transaction rules still need to be deployed if not done yet.
+
+Vici offers public establishment answers, recent conversation context, View menu, View on map, and an UNSENT request draft. Review reservation opens the editable form; the customer must still review and press Send Request. Owner approval, requirements, payment and refund handling remain separate. The model cannot approve a booking or payment. Unsupported natural-language details are left blank for clarification or completion in the form.
+
+Validation: 29 test files and static build passed; local browser checks cover menu and prefilled-request hand-off at 320/393/1280 pixels in light/dark mode with no database write. Live provider/key/quota and actual two-account booking confirmation still require production checks after deployment.
+
+---
+
 ## Latest payment/refund update — 29 October 2026
 Deploy the matching frontend AND Netlify functions. Deploy the included Firestore indexes once before testing the pinned transaction summary:
 

@@ -187,6 +187,8 @@ service cloud.firestore {
         && request.resource.data.get("avgRating", 0) == 0
         && request.resource.data.get("reviewCount", 0) == 0
         && request.resource.data.get("ratingSum", 0) == 0
+        && request.resource.data.get("ratingCount", 0) == 0
+        && request.resource.data.get("ratingModelVersion", 0) == 0
         && (isAdmin() || (request.resource.data.get("is_verified", false) == false
           && request.resource.data.get("is_premium", false) == false
           && request.resource.data.get("is_featured", false) == false
@@ -222,7 +224,7 @@ service cloud.firestore {
           && !request.resource.data.diff(resource.data).affectedKeys()
                .hasAny(["owner_uid", "owner_email", "addedBy", "approval_status", "ownershipTransferPending",
                         "is_verified", "claimStatus",
-                        "is_premium", "is_featured", "avgRating", "reviewCount", "ratingSum"])
+                        "is_premium", "is_featured", "avgRating", "reviewCount", "ratingSum", "ratingCount", "ratingModelVersion"])
         );
 
       allow delete: if isAdmin();
@@ -286,8 +288,11 @@ service cloud.firestore {
       }
       function transactionChatOpen(id) {
         let order=get(/databases/$(database)/documents/bookings/$(id)).data;
-        return !(order.status in ['received','rejected'])
-          && !(order.status=='cancelled' && order.get('refundStatus','') in ['received','not_required']);
+        let refundPending=!(order.get('refundStatus','') in ['', 'received','not_required']);
+        let detailsPending=!(order.get('requirementsState',{}).get('status','confirmed') in ['confirmed','waived']);
+        let feedbackPending=order.get('feedbackStatus','')=='feedback_waiting' && order.get('feedbackSubmittedAt',null)==null;
+        return refundPending || (order.status=='received' ? (detailsPending || feedbackPending) :
+          order.status!='rejected' && !(order.status=='cancelled' && order.get('refundStatus','') in ['received','not_required']));
       }
       function validTextTransaction() {
         let data=request.resource.data;

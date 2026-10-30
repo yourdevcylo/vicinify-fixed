@@ -73,6 +73,7 @@
         if(actor!=='owner'||order.status!=='accepted')throw Object.assign(new Error('Only the business can set payment instructions before payment review.'),{status:409});
         if(order.paymentFlowVersion===2&&['delivery','delivery_order'].includes(order.requestType)&&!order.deliveryAddress)throw Object.assign(new Error('Wait for the delivery address before setting the final amount.'),{status:409});
         if(order.requirementsState&&!['confirmed','waived'].includes(order.requirementsState.status))throw Object.assign(new Error('Review the requested details before setting the amount.'),{status:409});
+        if(order.paymentFlowVersion===2&&!order.requirementsState&&!order.paymentTermsVersion)throw Object.assign(new Error('Confirm the requirements or choose no additional details first.'),{status:409});
         const amount=money(input.amount);
         if(typeof input.instructions!=='string'||input.instructions.trim().length<8||input.instructions.length>1000)throw Object.assign(new Error('Enter the payment recipient and instructions (8–1000 characters).'),{status:400});
         const method=String(input.paymentMethod||order.paymentMethod||'GCash').trim();
@@ -81,7 +82,13 @@
     }
     function conversationClosed(order) {
         const status=order.status||order.bookingStatus;
-        return ['received','rejected'].includes(status)||(status==='cancelled'&&['received','not_required'].includes(order.refundStatus));
+        const refundPending=!!order.refundStatus&&!['received','not_required'].includes(order.refundStatus);
+        if(refundPending)return false;
+        if(status==='cancelled')return ['received','not_required'].includes(order.refundStatus);
+        if(status==='rejected')return true;
+        const detailsPending=order.requirementsState&&!['confirmed','waived'].includes(order.requirementsState.status);
+        const feedbackPending=order.feedbackStatus==='feedback_waiting'&&!order.feedbackSubmittedAt;
+        return status==='received'&&!detailsPending&&!feedbackPending;
     }
     const api = { conversationClosed, isOnline, flow, details, money, cancellation, refundTransition, paymentTerms };
     if (typeof module === 'object' && module.exports) module.exports = api;

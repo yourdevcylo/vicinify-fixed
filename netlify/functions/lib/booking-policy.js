@@ -40,12 +40,12 @@ function transition(order, actor, patch) {
         }
         return { status: next };
     }
-    if (actor === 'customer' && next === 'cancelled' && cancellation(order).allowed) {
-        const info=cancellation(order),change={status:'cancelled',refundPercent:info.rate,refundStatus:info.refundStatus};
+    if ((actor === 'customer' && cancellation(order).allowed || actor === 'owner' && !['received','cancelled','rejected'].includes(current)) && next === 'cancelled') {
+        const info=cancellation(order),change={status:'cancelled',cancelledBy:actor,refundPercent:info.rate,refundStatus:info.refundStatus};
         if(info.paid && Number(order.paymentAmount)>0){const cents=money(order.paymentAmount);change.refundBaseAmount=(cents/100).toFixed(2);change.refundAmount=(Math.round(cents*info.rate/100)/100).toFixed(2);change.refundPaymentVerified=true;if(Number(change.refundAmount)===0)change.refundStatus='not_required';}else if(info.paid){change.refundStatus='needs_verification';}
         return change;
     }
-    if (actor === 'customer' && next === 'received' && ['fulfilled', 'ready', 'delivered', 'ready_for_pickup'].includes(current)) return { status: next, customer_confirmed: true };
+    if (actor === 'customer' && next === 'received' && ['fulfilled', 'ready', 'delivered', 'ready_for_pickup'].includes(current)) return { status: next, customer_confirmed: true, feedbackStatus:'feedback_waiting' };
     if (current === next) return null;
     throw Object.assign(new Error('This action is not allowed at the current booking stage. Refresh and try again.'), { status: 409 });
 }
@@ -63,6 +63,10 @@ function requirementsTransition(order,actor,input) {
         if(notes.length>1000)return fail('Requirement notes are too long.',400);
         const problem=notes&&require('../../../js/content-policy').error('chat',notes);if(problem)return fail(problem,400);
         return {requirementsState:{requestId:input.requestId,status:'waiting_customer',required:flags,notes,data:{}},paymentTermsNeedReview:order.paymentFlowVersion===2&&!!order.paymentMethod};
+    }
+    if(!state&&input.action==='not_required'){
+        if(actor!=='owner')return fail('Only the business can review requirements.',403);
+        return {requirementsState:{status:'waived',required:{},notes:'',data:{}}};
     }
     if(!state)return fail('No requirements are attached to this transaction.');
     if(input.requestId!==state.requestId)return fail('These requirements were replaced. Open the current transaction summary.');

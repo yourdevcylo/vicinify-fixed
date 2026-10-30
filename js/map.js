@@ -239,7 +239,7 @@ window.MapPage = (() => {
         finally { if (_placesInFlight === run) _placesInFlight = null; }
     }
     const publicCacheKey='vicinify:approved-catalog:20261028';
-    const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','hours','operatingHours','operating_hours','is_verified','owner_uid','addedBy','approval_status','avgRating','reviewCount','priceRange','accepts_booking','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
+    const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','hours','operatingHours','operating_hours','is_verified','owner_uid','addedBy','approval_status','avgRating','reviewCount','ratingCount','priceRange','accepts_booking','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
     function readPublicSessionCache(now) {
         try {
             const cached=JSON.parse(window.sessionStorage?.getItem(publicCacheKey)||'null');
@@ -791,7 +791,7 @@ window.MapPage = (() => {
         btn.classList.remove("hidden");
         btn.title = "Open Vici AI";
         btn.setAttribute("aria-label", "Open Vici AI");
-        btn.innerHTML = `<img src="icons/icon-192.png" alt="Vicinify" /><span>AI</span>`;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>AI</span>`;
         if (!btn.dataset.viciAiLauncher) {
             btn.dataset.viciAiLauncher = "true";
             btn.addEventListener("click", (event) => {
@@ -799,6 +799,7 @@ window.MapPage = (() => {
                 window.toggleViciAI(true);
             });
         }
+        window.FloatingVici?.mount(btn);
         window.debouncedIcons?.();
         return btn;
     }
@@ -868,8 +869,9 @@ window.MapPage = (() => {
                         query: intent.query,
                         uiLanguage: window.LangManager?.getLanguage?.() || 'en',
                         history: context.history || [],
+                        memory:context.memory || {},
+                        requestDraft:context.requestDraft || null,
                         radius: AppState.radius,
-                        userLocation: AppState.userLocation || null,
                         recommendations: allPlaces.map(place => ({ id: place.id })),
                         pureAI: true
                     })
@@ -886,26 +888,55 @@ window.MapPage = (() => {
                 }
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.answer) return { answer: data.answer, source: data.source === "guard" ? "guard" : "ai", placeIds: Array.isArray(data.placeIds) ? data.placeIds : [] };
+                    if (data.answer) return { answer: data.answer, source: data.source === "guard" ? "guard" : "ai",requestDraft:data.requestDraft?window.ViciRequest?.clean(data.requestDraft):undefined,requestReady:data.requestReady===true,requestUnavailable:data.requestUnavailable===true, placeIds: Array.isArray(data.placeIds) ? data.placeIds : [] };
                 }
             } catch (e) { console.warn("Vici AI endpoint unavailable.", e); if(e.name === "TimeoutError" || e.name === "AbortError")return {answer:"AI timed out. Please try again.",source:"error",error:true}; }
         }
         return { answer: VICI_AI_ERROR, source: "error", error: true };
     }
 
+    window.openViciMenu=async function(id){
+        await getAcceptedPlaces();const place=cloudPlaces.find(p=>p.id===id);if(!place)return false;
+        document.getElementById('viciMenuDialog')?.remove();
+        const dialog=document.createElement('dialog');dialog.id='viciMenuDialog';dialog.className='vici-menu-dialog';
+        dialog.innerHTML=`<header><div><small>MENU & STORE POSTS</small><h2 data-no-translate>${escapeHtml(place.name)}</h2></div><button type="button" aria-label="Close menu"><i data-lucide="x"></i></button></header><div class="vici-menu-content" aria-live="polite"><p>Loading menu and store posts…</p></div><footer><button type="button">Message business</button><button type="button">View place</button></footer>`;
+        document.body.append(dialog);const dismiss=()=>{dialog.close?.();dialog.remove();};dialog.querySelector('header button').onclick=dismiss;dialog.addEventListener('cancel',e=>{e.preventDefault();dismiss();});dialog.addEventListener('click',e=>{if(e.target===dialog)dismiss();});
+        const buttons=dialog.querySelectorAll('footer button');buttons[0].onclick=()=>{dismiss();window.ViciChat.close();window.openChatModal?.(place.id,place.name);};buttons[1].onclick=()=>{dismiss();window.ViciChat.close();window.viewPlace(place.id);};
+        if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');window.debouncedIcons?.();
+        try{const snap=await window.db.collection('place_posts').where('placeId','==',id).orderBy('createdAt','desc').limit(20).get();if(!dialog.isConnected)return false;
+            dialog.querySelector('.vici-menu-content').innerHTML=snap.empty?'<div class="vici-menu-empty"><i data-lucide="utensils"></i><h3>No menu posts yet</h3><p>The business has not added menu or store posts. Message them for available items and prices.</p></div>':snap.docs.map(doc=>{const data=doc.data(),photo=getSafeImageUrl(data.mediaUrl);return `<article><p data-no-translate>${escapeHtml(String(data.body||'').slice(0,4000))}</p>${photo?`<a href="${escapeHtml(photo)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(photo)}" alt="Menu or store photo" loading="lazy"></a>`:''}</article>`;}).join('');
+        }catch{if(dialog.isConnected)dialog.querySelector('.vici-menu-content').innerHTML='<p>Could not load the menu. Please try again or message the business.</p>';}
+        dialog.querySelectorAll('img').forEach(img=>img.onerror=()=>img.remove());window.debouncedIcons?.();return true;
+    };
+
     window.ViciChat?.configure({
         ask: async (query, context) => {
             if (!window.auth?.currentUser?.emailVerified) return { answer: "Sign in with a verified email to use Vici AI.", error: true, picks: [] };
             await getAcceptedPlaces();
-            const intent = inferSmartIntent(query);
-            const recommendations = getSmartRecommendations(intent);
-            const reply = await getViciAIReply(intent, recommendations, context);
+            const memory=window.ViciChat.resolveContext(query,context.memory,cloudPlaces);
+            const intent=inferSmartIntent(memory.searchQuery);
+            let recommendations=getSmartRecommendations(intent);
+            const pendingDraft=window.ViciRequest?.clean(context.requestDraft);
+            const focusIds=memory.placeIds.length?memory.placeIds:pendingDraft?.active&&pendingDraft.placeId?[pendingDraft.placeId]:[];
+            const focused=focusIds.map(id=>cloudPlaces.find(p=>p.id===id)).filter(Boolean);
+            if(focused.length)recommendations=focused;
+            const reply=await getViciAIReply({...intent,query},recommendations,{...context,memory});
             const ids = new Set(reply.placeIds || []);
-            return { ...reply, picks: reply.error ? [] : recommendations.filter(p => ids.has(p.id)).slice(0,3).map(p => ({
+            const selectedPlaces=recommendations.filter(p=>ids.has(p.id)).slice(0,3);
+            return { ...reply, memory:reply.error||!reply.placeIds?.length?context.memory:{searchQuery:memory.searchQuery,placeIds:selectedPlaces.map(p=>p.id)}, picks: reply.error ? [] : selectedPlaces.map(p => ({
                 id:p.id,name:p.name,category:p.cat || p.category,rating:p.avgRating || 0,reviewCount:p.reviewCount || 0,
                 distance:p._distance != null ? formatDistance(p._distance) : "",photo:getSafeImageUrl(p.coverPhoto || p.photos?.[0]) || ""
             })) };
         },
+        reviewRequest: async draft => {
+            await getAcceptedPlaces();
+            const d=window.ViciRequest.clean(draft),place=cloudPlaces.find(p=>p.id===d.placeId);
+            if(!place||place.accepts_booking!==true){window.showToast?.('This establishment is not accepting requests. Please message the business.','info');return false;}
+            return await window.openBookingModal(place.id,place.name,d);
+        },
+        messageBusiness:async id=>{await getAcceptedPlaces();const p=cloudPlaces.find(p=>p.id===id);if(!p)return false;await window.openChatModal?.(p.id,p.name);return true;},
+        viewPlace:async id=>{await window.viewPlace(id);return true;},
+        viewMenu:async id=>window.openViciMenu(id),
         viewOnMap: async id => {
             await getAcceptedPlaces();
             const place = cloudPlaces.find(p => p.id === id);
@@ -1339,17 +1370,8 @@ window.MapPage = (() => {
 
     let locationRequest = null;
     function locationNotice(message, state) {
-        let notice=document.getElementById('locationPermissionNotice');
-        if(!notice){
-            notice=document.createElement('div');notice.id='locationPermissionNotice';notice.setAttribute('role','status');
-            const text=document.createElement('span');text.className='location-notice-text';notice.append(text);
-            const retry=document.createElement('button');retry.type='button';retry.textContent='Enable location';retry.addEventListener('click',()=>locate());notice.append(retry);
-            document.querySelector('#page-map .askBar')?.after(notice);
-        }
-        notice.querySelector('span').textContent=message;
-        notice.dataset.state=state;
-        notice.hidden=state==='ready';
-        const button=notice.querySelector('button');button.disabled=state==='loading';button.textContent=state==='loading'?'Locating…':'Try location';
+        document.getElementById('locationPermissionNotice')?.remove();
+        if(['denied','unsupported','error'].includes(state))window.showToast?.(message,'info');
     }
     function locate() {
         if(locationRequest)return locationRequest;
@@ -1586,6 +1608,8 @@ window.MapPage = (() => {
     // ---- Navigation v12: smooth fly, live follow, custom UI ----
     let navWatchId = null, navOverlay = null, navRoute = null, navDest = null, navZoomed = false;
     let navVoiceEnabled = true, navAnnouncedIdx = -1, navArrivalAnnounced = false;
+    let navSpeechRouteKey=null,navSessionStarted=false;
+    const navSpokenManeuvers=new Set();
     let navGeneration=0, navStartTimer=null, navPending=false, navLastFollow=null;
     const navRouteCache=new Map();
     function navigationRouter(){
@@ -1654,14 +1678,27 @@ window.MapPage = (() => {
         const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
         return 2 * R * Math.asin(Math.sqrt(a));
     }
+    function navManeuverKey(ins,index) {
+        const coord=navRoute?.coordinates?.[ins.index];
+        return String(ins.text||'').trim().toLowerCase()+'@'+(coord?Number(coord.lat).toFixed(5)+','+Number(coord.lng).toFixed(5):index);
+    }
     // Check upcoming maneuver and announce if close
     function checkNavVoice(lat, lng) {
-        if (!navVoiceEnabled || !navRoute?.instructions?.length || !navRoute.coordinates?.length) return;
+        if (!navVoiceEnabled || !navRoute?.coordinates?.length || navArrivalAnnounced) return;
+        if(navDest&&navDistM(lat,lng,navDest.lat,navDest.lng)<30){
+            navArrivalAnnounced=true;
+            navSpeak('You have arrived at your destination.');
+            try { window.NavSound?.success(); } catch(e) {}
+            return;
+        }
+        if(!navRoute.instructions?.length)return;
         const instrs = navRoute.instructions;
         const coords = navRoute.coordinates;
         // Find next unannounced instruction
         for (let i = navAnnouncedIdx + 1; i < instrs.length; i++) {
             const ins = instrs[i];
+            const key=navManeuverKey(ins,i);
+            if(navSpokenManeuvers.has(key)){navAnnouncedIdx=i;continue;}
             // Estimate maneuver position: use index if available, else distribute
             let mLat, mLng;
             if (ins.index != null && coords[ins.index]) {
@@ -1678,6 +1715,7 @@ window.MapPage = (() => {
             const d = navDistM(lat, lng, mLat, mLng);
             if (d < 150) {
                 navAnnouncedIdx = i;
+                navSpokenManeuvers.add(key);
                 // v53BG: natural phrasing — "In 100 meters, turn left"
                 let action = (ins.text || "continue straight").trim();
                 action = action.charAt(0).toLowerCase() + action.slice(1);
@@ -1688,15 +1726,6 @@ window.MapPage = (() => {
             }
             // Only check the next one
             break;
-        }
-        // Arrival check
-        if (navDest && !navArrivalAnnounced) {
-            const dDest = navDistM(lat, lng, navDest.lat, navDest.lng);
-            if (dDest < 30) {
-                navArrivalAnnounced = true;
-                navSpeak("You have arrived at your destination.");
-                try { window.NavSound?.success(); } catch (e) {}
-            }
         }
     }
     function ensureNavUI() {
@@ -1772,6 +1801,7 @@ window.MapPage = (() => {
         if (navWatchId != null && navigator.geolocation) { navigator.geolocation.clearWatch(navWatchId); navWatchId = null; }
         navRoute = null; navDest = null; navZoomed = false;
         navAnnouncedIdx = -1; navArrivalAnnounced = false;
+        navSpeechRouteKey=null;navSessionStarted=false;navSpokenManeuvers.clear();
         try { window.speechSynthesis?.cancel(); } catch (e) {}
         removeNavUI();
         const oldBtn = document.getElementById("cancelNavBtn"); if (oldBtn) oldBtn.style.display = "none";
@@ -1796,6 +1826,7 @@ window.MapPage = (() => {
         if (navOverlay) { try { map.removeLayer(navOverlay); } catch (e) {} navOverlay = null; }
         const ticket=++navGeneration;clearTimeout(navStartTimer);navPending=true;navRoute=null;navLastFollow=null;
         navDest = {lat:destLat,lng:destLng}; navZoomed = false;
+        navSpeechRouteKey=null;navSessionStarted=false;navSpokenManeuvers.clear();navAnnouncedIdx=-1;navArrivalAnnounced=false;
         map?.stop?.();
 
         if (typeof showPage === "function") showPage("page-map");
@@ -1862,14 +1893,15 @@ window.MapPage = (() => {
                     ).join("");
                     window.debouncedIcons?.();
                 }
-                // v53BC: announce first instruction + reset voice state
-                navAnnouncedIdx = -1; navArrivalAnnounced = false;
-                if (navRoute.instructions?.length) {
-                    const first = navRoute.instructions[0];
-                    let a = (first.text || "follow the route").trim();
-                    a = a.charAt(0).toLowerCase() + a.slice(1);
-                    navSpeak(`Starting navigation. First, ${a}.`);
-                    try { window.NavSound?.action(); } catch (e) {}
+                const speechKey=JSON.stringify((navRoute.instructions||[]).map((ins,index)=>navManeuverKey(ins,index)));
+                if(speechKey!==navSpeechRouteKey){navAnnouncedIdx=-1;navSpeechRouteKey=speechKey;}
+                if(!navSessionStarted && navRoute.instructions?.length){
+                    navSessionStarted=true;
+                    const first=navRoute.instructions[0];
+                    navSpokenManeuvers.add(navManeuverKey(first,0));navAnnouncedIdx=0;
+                    const action=(first.text||'follow the route').trim();
+                    navSpeak('Starting navigation. First, '+action.charAt(0).toLowerCase()+action.slice(1)+'.');
+                    try { window.NavSound?.action(); } catch(e) {}
                 }
                 // One short route overview avoids competing zoom animations on phones.
                 if (!navZoomed && navRoute.coordinates?.length) {
@@ -1928,6 +1960,13 @@ window.MapPage = (() => {
         window.debouncedIcons?.();
         const thread = panel.querySelector(".vici-ai-thread");
         if (thread) thread.scrollTop = thread.scrollHeight;
+    }
+
+    function searchPlaces() {
+        const input=document.getElementById('askInput');if(!input)return;
+        AppState.searchQuery=input.value.trim();AppState.smartIntent=null;
+        document.querySelector('.ai-suggestions')?.classList.remove('show');
+        refreshPlaces();
     }
 
     async function processAISearch(options = {}) {
@@ -2132,10 +2171,11 @@ window.MapPage = (() => {
             const uid = window.auth.currentUser.uid;
             try {
                 const [revDoc, favDoc] = await Promise.all([
-                    window.db.collection("reviews").where("userId", "==", uid).where("placeId", "==", id).limit(1).get(),
+                    window.db.collection("reviews").doc(`${uid}_${id}`).get().catch(()=>null),
                     window.db.collection("favorites").doc(`${uid}_${id}`).get()
                 ]);
-                if (!revDoc.empty) userRating = revDoc.docs[0].data().rating;
+                if (revDoc?.exists) userRating = revDoc.data().rating;
+                else {const legacy=await window.db.collection('reviews').where('userId','==',uid).where('placeId','==',id).limit(1).get().catch(()=>null);if(legacy&&!legacy.empty)userRating=legacy.docs[0].data().rating;}
                 if (favDoc.exists) isFavorited = true;
             } catch (e) { console.error("Error fetching data:", e); }
         }
@@ -2198,7 +2238,7 @@ window.MapPage = (() => {
                 <div class="placeCoverBrand">
                     <div class="placeBrandLogo">${brandLogoHtml}</div>
                     <div class="placeBrandText">
-                        <strong data-no-translate>${escapeHtml(p.name)}</strong>
+                        <h1 data-no-translate>${escapeHtml(p.name)}</h1>
                         <span>${escapeHtml(p.cat || p.category || "Establishment")}</span>
                     </div>
                 </div>
@@ -2208,13 +2248,11 @@ window.MapPage = (() => {
                 <div class="placeHeaderRow place-profile-head">
                     <div class="placeHeaderTitle">
                         
-                        <h1 data-no-translate>${escapeHtml(p.name)}</h1>
-                        <p style="margin-bottom: 8px;">${escapeHtml((p.cat || p.category || "Establishment").toUpperCase())}</p>
 
                         ${p.avgRating ? `
                             <button type="button" class="place-rating-jump" onclick="window.scrollPlaceReviews('${p.id}')" style="border:none; display:inline-flex; align-items:center; gap:6px; background:#fef9c3; color:#854d0e; padding:6px 10px; border-radius:8px; font-weight:700; font-size:13px;">
                                 <i data-lucide="star" style="width:16px; height:16px; fill:#854d0e;"></i>
-                                ${p.avgRating} <span style="font-weight:normal; opacity:0.8;">(${p.reviewCount} Reviews)</span>
+                                ${p.avgRating} <span style="font-weight:normal; opacity:0.8;">(${p.ratingCount ?? p.reviewCount} Ratings)</span>
                             </button>
                         ` : `
                             <button type="button" class="place-rating-jump" onclick="window.scrollPlaceReviews('${p.id}')" style="border:none; display:inline-flex; align-items:center; gap:6px; background:#f1f5f9; color:#64748b; padding:6px 10px; border-radius:8px; font-size:12px;">
@@ -2295,7 +2333,7 @@ window.MapPage = (() => {
                         </div>
                         <p style="font-size:11px; color:#64748b; margin:0;">
                             ${userRating > 0 ? `You rated this ${userRating} stars. You can change it anytime.` : 'Click a star to submit your rating.'}
-                        </p>`}
+                        </p><p class="place-rating-policy">Star ratings do not require a transaction. Written reviews require a completed transaction.</p>`}
                     </div>
                 </section>
 
@@ -3203,7 +3241,7 @@ window.MapPage = (() => {
             ? "Please choose a future time. Past bookings are not allowed." : "");
     }
 
-    window.openBookingModal = async function (placeId, placeName) {
+    window.openBookingModal = async function (placeId, placeName, assistedDraft = null) {
         const user = await requireVerifiedUser("send a request");
         if (!user) return;
 
@@ -3211,11 +3249,13 @@ window.MapPage = (() => {
             // Cache-first: the map already holds this place's data.
             const cachedPlace = cloudPlaces.find(x => x.id === placeId);
             if (cachedPlace) {
+                if(cachedPlace.accepts_booking===false){window.showToast('This establishment is not accepting requests. Please message the business.','info');return false;}
                 if (cachedPlace.owner_uid === user.uid) {
                     return window.showToast("This is your own establishment. You cannot send a request to yourself.", "error");
                 }
             } else {
                 const placeDoc = await window.db.collection("places").doc(placeId).get();
+                if(placeDoc.exists&&placeDoc.data().accepts_booking===false){window.showToast('This establishment is not accepting requests. Please message the business.','info');return false;}
                 if (placeDoc.exists && placeDoc.data().owner_uid === user.uid) {
                     return window.showToast("This is your own establishment. You cannot send a request to yourself.", "error");
                 }
@@ -3249,6 +3289,17 @@ window.MapPage = (() => {
 
         updateRequestPickerUI("table_reservation");
         window.updateRequestTypeFields();
+        if(assistedDraft){
+            const d=window.ViciRequest.clean(assistedDraft);
+            if(d.placeId!==placeId)return false;
+            window.setRequestTypeChoice(d.requestType);
+            document.getElementById('bookDate').value=d.date||'';
+            document.getElementById('bookTime').value=d.time||'';
+            const guests=document.getElementById('bookGuests');if(guests)guests.value=d.guests||'';
+            const items=document.getElementById('bookItems');if(items)items.value=d.items||'';
+            document.querySelectorAll('[data-chip-for="bookGuests"] .req-chip').forEach(b=>{const selected=b.dataset.val===String(d.guests);b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));});
+            syncBookingSchedule();
+        }
         modal.classList.remove("hidden");
         modal.setAttribute("aria-hidden", "false");
         // Recompute limits on edits and focus, including when the form stays
@@ -3263,6 +3314,7 @@ window.MapPage = (() => {
         window.debouncedIcons?.();
         window.LangManager?.translateDOM?.(undefined, modal);
         document.getElementById("bookingModalTitle").focus({preventScroll:true});
+        return true;
     };
 
     window.closeBookingModal = (force = false) => { if (bookingSending && force !== true) return; bookingReviewSnapshot = null; window.lockBodyScroll(false); const modal = document.getElementById("bookingModal"); modal?.classList.add("hidden"); modal?.setAttribute("aria-hidden", "true"); };
@@ -3449,7 +3501,7 @@ window.MapPage = (() => {
         if (!AppState.mapFilters) AppState.mapFilters = { openNow: false, verified: false, booking: false, delivery: false, highRated: false, freshOnly: false };
         if (AppState.mapFilters.freshOnly == null) AppState.mapFilters.freshOnly = false;
 
-        initMap(); initRadius(); initCats(); initSmartFilters(); initAISuggestions(); ensureViciAIBubble();
+        initMap(); initRadius(); initCats(); initSmartFilters(); ensureViciAIBubble();
 
         const locateBtn = document.getElementById("locateBtn");
         if (locateBtn && !locateBtn.classList.contains("vici-ai-bubble-launcher")) {
@@ -3457,11 +3509,11 @@ window.MapPage = (() => {
         }
         document.getElementById("refreshMapBtn")?.addEventListener("click", refreshPlaces);
 
-        document.getElementById("askBtn")?.addEventListener("click", processAISearch);
+        document.getElementById("askBtn")?.addEventListener("click", searchPlaces);
         document.getElementById("askInput")?.addEventListener("keypress", (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
-                processAISearch();
+                searchPlaces();
             }
         });
 
@@ -3494,7 +3546,7 @@ window.MapPage = (() => {
         window.showToast?.("Map reset to defaults.", "success");
     }
 
-    return { getCachedPlace: id => cloudPlaces.find(place=>place.id===id), refresh, locate, processAISearch, resetMap,
+    return { getCachedPlace: id => cloudPlaces.find(place=>place.id===id), refresh, locate, processAISearch, searchPlaces, resetMap,
         stopPlaceListeners: () => { try { if (typeof placeUpdatesUnsub === "function") placeUpdatesUnsub(); } catch (e) {} placeUpdatesUnsub = null; try { window.Suki?.unmountPlaceSection?.(); } catch (e) {} },
         resetViciAI: () => { try {
             // Clear + HIDE the panel (privacy wipe for the next account).

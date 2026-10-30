@@ -1,3 +1,60 @@
+Vici flow finalization — 2026-10-30
+- Public establishment conversation with retained focus, direct View menu dialog, View on map and clickable establishment name. Menu dialog uses up to 20 existing public menu/store posts, handles missing content and loading failures, and offers Message business / View place. No image uploads or generated images introduced.
+- Assisted UNSENT booking/order drafts use customer-provided details. Common English/Tagalog requests, explicit ISO dates/today/tomorrow in Philippine time, AM/PM/24-hour times, guest counts and Items: text supported. Missing/ambiguous details are asked or left blank in the form. Selecting a place after an initial generic request retains its previously supplied details.
+- Review reservation/request opens the existing editable form with a prefilled schedule and guests/items. The user must still review and Send Request. No AI automatic submission, approval, payment or refund. Explicitly disabled booking setting is enforced again server-side. Only latest active draft has a review button; cancelling draft does not cancel a real booking.
+- Compact green action cards, accessible native menu dialog and themed form work in light/dark mode. Saved context order matches visible cards, and an explicitly unknown establishment does not silently select the previous business.
+- Guided drafts and greetings use no model call; guided chat has 30/minute account limit. Actual model questions retain 6/minute and 50/24-hour account limit; OpenRouter model remains pinned to selected :free ID. Keys remain server-side.
+- Validation: 29 test files and build pass. Six local actual-renderer browser workflows at 320/393/1280 pixels in light/dark mode verify direct menu, prefilled form and zero database writes on hand-off. Additional tests cover correction, discarded drafts, missing data, bad dates, unavailable places and private-field exclusion.
+- Deploy full source through GitHub/Netlify. No new Firebase rules/index changes for this AI update. Prior transaction-guard rules must still be deployed if not done previously. Live key/model/quota and real two-account transaction verification remain after production deploy. See START_HERE.md and AI_API_SETUP.md.
+
+Vici conversation memory — 2026-10-30
+- Per-conversation search context and up to three public establishment IDs persist with account-scoped local browser chat history. Pronoun and first/second/third follow-ups resolve against that conversation. Explicit place names override old focus; a new search changes context. Map-card selection remembers that place.
+- Relevant establishments remain in the server-approved prompt on follow-ups instead of being replaced by unrelated freshly-ranked results. Server revalidates focus IDs and asks for clarification for ambiguous references. Budget context survives short follow-ups. Recent six messages remain bounded; this is not unlimited memory or private account access.
+- New chat resets focus; recent chat selection restores it. Clear/delete controls retained. Up to 20 messages/chat and 20 chats per browser/account; no cross-device sync. Ordinary user location coordinates are no longer included in AI request payloads.
+- AI cards now use the listed places mentioned in the answer rather than every candidate. Existing View on map button retained; direct menu button is not part of this update.
+- 28 test files and build pass; extra endpoint tests verify follow-up focus and rejection of forged IDs. Live model/key/quota test remains after deployment. See AI_API_SETUP.md.
+- Deploy through GitHub/Netlify; no new Firebase rule/index changes for memory.
+
+OpenRouter establishment assistant — 2026-10-30
+- Server-only OPENROUTER_API_KEY integration, pinned google/gemma-4-31b-it:free model; no paid OpenRouter model fallback.
+- Optional Gemini first, then OpenRouter; OpenRouter-only keys work. Timeout and quota/invalid-response failures fall back to deterministic public-list replies. Only final model content returned.
+- Approved selected public establishment field projection; no personal database records queried or sent. Saved hours and delivery flags included. Personal booking/payment requests redirected by topic guard.
+- Hello and thank-you replies are local, with no AI call or AI-account quota debit. Establishment follow-ups use bounded Vici chat context. Other topics are redirected.
+- 28 test files and static build passed. Live provider/key/quota verification remains after the user deploys. New key is stored only in user's Netlify environment, never in this archive.
+- Deploy full source through GitHub/Netlify. No new Firebase rules/index changes for AI integration. Prior ticket/task guard rules still need deployment if not already done. See AI_API_SETUP.md.
+
+Ticket closure guard — 2026-10-30
+- Keep transaction conversation open during active work and any unresolved refund. Received transactions with pending requirements or requested feedback stay open; feedback submission archives only when no other supported task remains.
+- Explicit owner cancellation is available for unfinished transactions, with confirmation. Cancellation preserves the refund obligation and customer confirmation; it cannot bypass settlement.
+- Customer cancellation still follows the existing before-preparation restriction. Inquiries remain separate and history is retained.
+- Existing website/API request limits retained; chat 90 messages/minute with no artificial two-second cooldown.
+- Validation: 27 test files and build passed. Deploy updated Firestore rules for chat closing permissions, plus updated Netlify source. No index changes. Live Firebase rules compilation and two-account production verification remain to be done after deployment.
+
+Requirements-first flow and cleanup — 2026-10-30
+- Accepted requests stay on Requirements until the business requests and confirms details or explicitly chooses No additional details needed. New payment setup is server-blocked until that decision. Existing payment setup/history remains readable.
+- Payment is a separate stage; preparation still requires verified payment. All six progress labels fit compact mobile screens.
+- Place search does not call AI. Separate Open Vici AI button opens the AI conversation.
+- Standard customers can submit/edit one star score per place without a transaction. Written feedback still requires a completed transaction and remains submit-once. Legacy star aggregates migrate per place on the next rating.
+- Removed repeated place name/category from the lower profile panel; kept the banner heading.
+- Navigation avoids repeating the same spoken maneuver on route refresh/GPS updates; one navigation click handler per item.
+- Minimal green location-pin theme retained; cancelled mascot assets remain removed.
+Validation: 27 test files pass; static build passes; browser checks cover search/AI roles, place layout at four widths in light/dark mode, and requirements-first mobile display.
+Deployment: upload full source to GitHub/Netlify. Deploy updated firestore.rules (rating aggregate protection). No new index definitions for these changes. Firebase Storage is still not set up in the user's project.
+
+Mascot/logo experiment cancelled — minimal theme restored
+- Original green location-pin branding restored. Floating AI uses a simple inline location icon.
+- Removed eagle illustrations, sprite assets and flight/morph animations from app source and cache.
+- Place search, location-notice removal, drag/minimize/restore and all earlier functional fixes retained.
+- 25 test files and static build passed. No new rules or indexes.
+
+Place search and draggable AI — 2026-10-30
+- First input is plain place search, without model/API calls; AI entry remains separate.
+- Removed duplicate retry-location notice; geolocation and map reset remain available.
+- Draggable, keyboard-movable AI dock with minimize/restore and saved local position; bounded on resize and hidden outside map page. Dragging does not open chat.
+- Current icon retained while final mascot assets are pending. The supplied sprite preview has not been extracted or animated.
+- 25 automated test files passed; 6 browser drag/minimize/restore/keyboard/theme/viewport cases passed; static build passed.
+- All earlier cumulative source changes included. No new rules or indexes.
+
 Green light/dark theme audit: fixed legacy input palette, Add Establishment focus and controls, editor/Suki fields, signup checkbox, Business Posts action, body-mounted dialogs, feedback/payment styling and text contrast. Includes all earlier fixes. See THEME-AUDIT.md for scope and validation. 24 test files and build passed; local rendered-page and dynamic-dialog fixtures verified. Live service actions not performed.
 
 Direct transaction: removed the internal transaction dropdown. Customer history and business inbox now pass the exact booking ID; new requests open the returned booking ID. A selected request listens to its own document (including older history beyond the recent-five limit); no fallback to another request. Inquiries remain separate; all previous refund/archive/theme fixes retained. Tests and build passed.

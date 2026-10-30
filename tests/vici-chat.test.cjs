@@ -17,3 +17,24 @@ test('AI transport distinguishes setup, origin, authentication, rate limits and 
 });
 test('delete removes only one recent chat and cancels its pending answer',async()=>{let finish;const {dom,w}=setup(()=>new Promise(resolve=>finish=resolve));w.ViciChat.open();const pending=w.ViciChat.send('Delete this');w.document.querySelector('[data-action="delete-chat"]').click();finish({answer:'Late answer'});await pending;assert.equal(w.document.querySelectorAll('.vici-history-item').length,0);assert(!w.document.getElementById('smartAnswerPanel').textContent.includes('Late answer'));dom.window.close();});
 test('minimize leaves a resume button and restores the same chat while close dismisses it',async()=>{const {dom,w}=setup();await w.ViciChat.send('Coffee');w.document.querySelector('[data-action="minimize"]').click();assert(w.document.getElementById('smartAnswerPanel').hidden);assert(w.document.getElementById('viciAiResume'));w.document.getElementById('viciAiResume').click();assert(!w.document.getElementById('smartAnswerPanel').hidden);assert.equal(w.document.querySelectorAll('.vici-message.from-user').length,1);assert(!w.document.getElementById('viciAiResume'));w.document.querySelector('.vici-dismiss').click();assert(!w.document.getElementById('viciAiResume'));dom.window.close();});
+test('conversation memory resolves pronouns, named places, ordinal choices and new topics',()=>{
+ const {dom,w}=setup();try{const places=[{id:'a',name:'Everyday Cafe'},{id:'b',name:'Green Bakery'},{id:'c',name:'Pizza House'}],memory={searchQuery:'coffee under 150',placeIds:['a','b']};
+ const resolve=q=>JSON.parse(JSON.stringify(w.ViciChat.resolveContext(q,memory,places)));
+ assert.deepEqual(resolve('menu nila?').placeIds,['a','b']);assert.equal(resolve('bukas ba sila?').searchQuery,'coffee under 150');
+ assert.deepEqual(resolve('the second one').placeIds,['b']);assert.deepEqual(resolve('hours of Pizza House').placeIds,['c']);
+ assert.deepEqual(resolve('Find pizza').placeIds,[]);assert.equal(resolve('Find pizza').searchQuery,'Find pizza');
+ assert.deepEqual(JSON.parse(JSON.stringify(w.ViciChat.resolveContext('menu nila',memory,[places[2]]))).placeIds,[]);
+ }finally{dom.window.close();}
+});
+test('focus persists across reopen and page reload, but new chats start with empty memory',async()=>{
+ const calls=[];const {dom,w}=setup(async(q,c)=>{calls.push(c);return{answer:'Everyday Cafe.',picks:[{id:'a',name:'Everyday Cafe'}],memory:{searchQuery:'coffee under 150',placeIds:['a']}}});
+ try{
+ await w.ViciChat.send('coffee under 150');w.ViciChat.close();w.ViciChat.open();await w.ViciChat.send('menu nila?');assert.equal(calls[1].memory.placeIds[0],'a');assert.equal(calls[1].history.length,2);
+ const saved=JSON.parse(w.localStorage.getItem('vicinify:vici-history:alice'));assert.equal(saved.chats[0].memory.searchQuery,'coffee under 150');
+ w.document.querySelector('[data-action=new]').click();await w.ViciChat.send('Find bakery');assert.equal(calls[2].memory.placeIds.length,0);
+ // Reload from only this account's saved data, then select the original conversation.
+ w.localStorage.setItem('vicinify:vici-history:alice',JSON.stringify(saved));w.eval(fs.readFileSync(require.resolve('../js/vici-chat.js'),'utf8'));let restored;
+ w.ViciChat.configure({ask:async(q,c)=>{restored=c;return{answer:'Saved hours'}}});w.ViciChat.open();w.document.querySelectorAll('.vici-workspace').forEach((p,i,a)=>{if(i<a.length-1)p.remove()});
+ w.document.querySelector(`[data-action=select][data-chat="${saved.chats[0].id}"]`).click();await w.ViciChat.send('hours?');assert.equal(restored.memory.placeIds[0],'a');
+ }finally{dom.window.close();}
+});

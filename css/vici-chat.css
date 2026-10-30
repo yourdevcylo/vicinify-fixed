@@ -130,3 +130,33 @@ html body.vicinify-ui #smartAnswerPanel.vici-workspace #viciAiChatInput { min-wi
 #smartAnswerPanel .vici-delete-chat svg { width:15px; height:15px; }
 #smartAnswerPanel .vici-delete-chat:hover { background:var(--ui-accent-soft); color:var(--ui-accent); }
 #viciAiResume { position:fixed; right:18px; bottom:calc(80px + env(safe-area-inset-bottom,0px)); z-index:12000; border:1px solid var(--ui-border); border-radius:24px; padding:12px 18px; background:var(--ui-accent,#237e72); color:white; font-weight:700; cursor:pointer; box-shadow:0 4px 16px #0002; }
+
+/* Compact public-place actions and assisted request hand-off. */
+html body.vicinify-ui .vici-card-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+html body.vicinify-ui .vici-card-actions button{margin:0;min-height:36px;flex:1;font-size:11px;white-space:nowrap}
+html body.vicinify-ui .vici-place-name{padding:0;margin:0;border:0;background:none;color:var(--ui-ink);font-size:inherit;font-weight:700;text-align:left;cursor:pointer;min-height:28px}
+html body.vicinify-ui .vici-request-action{display:grid;gap:6px;margin:10px 0;max-width:350px}
+html body.vicinify-ui .vici-request-action button,html body.vicinify-ui .vici-inquiry-action{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--ui-accent);border-radius:10px;background:var(--ui-primary);color:white;padding:11px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+html body.vicinify-ui .vici-request-action small{font-size:11px;color:var(--ui-muted)}
+html body.vicinify-ui .vici-request-action svg{width:16px;height:16px}
+html body.vicinify-ui .vici-menu-dialog{width:min(580px,calc(100vw - 24px));max-height:85dvh;margin:auto;padding:0;box-sizing:border-box;border:1px solid var(--ui-border);border-radius:18px;background:var(--ui-surface);color:var(--ui-ink);box-shadow:0 20px 70px #0004;overflow:auto}
+html body.vicinify-ui .vici-menu-dialog::backdrop{background:#10292288;backdrop-filter:blur(4px)}
+html body.vicinify-ui .vici-menu-dialog header{display:flex;gap:12px;justify-content:space-between;align-items:center;padding:18px;border-bottom:1px solid var(--ui-border);background:var(--ui-surface);position:sticky;top:0}
+html body.vicinify-ui .vici-menu-dialog h2{font-size:18px;margin:4px 0 0;overflow-wrap:anywhere}
+html body.vicinify-ui .vici-menu-dialog small{color:var(--ui-accent);font-size:10px;font-weight:700;letter-spacing:1px}
+html body.vicinify-ui .vici-menu-dialog button{border:1px solid var(--ui-border);border-radius:10px;background:var(--ui-soft);color:var(--ui-accent);padding:10px 14px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+html body.vicinify-ui .vici-menu-dialog header button{display:grid;place-items:center;padding:8px;flex-shrink:0}
+html body.vicinify-ui .vici-menu-dialog header svg{width:18px;height:18px}
+html body.vicinify-ui .vici-menu-content{padding:18px}
+html body.vicinify-ui .vici-menu-content article{padding:0 0 16px;margin-bottom:16px;border-bottom:1px solid var(--ui-border)}
+html body.vicinify-ui .vici-menu-content p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6}
+html body.vicinify-ui .vici-menu-content img{display:block;width:100%;height:auto;border-radius:12px}
+html body.vicinify-ui .vici-menu-empty{text-align:center;padding:24px 8px;color:var(--ui-muted)}
+html body.vicinify-ui .vici-menu-empty svg{color:var(--ui-accent);width:28px;height:28px}
+html body.vicinify-ui .vici-menu-dialog footer{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--ui-border);background:var(--ui-surface);position:sticky;bottom:0}
+html body.vicinify-ui .vici-menu-dialog footer button{flex:1}
+#smartAnswerPanel.vici-workspace .vici-result-info .vici-place-name{display:inline;text-align:left;justify-content:flex-start;min-height:0;width:auto;padding:0;margin:0;border:0;background:transparent;color:var(--ui-ink);font-size:12px;line-height:1.5;font-weight:700;border-radius:0}
+#smartAnswerPanel.vici-workspace .vici-card-actions button{margin:0;width:auto;flex:1 1 100px;min-height:36px}
+#smartAnswerPanel.vici-workspace .vici-results:has(> .vici-result-card:only-child){grid-template-columns:minmax(0,340px)}
+#smartAnswerPanel.vici-workspace .vici-result-photo:not(:has(img)){height:56px}
+@media(max-width:700px){#smartAnswerPanel.vici-workspace .vici-result-card{flex:0 0 min(260px,calc(100vw - 100px))}#smartAnswerPanel.vici-workspace .vici-result-card:only-child{flex:1;max-width:340px}}

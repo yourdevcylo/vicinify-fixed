@@ -1423,6 +1423,11 @@ window.LangManager = (() => {
   "Feedback request": "Paghingi ng puna",
   "Feedback submitted": "Naipasa ang puna",
   "Transaction update": "Pagbabago sa transaksiyon",
+  "No additional details needed": "Wala nang kailangang detalye",
+  "Request the details you need, or confirm that no additional details are required.": "Hingin ang kailangan mong detalye o kumpirmahing wala nang kailangan.",
+  "The business is checking the requirements before payment.": "Sinusuri muna ng negosyo ang mga kailangan bago ang bayad.",
+  "Confirm that the request already contains everything needed. Payment instructions come next.": "Kumpirmahing kumpleto na ang kahilingan. Susunod ang tagubilin sa pagbabayad.",
+  "Confirm the requirements or choose no additional details first.": "Kumpirmahin muna ang mga kailangan o piliing wala nang kailangan.",
   "Requirements waived": "Hindi na hinihingi ang mga detalye",
   "Waived": "Hindi na kailangan",
   "Acceptance": "Pagtanggap",
@@ -1500,6 +1505,13 @@ window.LangManager = (() => {
   "Check your account first. The refund will stay open for the business to review.": "Suriin muna ang iyong account. Mananatiling bukas ang refund para masuri ng negosyo.",
   "Confirm refund transfer": "Kumpirmahin ang pagpapadala ng refund",
   "Confirm transferred": "Kumpirmahing naipadala na",
+  "Star ratings do not require a transaction. Written reviews require a completed transaction.": "Hindi kailangan ng transaksiyon para sa mga bituin. Kailangan ng nakumpletong transaksiyon para sa nakasulat na pagsusuri.",
+  "Ratings": "Mga marka",
+  "Open Vici AI": "Buksan ang Vici AI",
+  "Search places": "Maghanap ng lugar",
+  "Hide floating AI": "Itago ang lumulutang na AI",
+  "Restore floating AI": "Ibalik ang lumulutang na AI",
+  "Move floating AI": "Ilipat ang lumulutang na AI",
   "Ownership transfers": "Mga paglilipat ng pagmamay-ari",
   "Ownership transfer": "Paglilipat ng pagmamay-ari",
   "Enter the email of a verified business account. Your password confirms this request. Ownership changes only after the recipient accepts.": "Ilagay ang adres ng elektronikong liham ng isang napatunayang account ng negosyo. Kumpirmahin gamit ang iyong kontrasenyas. Magbabago lamang ang may-ari kapag tinanggap ng tatanggap.",
@@ -2354,10 +2366,13 @@ function showPage(pageId) {
 
 function initNav() {
     document.querySelectorAll(".nav-item, [data-goto]").forEach(btn => {
-        btn.addEventListener("click", async () => {
+        if(btn.dataset.viciNavBound)return;
+        btn.dataset.viciNavBound="true";
+        btn.addEventListener("click", async event => {
+            event.preventDefault();
             const target = btn.dataset.goto;
             if (!target) return;
-            try { window.NavSound?.nav(); } catch (e) {}
+            if(AppState.activePage!==target)try { window.NavSound?.nav(); } catch (e) {}
             
             if (!AppState.user && target !== "page-login") {
                 showPage("page-login");
@@ -2856,7 +2871,6 @@ document.addEventListener("DOMContentLoaded", () => {
 document.body.classList.add("on-login");
 loadSettings();
 initNav();
-initAsk();
 initLogin();
 
 setupChatActionButtons();
@@ -5399,7 +5413,7 @@ function renderRequestProcess(order,requirements) {
     const t=s=>window.LangManager?.translateKey?.(s)||s,status=order.status||order.bookingStatus||'pending',flow=window.PaymentPolicy.flow(order);
     const active=!['cancelled','rejected'].includes(status);
     if(!active)return '';
-    const requirementDone=!requirements||['confirmed','waived'].includes(requirements.status);
+    const requirementDone=requirements?['confirmed','waived'].includes(requirements.status):!!order.paymentTermsVersion||!['pending','accepted'].includes(status);
     const steps=[['Request sent',true],['Acceptance',status!=='pending'],['Requirements',requirementDone&&flow.addressReady],['Payment',flow.verified],['Preparation',['delivered','fulfilled','received'].includes(status)],['Completion',status==='received']];
     let current=active?steps.findIndex(([,done])=>!done):-1;
     const currentLabel=current>=0?steps[current][0]:status==='received'?'Completed':status;
@@ -5414,7 +5428,7 @@ function renderDeskRequirements(state) {
     const keys=Object.keys(labels).filter(key=>state.required?.[key]);
     const data=state.data||{};
     const value=key=>key==='address'?[data.houseStreet,data.barangay,data.city,data.landmark].filter(Boolean).join(', '):key==='location'?(data.lat!=null&&data.lng!=null?`${data.lat}, ${data.lng}`:''):data.orderDetails||'';
-    return `<details class="transaction-requirements"><summary><b>${escapeHtml(t('Requirements'))}</b><span>${status==='waiting_customer'?'0':keys.length}/${keys.length} ${escapeHtml(t(label))}</span><small>${keys.map(key=>escapeHtml(t(labels[key]))).join(' · ')}</small></summary>${state.notes?`<p data-no-translate>${escapeHtml(state.notes)}</p>`:''}<ul>${keys.map(key=>`<li><div><b>${escapeHtml(t(labels[key]))}</b><small class="requirement-state state-${status}">${escapeHtml(t(label))}</small></div>${value(key)?`<p data-no-translate>${escapeHtml(value(key))}</p>`:''}</li>`).join('')}</ul></details>`;
+    return `<details class="transaction-requirements"><summary><b>${escapeHtml(t('Requirements'))}</b><span>${keys.length?`${status==='waiting_customer'?'0':keys.length}/${keys.length} `:''}${escapeHtml(t(label))}</span><small>${keys.map(key=>escapeHtml(t(labels[key]))).join(' · ')}</small></summary>${state.notes?`<p data-no-translate>${escapeHtml(state.notes)}</p>`:''}<ul>${keys.map(key=>`<li><div><b>${escapeHtml(t(labels[key]))}</b><small class="requirement-state state-${status}">${escapeHtml(t(label))}</small></div>${value(key)?`<p data-no-translate>${escapeHtml(value(key))}</p>`:''}</li>`).join('')}</ul></details>`;
 }
 function renderTransactionDesk(order,isOwner,orders=[]) {
     if(!order)return '';
@@ -5425,6 +5439,7 @@ function renderTransactionDesk(order,isOwner,orders=[]) {
     const action=(key,label)=>`<button type="button" data-tx-action="${key}" data-booking-id="${esc(id)}">${esc(t(label))}</button>`;
     let next='',buttons='';
     if(status==='pending'){next=isOwner?'Accept or decline this request.':'Wait for the business to accept your request.';if(isOwner)buttons=action('accept','Accept Request')+action('reject','Reject');}
+    else if(status==='accepted'&&!requirements&&!order.paymentTermsVersion){next=isOwner?'Request the details you need, or confirm that no additional details are required.':'The business is checking the requirements before payment.';if(isOwner)buttons=action('requirements-none','No additional details needed');}
     else if(status==='accepted'&&requirements&&['waiting_customer','submitted'].includes(requirements.status)){
         next=requirements.status==='submitted'?(isOwner?'Review the submitted details before continuing.':'Your details were submitted. Wait for business review.'):(isOwner?'Waiting for the requested customer details.':'Complete the requested details to continue.');
         if(!isOwner&&requirements.status==='waiting_customer')buttons=action('requirements-submit','Submit requirements');
@@ -5444,7 +5459,7 @@ function renderTransactionDesk(order,isOwner,orders=[]) {
     else if(status==='ready'){next='Your request is ready.';if(isOwner)buttons=action('fulfill','Mark fulfilled');}
     else if(status==='out_for_delivery'){next='Your order is on the way.';if(isOwner)buttons=action('deliver','Mark delivered');}
     else if(['fulfilled','delivered'].includes(status)){next='Confirm only after you receive the order or service.';if(!isOwner)buttons=action('receive','Confirm Received');}
-    else if(status==='received'){next='Transaction completed.';}
+    else if(status==='received'){next=order.feedbackStatus==='feedback_waiting'&&!order.feedbackSubmittedAt?'Transaction completed. Please rate your experience and send feedback.':'Transaction completed.';if(!isOwner&&order.feedbackStatus==='feedback_waiting'&&!order.feedbackSubmittedAt)buttons=action('feedback','Rate & Send Feedback');}
     else if(status==='cancelled'){
         const refund=order.refundStatus;
         if(refund==='needs_verification'){next='Verify the actual payment received before calculating the refund.';if(isOwner)buttons=action('refund-check','Verify received payment')+action('refund-missing','Payment not found');}
@@ -5456,6 +5471,7 @@ function renderTransactionDesk(order,isOwner,orders=[]) {
         else next=refund==='not_required'?'Cancelled. No refund is due.':'Cancelled. Ask the business to review any earlier payment.';
     }else next='This request is closed.';
     if(isOwner&&status==='accepted'&&(!requirements||['confirmed','waived'].includes(requirements.status)))buttons+=action('requirements-request','Request details');
+    if(isOwner&&!['received','cancelled','rejected'].includes(status))buttons+=action('owner-cancel','Cancel request');
     if(!isOwner&&window.PaymentPolicy.cancellation(order).allowed)buttons+=action('cancel','Cancel request');
     const value=(label,value,personal=false)=>value?`<div><dt>${esc(t(label))}</dt><dd${personal?' data-no-translate':''}>${esc(String(value))}</dd></div>`:'';
     return `<div class="transaction-desk-top"><b>${esc(t('Current transaction'))}</b><span>${esc(t(status.replace(/_/g,' ')))}</span></div>${renderRequestProcess(order,requirements)}<p class="transaction-desk-next">${esc(t(next))}</p>${!['cancelled','rejected'].includes(status)?renderDeskRequirements(requirements):''}${status==='accepted'&&flow.online&&flow.termsReady&&detailsReady&&order.paymentInstructions?`<p class="transaction-desk-payto" data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl class="transaction-desk-money">${value('Amount due',flow.termsReady&&detailsReady&&order.paymentAmountDue?'₱'+order.paymentAmountDue:'')}${value('Submitted payment',order.paymentAmount?'₱'+order.paymentAmount:'')}${value('Reference',order.paymentReference,true)}${value('Refund amount',order.refundAmount!=null?'₱'+order.refundAmount:'')}${value('Refund calculation',order.refundBaseAmount&&order.refundAmount!=null?'₱'+order.refundBaseAmount+' × '+order.refundPercent+'%':'')}${value('Refund reference',order.refundReference,true)}</dl><details class="transaction-desk-details"><summary>${esc(t('Payment and request details'))}</summary><p class="transaction-desk-next">${esc(t('Refund rate before preparation'))}: ${esc(String(order.refundPercent ?? 50))}% · ${esc(t('Cancellation closes when preparation starts.'))}</p><p class="transaction-desk-id" data-no-translate>TX-${esc(String(id).slice(-8))}</p>${flow.termsReady&&detailsReady&&order.paymentInstructions?`<p data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl>${value('Reference',order.paymentReference,true)}${value('Refund reference',order.refundReference,true)}${value('Business note',order.paymentReviewNote||order.refundNote,true)}</dl>${order.paymentProofPath?`<div class="transaction-desk-proof" data-tx-proof="${esc(order.paymentProofPath)}" data-booking-id="${esc(id)}"></div>`:''}${renderRequestDetailRows(order)}<p>${esc(t('Vicinify records manual payments and refunds. It does not transfer money.'))}</p></details><div class="transaction-desk-actions">${buttons}</div>`;
@@ -5514,6 +5530,11 @@ window.transactionDeskAction=async function(action,id,messageId){
     transactionDeskBusy.add(id);
     try{
         let patch;
+        if(action==='requirements-none'){
+            if(!await window.vConfirm('No additional details needed','Confirm that the request already contains everything needed. Payment instructions come next.','Confirm'))return;
+            patch={requirements:{action:'not_required'}};
+        }
+        if(action==='feedback')return await window.openFeedbackModal(order.placeId,id,currentChatDocsCache.find(d=>d.type==='feedback_request'&&d.bookingId===id)?.id);
         if(action==='requirements-request')return window.openRequirementRequestModal();
         if(action==='requirements-submit'){const req=deskRequirements(order);if(req)return await window.openRequirementResponseModal(req.requestId);return;}
         if(action==='requirements-confirm'){const req=deskRequirements(order);if(req?.responseId)return await window.confirmRequirementResponse(req.responseId);return;}
@@ -5523,7 +5544,10 @@ window.transactionDeskAction=async function(action,id,messageId){
             patch={requirements:{action:'waive',requestId:req.requestId}};
         }else if(action==='proof')return await window.uploadPaymentProof(id,'');
         if(['verify','decline'].includes(action))return await window.reviewPaymentProof(id,'',action==='verify'?'confirm':'resubmit');
-        if(action==='requirements-waive'){ /* patch already validated above */ }else if(action==='cancel'){
+        if(['requirements-waive','requirements-none'].includes(action)){ /* patch already validated above */ }else if(action==='owner-cancel'){
+            if(!await window.vConfirm('Cancel request','Cancel this transaction? Any pending refund must still be resolved before the conversation is archived.','Confirm'))return;
+            patch={status:'cancelled'};
+        }else if(action==='cancel'){
             if(!await window.SettingsPage.reviewCancellation(order))return;
             patch={status:'cancelled'};
         }else if(action==='delivery-details'){
@@ -6596,7 +6620,7 @@ window.submitRating = async function (placeId, score) {
     if (isRatingProcessing) return;
     isRatingProcessing = true;
     try {
-        await window.ViciData.command("review", { placeId, rating: score, isPublic: true });
+        await window.ViciData.command("review", { action:"rate", placeId, rating: score });
         window.invalidatePlacesCache?.();
         window.showToast?.("Rating saved.", "success");
         await window.viewPlace(placeId);

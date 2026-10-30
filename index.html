@@ -123,9 +123,9 @@
                 <div class="discovery-art" aria-hidden="true"><svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 540 270" fill="none"><rect x="12" y="20" width="516" height="240" rx="28" fill="#e5eeeb"/><path d="M0 206 540 80M122 0 250 280M332 0 406 280M0 76 540 230" stroke="#fff" stroke-width="23"/><path d="M-5 206 540 80M122 0 250 280M332 0 406 280M0 76 540 230" stroke="#cbdcd6" stroke-width="1.5" stroke-dasharray="5 6"/><rect x="60" y="105" width="68" height="43" rx="9" fill="#bfd8cc" transform="rotate(-14 60 105)"/><rect x="245" y="62" width="67" height="48" rx="9" fill="#c6d4cb" transform="rotate(-14 245 62)"/><rect x="288" y="184" width="66" height="45" rx="9" fill="#bfd8cc" transform="rotate(14 288 184)"/><circle cx="268" cy="142" r="39" fill="#137e72" fill-opacity=".08"/><circle cx="268" cy="142" r="25" fill="#137e72" fill-opacity=".12"/><circle cx="268" cy="142" r="9" fill="#137e72" stroke="#fff" stroke-width="4"/><g transform="translate(109 54)"><rect width="52" height="52" rx="17" fill="#fff"/><path d="M17 17h18v13a8 8 0 0 1-8 8h-2a8 8 0 0 1-8-8V17Zm18 3h3a5 5 0 0 1 0 10h-3M20 12v-3m7 3V7m6 5V9" stroke="#b77b44" stroke-width="2.5" stroke-linecap="round"/></g><g transform="translate(365 125)"><rect width="52" height="52" rx="17" fill="#fff"/><path d="M14 25h24l-3-10H17l-3 10Zm3 2v12h18V27M23 39v-9h6v9" stroke="#137e72" stroke-width="2.5" stroke-linejoin="round"/></g></svg></div><div class="explore-heading"><span class="section-kicker">GO SOMEWHERE GOOD</span><h1>Around the<br><span>neighborhood.</span></h1><p>Good food. Local favorites. New discoveries.</p></div>
 
             <div class="askBar">
-                <i data-lucide="sparkles"></i> <input type="text" id="askInput" data-i18n-placeholder="Ask Vicinify" placeholder="Search places or ask Vici…" />
-                <button type="button" id="askBtn" aria-label="Search" title="Search Vicinify">
-                    <i data-lucide="send"></i>
+                <i data-lucide="search"></i> <input type="search" id="askInput" data-i18n-placeholder="Search places" placeholder="Search places" />
+                <button type="button" id="askBtn" aria-label="Search" title="Search places">
+                    <i data-lucide="search"></i>
                 </button>
             </div>
            <style>
@@ -289,7 +289,7 @@
                 <button type="button" class="chip" data-cat="dessert" data-color="purple"><i data-lucide="ice-cream"></i> <span data-i18n="Dessert Shop">Dessert Shop</span></button>
                 <button type="button" class="chip" data-cat="fastfood" data-color="blue"><i data-lucide="pizza"></i> <span data-i18n="Fast-Food">Fast-Food</span></button>
             </div>
-            <div class="discovery-note"><div class="note-art" aria-hidden="true"><svg viewBox="0 0 330 100" fill="none"><path d="M210 -20C140 35 285 55 340 110M300 -20C175 30 185 60 290 120" stroke="white" stroke-opacity=".4" stroke-width="20"/><path d="M255 105C220 40 285 25 287 70" stroke="#86bdb3" stroke-width="2" stroke-dasharray="4 5"/><path d="m284 49 22-8-8 22-4-11-10-3Z" fill="#237f73" stroke="white" stroke-width="3" stroke-linejoin="round"/></svg></div><i data-lucide="sparkles"></i><div><strong>A little help from Vici</strong><p>Try “coffee nearby” or choose a category to start exploring.</p></div></div>
+            <button type="button" id="openViciChatBtn" class="discovery-ai-button" onclick="window.toggleViciAI(true)"><i data-lucide="sparkles" aria-hidden="true"></i><span data-i18n="Open Vici AI">Open Vici AI</span><i data-lucide="arrow-up-right" aria-hidden="true"></i></button>
             </div>
             <section class="mapWrap" aria-label="Nearby places">
                 <div class="map-location-label"><span class="location-dot"></span><span>Lipa City, Batangas</span><span class="map-label-detail">Your neighborhood map</span></div>
@@ -1093,7 +1093,9 @@
     <script src="js/account-deletion.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/password-policy.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/common.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
-    <script src="js/vici-chat.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+        <script src="js/vici-request.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+<script src="js/vici-chat.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/vici-launcher.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/map.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/add.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/buzz.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>

@@ -49,7 +49,7 @@ exports.handler = async event => {
                 inputPatch={...inputPatch,requirements:{...inputPatch.requirements}};
                 const action=inputPatch.requirements.action;
                 if(action==='request'){requirementMessage=db.collection('messages').doc();inputPatch.requirements.requestId=requirementMessage.id;}
-                else {
+                else if(action!=='not_required') {
                     inputPatch.requirements.requestId=identifier(inputPatch.requirements.requestId);
                     requirementRequest=db.collection('messages').doc(inputPatch.requirements.requestId);
                     const request=await transaction.get(requirementRequest);

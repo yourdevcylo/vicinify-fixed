@@ -15,7 +15,7 @@ test('server rejects elapsed or impossible dates, own business, unapproved and m
 test('delivery cannot jump directly to fulfilled or customer receipt before delivery',()=>{
  for(const status of ['accepted','preparing','payment_confirmed'])assert.throws(()=>transition({status,requestType:'delivery_order'},'owner',{status:'fulfilled'}),{status:409});
  assert.throws(()=>transition({status:'out_for_delivery',requestType:'delivery_order'},'customer',{status:'received'}),{status:409});
- assert.deepEqual(transition({status:'delivered',requestType:'delivery_order'},'customer',{status:'received'}),{status:'received',customer_confirmed:true});
+ assert.deepEqual(transition({status:'delivered',requestType:'delivery_order'},'customer',{status:'received'}),{status:'received',customer_confirmed:true,feedbackStatus:'feedback_waiting'});
 });
 test('server atomically creates a pending booking and matching chat card',async()=>{
  const helpers=require('../netlify/functions/lib/admin'),old={...helpers},created=[];

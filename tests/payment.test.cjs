@@ -70,7 +70,7 @@ test('business decline requires a reason, preserves the order and cannot be done
 test('customer sees the business decline reason escaped in the payment card',()=>{const r=renderers();const html=r.renderPaymentFlowCard({status:'accepted',paymentMethod:'GCash',paymentReviewDecision:'declined',paymentReviewNote:'Check <script>reference</script>'},false);assert.match(html,/Correction needed/);assert.match(html,/&lt;script>/);assert(!html.includes('<script>'));assert.match(html,/still accepted/);});
 
 test('new online requests need agreed terms before proof; only owner can set or change terms before review',()=>{
- const order={status:'accepted',paymentMethod:'GCash',paymentFlowVersion:2};assert.equal(policy.flow(order).awaitingProof,false);
+ const order={status:'accepted',paymentMethod:'GCash',requirementsState:{status:'waived'},paymentFlowVersion:2};assert.equal(policy.flow(order).awaitingProof,false);
  const terms=transition(order,'owner',{paymentTerms:{amount:'500',instructions:'GCash 09171234567 · Juan Dela Cruz'}});assert.equal(terms.paymentAmountDue,'500.00');assert.equal(policy.flow({...order,...terms}).awaitingProof,true);
  assert.throws(()=>transition(order,'customer',{paymentTerms:{amount:'1',instructions:'My fake account'}}),{status:409});assert.throws(()=>transition({...order,status:'payment_submitted'},'owner',{paymentTerms:{amount:'5',instructions:'Changed account'}}),{status:409});
 });
@@ -96,7 +96,7 @@ test('payment not found can be rechecked but neither party can fake a completed 
 });
 
 test('new delivery flow collects an address before quoting and preparing, including cash orders',()=>{
- const order={status:'accepted',paymentFlowVersion:2,requestType:'delivery_order',paymentMethod:'COD'};
+ const order={status:'accepted',requirementsState:{status:'waived'},paymentFlowVersion:2,requestType:'delivery_order',paymentMethod:'COD'};
  assert.equal(policy.flow(order).canPrepare,false);assert.throws(()=>transition(order,'owner',{paymentTerms:{amount:'500',instructions:'Cash on delivery'}}),{status:409});assert.throws(()=>transition(order,'owner',{status:'preparing'}),{status:409});
  assert.throws(()=>transition(order,'owner',{deliveryDetails:{houseStreet:'10 Test',barangay:'West',city:'Lipa',landmark:'Gate'}}),{status:409});
  const address=transition(order,'customer',{deliveryDetails:{houseStreet:'10 Test',barangay:'West',city:'Lipa',landmark:'Gate'}});assert.equal(address.deliveryAddress,'10 Test, West, Lipa, Gate');
@@ -109,7 +109,7 @@ test('new delivery flow collects an address before quoting and preparing, includ
 
 test('requirements are transaction-scoped, role-restricted and distinct from payment verification',()=>{
  const {requirementsTransition}=require('../netlify/functions/lib/booking-policy');
- let order={status:'accepted',paymentFlowVersion:2,paymentMethod:'GCash',paymentAmountDue:'500.00',paymentInstructions:'GCash receiver'};
+ let order={status:'accepted',requirementsState:{status:'waived'},paymentFlowVersion:2,paymentMethod:'GCash',paymentAmountDue:'500.00',paymentInstructions:'GCash receiver'};
  const ask={action:'request',requestId:'req',required:{address:true,orderDetails:true,payment:true},notes:'Address and order details please.'};
  assert.throws(()=>requirementsTransition(order,'customer',ask),{status:403});order={...order,...requirementsTransition(order,'owner',ask)};
  assert.equal(order.requirementsState.required.payment,undefined);assert.equal(policy.flow(order).requirementsReady,false);assert.equal(policy.flow(order).termsReady,false);
@@ -139,4 +139,29 @@ test('refund approval, sender confirmation and recipient confirmation cannot be 
  const approved={...pending,...transition(pending,'owner',{refundStatus:'approved',confirmRefund:true})};assert.throws(()=>transition(approved,'owner',{refundStatus:'sent',refundReference:'R123'}));
  const sent={...approved,...transition(approved,'owner',{refundStatus:'sent',refundReference:'R123',confirmTransferred:true})};assert.throws(()=>transition(sent,'customer',{refundStatus:'received'}));assert.throws(()=>transition(sent,'owner',{refundStatus:'received',confirmReceived:true}));
  const disputed={...sent,...transition(sent,'customer',{refundStatus:'disputed',refundNote:'No transfer in my account'})};assert.equal(require('../js/payment-policy').conversationClosed(disputed),false);assert.equal(require('../js/payment-policy').conversationClosed({...sent,refundStatus:'received'}),true);
+});
+
+test('new accepted request needs an explicit requirements decision before payment setup',()=>{
+ const {transition}=require('../netlify/functions/lib/booking-policy');
+ const order={status:'accepted',paymentFlowVersion:2,requestType:'table_reservation'};
+ const terms={paymentTerms:{amount:'500',instructions:'GCash 09171234567 Juan'}};
+ assert.throws(()=>transition(order,'owner',terms),{status:409});
+ assert.throws(()=>transition(order,'customer',{requirements:{action:'not_required'}}),{status:403});
+ const decision=transition(order,'owner',{requirements:{action:'not_required'}});
+ assert.equal(decision.requirementsState.status,'waived');
+ assert.equal(transition({...order,...decision},'owner',terms).paymentAmountDue,'500.00');
+ assert.throws(()=>transition({...order,...decision},'owner',{status:'preparing'}),{status:409});
+});
+
+test('pending work keeps the conversation open and owner cancellation preserves the refund obligation',()=>{
+ const p=require('../js/payment-policy'),{transition}=require('../netlify/functions/lib/booking-policy');
+ for(const status of ['accepted','payment_submitted','payment_confirmed','preparing','ready','delivered','fulfilled'])assert.equal(p.conversationClosed({status}),false);
+ assert.equal(p.conversationClosed({status:'received',feedbackStatus:'feedback_waiting'}),false);
+ assert.equal(p.conversationClosed({status:'received',feedbackStatus:'feedback_submitted',feedbackSubmittedAt:123}),true);
+ assert.equal(p.conversationClosed({status:'received',requirementsState:{status:'submitted'}}),false);
+ for(const refundStatus of ['pending','approved','sent','disputed','needs_verification','payment_not_found'])assert.equal(p.conversationClosed({status:'received',feedbackSubmittedAt:123,refundStatus}),false);
+ const order={status:'preparing',paymentStatus:'confirmed',paymentAmount:'500',refundPercent:70};
+ const cancelled=transition(order,'owner',{status:'cancelled'});assert.equal(cancelled.cancelledBy,'owner');assert.equal(cancelled.refundAmount,'350.00');assert.equal(p.conversationClosed(cancelled),false);
+ assert.throws(()=>transition(order,'customer',{status:'cancelled'}),{status:409});
+ assert.equal(p.conversationClosed({...cancelled,refundStatus:'received'}),true);
 });

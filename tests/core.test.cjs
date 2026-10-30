@@ -7,8 +7,8 @@ test('customer cannot accept or alter payment state',()=>{
   assert.throws(()=>transition({status:'pending'},'customer',{status}),{status:409});
 });
 test('refund policy ignores caller value and fulfilled requires customer confirmation',()=>{
- assert.deepEqual(transition({status:'accepted',refundPercent:35},'customer',{status:'cancelled',refundPercent:100}),{status:'cancelled',refundPercent:100,refundStatus:'not_required'});
- assert.deepEqual(transition({status:'fulfilled'},'customer',{status:'received'}),{status:'received',customer_confirmed:true});
+ assert.deepEqual(transition({status:'accepted',refundPercent:35},'customer',{status:'cancelled',refundPercent:100}),{status:'cancelled',cancelledBy:'customer',refundPercent:100,refundStatus:'not_required'});
+ assert.deepEqual(transition({status:'fulfilled'},'customer',{status:'received'}),{status:'received',customer_confirmed:true,feedbackStatus:'feedback_waiting'});
  assert.throws(()=>transition({status:'pending'},'customer',{status:'received'}));
  assert.equal(transition({status:'received'},'customer',{status:'received'}),null);
 });

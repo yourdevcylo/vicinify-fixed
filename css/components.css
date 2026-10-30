@@ -450,9 +450,9 @@ html body.vicinify-ui #page-place .placeBrandLogo {
  background:var(--ui-surface) !important; color:var(--ui-success-ink) !important;
  border:3px solid var(--ui-surface) !important; box-shadow:0 4px 16px #143c2414 !important; font-size:28px;
 }
-html body.vicinify-ui #page-place .placeBrandText strong { font-size:20px !important; line-height:1.3; color:#fff !important; text-shadow:0 1px 8px #0006; }
+html body.vicinify-ui #page-place .placeBrandText :is(strong,h1) { font-size:20px !important; line-height:1.3; color:#fff !important; text-shadow:0 1px 8px #0006; }
 html body.vicinify-ui #page-place .placeBrandText span { color:#fff !important; font-size:12px; text-shadow:0 1px 8px #0006; }
-html body.vicinify-ui #page-place .no-cover .placeBrandText strong { color:var(--ui-success-ink) !important; text-shadow:none; }
+html body.vicinify-ui #page-place .no-cover .placeBrandText :is(strong,h1) { color:var(--ui-success-ink) !important; text-shadow:none; }
 html body.vicinify-ui #page-place .no-cover .placeBrandText span { color:var(--ui-success-ink) !important; text-shadow:none; opacity:.8; }
 html body.vicinify-ui #page-place.active .placeDetailsCard.place-polished-details {
  display:grid !important; grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr) !important;
@@ -517,7 +517,7 @@ html body.vicinify-ui #page-place button:focus-visible { outline:2px solid var(-
  html body.vicinify-ui #page-place .placeCover { height:190px !important; border-radius:18px !important; }
  html body.vicinify-ui #page-place .placeCoverBrand { left:18px !important; right:18px !important; bottom:18px !important; gap:10px; }
  html body.vicinify-ui #page-place .placeBrandLogo { width:54px !important; height:54px !important; flex-basis:54px !important; border-radius:15px !important; }
- html body.vicinify-ui #page-place .placeBrandText strong { font-size:16px !important; }
+ html body.vicinify-ui #page-place .placeBrandText :is(strong,h1) { font-size:16px !important; }
  html body.vicinify-ui #page-place.active .placeDetailsCard.place-polished-details { margin-top:16px !important; gap:16px !important; }
  html body.vicinify-ui #page-place :is(.placeProfilePanel,.place-about-panel,.place-menu-feed) { padding:20px !important; border-radius:17px !important; }
  html body.vicinify-ui #page-place .placeHeaderTitle h1 { font-size:27px !important; }
@@ -1440,8 +1440,8 @@ html body.vicinify-ui .manual-payment-instructions { margin:12px 0; padding:12px
 .manual-payment-instructions p { white-space:pre-wrap; overflow-wrap:anywhere; }
 .transaction-desk-proof img { display:block; max-width:100%; max-height:220px; object-fit:contain; margin:10px 0; border-radius:8px; }
 /* Request milestones and requirements live in the pinned transaction summary. */
-.transaction-process { display:flex; align-items:flex-start; gap:8px; margin:9px 0 10px; padding:0 0 4px; list-style:none; overflow-x:auto; overscroll-behavior-x:contain; scrollbar-width:thin; }
-.transaction-process li { display:flex; flex-direction:column; align-items:center; gap:3px; flex:0 0 auto; min-width:54px; font-size:10px; line-height:1.3; color:var(--ui-muted); }
+.transaction-process { display:flex; align-items:flex-start; gap:3px; margin:9px 0 10px; padding:0 0 4px; list-style:none; overflow-x:auto; overscroll-behavior-x:contain; scrollbar-width:thin; }
+.transaction-process li { display:flex; flex-direction:column; align-items:center; gap:3px; flex:1 1 0; min-width:0; text-align:center; overflow-wrap:anywhere; font-size:10px; line-height:1.3; color:var(--ui-muted); }
 .transaction-process li>span { display:grid; place-items:center; width:20px; height:20px; border:1px solid var(--ui-border); border-radius:50%; font-size:10px; background:var(--ui-soft); }
 .transaction-process li.is-done>span { background:var(--ui-success-bg); color:var(--ui-success-ink); border-color:var(--ui-success-line); }
 .transaction-process li.is-current { color:var(--ui-success-ink); font-weight:700; }
@@ -1484,7 +1484,7 @@ html body.vicinify-ui #page-place.active .place-rating-panel.is-own-place {
 }
 html body.vicinify-ui #page-place.active .place-rating-panel.is-own-place :is(h4,p) { color:var(--ui-ink) !important; }
 html body.vicinify-ui #page-place .placeBrandText { min-width:0; }
-html body.vicinify-ui #page-place .placeBrandText strong { display:block; overflow-wrap:anywhere; }
+html body.vicinify-ui #page-place .placeBrandText :is(strong,h1) { display:block; overflow-wrap:anywhere; }
 html body.vicinify-ui #page-place .placeBrandText span { display:block; margin-top:4px; }
 
 /* The pinned desk owns transaction actions; the thread records compact history. */
@@ -1611,3 +1611,28 @@ html body.vicinify-ui :is(.payment-owner-review,.ticket-proof) { background:var(
 html body.vicinify-ui #main-content input[type=checkbox] { background-color:var(--ui-surface) !important; color:var(--ui-ink) !important; border-color:var(--ui-border) !important; accent-color:var(--ui-primary); }
 
 html body.vicinify-ui :is(input,textarea)::placeholder { color:var(--ui-muted) !important; opacity:1; }
+/* Draggable AI dock; the search field remains a normal place search. */
+html body.vicinify-ui #viciFloatingDock { position:fixed; z-index:1800; display:flex; align-items:center; gap:3px; padding:4px; border:1px solid var(--ui-success-line); border-radius:18px; background:var(--ui-surface); box-shadow:0 6px 20px #10262125; touch-action:none; user-select:none; }
+html body.vicinify-ui #viciFloatingDock #locateBtn { position:static !important; inset:auto !important; transform:none !important; width:50px !important; height:50px !important; margin:0 !important; border-radius:14px !important; box-shadow:none !important; }
+html body.vicinify-ui #viciFloatingDock button[hidden] { display:none !important; }
+html body.vicinify-ui #viciFloatingDock :is(.vici-float-hide,.vici-float-move,.vici-float-restore) { border:0; border-radius:10px; background:var(--ui-soft); color:var(--ui-success-ink); cursor:pointer; padding:6px; min-height:30px; min-width:26px; }
+html body.vicinify-ui #viciFloatingDock .vici-float-restore { min-width:38px; min-height:38px; font-weight:700; }
+html body.vicinify-ui #viciFloatingDock .vici-float-move { cursor:grab; }
+html body.vicinify-ui #page-map .askBar>svg { color:var(--ui-accent) !important; }
+html body.vicinify-ui #viciFloatingDock #locateBtn:not([hidden]):not(.hidden) { display:flex !important; align-items:center; justify-content:center; }
+
+html body.vicinify-ui:not(:has(#page-map.active)) #viciFloatingDock { display:none !important; }
+html body.vicinify-ui #viciFloatingDock #locateBtn { background:var(--ui-primary) !important; color:#fff !important; border:0 !important; }
+html body.vicinify-ui #viciFloatingDock #locateBtn img { width:30px; height:30px; border-radius:9px; object-fit:cover; }
+html body.vicinify-ui #viciFloatingDock #locateBtn span { font-size:10px; }
+html body.vicinify-ui #viciFloatingDock #locateBtn::after { display:none !important; }
+html body.vicinify-ui #viciFloatingDock #locateBtn span { position:static !important; display:inline !important; margin:0 0 0 3px; padding:0 !important; border:0 !important; background:none !important; box-shadow:none !important; color:#fff !important; }
+
+html body.vicinify-ui #main-content #page-map .discovery-ai-button { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; margin-top:20px; padding:12px 14px; min-height:46px; border:1px solid var(--ui-success-line); border-radius:12px; background:var(--ui-success-bg); color:var(--ui-success-ink); font-family:inherit; font-size:13px; font-weight:600; line-height:1.4; cursor:pointer; }
+html body.vicinify-ui #main-content #page-map .discovery-ai-button svg { width:18px; height:18px; flex:none; }
+html body.vicinify-ui #main-content #page-map .discovery-ai-button:hover { border-color:var(--ui-accent); }
+
+html body.vicinify-ui #page-place .placeBrandText h1 { margin:0; font-weight:700; }
+html body.vicinify-ui #page-place .place-profile-head { margin-top:0; }
+html body.vicinify-ui #page-place .place-rating-policy { margin:8px 0 0; font-size:11px; line-height:1.5; color:var(--ui-muted) !important; }
+html body.vicinify-ui #page-place .placeBrandLogo img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }

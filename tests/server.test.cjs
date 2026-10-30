@@ -69,16 +69,12 @@ test('Tagalog AI preference uses a Filipino refusal without a model request',asy
 
 test('standard customer feedback saves privately or publicly, blocks duplicates and rejects ineligible actors',async()=>{
  const helpers=require('../netlify/functions/lib/admin'),old={...helpers};
- let actor='customer';const records=new Map([
+ let actor='customer';const state=require('./helpers/memory-admin.cjs').memory(Object.fromEntries([
   ['bookings/order',{userId:'customer',placeId:'shop',status:'received'}],
   ['places/shop',{owner_uid:'owner',ratingSum:0,reviewCount:0}],
   ['users/customer',{fullName:'Real Customer'}],
   ['messages/request',{userId:'customer',placeId:'shop',bookingId:'order',type:'feedback_request',feedbackStatus:'feedback_waiting'}]
- ]);
- const db={collection:kind=>({doc:id=>({path:`${kind}/${id}`})}),runTransaction:async fn=>{
-  const writes=[];await fn({get:async ref=>({exists:records.has(ref.path),data:()=>records.get(ref.path)}),set:(ref,value)=>writes.push([ref.path,value]),update:(ref,value)=>writes.push([ref.path,{...records.get(ref.path),...value}])});
-  for(const [path,value]of writes)records.set(path,value);
- }};
+ ]));const records=state.rows,db=state.db;
  helpers.authenticate=async()=>({uid:actor});helpers.limit=async()=>{};helpers.services=()=>({db,FieldValue:{serverTimestamp:()=>123}});
  try{
   delete require.cache[require.resolve('../netlify/functions/review')];const {handler}=require('../netlify/functions/review');
@@ -102,7 +98,7 @@ test('standard customer feedback saves privately or publicly, blocks duplicates 
 test('manual payment, cancellation and refund endpoints mirror one authoritative booking and never transfer money',async()=>{
  const helpers=require('../netlify/functions/lib/admin'),old={...helpers};let actor='customer',eventId=0,storageCalls=0;
  const records=new Map([
-  ['bookings/order',{userId:'customer',placeId:'shop',status:'accepted',paymentMethod:'GCash',paymentFlowVersion:2,refundPercent:70}],
+  ['bookings/order',{userId:'customer',placeId:'shop',status:'accepted',paymentMethod:'GCash',requirementsState:{status:'waived'},paymentFlowVersion:2,refundPercent:70}],
   ['places/shop',{owner_uid:'owner'}],['users/customer',{role:'user'}],['users/owner',{role:'business'}],
   ['messages/card',{type:'booking_card',bookingId:'order',bookingStatus:'accepted'}]
  ]);
@@ -133,7 +129,7 @@ test('manual payment, cancellation and refund endpoints mirror one authoritative
 
 test('requirements request, submission and confirmation persist atomically with the selected booking and mirrored card',async()=>{
  const helpers=require('../netlify/functions/lib/admin'),old={...helpers};let actor='owner',seq=0;
- const records=new Map([['bookings/order',{status:'accepted',userId:'customer',userName:'Customer',placeId:'shop',placeName:'Shop',paymentMethod:'GCash',paymentFlowVersion:2}],['places/shop',{owner_uid:'owner',name:'Shop'}],['users/owner',{role:'business'}],['users/customer',{role:'user'}],['messages/card',{type:'booking_card',bookingId:'order',bookingStatus:'accepted'}]]);
+ const records=new Map([['bookings/order',{status:'accepted',userId:'customer',userName:'Customer',placeId:'shop',placeName:'Shop',paymentMethod:'GCash',requirementsState:{status:'waived'},paymentFlowVersion:2}],['places/shop',{owner_uid:'owner',name:'Shop'}],['users/owner',{role:'business'}],['users/customer',{role:'user'}],['messages/card',{type:'booking_card',bookingId:'order',bookingStatus:'accepted'}]]);
  function ref(path){return{path,id:path.split('/').at(-1),collection:sub=>({doc:()=>ref(path+'/'+sub+'/event-'+(++seq))})}}
  const snap=path=>({exists:records.has(path),id:path.split('/').at(-1),data:()=>records.get(path),ref:ref(path)});
  const db={collection:kind=>({doc:id=>ref(kind+'/'+(id||'auto-'+(++seq))),where(){return this},limit(){return this}}),runTransaction:async fn=>{const writes=[];await fn({get:async r=>r.path?snap(r.path):{forEach:cb=>cb(snap('messages/card'))},create:(r,d)=>writes.push([r.path,d]),update:(r,d)=>writes.push([r.path,{...records.get(r.path),...d}])});for(const [key,value]of writes)records.set(key,value)}};

@@ -1,3 +1,4 @@
+const {ratingChange}=require('./lib/ratings');
 const ContentPolicy = require('../../js/content-policy');
 const { services, authenticate, identifier, limit, reply } = require('./lib/admin');
 
@@ -14,6 +15,21 @@ exports.handler = async event => {
         if (typeof body.feedback !== 'undefined' && (typeof body.feedback !== 'string' || body.feedback.length > 2000)) return reply(400, { error: 'Feedback must be at most 2,000 characters.' });
         const feedbackProblem = body.feedback && ContentPolicy.error('review',body.feedback);
         if(feedbackProblem) return reply(400,{error:feedbackProblem});
+        const ratingOnly=body.action==='rate'||(!body.action&&!body.bookingId&&body.createOnly!==true&&body.feedback===undefined&&body.satisfaction===undefined&&!body.feedbackMessageId);
+        if(ratingOnly){
+            if(Object.keys(body).some(key=>!['action','placeId','rating','isPublic'].includes(key)))return reply(400,{error:'Star ratings cannot include a written review or transaction fields.'});
+            await limit(user.uid,'rating',30);
+            const {db,FieldValue}=services();
+            await db.runTransaction(async tx=>{
+                const ref=db.collection('places').doc(placeId),place=await tx.get(ref);
+                if(!place.exists||place.data().accountDeleted||place.data().approval_status&&place.data().approval_status!=='approved')throw Object.assign(new Error('This establishment is not available for rating.'),{status:403});
+                if(place.data().owner_uid===user.uid)throw Object.assign(new Error('You cannot rate your own establishment.'),{status:403});
+                const change=await ratingChange(tx,db,place,user.uid,placeId,rating,FieldValue);
+                tx.set(change.ref,change.data);tx.update(ref,change.aggregate);
+            });
+            return reply(200,{ratingSaved:true});
+        }
+        if(body.action && body.action!=='feedback')return reply(400,{error:'Unknown review action.'});
         await limit(user.uid, 'review', 10);
         const { db, FieldValue } = services();
         let bookingId = body.bookingId;
@@ -44,16 +60,7 @@ exports.handler = async event => {
                 const request=feedbackRequest.data();
                 if(request.userId!==user.uid||request.placeId!==placeId||request.bookingId!==bookingId||request.type!=='feedback_request')throw Object.assign(new Error('Invalid feedback request.'),{status:403});
             }
-            let sum = place.data().ratingSum;
-            let count = place.data().reviewCount || 0;
-            if (!Number.isFinite(sum)) {
-                const existing = await transaction.get(db.collection('reviews').where('placeId', '==', placeId));
-                sum = 0; count = 0;
-                existing.forEach(document => { const value = Number(document.data().rating); if (value >= 1 && value <= 5) { sum += value; count++; } });
-            }
-            const oldRating = Number(previous.data()?.rating);
-            if (oldRating >= 1 && oldRating <= 5) sum -= oldRating; else count++;
-            sum += rating;
+            const stars=await ratingChange(transaction,db,place,user.uid,placeId,rating,FieldValue);
             transaction.set(reviewRef, {
                 userId: user.uid, userName: String(profile.data()?.fullName || user.name || 'Customer').slice(0, 120),
                 placeId, bookingId, transactionId: bookingId, rating, feedback: body.feedback || '',
@@ -61,9 +68,10 @@ exports.handler = async event => {
                 verifiedTransaction: true, reviewSource: 'completed_transaction', requestType: order.requestType || 'table_reservation',
                 createdAt: previous.data()?.createdAt || FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()
             });
-            transaction.update(db.collection('bookings').doc(bookingId),{feedbackSubmittedAt:FieldValue.serverTimestamp(),feedbackStatus:'feedback_submitted',reviewId});
+            transaction.update(db.collection('bookings').doc(bookingId),{feedbackSubmittedAt:FieldValue.serverTimestamp(),feedbackStatus:'feedback_submitted',reviewId,...(require('../../js/payment-policy').conversationClosed({...order,feedbackStatus:'feedback_submitted',feedbackSubmittedAt:true})?{conversationArchivedAt:FieldValue.serverTimestamp()}:{})});
             if(feedbackRequest?.exists)transaction.update(db.collection('messages').doc(feedbackMessageId),{feedbackStatus:'feedback_submitted',rating,satisfaction:String(body.satisfaction||'').slice(0,80),feedback:body.feedback||'',updatedAt:FieldValue.serverTimestamp()});
-            transaction.update(placeRef, { ratingSum: sum, reviewCount: count, avgRating: Number((sum / count).toFixed(1)) });
+            transaction.set(stars.ref,stars.data);
+            transaction.update(placeRef,stars.aggregate);
         });
         return reply(200, { reviewId });
     } catch (error) {
