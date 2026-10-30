@@ -34,6 +34,6 @@ test('Separate cover and profile writes retained in Firestore',()=>{
  assert.match(dashboard,/updateData\.coverPhoto = await bizSaveWithDeadline\(bizSmallWebPData\(coverInput\.files\[0\], "cover"\)\)/);
  assert.match(dashboard,/updateData\.logoUrl = await bizSaveWithDeadline\(bizSmallWebPData\(logoInputEl\.files\[0\], "logo"\)\)/);
 });
-test('Catalog cache invalidates old photo-rendering snapshots',()=>{
- assert.match(map,/vicinify:approved-catalog:20261031-photo-roles/);
+test('Catalog cache invalidates old photo-rendering and status snapshots',()=>{
+ assert.match(map,/vicinify:approved-catalog:20261031-live-hours/);
 });

@@ -1,0 +1,56 @@
+/* Business Hub operating-hours editor: ordered weekly list, compact actions,
+   and readable controls on desktop, half-width windows and phones. */
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-card {
+  min-width:0; padding:18px !important;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-intro {
+  margin:0 0 12px; line-height:1.55; color:var(--ui-muted);
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-tools {
+  display:flex; flex-wrap:wrap; gap:8px; margin:0 0 16px;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-tools button {
+  min-height:38px; border:1px solid var(--ui-success-line); padding:8px 12px;
+  border-radius:9px; background:var(--ui-success-bg); color:var(--ui-success-ink);
+  font:inherit; font-size:12px; font-weight:600; cursor:pointer;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours {
+  display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:0 !important;
+  min-width:0;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-row {
+  display:grid !important; grid-template-columns:94px minmax(0,1fr) 72px !important;
+  align-items:center; gap:12px; min-width:0; margin:0 !important;
+  padding:9px 0; border-bottom:1px solid var(--ui-border);
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-row:last-child { border-bottom:0; }
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-day-label {
+  margin:0; color:var(--ui-ink); font-size:13px; font-weight:650; line-height:1.4;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-row input {
+  display:block; width:100%; min-width:0; max-width:100%; margin:0 !important;
+  min-height:43px; font-size:14px; box-sizing:border-box;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-closed {
+  display:inline-flex; align-items:center; justify-content:center; width:72px; min-height:40px;
+  margin:0; padding:7px 8px; border:1px solid var(--ui-border); border-radius:9px;
+  background:var(--ui-soft); color:var(--ui-ink); font:inherit; font-size:12px;
+  font-weight:600; cursor:pointer;
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-closed:hover,
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-tools button:hover {
+  border-color:var(--ui-success-ink);
+}
+html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-feedback {
+  min-height:18px; margin:10px 0 0; color:var(--ui-success-ink); font-size:12px;
+}
+@media(max-width:460px) {
+  html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-card { padding:14px !important; }
+  html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-row {
+    grid-template-columns:minmax(0,1fr) 72px !important; grid-template-areas:"day day" "time closed";
+    gap:6px 10px; padding:11px 0;
+  }
+  html body.vicinify-ui #main-content #page-biz-edit .bizedit-day-label { grid-area:day; }
+  html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-row input { grid-area:time; }
+  html body.vicinify-ui #main-content #page-biz-edit .bizedit-hours-closed { grid-area:closed; }
+}

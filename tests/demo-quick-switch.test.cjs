@@ -6,8 +6,8 @@ const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname, '../js/demo-switcher.js'), 'utf8');
 const markup = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
 const style = fs.readFileSync(path.join(__dirname, '../css/demo-switcher.css'), 'utf8');
-function boot({query='',stored='',userEmail='', loginEmail='', browserUrl='https://vici.example/'}={}) {
-  const storage=new Map(stored ? [['vicinify.capstone.defaultRole.v1',stored]] : []);
+function boot({query='',stored='',userEmail='', loginEmail='', browserUrl='https://vici.example/',sharedStorage=null}={}) {
+  const storage=sharedStorage || new Map(stored ? [['vicinify.capstone.defaultRole.v1',stored]] : []);
   const calls=[]; const handlers={};
   const buttons=Object.fromEntries(['standard','business','admin'].map(role=>[role,{
     dataset:{demoSwitchRole:role},attrs:{},indicator:{textContent:''},
@@ -39,7 +39,7 @@ function boot({query='',stored='',userEmail='', loginEmail='', browserUrl='https
     handlers['document.keydown'](event);return event;
   }
   const hotkey=()=>key({ctrlKey:true,altKey:true,code:'KeyD',key:'d'});
-  return {app,calls,buttons,overlay,handlers,auth,status,emailInput,storage,document,hotkey,key,closeBtn};
+  return {app,calls,buttons,overlay,handlers,auth,status,emailInput,storage,document,hotkey,key,closeBtn,switcher:ctx.window.VicinifyDemoSwitch};
 }
 test('no visible DEMO dropdown in the header or sign-in screen',()=>{
   assert.doesNotMatch(markup,/id="demoQuickSwitch"|id="demoSwitchTrigger"|id="demoLoginOptions"|id="demoSignInHint"/);
@@ -125,4 +125,80 @@ test('URL query and hash remain intact when switching',()=>{
   const r=boot({query:'?demoRole=business&view=map#foo',stored:'business',userEmail:'detorresmarc08@gmail.com'});
   r.hotkey();r.handlers['admin.click']();
   assert.equal(r.calls.at(-1)[1],'/?demoRole=admin&view=map#foo');
+});
+
+// Regression: first login via a selected URL previously failed to bootstrap,
+// leaving the role panel visible but every navigation silently disabled.
+test('first login on a deep-linked Standard demo URL bootstraps navigation',()=>{
+  const r=boot({query:'?demoRole=standard',userEmail:'projectfreedom12110@gmail.com'});
+  assert.equal(r.app.name,'[DEFAULT]');
+  assert.equal(r.storage.get('vicinify.capstone.defaultRole.v1'),'standard');
+  r.hotkey();r.handlers['business.click']();
+  assert.equal(r.calls.at(-1)[1],'/?demoRole=business');
+});
+test('first login on a deep-linked Admin URL also bootstraps correctly',()=>{
+  const r=boot({query:'?demoRole=admin',userEmail:'yourdevcylo@gmail.com'});
+  assert.equal(r.app.name,'[DEFAULT]');
+  assert.equal(r.storage.get('vicinify.capstone.defaultRole.v1'),'admin');
+  r.hotkey();r.handlers['standard.click']();
+  assert.equal(r.calls.at(-1)[1],'/?demoRole=standard');
+});
+test('demo URL refuses accidentally putting the wrong identity in its role session',()=>{
+  const r=boot({query:'?demoRole=business',stored:'standard'});
+  assert.match(r.switcher.validateLoginEmail('yourdevcylo@gmail.com'), /Business User/);
+  assert.match(r.switcher.validateLoginEmail('random@gmail.com'), /detorresmarc08@gmail.com/);
+  assert.equal(r.switcher.validateLoginEmail('DETORRESMARC08@GMAIL.COM'),'');
+});
+test('the ordinary login page continues to accept other users',()=>{
+  const r=boot({stored:'standard'});
+  assert.equal(r.switcher.validateLoginEmail('non-demo@example.com'),'');
+});
+test('selected role email can be restored after global auth cleanup',()=>{
+  const r=boot({query:'?demoRole=admin',stored:'business'});
+  r.emailInput.value='';
+  r.switcher.restoreLoginEmail();
+  assert.equal(r.emailInput.value,'yourdevcylo@gmail.com');
+  r.emailInput.value='human@other.example';
+  r.switcher.restoreLoginEmail();
+  assert.equal(r.emailInput.value,'human@other.example');
+});
+test('login handler enforces demo email and local session persistence before sign in',()=>{
+  const common=fs.readFileSync(path.join(__dirname,'../js/common.js'),'utf8');
+  assert.match(common,/VicinifyDemoSwitch\?\.validateLoginEmail/);
+  assert.match(common,/setPersistence\(firebase\.auth\.Auth\.Persistence\.LOCAL\)/);
+  assert.match(common,/VicinifyDemoSwitch\?\.restoreLoginEmail/);
+});
+
+test('six-step role cycle restores the same three isolated auth slots in one browser',()=>{
+  const sharedStorage = new Map();
+  const storedSessions = new Map();
+  const identities = {
+    standard:'projectfreedom12110@gmail.com',
+    business:'detorresmarc08@gmail.com',
+    admin:'yourdevcylo@gmail.com'
+  };
+  let role = 'standard';
+  let nameFirstRole='';
+  for (const next of ['standard','business','admin','standard','business','admin']) {
+    const query='?demoRole='+next;
+    const bootstrap=sharedStorage.get('vicinify.capstone.defaultRole.v1');
+    const appName=bootstrap && next!==bootstrap ? 'vicinify-capstone-'+next:'[DEFAULT]';
+    const signedIn=storedSessions.get(appName)||'';
+    const r=boot({query,userEmail:signedIn,sharedStorage});
+    assert.equal(r.app.name,appName);
+    if (!signedIn) {
+      r.auth.currentUser={email:identities[next]};
+      storedSessions.set(appName,identities[next]);
+      r.auth.fire(r.auth.currentUser);
+    } else {
+      assert.equal(signedIn,identities[next]);
+    }
+    assert.equal(sharedStorage.get('vicinify.capstone.defaultRole.v1'),'standard');
+    r.hotkey();assert.equal(r.overlay.hidden,false);
+    role=next;
+  }
+  assert.equal(storedSessions.size,3);
+  assert.equal(storedSessions.get('[DEFAULT]'),identities.standard);
+  assert.equal(storedSessions.get('vicinify-capstone-business'),identities.business);
+  assert.equal(storedSessions.get('vicinify-capstone-admin'),identities.admin);
 });

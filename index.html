@@ -703,22 +703,57 @@
                         </label>
                     </div>
                     <div class="field" style="margin-bottom: 0;">
-                        <label>Delivery Radius (km)</label>
-                        <input type="number" id="bizRadius" placeholder="e.g., 5" />
+                        <label for="bizRadius">Delivery Radius (km)</label>
+                        <input type="number" id="bizRadius" min="0" max="100" step="0.5" placeholder="e.g., 5" />
+                        <p class="bizedit-hint">Only enable delivery services your business actually offers. Use the radius for your delivery coverage.</p>
                     </div>
                 </div>
 
                 <h3 class="bizedit-section-title"><i data-lucide="clock"></i> Operating Hours</h3>
-                <div class="card bizedit-card">
-                    <div class="bizedit-hours">
-                        <div class="bizedit-hours-row"><span>Monday</span><input type="text" id="bizHoursMon" placeholder="e.g. 8AM - 9PM or Closed" /></div>
-                        <div class="bizedit-hours-row"><span>Tuesday</span><input type="text" id="bizHoursTue" placeholder="e.g. 8AM - 9PM or Closed" /></div>
-                        <div class="bizedit-hours-row"><span>Wednesday</span><input type="text" id="bizHoursWed" placeholder="e.g. 8AM - 9PM or Closed" /></div>
-                        <div class="bizedit-hours-row"><span>Thursday</span><input type="text" id="bizHoursThu" placeholder="e.g. 8AM - 9PM or Closed" /></div>
-                        <div class="bizedit-hours-row"><span>Friday</span><input type="text" id="bizHoursFri" placeholder="e.g. 8AM - 9PM or Closed" /></div>
-                        <div class="bizedit-hours-row"><span>Saturday</span><input type="text" id="bizHoursSat" placeholder="e.g. 8AM - 9PM or Closed" /></div>
-                        <div class="bizedit-hours-row"><span>Sunday</span><input type="text" id="bizHoursSun" placeholder="e.g. 8AM - 9PM or Closed" /></div>
+                <div class="card bizedit-card bizedit-hours-card">
+                    <p class="bizedit-hint bizedit-hours-intro">Set each day's opening hours. Example: <strong>8AM - 9PM</strong>. For days without service, choose <strong>Closed</strong>. <strong>Auto status</strong> follows these hours in Philippine time; use the Live Store Status buttons on Business Hub for temporary manual closures.</p>
+                    <div class="bizedit-hours-tools" aria-label="Copy opening hours">
+                        <button type="button" data-copy-hours="weekdays">Copy Monday to Tue–Fri</button>
+                        <button type="button" data-copy-hours="all">Copy Monday to all days</button>
                     </div>
+                    <div class="bizedit-hours">
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursMon" class="bizedit-day-label">Monday</label>
+                            <input type="text" id="bizHoursMon" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Mon" aria-label="Mark Monday closed">Closed</button>
+                        </div>
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursTue" class="bizedit-day-label">Tuesday</label>
+                            <input type="text" id="bizHoursTue" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Tue" aria-label="Mark Tuesday closed">Closed</button>
+                        </div>
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursWed" class="bizedit-day-label">Wednesday</label>
+                            <input type="text" id="bizHoursWed" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Wed" aria-label="Mark Wednesday closed">Closed</button>
+                        </div>
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursThu" class="bizedit-day-label">Thursday</label>
+                            <input type="text" id="bizHoursThu" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Thu" aria-label="Mark Thursday closed">Closed</button>
+                        </div>
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursFri" class="bizedit-day-label">Friday</label>
+                            <input type="text" id="bizHoursFri" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Fri" aria-label="Mark Friday closed">Closed</button>
+                        </div>
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursSat" class="bizedit-day-label">Saturday</label>
+                            <input type="text" id="bizHoursSat" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Sat" aria-label="Mark Saturday closed">Closed</button>
+                        </div>
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursSun" class="bizedit-day-label">Sunday</label>
+                            <input type="text" id="bizHoursSun" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Sun" aria-label="Mark Sunday closed">Closed</button>
+                        </div>
+                    </div>
+                    <p id="bizHoursFeedback" class="bizedit-hours-feedback" role="status" aria-live="polite"></p>
                 </div>
 
             </div>
@@ -1143,6 +1178,7 @@
     <script src="js/data.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/payment-policy.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/place-features.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
+    <script src="js/business-hours.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/place-preview.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/content-policy.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/account-deletion.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
@@ -1159,6 +1195,7 @@
     <script src="js/add.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/buzz.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/dashboard.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
+    <script src="js/operating-hours-editor.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/database-management.js?v=VICINIFY_DB_MANAGEMENT_20261030"></script>
     <script src="js/ownership-transfer.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/settings.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
@@ -1249,6 +1286,7 @@ html body #page-place.active #placeUpdatesList > .place-menu-card {
 <link rel="stylesheet" href="css/mobile.css?v=VICINIFY_SUKI_REALTIME_20261030" />
 <link rel="stylesheet" href="css/brand-icon.css?v=VICINIFY_SUKI_REALTIME_20261030" />
 <link rel="stylesheet" href="css/service-management-layout.css?v=VICINIFY_SUKI_REALTIME_20261030" />
+<link rel="stylesheet" href="css/operating-hours-editor.css?v=VICINIFY_SUKI_REALTIME_20261030" />
 <!-- build: VICINIFY_MODERN_FINAL_20261003 -->
     <script src="js/ui.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
 </body>

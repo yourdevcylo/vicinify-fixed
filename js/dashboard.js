@@ -221,7 +221,7 @@ window.DashboardPage = (() => {
             kpiGrid.classList.toggle("hidden", !showKpi);
         }
         const total = places.length;
-        const open = places.filter(p => p.status === "open").length;
+        const open = places.filter(p => window.ViciBusinessHours.getState(p).isOpen).length;
         const pending = places.filter(p => (p.approval_status || "pending") === "pending").length;
         const unread = (Number(window._dashPendingCount) || 0) + (Number(window._dashMsgCount) || 0);
 
@@ -230,6 +230,21 @@ window.DashboardPage = (() => {
         setDashText("dashKpiPending", pending);
         setDashText("dashKpiUnread", unread);
     }
+
+    function refreshDashboardBusinessHours() {
+        if (!document.getElementById('page-dashboard')?.classList.contains('active')) return;
+        updateDashboardKpis(currentAdminPlaces);
+        for (const place of currentAdminPlaces) {
+            const state = window.ViciBusinessHours.getState(place);
+            const badge = [...document.querySelectorAll('[data-live-business-id]')].find(el=>el.dataset.liveBusinessId===String(place.id));
+            if (!badge || (place.approval_status || 'pending') !== 'approved') continue;
+            badge.textContent = state.status.toUpperCase();
+            badge.classList.remove('status-accepted','status-pending','status-rejected');
+            badge.classList.add(state.status==='open'?'status-accepted':state.status==='busy'?'status-pending':'status-rejected');
+        }
+    }
+    setInterval(refreshDashboardBusinessHours, 60000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshDashboardBusinessHours(); });
 
     async function renderMy() {
         const wrap = document.getElementById("myEstablishments");
@@ -343,7 +358,10 @@ updateDashboardKpis(places);
             let html = "";
             places.forEach(p => {
                 const approvalStatus = p.approval_status || "pending";
-                const opStatus = p.status === "open" || p.status === "busy" || p.status === "closed" ? p.status : "closed";
+                const liveState = window.ViciBusinessHours.getState(p);
+                const opStatus = liveState.status;
+                const isAuto = liveState.source === 'auto' || String(p.status_mode || 'auto') !== 'manual';
+                const manualStatus = String(p.status || 'closed');
                 let topBadgeText = "PENDING"; let topBadgeClass = "status-pending";
 
                 if (approvalStatus === "pending") { topBadgeText = "PENDING APPROVAL"; topBadgeClass = "status-pending"; }
@@ -366,7 +384,7 @@ updateDashboardKpis(places);
                 <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i> ${escapeHtml(p.address || p.brgy || "Lipa City")}
             </p>
         </div>
-        <span class="status-badge ${topBadgeClass}" style="padding: 6px 10px; border-radius: 8px; font-size: 11px;">${topBadgeText}</span>
+        <span class="status-badge ${topBadgeClass}" data-live-business-id="${escapeHtml(p.id)}" style="padding: 6px 10px; border-radius: 8px; font-size: 11px;">${topBadgeText}</span>
     </div>
 
     <!-- Freshness / Setup Task -->
@@ -388,11 +406,12 @@ updateDashboardKpis(places);
 
     <!-- Unified Status Toggles -->
     <div style="margin-top: 4px;">
-        <p style="margin: 0 0 8px; font-size: 11px; font-weight: 800; color:var(--ui-muted); text-transform: uppercase; letter-spacing: 0.5px;">Live Store Status</p>
-        <div class="biz-status-group" style="background: #f8fafc; padding: 6px; border-radius: 14px; display: flex; gap: 4px; border: 1px solid #f1f5f9;">
-            <button class="biz-status-btn ${opStatus === 'open' ? 'active open' : ''}" style="flex: 1; border: none; background: transparent; box-shadow: none;" data-id="${p.id}" data-val="open"><div class="biz-status-dot dot-open"></div> Open</button>
-            <button class="biz-status-btn ${opStatus === 'busy' ? 'active busy' : ''}" style="flex: 1; border: none; background: transparent; box-shadow: none;" data-id="${p.id}" data-val="busy"><div class="biz-status-dot dot-busy"></div> Busy</button>
-            <button class="biz-status-btn ${opStatus === 'closed' ? 'active closed' : ''}" style="flex: 1; border: none; background: transparent; box-shadow: none;" data-id="${p.id}" data-val="closed"><div class="biz-status-dot dot-closed"></div> Closed</button>
+        <p style="margin: 0 0 8px; font-size: 11px; font-weight: 800; color:var(--ui-muted); text-transform: uppercase; letter-spacing: 0.5px;">Live Store Status <span data-live-mode-id="${escapeHtml(p.id)}" style="font-weight:600;text-transform:none;letter-spacing:0;">· ${isAuto ? 'Automatic (PH time)' : 'Manual override'}</span></p>
+        <div class="biz-status-group" style="background: var(--ui-surface,#fff); padding: 6px; border-radius: 14px; display: flex; gap: 4px; border: 1px solid var(--ui-border,#e2e8f0); flex-wrap:wrap;">
+            <button type="button" class="biz-status-btn ${isAuto ? 'active open' : ''}" style="flex: 1 1 88px; min-height:36px; border: none; box-shadow:none;" data-id="${p.id}" data-val="auto" title="Use saved operating hours (Asia/Manila)"><i data-lucide="clock" style="width:14px;height:14px;"></i> Auto</button>
+            <button class="biz-status-btn ${!isAuto && manualStatus === 'open' ? 'active open' : ''}" style="flex: 1 1 75px; min-height:36px; border: none; box-shadow: none;" data-id="${p.id}" data-val="open"><div class="biz-status-dot dot-open"></div> Open</button>
+            <button class="biz-status-btn ${!isAuto && manualStatus === 'busy' ? 'active busy' : ''}" style="flex: 1 1 75px; min-height:36px; border: none; box-shadow: none;" data-id="${p.id}" data-val="busy"><div class="biz-status-dot dot-busy"></div> Busy</button>
+            <button class="biz-status-btn ${!isAuto && manualStatus === 'closed' ? 'active closed' : ''}" style="flex: 1 1 75px; min-height:36px; border: none; box-shadow: none;" data-id="${p.id}" data-val="closed"><div class="biz-status-dot dot-closed"></div> Closed</button>
         </div>
     </div>
 
@@ -410,8 +429,10 @@ updateDashboardKpis(places);
                     try {
                         // updatedAt must move with the status: the map's
                         // freshness check (and live sync) keys off it.
+                        const autoMode = btn.dataset.val === 'auto';
                         await window.db.collection("places").doc(btn.dataset.id).update({
-                            status: btn.dataset.val,
+                            status_mode: autoMode ? 'auto' : 'manual',
+                            ...(autoMode ? {} : {status: btn.dataset.val}),
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
                         myPlacesCache = null; myPlacesCacheAt = 0;

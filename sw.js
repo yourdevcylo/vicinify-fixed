@@ -17,6 +17,7 @@ const APP_SHELL = [
     "./js/ui.js?v=VICINIFY_SUKI_REALTIME_20261030",
     "./js/payment-policy.js?v=VICINIFY_SUKI_REALTIME_20261030",
     "./js/place-features.js?v=VICINIFY_SUKI_REALTIME_20261030",
+    "./js/business-hours.js?v=VICINIFY_SUKI_REALTIME_20261030",
     "./js/place-preview.js?v=VICINIFY_SUKI_REALTIME_20261030",
     "./js/content-policy.js?v=VICINIFY_SUKI_REALTIME_20261030",
     "./js/common.js?v=VICINIFY_SUKI_REALTIME_20261030",

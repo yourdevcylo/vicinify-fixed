@@ -28,6 +28,26 @@
   let ready = false;
   let previousFocus = null;
   const selectedRole = () => requestedRole || roleFromEmail(current?.email) || readBootstrap();
+  // A bookmark can open ?demoRole=standard before ANY role was signed in.
+  // Whichever verified demo account signs in first owns the default Firebase app,
+  // and must be bootstrapped even when a role was explicitly selected in the URL.
+  // Otherwise navigateTo() silently refuses every switch.
+  const expectedLoginRole = () => requestedRole || '';
+  function validateLoginEmail(email) {
+    const expected=expectedLoginRole();
+    if (!expected) return '';
+    const actual=roleFromEmail(email);
+    if (actual===expected) return '';
+    return 'This demo slot is for '+accounts[expected].label+' ('+accounts[expected].email+'). Please use that account to keep the sessions separate.';
+  }
+  function restoreLoginEmail() {
+    if (auth?.currentUser) return;
+    const role=selectedRole();
+    if (!validRole(role)) return;
+    const input=document.getElementById('loginEmail');
+    // Never overwrite the user's own non-demo email on the ordinary login page.
+    if (input && (!input.value || !!roleFromEmail(input.value))) input.value=accounts[role].email;
+  }
   // The keyboard shortcut by itself is NOT authorization.
   // Signed-in users must be one of the three demo identities.
   // When a selected slot is signed out, a previously bootstrapped browser can
@@ -96,14 +116,11 @@
   function render(user) {
     current=user;
     const actual=roleFromEmail(user?.email);
-    if(actual && !requestedRole)writeBootstrap(actual);
+    if(actual && (!requestedRole || requestedRole===actual))writeBootstrap(actual);
     if (!canShow(user))close();
     // No demo controls are inserted in the normal header or login page.
     // On an unauthenticated selected role, prefill only the known email.
-    if (!user && validRole(selectedRole())) {
-      const input=document.getElementById('loginEmail');
-      if(input && (!input.value || !!roleFromEmail(input.value)))input.value=accounts[selectedRole()].email;
-    }
+    if (!user) restoreLoginEmail();
     updatePanel();
   }
   function onKey(event) {
@@ -140,10 +157,11 @@
       document.getElementById('demoDevClose')?.addEventListener('click',close);
       document.addEventListener('keydown',onKey,true);
       render(auth?.currentUser);
+      restoreLoginEmail();
     };
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
     else setup();
     auth.onAuthStateChanged(render);
   }
-  window.VicinifyDemoSwitch=Object.freeze({initializeFirebaseApp,init,roleFromEmail,accounts});
+  window.VicinifyDemoSwitch=Object.freeze({initializeFirebaseApp,init,roleFromEmail,validateLoginEmail,restoreLoginEmail,accounts});
 })();

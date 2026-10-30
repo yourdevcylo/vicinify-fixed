@@ -4,6 +4,7 @@ const AI=require('./lib/ai-provider');
 const {catalog}=require('./lib/catalog');
 const {publicMenu}=require('./lib/menu');
 const Request=require('../../js/vici-request');
+const BusinessHours=require('../../js/business-hours');
 const {parse}=require('./lib/ai-plan');
 const PRICE_PRESETS = [
     { label: "Under ₱150", max: 150 },
@@ -69,7 +70,7 @@ exports.handler=async event=>{
   if(inputSafety.flagged)return reply(200,{answer:lang==='ph'?'Hindi ko matutulungan ang request na iyon. Maaari kitang tulungang maghanap ng kainan o menu sa Vicinify.':'I can’t help with that request, but I can help you find restaurants and menus in Vicinify.',source:'guard',placeIds:[],actions:[],requestDraft:Request.clean(),orderDraft:null});
   const ids=new Set((Array.isArray(body.recommendations)?body.recommendations:[]).slice(0,20).map(p=>p?.id).filter(id=>typeof id==='string'));
   const docs=(await catalog(ids)).places.filter(p=>ids.has(p.id));
-  const places=docs.map(p=>({id:p.id,name:p.name,category:p.category||p.cat,description:String(p.description||p.desc||'').slice(0,300),address:p.address||p.addr,barangay:p.barangay||p.brgy,lat:p.lat,lng:p.lng,rating:p.avgRating,ratingCount:p.ratingCount??p.reviewCount,priceRange:p.priceRange,hours:p.hours||p.operatingHours||p.operating_hours,status:p.status,accepts_booking:p.accepts_booking===true&&p.owner_uid!==user.uid,accepts_orders:p.accepts_orders===true&&p.owner_uid!==user.uid,delivery_grab:p.delivery_grab===true,delivery_inhouse:p.delivery_inhouse===true}));
+  const places=docs.map(p=>({id:p.id,name:p.name,category:p.category||p.cat,description:String(p.description||p.desc||'').slice(0,300),address:p.address||p.addr,barangay:p.barangay||p.brgy,lat:p.lat,lng:p.lng,rating:p.avgRating,ratingCount:p.ratingCount??p.reviewCount,priceRange:p.priceRange,hours:p.hours||p.operatingHours||p.operating_hours,status:BusinessHours.getState(p).status,accepts_booking:p.accepts_booking===true&&p.owner_uid!==user.uid,accepts_orders:p.accepts_orders===true&&p.owner_uid!==user.uid,delivery_grab:p.delivery_grab===true,delivery_inhouse:p.delivery_inhouse===true}));
   const loc=body.location;if(typeof loc?.lat==='number'&&typeof loc?.lng==='number'&&Number.isFinite(loc.lat)&&Number.isFinite(loc.lng)&&Math.abs(loc.lat)<=90&&Math.abs(loc.lng)<=180){const rad=x=>x*Math.PI/180;for(const p of places){if(typeof p.lat==='number'&&typeof p.lng==='number'){const a=Math.sin(rad(p.lat-loc.lat)/2)**2+Math.cos(rad(loc.lat))*Math.cos(rad(p.lat))*Math.sin(rad(p.lng-loc.lng)/2)**2;p.approxDistanceMeters=Math.round(6371000*2*Math.atan2(Math.sqrt(a),Math.sqrt(Math.max(0,1-a))));}}}
   const history=(Array.isArray(body.history)?body.history:[]).slice(-6).filter(m=>m&&['user','assistant'].includes(m.role)&&typeof m.text==='string').map(m=>({role:m.role,text:m.text.slice(0,500)}));
   const focus=Array.isArray(body.memory?.placeIds)?body.memory.placeIds.filter(id=>places.some(p=>p.id===id)).slice(0,3):[];

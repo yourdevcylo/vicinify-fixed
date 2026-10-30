@@ -239,8 +239,8 @@ window.MapPage = (() => {
         try { return await run; }
         finally { if (_placesInFlight === run) _placesInFlight = null; }
     }
-    const publicCacheKey='vicinify:approved-catalog:20261031-photo-roles';
-    const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','hours','operatingHours','operating_hours','is_verified','owner_uid','addedBy','approval_status','avgRating','reviewCount','ratingCount','priceRange','accepts_booking','accepts_orders','accepts_advance_booking','accepts_requests','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
+    const publicCacheKey='vicinify:approved-catalog:20261031-live-hours';
+    const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','status_mode','statusMode','hours','operatingHours','operating_hours','is_verified','owner_uid','addedBy','approval_status','avgRating','reviewCount','ratingCount','priceRange','accepts_booking','accepts_orders','accepts_advance_booking','accepts_requests','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
     function readPublicSessionCache(now) {
         try {
             const cached=JSON.parse(window.sessionStorage?.getItem(publicCacheKey)||'null');
@@ -358,98 +358,8 @@ window.MapPage = (() => {
         return window.safeImageUrl ? window.safeImageUrl(url) : String(url || "");
     }
 
-    const DAY_KEYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-
-    function parseTimeToMinutes(value) {
-        const text = String(value || "").trim().toLowerCase();
-        if (!text) return null;
-
-        const match = text.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/);
-        if (!match) return null;
-
-        let hour = Number(match[1]);
-        const minute = Number(match[2] || 0);
-        const suffix = match[3];
-
-        if (minute < 0 || minute > 59 || hour < 0 || hour > 24) return null;
-        if (suffix) {
-            if (hour < 1 || hour > 12) return null;
-            if (suffix === "am" && hour === 12) hour = 0;
-            if (suffix === "pm" && hour !== 12) hour += 12;
-        }
-
-        if (!suffix && hour === 24 && minute > 0) return null;
-        return Math.min((hour * 60) + minute, 1440);
-    }
-
-    function parseHoursRange(value) {
-        const text = String(value || "").trim();
-        if (!text) return null;
-
-        const normalized = text
-            .toLowerCase()
-            .replace(/\u2013|\u2014/g, "-")
-            .replace(/\s+to\s+/g, "-")
-            .replace(/\s+/g, " ");
-
-        if (/closed|close|sarado|not open/.test(normalized)) {
-            return { closed: true };
-        }
-
-        if (/24\s*(hours|hrs|hr)/.test(normalized) || normalized === "24/7") {
-            return { start: 0, end: 1440 };
-        }
-
-        const parts = normalized.split(/\s*-\s*/).filter(Boolean);
-        if (parts.length < 2) return null;
-
-        let start = parseTimeToMinutes(parts[0]);
-        let end = parseTimeToMinutes(parts[1]);
-
-        const endSuffix = String(parts[1]).match(/\b(am|pm)\b/)?.[1];
-        if (start == null && endSuffix) {
-            start = parseTimeToMinutes(`${parts[0]}${endSuffix}`);
-        }
-
-        if (start == null || end == null) return null;
-        return { start, end };
-    }
-
-    function getTodayHoursText(place) {
-        const hours = place?.operating_hours || place?.hours || {};
-        const key = DAY_KEYS[new Date().getDay()];
-        return hours[key] || hours[key?.slice(0, 3)] || "";
-    }
-
     function getBusinessOpenState(place) {
-        const todayText = getTodayHoursText(place);
-        const parsed = parseHoursRange(todayText);
-
-        if (parsed?.closed) {
-            return { isOpen: false, className: "closed", label: "Closed now", hint: todayText };
-        }
-
-        if (parsed && parsed.start != null && parsed.end != null) {
-            const now = new Date();
-            const current = (now.getHours() * 60) + now.getMinutes();
-            const isOpen = parsed.end <= parsed.start
-                ? current >= parsed.start || current <= parsed.end
-                : current >= parsed.start && current <= parsed.end;
-
-            return {
-                isOpen,
-                className: isOpen ? "open" : "closed",
-                label: isOpen ? "Open now" : "Closed now",
-                hint: todayText
-            };
-        }
-
-        const fallback = String(place?.status || "").toLowerCase();
-        if (fallback === "open") return { isOpen: true, className: "open", label: "Open", hint: todayText };
-        if (fallback === "busy") return { isOpen: true, className: "busy", label: "Busy", hint: todayText };
-        if (fallback === "closed") return { isOpen: false, className: "closed", label: "Closed", hint: todayText };
-
-        return { isOpen: false, className: "closed", label: todayText ? "Hours set" : "Hours not set", hint: todayText };
+        return window.ViciBusinessHours.getState(place);
     }
 
     function placeHasDelivery(place) {
@@ -3683,6 +3593,17 @@ window.MapPage = (() => {
             locateBtn.addEventListener("click", locate);
         }
         document.getElementById("refreshMapBtn")?.addEventListener("click", refreshPlaces);
+        // Re-evaluate scheduled Open/Closed every minute without writing to Firestore.
+        // Re-render both map badges and List View; the 5-minute catalog cache remains valid.
+        const refreshHoursIfVisible = () => {
+            if (document.visibilityState === 'hidden') return;
+            if (document.getElementById('page-map')?.classList.contains('active')) {
+                refreshPlaces().catch(error => console.warn('Hours refresh failed:', error));
+            }
+        };
+        setInterval(refreshHoursIfVisible, 60000);
+        document.addEventListener('visibilitychange', refreshHoursIfVisible);
+
 
         document.getElementById("askBtn")?.addEventListener("click", searchPlaces);
         document.getElementById("askInput")?.addEventListener("keypress", (e) => {

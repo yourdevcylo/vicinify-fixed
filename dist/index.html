@@ -22,15 +22,15 @@
     <link rel="dns-prefetch" href="https://tile.openstreetmap.org" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <link rel="stylesheet" href="css/style.css?v=VICI_33b82b2269673d3c" />
-    <link rel="stylesheet" href="css/ui.css?v=VICI_33b82b2269673d3c" />
-    <link rel="stylesheet" href="css/reference.css?v=VICI_33b82b2269673d3c" />
-    <link rel="stylesheet" href="css/components.css?v=VICI_33b82b2269673d3c" />
-    <link rel="stylesheet" href="css/place-preview.css?v=VICI_33b82b2269673d3c">
-    <link rel="stylesheet" href="css/suki-polish.css?v=VICI_33b82b2269673d3c">
-    <link rel="stylesheet" href="css/vici-chat.css?v=VICI_33b82b2269673d3c" />
+    <link rel="stylesheet" href="css/style.css?v=VICI_9abf42e5d714d4bc" />
+    <link rel="stylesheet" href="css/ui.css?v=VICI_9abf42e5d714d4bc" />
+    <link rel="stylesheet" href="css/reference.css?v=VICI_9abf42e5d714d4bc" />
+    <link rel="stylesheet" href="css/components.css?v=VICI_9abf42e5d714d4bc" />
+    <link rel="stylesheet" href="css/place-preview.css?v=VICI_9abf42e5d714d4bc">
+    <link rel="stylesheet" href="css/suki-polish.css?v=VICI_9abf42e5d714d4bc">
+    <link rel="stylesheet" href="css/vici-chat.css?v=VICI_9abf42e5d714d4bc" />
     <link rel="stylesheet" href="css/amenities-layout-fix.css?v=20261030b" />
-    <link rel="stylesheet" href="css/demo-switcher.css?v=VICI_33b82b2269673d3c" />
+    <link rel="stylesheet" href="css/demo-switcher.css?v=VICI_9abf42e5d714d4bc" />
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="icons/icon-180.png" sizes="180x180">
@@ -703,22 +703,57 @@
                         </label>
                     </div>
                     <div class="field" style="margin-bottom: 0;">
-                        <label>Delivery Radius (km)</label>
-                        <input type="number" id="bizRadius" placeholder="e.g., 5" />
+                        <label for="bizRadius">Delivery Radius (km)</label>
+                        <input type="number" id="bizRadius" min="0" max="100" step="0.5" placeholder="e.g., 5" />
+                        <p class="bizedit-hint">Only enable delivery services your business actually offers. Use the radius for your delivery coverage.</p>
                     </div>
                 </div>
 
                 <h3 class="bizedit-section-title"><i data-lucide="clock"></i> Operating Hours</h3>
-                <div class="card bizedit-card">
-                    <div class="bizedit-hours">
-                        <div class="bizedit-hours-row"><span>Monday</span><input type="text" id="bizHoursMon" placeholder="e.g. 8AM - 9PM or Closed" /></div>
-                        <div class="bizedit-hours-row"><span>Tuesday</span><input type="text" id="bizHoursTue" placeholder="e.g. 8AM - 9PM or Closed" /></div>
-                        <div class="bizedit-hours-row"><span>Wednesday</span><input type="text" id="bizHoursWed" placeholder="e.g. 8AM - 9PM or Closed" /></div>
-                        <div class="bizedit-hours-row"><span>Thursday</span><input type="text" id="bizHoursThu" placeholder="e.g. 8AM - 9PM or Closed" /></div>
-                        <div class="bizedit-hours-row"><span>Friday</span><input type="text" id="bizHoursFri" placeholder="e.g. 8AM - 9PM or Closed" /></div>
-                        <div class="bizedit-hours-row"><span>Saturday</span><input type="text" id="bizHoursSat" placeholder="e.g. 8AM - 9PM or Closed" /></div>
-                        <div class="bizedit-hours-row"><span>Sunday</span><input type="text" id="bizHoursSun" placeholder="e.g. 8AM - 9PM or Closed" /></div>
+                <div class="card bizedit-card bizedit-hours-card">
+                    <p class="bizedit-hint bizedit-hours-intro">Set each day's opening hours. Example: <strong>8AM - 9PM</strong>. For days without service, choose <strong>Closed</strong>. <strong>Auto status</strong> follows these hours in Philippine time; use the Live Store Status buttons on Business Hub for temporary manual closures.</p>
+                    <div class="bizedit-hours-tools" aria-label="Copy opening hours">
+                        <button type="button" data-copy-hours="weekdays">Copy Monday to Tue–Fri</button>
+                        <button type="button" data-copy-hours="all">Copy Monday to all days</button>
                     </div>
+                    <div class="bizedit-hours">
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursMon" class="bizedit-day-label">Monday</label>
+                            <input type="text" id="bizHoursMon" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Mon" aria-label="Mark Monday closed">Closed</button>
+                        </div>
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursTue" class="bizedit-day-label">Tuesday</label>
+                            <input type="text" id="bizHoursTue" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Tue" aria-label="Mark Tuesday closed">Closed</button>
+                        </div>
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursWed" class="bizedit-day-label">Wednesday</label>
+                            <input type="text" id="bizHoursWed" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Wed" aria-label="Mark Wednesday closed">Closed</button>
+                        </div>
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursThu" class="bizedit-day-label">Thursday</label>
+                            <input type="text" id="bizHoursThu" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Thu" aria-label="Mark Thursday closed">Closed</button>
+                        </div>
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursFri" class="bizedit-day-label">Friday</label>
+                            <input type="text" id="bizHoursFri" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Fri" aria-label="Mark Friday closed">Closed</button>
+                        </div>
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursSat" class="bizedit-day-label">Saturday</label>
+                            <input type="text" id="bizHoursSat" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Sat" aria-label="Mark Saturday closed">Closed</button>
+                        </div>
+                        <div class="bizedit-hours-row">
+                            <label for="bizHoursSun" class="bizedit-day-label">Sunday</label>
+                            <input type="text" id="bizHoursSun" maxlength="48" autocomplete="off" placeholder="8AM - 9PM or Closed" />
+                            <button type="button" class="bizedit-hours-closed" data-close-hours="Sun" aria-label="Mark Sunday closed">Closed</button>
+                        </div>
+                    </div>
+                    <p id="bizHoursFeedback" class="bizedit-hours-feedback" role="status" aria-live="polite"></p>
                 </div>
 
             </div>
@@ -1140,28 +1175,30 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-    <script src="js/data.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/payment-policy.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/place-features.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/place-preview.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/content-policy.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/account-deletion.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/password-policy.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/demo-switcher.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/common.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/vici-request.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/vici-commerce.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/vici-chat.js?v=VICI_33b82b2269673d3c"></script>
+    <script src="js/data.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/payment-policy.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/place-features.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/business-hours.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/place-preview.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/content-policy.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/account-deletion.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/password-policy.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/demo-switcher.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/common.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/vici-request.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/vici-commerce.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/vici-chat.js?v=VICI_9abf42e5d714d4bc"></script>
     <link rel="stylesheet" href="css/categories.css?v=VICINIFY_CATEGORIES_20261030">
     <link rel="stylesheet" href="css/database-management.css?v=VICINIFY_DB_MANAGEMENT_20261030">
     <script src="js/categories.js?v=VICINIFY_CATEGORIES_20261030"></script>
-    <script src="js/map.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/add.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/buzz.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/dashboard.js?v=VICI_33b82b2269673d3c"></script>
+    <script src="js/map.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/add.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/buzz.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/dashboard.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/operating-hours-editor.js?v=VICI_9abf42e5d714d4bc"></script>
     <script src="js/database-management.js?v=VICINIFY_DB_MANAGEMENT_20261030"></script>
-    <script src="js/ownership-transfer.js?v=VICI_33b82b2269673d3c"></script>
-    <script src="js/settings.js?v=VICI_33b82b2269673d3c"></script>
+    <script src="js/ownership-transfer.js?v=VICI_9abf42e5d714d4bc"></script>
+    <script src="js/settings.js?v=VICI_9abf42e5d714d4bc"></script>
 
     <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
     <script>lucide.createIcons();</script>
@@ -1246,10 +1283,11 @@ html body #page-place.active #placeUpdatesList > .place-menu-card {
 }
 </style>
 
-<link rel="stylesheet" href="css/mobile.css?v=VICI_33b82b2269673d3c" />
-<link rel="stylesheet" href="css/brand-icon.css?v=VICI_33b82b2269673d3c" />
-<link rel="stylesheet" href="css/service-management-layout.css?v=VICI_33b82b2269673d3c" />
+<link rel="stylesheet" href="css/mobile.css?v=VICI_9abf42e5d714d4bc" />
+<link rel="stylesheet" href="css/brand-icon.css?v=VICI_9abf42e5d714d4bc" />
+<link rel="stylesheet" href="css/service-management-layout.css?v=VICI_9abf42e5d714d4bc" />
+<link rel="stylesheet" href="css/operating-hours-editor.css?v=VICI_9abf42e5d714d4bc" />
 <!-- build: VICINIFY_MODERN_FINAL_20261003 -->
-    <script src="js/ui.js?v=VICI_33b82b2269673d3c"></script>
+    <script src="js/ui.js?v=VICI_9abf42e5d714d4bc"></script>
 </body>
 </html>

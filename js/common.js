@@ -2803,11 +2803,20 @@ function initLogin() {
                 return window.alert("Please agree to the Terms and Conditions to create your account.");
             }
 
+            // A selected demo URL belongs only to its designated account.
+            // Do not let a different demo account overwrite its Firebase slot.
+            const demoLoginError = isLoginMode ? window.VicinifyDemoSwitch?.validateLoginEmail?.(email) : '';
+            if (demoLoginError) return window.alert(demoLoginError);
+
             loginBtn.disabled = true;
             loginBtn.textContent = isLoginMode ? "Authenticating..." : "Creating Account...";
 
             try {
                 if (isLoginMode) {
+                    // Keep each authenticated demo session across page reloads.
+                    if (window.VicinifyDemoSwitch && window.firebase?.auth?.Auth?.Persistence?.LOCAL) {
+                        await window.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+                    }
                     await window.auth.signInWithEmailAndPassword(email, password);
                 } else {
                     const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
@@ -2956,6 +2965,9 @@ window.auth.onAuthStateChanged(async (user) => {
         });
     } else {
         window.clearAccountCredentials();
+        // Called after the switcher's auth callback so sign-out cleanup does
+        // not erase its one-time-login email hint.
+        window.VicinifyDemoSwitch?.restoreLoginEmail?.();
         AppState.user = null;
         AppState.userProfile = null;
         if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = "Sign in"; }
@@ -6863,14 +6875,15 @@ window.renderListView = function(filteredPlaces) {
         let distText = fmtDist(place._distance);
         const freshness = window.getViciFreshnessStatus?.(place) || { className: "freshness-active", label: "Fresh", shortLabel: "Fresh", tone: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" };
 
+        const currentStatus = window.ViciBusinessHours.getState(place).status;
         let statusText = "Closed";
         let statusColor = "#475569";
         let statusBorder = "#e2e8f0";
         let statusBg = "#f8fafc";
         let statusDot = "#94a3b8";
-        if (place.status === 'open') {
+        if (currentStatus === 'open') {
             statusText = "Open"; statusColor = "#16a34a"; statusBorder = "#bbf7d0"; statusBg = "#f0fdf4"; statusDot = "#22c55e";
-        } else if (place.status === 'busy') {
+        } else if (currentStatus === 'busy') {
             statusText = "Busy"; statusColor = "#b45309"; statusBorder = "#fef08a"; statusBg = "#fefce8"; statusDot = "#eab308";
         }
 
@@ -6912,7 +6925,7 @@ window.renderListView = function(filteredPlaces) {
                         <button type="button" class="place-list-action place-list-menu-trigger" data-action="menu" data-place-id="${escapeHtml(place.id)}"><i data-lucide="book-open"></i> Menu</button>
                     </div>
                     <div class="place-list-badges" style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
-                        <span class="place-list-status is-${place.status === 'open' ? 'open' : place.status === 'busy' ? 'busy' : 'closed'}" style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid ${statusBorder}; color: ${statusColor}; background: ${statusBg};">
+                        <span class="place-list-status is-${currentStatus === 'open' ? 'open' : currentStatus === 'busy' ? 'busy' : 'closed'}" style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid ${statusBorder}; color: ${statusColor}; background: ${statusBg};">
                             <span style="width: 6px; height: 6px; border-radius: 50%; background: ${statusDot};"></span>
                             <span data-i18n="${statusText}">${statusText}</span>
                         </span>
