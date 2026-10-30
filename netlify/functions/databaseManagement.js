@@ -1,11 +1,9 @@
-const crypto = require('node:crypto');
 const { services, authenticate, reply, limit } = require('./lib/admin');
 // Carefully scoped administrative data exports; Firebase Authentication and Storage files are NOT in these snapshots.
 const ROOT = ['establishment_categories','places','bookings','reviews','buzz_posts','place_posts','loyalty_cards','stamp_requests'];
 const ALLOWED = [...ROOT,'menu_items'];
 const MAX_DOCS = 1800;
 const MAX_BYTES = 4 * 1024 * 1024;
-const BUCKET_PREFIX = 'private-admin-backups/';
 function bad(message, status=400){ return Object.assign(new Error(message), {status}); }
 function serialize(value) {
   if(value && typeof value.toDate==='function') return {__viciType:'timestamp',value:value.toDate().toISOString()};
@@ -69,28 +67,10 @@ exports.handler=async event=>{
     const {user,db}=await guard(event);
     await limit(user.uid,'database_management',10,60000);
     const body=JSON.parse(event.body||'{}');
-    if(body.action==='export'||body.action==='backup'){
+    if(body.action==='export'){
       const backup=await makeSnapshot(db,body.collections);
-      if(body.action==='backup'){
-        const {storage}=services();const id=crypto.randomUUID();
-        const file=storage.bucket().file(BUCKET_PREFIX+id+'.json');
-        await file.save(Buffer.from(JSON.stringify(backup)),{resumable:false,contentType:'application/json',metadata:{cacheControl:'private, no-store'}});
-        await db.collection('_admin_backups').doc(id).set({createdAt:require('firebase-admin/firestore').FieldValue.serverTimestamp(),adminUid:user.uid,count:backup.records.length,collections:backup.collections,bytes:Buffer.byteLength(JSON.stringify(backup))});
-        await audit(db,user,'database_backup_created',{id,count:backup.records.length});
-        return reply(200,{saved:true,id,count:backup.records.length});
-      }
       await audit(db,user,'database_export',{count:backup.records.length,collections:backup.collections,format:body.format==='csv'?'csv':'json'});
       return reply(200,{backup});
-    }
-    if(body.action==='history'){
-      const snap=await db.collection('_admin_backups').orderBy('createdAt','desc').limit(20).get();
-      return reply(200,{items:snap.docs.map(doc=>({id:doc.id,...serialize(doc.data())}))});
-    }
-    if(body.action==='downloadBackup'){
-      if(typeof body.id!=='string'||!/^[0-9a-f-]{36}$/.test(body.id))throw bad('Invalid backup id.');
-      const meta=await db.collection('_admin_backups').doc(body.id).get();if(!meta.exists)throw bad('Backup not found.',404);
-      const [buf]=await services().storage.bucket().file(BUCKET_PREFIX+body.id+'.json').download();
-      return reply(200,{backup:JSON.parse(buf.toString('utf8'))});
     }
     if(body.action==='preview'||body.action==='import'){
       const backup=body.backup;const records=validate(backup);

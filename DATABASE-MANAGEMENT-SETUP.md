@@ -1,10 +1,9 @@
-# Vicinify Database Management — deployment and limitations
+# Vicinify Database Management — No Firebase Storage required
 
-- Admin Panel > Database Management. Netlify Functions **must** deploy and `FIREBASE_SERVICE_ACCOUNT` must be configured. `FIREBASE_STORAGE_BUCKET` must reference the existing Firebase Storage bucket for server backups.
-- Export JSON includes supported Firestore collections and nested `places/{id}/menu_items`. CSV is a reporting export with `path,data_json` columns and is **not** an import format.
-- Import accepts Vicinify JSON only. Preview lists existing/new counts. Import is **create-only**: it never edits or deletes existing records. A backup created from a live database is NOT a point-in-time atomic snapshot; writes can happen during export. For emergency production recovery, use managed Firestore backup/export as well.
-- Saved backups are private objects in Firebase Storage under `private-admin-backups/`, with metadata in `_admin_backups`; server-only via Firebase Admin SDK. Download via the authenticated admin function; avoid sharing these sensitive files.
-- `Firebase Authentication users`, storage photos, non-allowlisted collections, and secrets are **not backed up**. For complete disaster recovery, separately back up Storage and Firebase Auth and consider Firestore managed exports.
-- Limits: 1,800 documents and 4 MB per operation. Large databases need server-side paginated jobs, beyond this capstone implementation. Restore does not preserve concurrent changes or guarantee an all-or-nothing transaction over all batches.
-- Deploy accompanying `firestore.rules` if using Firebase CLI. No client can read `_admin_backups` directly. Server admin claims are checked against current Firestore profile.
-- Live test with an isolated staging project and test records before using production. Set up secure admin-only operational practices, signed backups, and periodic restore drills for production use.
+- Open Admin Panel > Database Management. Deploy Netlify Functions and configure `FIREBASE_SERVICE_ACCOUNT` for authenticated admin-only Firestore access. Firebase Storage is NOT required for this feature.
+- **Export JSON** downloads a backup file to the admin's device. Store it securely; it is not automatically saved on a server. **Export CSV** downloads reporting data; CSV cannot be imported back as a backup.
+- **Import JSON** accepts valid Vicinify export files only. It previews existing and new records before confirmation and is **create-only**: existing records are never overwritten, edited or deleted. This is not a complete point-in-time rollback or a full disaster recovery system.
+- Supported Firestore collections and nested `places/{id}/menu_items` only. **Firebase Authentication accounts, uploaded images, credentials, and unlisted collections are excluded**.
+- Limits: 1,800 records and 4 MB per request. Large databases require a separate managed backup design.
+- Exporting across multiple Firestore collections is not an atomic snapshot. Importing in multiple batches is not atomic either; test in staging with sample data before production restores.
+- No Create Backup, Backup History, Firebase Storage bucket or `_admin_backups` functionality is required or exposed.

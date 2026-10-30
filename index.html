@@ -467,10 +467,10 @@
                     <div id="categoryManagerList" class="category-manager-list">Loading categories…</div>
                 </section>
 <section class="category-manager" id="adminDatabaseManagement" aria-label="Database management" style="margin-top:18px">
- <div class="category-manager-heading"><div><h4>Database Management</h4><p>Admin-only exports, JSON imports and downloadable backups. Firebase Auth and uploaded photos are not included.</p></div></div>
- <div class="db-management-actions"><button type="button" id="dbExportJson">Export JSON</button><button type="button" id="dbExportCsv">Export CSV</button><button type="button" id="dbCreateBackup">Create Backup</button><button type="button" id="dbImportBtn">Import JSON</button><input id="dbImportFile" type="file" accept=".json,application/json" hidden></div>
+ <div class="category-manager-heading"><div><h4>Database Management</h4><p>Admin-only JSON/CSV exports and JSON imports. Download JSON to your computer as a backup; no Firebase Storage needed.</p></div></div>
+ <div class="db-management-actions"><button type="button" id="dbExportJson">Export JSON</button><button type="button" id="dbExportCsv">Export CSV</button><button type="button" id="dbImportBtn">Import JSON</button><input id="dbImportFile" type="file" accept=".json,application/json" hidden></div>
  <p id="dbManagementStatus" role="status" aria-live="polite">Select an action. No data will be overwritten by import.</p>
- <div id="dbBackupHistory"></div>
+
 </section>
                 <div id="pendingList"></div>
             </section>
