@@ -8,10 +8,38 @@
  async function getMenu(id,force=false){const old=menus.get(id);if(!force&&old?.until>Date.now())return old.items;const snap=await root.db.collection('places').doc(id).collection('menu_items').where('archived','==',false).limit(80).get();const items=snap.docs.map(doc=>({id:doc.id,...doc.data()})).filter(i=>!i.archived);menus.set(id,{items,until:Date.now()+30000});return items;}
  async function getPlace(id){const p=await root.db.collection('places').doc(id).get();if(!p.exists)throw Error('Establishment no longer exists.');return{id,...p.data()};}
  async function mountMenu(wrap,placeId,manage=false){
+  if (!wrap) return;
+  wrap._menuLiveUnsub?.();
+  wrap._menuLiveUnsub = null;
   wrap.innerHTML='<p role="status">Loading listed menu…</p>';
-  try{const [items,place]=await Promise.all([getMenu(placeId),getPlace(placeId)]);if(!wrap.isConnected)return;manage=manage&&root.auth?.currentUser?.uid===place.owner_uid;
+  try{let [items,place]=await Promise.all([getMenu(placeId),getPlace(placeId)]);if(!wrap.isConnected)return;manage=manage&&root.auth?.currentUser?.uid===place.owner_uid;
    wrap.innerHTML=`<div class="commerce-tools"><input type="search" placeholder="Search menu items" aria-label="Search menu"><select aria-label="Menu category"><option value="">All categories</option>${[...new Set(items.map(i=>i.category||'Other'))].map(c=>`<option>${esc(c)}</option>`).join('')}</select>${manage?`<label class="commerce-check"><input type="checkbox" data-ordering ${place.accepts_orders===true?'checked':''}>Accept menu orders</label><button type="button" data-new>Add menu item</button>`:''}</div><div class="commerce-menu-grid"></div><p class="commerce-hint">Menu prices are listed by the business. Availability is checked again before you confirm an order.</p>`;
    const render=()=>{const q=wrap.querySelector('input[type=search]').value.toLowerCase(),cat=wrap.querySelector('select').value;const found=items.filter(i=>(!cat||i.category===cat)&&[i.name,i.description].join(' ').toLowerCase().includes(q));wrap.querySelector('.commerce-menu-grid').innerHTML=found.length?found.map(i=>`<article class="commerce-item">${photo(i.photoUrl)?`<img src="${esc(photo(i.photoUrl))}" alt="${esc(i.name)}" loading="lazy">`:''}<div><small>${esc(i.category||'Other')}</small><h3 data-no-translate>${esc(i.name)}</h3><p data-no-translate>${esc(i.description)}</p><b>${money(i.priceCents)}</b><span class="commerce-availability">${i.available?'Available':'Unavailable'}</span><div class="commerce-actions"><button type="button" data-details="${esc(i.id)}">View details</button>${place.accepts_orders===true&&i.available&&root.auth?.currentUser?.uid!==place.owner_uid?`<button type="button" data-add="${esc(i.id)}">Add to order</button>`:''}${manage?`<button type="button" data-edit="${esc(i.id)}">Edit</button>`:''}</div></div></article>`).join(''):'<p>No matching menu items are listed. Please message the business for its menu.</p>';wrap.querySelectorAll('img').forEach(img=>img.onerror=()=>img.remove());};
+   // A cached .get() previously left other devices up to 30 seconds behind.
+   // Keep the displayed menu synced using one Firestore listener per mounted view.
+   let menuStreamActive = true;
+   const liveQuery = root.db.collection('places').doc(placeId).collection('menu_items').where('archived','==',false).limit(80);
+   const menuLiveStop = liveQuery.onSnapshot(snap => {
+       if (!menuStreamActive || !wrap.isConnected) return;
+       items = snap.docs.map(doc => ({ id:doc.id, ...doc.data() })).filter(item => !item.archived);
+       menus.set(placeId,{ items, until:Date.now()+30000 });
+       // Preserve search text and category where available.
+       const search = wrap.querySelector('input[type=search]');
+       const select = wrap.querySelector('select');
+       if (!search || !select) return;
+       const categories = [...new Set(items.map(item => item.category || 'Other'))];
+       const oldCategory = select.value;
+       select.innerHTML = '<option value="">All categories</option>' + categories.map(c => `<option>${esc(c)}</option>`).join('');
+       if (categories.includes(oldCategory)) select.value = oldCategory;
+       render();
+   }, error => {
+       if (menuStreamActive && wrap.isConnected) {
+           console.warn('[menu] Live updates unavailable:', error?.code || error);
+           root.showToast?.('Live menu updates are unavailable. Reopen the menu to refresh.', 'info');
+       }
+   });
+   wrap._menuLiveUnsub = () => { menuStreamActive=false; menuLiveStop?.(); wrap._menuLiveUnsub=null; };
+   wrap.closest('dialog')?.addEventListener('close', () => wrap._menuLiveUnsub?.(), { once:true });
    wrap.querySelector('[data-ordering]')?.addEventListener('change',async e=>{e.target.disabled=true;try{await root.ViciData.command('menu',{action:'settings',placeId,acceptsOrders:e.target.checked});root.invalidatePlacesCache?.();mountMenu(wrap,placeId,true);}catch(error){e.target.checked=!e.target.checked;root.showToast?.(error.message,'error');e.target.disabled=false;}});
    wrap.querySelector('input[type=search]').oninput=render;wrap.querySelector('select').onchange=render;wrap.onclick=async e=>{const b=e.target.closest('button');if(!b)return;const item=items.find(i=>i.id===(b.dataset.add||b.dataset.edit||b.dataset.details));if(b.hasAttribute('data-new')||b.dataset.edit){await editItem(place,item,()=>{menus.delete(placeId);mountMenu(wrap,placeId,true);});}else if(b.dataset.add){addItem(place,item);}else if(b.dataset.details){const d=dialog(item.name);d.querySelector('.commerce-body').innerHTML=`<p data-no-translate>${esc(item.description)}</p><p>${money(item.priceCents)} · ${item.available?'Available':'Unavailable'}</p>${item.optionGroups?.map(g=>`<p>${esc(g.name)} (${g.required?'required':'optional'}): ${g.choices.map(c=>esc(c.name)+' +'+money(c.priceCents)+(c.available?'':' — unavailable')).join(', ')}</p>`).join('')||''}${item.available&&place.accepts_orders===true&&root.auth?.currentUser?.uid!==place.owner_uid?'<button type="button" data-add-detail>Add to order</button>':''}`;d.querySelector('[data-add-detail]')?.addEventListener('click',()=>{d.close();addItem(place,item);});}};render();
   }catch(e){if(wrap.isConnected)wrap.innerHTML=`<p role="alert">${esc(e.message||'Could not load menu.')}</p><button type="button">Retry</button>`;wrap.querySelector('button')?.addEventListener('click',()=>mountMenu(wrap,placeId,manage));}

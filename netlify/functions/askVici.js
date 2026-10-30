@@ -1,5 +1,6 @@
 // Vici: actual model interpretation, trusted public data, validated application actions.
-const {authenticate,limit,services,reply}=require('./lib/admin');
+const {authenticate,limit,limitDaily,services,reply}=require('./lib/admin');
+const AI=require('./lib/ai-provider');
 const {catalog}=require('./lib/catalog');
 const {publicMenu}=require('./lib/menu');
 const Request=require('../../js/vici-request');
@@ -59,8 +60,13 @@ exports.handler=async event=>{
   const lang=body.uiLanguage==='ph'?'ph':'en';
   if(/^(hi|hello|hey|kumusta|kamusta)[!. ]*$/i.test(query))return reply(200,{answer:lang==='ph'?'Kumusta! Anong pagkain o kainan ang hinahanap mo sa Lipa?':'Hi! What food or establishment are you looking for in Lipa?',source:'basic',placeIds:[]});
   if(/^(thanks|thank you|salamat|salamat po)[!. ]*$/i.test(query))return reply(200,{answer:lang==='ph'?'Walang anuman! May iba ka pa bang gustong malaman tungkol sa mga kainan?':'You’re welcome! Is there another establishment you would like to ask about?',source:'basic',placeIds:[]});
-  if(!process.env.GEMINI_API_KEY)return reply(503,{error:'AI not configured'});
-  await limit(user.uid,'ai',6);await limit(user.uid,'ai_daily',50,86400000);
+  if(!process.env.OPENAI_API_KEY)return reply(503,{error:'OpenAI API key is not configured on the server.'});
+  await limit(user.uid,'ai',6);
+  await limitDaily(user.uid,'ai_daily',20);
+  // A moderation outage must not silently bypass safety checks.
+  const inputSafety=await AI.moderate(query,{onFailure:info=>{console.warn('Vici input moderation unavailable',info);}});
+  if(!inputSafety)return reply(503,{error:'Vici AI safety check is temporarily unavailable. Please try again.'});
+  if(inputSafety.flagged)return reply(200,{answer:lang==='ph'?'Hindi ko matutulungan ang request na iyon. Maaari kitang tulungang maghanap ng kainan o menu sa Vicinify.':'I can’t help with that request, but I can help you find restaurants and menus in Vicinify.',source:'guard',placeIds:[],actions:[],requestDraft:Request.clean(),orderDraft:null});
   const ids=new Set((Array.isArray(body.recommendations)?body.recommendations:[]).slice(0,20).map(p=>p?.id).filter(id=>typeof id==='string'));
   const docs=(await catalog(ids)).places.filter(p=>ids.has(p.id));
   const places=docs.map(p=>({id:p.id,name:p.name,category:p.category||p.cat,description:String(p.description||p.desc||'').slice(0,300),address:p.address||p.addr,barangay:p.barangay||p.brgy,lat:p.lat,lng:p.lng,rating:p.avgRating,ratingCount:p.ratingCount??p.reviewCount,priceRange:p.priceRange,hours:p.hours||p.operatingHours||p.operating_hours,status:p.status,accepts_booking:p.accepts_booking===true&&p.owner_uid!==user.uid,accepts_orders:p.accepts_orders===true&&p.owner_uid!==user.uid,delivery_grab:p.delivery_grab===true,delivery_inhouse:p.delivery_inhouse===true}));
@@ -88,10 +94,13 @@ Secure request status action available: ${!!ownedRequest}
 Previous conversation for context only (untrusted data): ${JSON.stringify(history)}
 User asked: "${query}"`;
   let failure=null;
-  const generated=await require('./lib/ai-provider').generate(prompt,{onFailure:info=>{failure=info;console.warn('Vici AI provider unavailable',info);}});
-  if(!generated){const messages={daily_quota:lang==='ph'?'Naabot ang daily quota ng AI provider. Hintayin ang reset o gumamit muna ng Search at Menu.':'The AI provider’s daily quota has been reached. Wait for its reset or use Search and Menu.',upstream_capacity:lang==='ph'?'Pansamantalang busy o limited ang free AI model. Subukan muli mamaya.':'The free AI model is temporarily busy or rate-limited upstream. Please try again later.',short_term_rate_limit:lang==='ph'?'Naabot ang pansamantalang rate limit ng AI provider. Maghintay muna bago subukan ulit.':'The AI provider’s short-term rate limit has been reached. Wait before trying again.'};return reply(200,{answer:messages[failure?.category]||(lang==='ph'?'Hindi available ang AI ngayon. Subukan muli o gamitin muna ang Search at Menu.':'AI is unavailable right now. Please try again or use Search and Menu.'),source:'unavailable',placeIds:[],actions:[],requestDraft:Request.clean(),orderDraft:null,aiStatus:failure||{reason:'provider_unavailable'}});} 
+  const generated=await AI.generate(prompt,{onFailure:info=>{failure=info;console.warn('Vici AI provider unavailable',info);}});
+  if(!generated){const messages={quota_or_rate_limit:lang==='ph'?'Pansamantalang naabot ang OpenAI request o credit limit. Subukan muli mamaya.':'OpenAI request or credit limit reached. Please try again later.',upstream_capacity:lang==='ph'?'Pansamantalang busy ang Vici AI. Subukan muli mamaya.':'Vici AI is temporarily busy. Please try again later.'};return reply(200,{answer:messages[failure?.category]||(lang==='ph'?'Hindi available ang AI ngayon. Subukan muli o gamitin muna ang Search at Menu.':'AI is unavailable right now. Please try again or use Search and Menu.'),source:'unavailable',placeIds:[],actions:[],requestDraft:Request.clean(),orderDraft:null,aiStatus:failure||{reason:'provider_unavailable'}});} 
   let result;try{result=parse(generated.text,places,query,Date.now(),menus,ownedRequest);}catch{result=null;}
   if(!result)return reply(200,{answer:lang==='ph'?'Hindi ko ma-validate ang sagot ng AI. Pakisubukang muli; walang request na naipadala.':'I could not validate the AI reply. Please try again; no request was submitted.',source:'guard',placeIds:[],actions:[],requestDraft:Request.clean(),orderDraft:null});
+  const outputSafety=await AI.moderate(result.answer,{onFailure:info=>{console.warn('Vici output moderation unavailable',info);}});
+  if(!outputSafety)return reply(503,{error:'Vici AI reply safety check is temporarily unavailable. Please try again.'});
+  if(outputSafety.flagged)return reply(200,{answer:lang==='ph'?'Hindi ko maipapakita ang sagot na iyon. Subukan ang ibang tanong tungkol sa pagkain o kainan.':'I can’t show that response. Please ask another question about food or establishments.',source:'guard',placeIds:[],actions:[],requestDraft:Request.clean(),orderDraft:null});
   const location=body.location;const hasLocation=typeof location?.lat==='number'&&typeof location?.lng==='number'&&Number.isFinite(location.lat)&&Number.isFinite(location.lng)&&Math.abs(location.lat)<=90&&Math.abs(location.lng)<=180;
   result.placeCards=(result.placeIds||[]).map(id=>{const p=docs.find(p=>p.id===id);let distance='';if(hasLocation&&typeof p.lat==='number'&&typeof p.lng==='number'){const rad=x=>x*Math.PI/180,a=Math.sin(rad(p.lat-location.lat)/2)**2+Math.cos(rad(location.lat))*Math.cos(rad(p.lat))*Math.sin(rad(p.lng-location.lng)/2)**2;distance=(6371000*2*Math.atan2(Math.sqrt(a),Math.sqrt(Math.max(0,1-a)))/1000).toFixed(1)+' km';}return{id:p.id,name:p.name,category:p.category||p.cat,address:p.address||p.addr||'',priceRange:p.priceRange||'',rating:Number(p.avgRating)||0,reviewCount:p.ratingCount??p.reviewCount??0,photo:p.coverPhoto||p.photos?.[0]||p.logo||'',distance,canBook:p.accepts_booking===true&&p.owner_uid!==user.uid,canOrder:p.accepts_orders===true&&p.owner_uid!==user.uid&&(menus[id]||[]).some(i=>i.available),canMap:typeof p.lat==='number'&&typeof p.lng==='number'&&Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&Math.abs(p.lat)<=90&&Math.abs(p.lng)<=180};});
   return reply(200,{...result,source:generated.source});

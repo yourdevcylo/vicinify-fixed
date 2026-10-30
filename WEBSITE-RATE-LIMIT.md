@@ -18,7 +18,7 @@ If the deployment rejects or omits native rate-limit configuration, the site is 
 ## Usage and scope
 These guards add no Firebase reads/writes. Edge invocations and Netlify request usage still follow Netlify billing; this is not a guarantee of zero cost or full DDoS protection. Shared Wi-Fi/NAT users share an IP limit, so the API ceiling is intentionally generous. Review real traffic before tightening it.
 
-This covers requests served through Netlify. Browser requests directly to Firebase Authentication, Firestore, Storage, third-party map services and Gemini's server-side API use their own separate quotas/protections; this does not impose an overall Firebase spending cap. Firebase Auth sessions are unchanged: login persists normally until logout/revocation/expiry behavior, with no new idle timeout added.
+This covers requests served through Netlify. Browser requests directly to Firebase Authentication, Firestore, Storage, third-party map services and OpenAI's server-side API use their own separate quotas/protections; this does not impose an overall Firebase spending cap. Firebase Auth sessions are unchanged: login persists normally until logout/revocation/expiry behavior, with no new idle timeout added.
 
 Local tests cover config routing/exclusions, safe origin passthrough, JSON/HTML/HEAD 429 responses, Retry-After, no-store behavior and no auto-refresh. Native counter distribution/enforcement requires a deployed Netlify check.
 

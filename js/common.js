@@ -6121,6 +6121,48 @@ window.vicinifyNotify = function(title, body) {
     return notice;
 };
 
+// Persistent, actionable owner alert: sound alone is not enough.
+// Kept separate from the short-lived toast queue so a second toast cannot
+// silently displace a stamp request before the owner sees it.
+window.showOwnerSukiAlert = function(customerName, placeName) {
+    let notice = document.getElementById('ownerSukiNotification');
+    if (!notice) {
+        notice = document.createElement('section');
+        notice.id = 'ownerSukiNotification';
+        notice.className = 'owner-suki-notification';
+        notice.setAttribute('role', 'alert');
+        notice.setAttribute('aria-label', 'New Suki stamp request');
+        const head = document.createElement('div');
+        head.className = 'owner-suki-notification-head';
+        const title = document.createElement('strong');
+        title.textContent = 'New Suki stamp request';
+        const dismiss = document.createElement('button');
+        dismiss.type = 'button';
+        dismiss.className = 'owner-suki-notification-dismiss';
+        dismiss.textContent = '×';
+        dismiss.setAttribute('aria-label', 'Dismiss Suki notification');
+        dismiss.addEventListener('click', () => notice.remove());
+        head.append(title, dismiss);
+        const body = document.createElement('p');
+        body.className = 'owner-suki-notification-body';
+        const action = document.createElement('button');
+        action.type = 'button';
+        action.className = 'owner-suki-notification-action';
+        action.textContent = 'View request · Approve / Reject';
+        action.addEventListener('click', () => {
+            notice.remove();
+            window.DashboardPage?.openSukiInbox?.();
+        });
+        notice.append(head, body, action);
+        document.body.appendChild(notice);
+    }
+    const name = String(customerName || 'A customer').slice(0, 100);
+    const place = String(placeName || 'your establishment').slice(0, 100);
+    notice.querySelector('.owner-suki-notification-body').textContent =
+        `${name} wants a stamp at ${place}.`;
+    return notice;
+};
+
 // Reverse geocoding via OpenStreetMap Nominatim (free, no API key,
 // no Firebase cost). User-triggered lookups only (pin drags, button
 // taps) — never bulk. Resolves { barangay, city, province, road,
@@ -6293,6 +6335,7 @@ window.GlobalNotifier = (() => {
     // Transition tracking for in-app popups (baselines reset on stop).
     const prevBookingStatus = new Map();
     let prevStampCounts = null;
+    const ownerSukiPendingByChunk = new Map();
     // Session cap for customer receipt writes (see markDocsCustomerRead).
     const _customerReadAttempted = new Set();
 
@@ -6382,7 +6425,7 @@ window.GlobalNotifier = (() => {
     window.markDocsCustomerRead = markDocsCustomerRead;
 
     function refreshDashBadge() {
-        const ownerTotal = (window._dashPendingCount || 0) + (window._dashMsgCount || 0);
+        const ownerTotal = (window._dashPendingCount || 0) + (window._dashMsgCount || 0) + (window._dashSukiCount || 0);
         const custTotal = (window._settingsTransactionCount || 0) + (window._settingsChatCount || 0);
         // One-tab rule: for standard users, the hub tab carries their counts.
         const total = ownerTotal + (AppState.userProfile?.role === "user" ? custTotal : 0);
@@ -6403,6 +6446,9 @@ window.GlobalNotifier = (() => {
 
         window._dashPendingCount = 0;
         window._dashMsgCount = 0;
+        window._dashSukiCount = 0;
+        ownerSukiPendingByChunk.clear();
+        document.getElementById('ownerSukiNotification')?.remove();
         window._settingsTransactionCount = 0;
         window._settingsChatCount = 0;
 
@@ -6603,12 +6649,20 @@ window.GlobalNotifier = (() => {
                 let isStampReqInit = true;
                 const stampUnsub = window.db.collection("stamp_requests")
                     .where("placeId", "in", chunk)
-                    .limit(20)
+                    .limit(100)
                     .onSnapshot(snap => {
+                        if (window.auth?.currentUser?.uid !== user.uid) return;
+                        let pending = 0;
+                        snap.forEach(doc => {
+                            if ((doc.data().status || 'pending') === 'pending') pending++;
+                        });
+                        ownerSukiPendingByChunk.set(idx, pending);
+                        window._dashSukiCount = [...ownerSukiPendingByChunk.values()].reduce((a,b) => a+b, 0);
+                        refreshDashBadge();
                         snap.docChanges().forEach(change => {
                             const data = change.doc.data();
                             if (!isStampReqInit && change.type === "added" && (data.status || "pending") === "pending") {
-                                window.vicinifyNotify?.("Stamp request", `${data.customerName || "A customer"} is requesting a stamp.`);
+                                window.showOwnerSukiAlert?.(data.customerName, data.placeName);
                                 window.playNotifSound?.();
                                 window.sendSystemNotif?.("Stamp request", `${data.customerName || "A customer"} is requesting a stamp.`);
                             }
@@ -6723,15 +6777,44 @@ await favRef.set({
 let isRatingProcessing = false;
 
 window.submitRating = async function (placeId, score) {
-    if (isRatingProcessing) return;
+    if (isRatingProcessing || !Number.isInteger(score) || score < 1 || score > 5) return;
     isRatingProcessing = true;
+    // Immediate visual feedback while server validation and the transaction run.
+    // Never announce success until the backend acknowledges the write.
+    const panel = document.getElementById('starInputContainer');
+    const livePanel = panel?.closest('.place-rating-panel');
+    const samePlace = () => livePanel?.isConnected && window.currentPlaceReviewId === placeId;
+    const prior = [...(panel?.querySelectorAll('.star-btn') || [])].map(b => b.classList.contains('active'));
+    const buttons = [...(panel?.querySelectorAll('.star-btn') || [])];
+    let status = livePanel?.querySelector('.place-rating-save-status');
+    if (!status && livePanel) {
+        status = document.createElement('p');
+        status.className = 'place-rating-save-status';
+        status.setAttribute('role', 'status');
+        status.setAttribute('aria-live', 'polite');
+        panel?.insertAdjacentElement('afterend', status);
+    }
+    buttons.forEach((button, index) => { button.classList.toggle('active', index < score); button.disabled = true; });
+    if (status) status.textContent = 'Saving your rating…';
     try {
-        await window.ViciData.command("review", { action:"rate", placeId, rating: score });
+        await window.ViciData.command('review', { action:'rate', placeId, rating:score });
         window.invalidatePlacesCache?.();
-        window.showToast?.("Rating saved.", "success");
-        await window.viewPlace(placeId);
-    } catch (error) { window.showToast?.(error.message, "error"); }
-    finally { isRatingProcessing = false; }
+        if (samePlace()) {
+            if (status) status.textContent = `Saved: ${score} ${score === 1 ? 'star' : 'stars'}.`;
+            const heading = livePanel?.querySelector('h4');
+            if (heading) heading.textContent = 'Your Rating';
+        }
+        window.showToast?.('Rating saved.', 'success');
+    } catch (error) {
+        if (samePlace()) {
+            buttons.forEach((button, index) => button.classList.toggle('active', !!prior[index]));
+            if (status) status.textContent = 'Could not save. Please try again.';
+        }
+        window.showToast?.(error.message || 'Rating could not be saved.', 'error');
+    } finally {
+        if (samePlace()) buttons.forEach(button => { button.disabled = false; });
+        isRatingProcessing = false;
+    }
 };
 
 // =========================================
@@ -8004,3 +8087,28 @@ if (typeof document !== 'undefined') document.addEventListener('change', functio
  const invalid=Array.from(input.files || []).some(file=>!file.type.startsWith('image/'));
  if(invalid){ input.value=''; event.stopImmediatePropagation(); window.showToast?.('Photos only. Please choose an image.', 'error'); }
 }, true);
+
+
+/* Remove any legacy floating AI dock from older builds/caches. */
+(function(){
+  function removeLegacyViciDock(){
+    try {
+      const dock = document.getElementById('viciFloatingDock');
+      if (dock) dock.remove();
+      const btn = document.getElementById('locateBtn');
+      if (btn) {
+        btn.classList.remove('vici-ai-bubble-launcher');
+        btn.removeAttribute('data-vici-launcher');
+        btn.hidden = false;
+      }
+    } catch (_) {}
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', removeLegacyViciDock, { once:true });
+  } else {
+    removeLegacyViciDock();
+  }
+  window.addEventListener('pageshow', removeLegacyViciDock);
+  window.addEventListener('focus', removeLegacyViciDock);
+})();
+

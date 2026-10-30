@@ -1,10 +1,6 @@
-## Gemini-only provider update — 30 October 2026
+## OpenAI-only Vici AI — 30 October 2026
 
-Vici now calls only Gemini. OpenRouter fallback is removed. Complete the billing setup for the Google AI Studio project owning your key (API billing, not the Gemini app subscription), then set Netlify Functions/Production GEMINI_API_KEY and GEMINI_MODEL=gemini-2.5-flash. Keep your Firebase service-account/origin configuration. Delete the unused OpenRouter variable if desired. Redeploy this complete source. See AI_API_SETUP.md for exact steps and cost-control limits.
-
-This update changes no Firestore rules/indexes. The structured-menu rules below are still required if not deployed previously. Gemini timeout is now 25 seconds; default Flash thinking is disabled. Paid billing does not guarantee provider availability. Local tests pass; live API billing/key/model verification remains after deploy.
-
----
+Vici AI now uses only **OpenAI GPT-6 Luna**. Set `OPENAI_API_KEY` in Netlify Functions, keep `FIREBASE_SERVICE_ACCOUNT` and `ALLOWED_ORIGIN` as before, and redeploy the full source. Obsolete Gemini and OpenRouter keys can be removed from Netlify after deployment. No provider fallback. The backend applies OpenAI moderation and a server-enforced 20 model questions/day/account limit that resets at Philippine midnight. See **AI_API_SETUP.md** for the exact configuration and testing checklist. No Firestore rules/indexes changed in this update.
 
 ## Current release — Smart Vici AI, structured menus and confirmed requests (30 October 2026)
 
@@ -26,7 +22,7 @@ Validation: 31 test files and build pass; six actual UI/local backend fixture wo
 
 ## Vici AI flow finalization — 30 October 2026
 
-Deploy the complete ZIP source through GitHub/Netlify and wait for Published. Keep OPENROUTER_API_KEY secret in Netlify Functions environment variables. Read AI_API_SETUP.md for current provider setup, public-data scope, memory and assisted requests. No new Firebase indexes/rules are introduced by this AI update; earlier transaction rules still need to be deployed if not done yet.
+Deploy the complete ZIP source through GitHub/Netlify and wait for Published. Keep OPENAI_API_KEY secret in Netlify Functions environment variables. Read AI_API_SETUP.md for current provider setup, public-data scope, memory and assisted requests. No new Firebase indexes/rules are introduced by this AI update; earlier transaction rules still need to be deployed if not done yet.
 
 Vici offers public establishment answers, recent conversation context, View menu, View on map, and an UNSENT request draft. Review reservation opens the editable form; the customer must still review and press Send Request. Owner approval, requirements, payment and refund handling remain separate. The model cannot approve a booking or payment. Unsupported natural-language details are left blank for clarification or completion in the form.
 

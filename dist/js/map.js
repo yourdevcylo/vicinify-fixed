@@ -12,6 +12,7 @@ window.MapPage = (() => {
     }
     let cloudPlaces = [];
     let placeUpdatesUnsub = null;
+    let placeRatingUnsub = null;
     let routingControl = null;
 
     // 🔥 REACT/TAILWIND STYLE CSS INJECTION + NEW ANIMATIONS 🔥
@@ -818,7 +819,7 @@ window.MapPage = (() => {
 
     // ============================================================
     // VICI AI CONFIG — deployed AI only (PLUS43, per Marc 2026-10-21).
-    // Ang Gemini key ay nasa Netlify env var (GEMINI_API_KEY) lang; ang app ay
+    // The OpenAI key stays in Netlify Functions (OPENAI_API_KEY); the app
     // tumatawag sa netlify/functions/askVici.js. WALANG local keyword finder:
     // pag hindi maabot ang endpoint o sira ang API, error ang ipinapakita.
     window.VICINIFY_AI_ENDPOINT = window.VICINIFY_AI_ENDPOINT || "/.netlify/functions/askVici";
@@ -835,7 +836,7 @@ window.MapPage = (() => {
                 const response = await fetch(endpoint, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", Authorization: `Bearer ${await window.auth.currentUser.getIdToken()}` },
-                    signal: context.signal && AbortSignal.any ? AbortSignal.any([context.signal, AbortSignal.timeout(35000)]) : AbortSignal.timeout(35000),
+                    signal: context.signal && AbortSignal.any ? AbortSignal.any([context.signal, AbortSignal.timeout(45000)]) : AbortSignal.timeout(45000),
                     body: JSON.stringify({
                         query: intent.query,
                         uiLanguage: window.LangManager?.getLanguage?.() || 'en',
@@ -853,8 +854,8 @@ window.MapPage = (() => {
                 if (!response.ok) {
                     const data = await response.json().catch(()=>({}));
                     const message = data.error === 'Forbidden origin' ? 'Vici AI cannot accept requests from this site address. Please contact the site administrator.'
-                        : response.status === 503 ? 'Vici AI server setup is incomplete. Please contact the site administrator.'
-                        : response.status === 429 ? 'Too many AI requests. Please wait before trying again.'
+                        : response.status === 503 ? (typeof data.error === 'string' && /safety check/i.test(data.error) ? 'Vici AI safety checks are temporarily unavailable. Please try again later.' : 'Vici AI backend is unavailable. Please contact the site administrator if this continues.')
+                        : response.status === 429 ? (typeof data.error === 'string' && data.error.startsWith('Daily AI limit reached') ? 'You have used your 20 Vici AI questions for today. Your limit resets at midnight (Philippine time).' : 'Too many AI requests. Please wait before trying again.')
                         : response.status === 401 || response.status === 403 ? 'Please sign in again with a verified email to use Vici AI.'
                         : response.status === 504 ? 'AI timed out. Please try again.' : VICI_AI_ERROR;
                     console.warn('Vici AI request failed.', {status:response.status, reason:data.error === 'Forbidden origin'?'origin_rejected':response.status===503?'server_setup':'request_failed'});
@@ -862,7 +863,7 @@ window.MapPage = (() => {
                 }
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.answer) return { answer: data.answer, source: data.source === "guard" ? "guard" : "ai",...(Object.hasOwn(data,'orderDraft')?{orderDraft:data.orderDraft}:{}),menuPreview:data.menuPreview||null,actions:data.actions||[],placeCards:data.placeCards||[],requestDraft:data.requestDraft?window.ViciRequest?.clean(data.requestDraft):undefined,requestReady:data.requestReady===true,requestUnavailable:data.requestUnavailable===true, placeIds: Array.isArray(data.placeIds) ? data.placeIds : [] };
+                    if (data.answer) return { answer: data.answer, source: data.source === "guard" ? "guard" : data.source === "unavailable" ? "error" : "ai",error:data.source === "unavailable",...(Object.hasOwn(data,'orderDraft')?{orderDraft:data.orderDraft}:{}),menuPreview:data.menuPreview||null,actions:data.actions||[],placeCards:data.placeCards||[],requestDraft:data.requestDraft?window.ViciRequest?.clean(data.requestDraft):undefined,requestReady:data.requestReady===true,requestUnavailable:data.requestUnavailable===true, placeIds: Array.isArray(data.placeIds) ? data.placeIds : [] };
                 }
             } catch (e) { console.warn("Vici AI endpoint unavailable.", e); if(e.name === "TimeoutError" || e.name === "AbortError")return {answer:"AI timed out. Please try again.",source:"error",error:true}; }
         }
@@ -2184,6 +2185,8 @@ window.MapPage = (() => {
 
         const rawPlaceAddr = String(p.address || p.brgy || p.addr || "").trim();
         const placeAddrText = (!rawPlaceAddr || (/^[a-zA-Z0-9_-]{20,}$/.test(rawPlaceAddr) && /[0-9_-]/.test(rawPlaceAddr)) || rawPlaceAddr.toLowerCase() === "address") ? "Lipa City" : rawPlaceAddr;
+        // Release previous establishment's live menu before replacing its DOM.
+        document.getElementById('placeStructuredMenu')?._menuLiveUnsub?.();
         wrap.classList.add("place-detail-shell");
         wrap.innerHTML = `
             <div class="placeCover ${finalCoverImg ? 'has-cover' : 'no-cover'}" style="${coverStyle}">
@@ -2212,16 +2215,18 @@ window.MapPage = (() => {
                     <div class="placeHeaderTitle">
                         
 
+                        <div id="placeLiveRatingSummary" data-place-id="${p.id}">
                         ${p.avgRating ? `
                             <button type="button" class="place-rating-jump" onclick="window.scrollPlaceReviews('${p.id}')" style="border:none; display:inline-flex; align-items:center; gap:6px; background:#fef9c3; color:#854d0e; padding:6px 10px; border-radius:8px; font-weight:700; font-size:13px;">
                                 <i data-lucide="star" style="width:16px; height:16px; fill:#854d0e;"></i>
-                                ${p.avgRating} <span style="font-weight:normal; opacity:0.8;">(${p.ratingCount ?? p.reviewCount} Ratings)</span>
+                                <span data-live-rating-text>${p.avgRating} (${p.ratingCount ?? p.reviewCount} Ratings)</span>
                             </button>
                         ` : `
                             <button type="button" class="place-rating-jump" onclick="window.scrollPlaceReviews('${p.id}')" style="border:none; display:inline-flex; align-items:center; gap:6px; background:#f1f5f9; color:#64748b; padding:6px 10px; border-radius:8px; font-size:12px;">
-                                <i data-lucide="star" style="width:16px; height:16px;"></i> New &middot; No ratings yet
+                                <i data-lucide="star" style="width:16px; height:16px;"></i> <span data-live-rating-text>New &middot; No ratings yet</span>
                             </button>
                         `}
+                        </div>
                     </div>
                 </div>
 
@@ -2333,6 +2338,7 @@ window.MapPage = (() => {
             </div>
             `;
         if(typeof placeUpdatesUnsub==='function'){placeUpdatesUnsub();placeUpdatesUnsub=null;}
+        if(typeof placeRatingUnsub==='function'){placeRatingUnsub();placeRatingUnsub=null;}
         showPage('page-place');
 
         setTimeout(() => {
@@ -2343,6 +2349,29 @@ window.MapPage = (() => {
         document.querySelectorAll('[data-place-tab]').forEach(button=>button.onclick=()=>{const menu=button.dataset.placeTab==='menu';document.getElementById('placeStructuredMenu').hidden=!menu;document.getElementById('placeStorePosts').hidden=menu;document.querySelectorAll('[data-place-tab]').forEach(b=>b.setAttribute('aria-selected',String(b===button)));if(!menu)listenToPlaceUpdates(p.id,isOwnerOrAdmin);else if(typeof placeUpdatesUnsub==='function'){placeUpdatesUnsub();placeUpdatesUnsub=null;}});
         document.querySelector('.commerce-tabs').onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...document.querySelectorAll('[data-place-tab]')],index=tabs.indexOf(document.activeElement),next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(index+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;tabs[next].click();tabs[next].focus();};
         window.ViciCommerce?.mountMenu(document.getElementById('placeStructuredMenu'),p.id,isOwnerOrAdmin);
+        // Aggregate rating lives on the place document. Update only its label;
+        // never reload the whole page (which delays the UI and resets panels).
+        try {
+            placeRatingUnsub = window.db.collection('places').doc(p.id).onSnapshot(doc => {
+                if (!doc.exists || window.currentPlaceReviewId !== p.id) return;
+                const data = doc.data() || {};
+                const current = cloudPlaces.find(item => item.id === p.id);
+                if (current) {
+                    current.avgRating = Number(data.avgRating || 0);
+                    current.ratingCount = Number(data.ratingCount ?? data.reviewCount ?? 0);
+                    current.reviewCount = Number(data.reviewCount ?? data.ratingCount ?? 0);
+                }
+                const box = document.getElementById('placeLiveRatingSummary');
+                if (!box || box.dataset.placeId !== p.id) return;
+                const score = Number(data.avgRating || 0), count = Number(data.ratingCount ?? data.reviewCount ?? 0);
+                const button = box.querySelector('.place-rating-jump');
+                if (!button) return;
+                const label = button.querySelector('[data-live-rating-text]');
+                if (label) label.textContent = score > 0 ? `${score.toFixed(1)} (${count} Ratings)` : 'New · No ratings yet';
+                button.style.background = score > 0 ? '#fef9c3' : '#f1f5f9';
+                button.style.color = score > 0 ? '#854d0e' : '#64748b';
+            }, err => console.warn('[ratings] Live rating display unavailable:', err?.code || err));
+        } catch (err) { console.warn('[ratings] Could not subscribe:', err); }
         // Suki Card section (customer card + Vicinify Scan / owner QR)
         if (window.Suki) window.Suki.mountPlaceSection(p, isOwnerOrAdmin);
         if (options?.focusReviews) {
@@ -2576,6 +2605,31 @@ window.MapPage = (() => {
         };
     };
 
+    let placePostPreviewUrl = null;
+    function clearPlacePostPreview() {
+        if (placePostPreviewUrl) URL.revokeObjectURL(placePostPreviewUrl);
+        placePostPreviewUrl = null;
+        const preview = document.getElementById('placePostImagePreview');
+        if (preview) { preview.removeAttribute('src'); preview.classList.add('hidden'); }
+        const status = document.getElementById('placePostUploadStatus');
+        if (status) status.textContent = 'Choose a photo to preview it before uploading.';
+    }
+    function previewSelectedPlacePhoto() {
+        clearPlacePostPreview();
+        const file = document.getElementById('placePostMedia')?.files?.[0];
+        if (!file) return;
+        const status = document.getElementById('placePostUploadStatus');
+        if (!file.type.startsWith('image/')) {
+            if (status) status.textContent = 'Please choose an image file.';
+            return;
+        }
+        placePostPreviewUrl = URL.createObjectURL(file);
+        const preview = document.getElementById('placePostImagePreview');
+        if (preview) { preview.src = placePostPreviewUrl; preview.classList.remove('hidden'); }
+        if (status) status.textContent = 'Preview only — this photo will be uploaded when you press Post Update.';
+    }
+    document.getElementById('placePostMedia')?.addEventListener('change', previewSelectedPlacePhoto);
+
     window.openPlacePostModal = async function (placeId, placeName) {
         const user = await requireVerifiedUser("post store updates");
         if (!user) return;
@@ -2595,6 +2649,7 @@ window.MapPage = (() => {
         postBodyEl.style.width = "";
         postBodyEl.style.height = "";
         document.getElementById('placePostMedia').value = "";
+        clearPlacePostPreview();
         const submitBtn = document.getElementById('submitPlacePostBtn');
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Post Update"; }
         const modal = document.getElementById('placePostModal');
@@ -2618,6 +2673,7 @@ window.MapPage = (() => {
         if (body) { body.value = ""; body.style.width = ""; body.style.height = ""; }
         const media = document.getElementById('placePostMedia');
         if (media) media.value = "";
+        clearPlacePostPreview();
         const box = modal.querySelector('.modalBox');
         if (box) box.scrollTop = 0;
     };
@@ -2658,13 +2714,34 @@ window.MapPage = (() => {
         if(contentProblem) return window.showToast(contentProblem,'error');
         btn.disabled = true;
         btn.textContent = "Posting...";
+        const uploadStatus = document.getElementById('placePostUploadStatus');
 
         try {
             let mediaUrl = null;
+            let lowResPhoto = false;
             if (fileInput.files && fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                mediaUrl = await window.uploadImageFileToStorage(file, `place_posts/${placeId}`, { maxWidth: 700, quality: 0.76 });
+                if (!file.type.startsWith('image/')) throw new Error('Choose a supported image.');
+                // A small JPEG reduces mobile upload time while keeping a usable feed image.
+                if (uploadStatus) uploadStatus.textContent = 'Optimizing photo and uploading to Firebase…';
+                btn.textContent = 'Uploading photo…';
+                try {
+                    mediaUrl = await window.uploadImageFileToStorage(file, `place_posts/${placeId}`, { maxWidth: 640, quality: 0.6 });
+                } catch (storageError) {
+                    // Storage may not be enabled on the site's current Firebase plan.
+                    // Post a *very small* JPEG thumbnail in the existing mediaUrl field
+                    // instead. Strict cap prevents bloating Firestore reads / document size.
+                    if (uploadStatus) uploadStatus.textContent = 'Photo storage unavailable. Preparing a smaller, low-resolution image…';
+                    let small = await window.compressImageFile(file, 280, 0.4);
+                    if (small.dataUrl.length > 24000) small = await window.compressImageFile(file, 180, 0.3);
+                    if (small.dataUrl.length > 24000) throw storageError;
+                    mediaUrl = small.dataUrl;
+                    lowResPhoto = true;
+                    if (uploadStatus) uploadStatus.textContent = 'Small photo ready. Saving the post…';
+                }
             }
+            if (uploadStatus && !lowResPhoto) uploadStatus.textContent = 'Saving post…';
+            btn.textContent = 'Saving post…';
 
             if(editPostId) {
                 const ref=window.db.collection('place_posts').doc(editPostId);
@@ -2683,9 +2760,10 @@ window.MapPage = (() => {
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            window.showToast("Menu/store post published.", "success");
+            window.showToast(lowResPhoto ? "Post published with a small low-resolution photo." : "Establishment post published.", "success");
             window.closePlacePostModal();
         } catch (e) {
+            if (uploadStatus) uploadStatus.textContent = 'Not published. ' + (e.message || 'Upload failed. Please retry.');
             window.showToast("Error: " + e.message, "error");
         } finally {
             btn.disabled = false;
@@ -2737,7 +2815,9 @@ window.MapPage = (() => {
                 type,
                 barangay: place.brgy || place.barangay || "Lipa City",
                 body: post.body || `New update from ${place.name || "this establishment"}.`,
-                mediaUrl: post.mediaUrl || null,
+                // A tiny Firestore thumbnail is not a shareable HTTPS media URL.
+                // Keep the post's text shareable without violating Buzz's URL-size limit.
+                mediaUrl: /^https:\/\//i.test(String(post.mediaUrl || '')) ? post.mediaUrl : null,
                 authorUid: user.uid,
                 authorName: AppState.userProfile?.fullName || user.displayName || "Store Admin",
                 isBusinessPost: true,
@@ -2802,11 +2882,10 @@ window.MapPage = (() => {
         if (!wrap) return;
         forcePlaceUpdatesFeedLayout(wrap);
 
-        placeUpdatesUnsub = window.db.collection("place_posts")
-            .where("placeId", "==", placeId)
-            .orderBy("createdAt", "desc")
-            .limit(30)
-            .onSnapshot(snap => {
+        let fallbackStarted = false;
+        let detached = false;
+        let currentUnsub = null;
+        const onData = snap => {
                 forcePlaceUpdatesFeedLayout(wrap);
                 if (snap.empty) {
                     wrap.innerHTML = `<div class="place-menu-empty"><i data-lucide="utensils"></i><strong>No establishment posts yet</strong><span>Businesses can post announcements, promos, and store updates here. Priced items are in the Menu tab.</span></div>`;
@@ -2825,7 +2904,10 @@ window.MapPage = (() => {
                     let imgHtml = "";
                     const safeMediaUrl = getSafeImageUrl(data.mediaUrl);
                     if (safeMediaUrl) {
-                        imgHtml = `<div class="place-menu-media"><a class="place-menu-image-link" href="${escapeHtml(safeMediaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Open post photo in full size"><img src="${escapeHtml(safeMediaUrl)}" alt="${escapeHtml(String(data.body || 'Establishment post photo').slice(0,100))}" loading="lazy" onerror="this.closest('.place-menu-media')?.remove()" /><span>View full image <i data-lucide="arrow-up-right"></i></span></a></div>`;
+                        const caption = escapeHtml(String(data.body || 'Establishment post photo').slice(0,100));
+                        imgHtml = safeMediaUrl.startsWith('data:image/')
+                            ? `<div class="place-menu-media"><img src="${escapeHtml(safeMediaUrl)}" alt="${caption}" loading="lazy" onerror="this.closest('.place-menu-media')?.remove()" /><span>Low-resolution photo</span></div>`
+                            : `<div class="place-menu-media"><a class="place-menu-image-link" href="${escapeHtml(safeMediaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Open post photo in full size"><img src="${escapeHtml(safeMediaUrl)}" alt="${caption}" loading="lazy" onerror="this.closest('.place-menu-media')?.remove()" /><span>View full image <i data-lucide="arrow-up-right"></i></span></a></div>`;
                     }
                     const sharedBadgeHtml = data.sharedToBuzz ? `
                         <span class="place-menu-shared"><i data-lucide="share-2"></i> Shared to Buzz</span>
@@ -2866,7 +2948,28 @@ window.MapPage = (() => {
                 wrap.innerHTML = html;
                 forcePlaceUpdatesFeedLayout(wrap);
                 window.debouncedIcons?.();
-            }, err => window.handleFirestoreError(err));
+            };
+        const onError = err => {
+            if (detached || document.getElementById('placeUpdatesList') !== wrap) return;
+            const missingIndex = err?.code === 'failed-precondition' || /requires an index|create an index/i.test(err?.message || '');
+            if (missingIndex && !fallbackStarted) {
+                fallbackStarted = true;
+                start(true);
+                return;
+            }
+            wrap.innerHTML = '<p role="alert">Could not load establishment posts. Check your connection.</p><button type="button" data-post-retry>Retry</button>';
+            wrap.querySelector('[data-post-retry]')?.addEventListener('click', () => listenToPlaceUpdates(placeId,canManageCurrentPlace));
+            window.handleFirestoreError?.(err);
+        };
+        const start = useFallback => {
+            if (detached) return;
+            currentUnsub?.();
+            let q = window.db.collection('place_posts').where('placeId','==',placeId);
+            q = useFallback ? q.limit(60) : q.orderBy('createdAt','desc').limit(30);
+            currentUnsub = q.onSnapshot(onData,onError);
+        };
+        placeUpdatesUnsub = () => { detached = true; currentUnsub?.(); };
+        start(false);
     }
 
     function getRequestMetaForSubmit(type) {

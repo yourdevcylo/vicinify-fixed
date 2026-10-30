@@ -805,56 +805,102 @@ globalBookingsUnsub.push(bookingUnsub);
     let sukiUnsubs = [];
     const sukiRequestMap = new Map();
     const sukiClaimMap = new Map();
-
+    const sukiInboxLoadIssues = new Map();
+    let sukiListenGeneration = 0;
     let activeSukiKey = "";
-    function listenToSukiInbox(ownerUid, placeIds) {
-        // Same re-entry guard as the global inbox.
-        const sukiKey = (ownerUid || "") + "|" + (placeIds || []).slice().sort().join(",");
-        if (ownerUid && placeIds && placeIds.length && sukiKey === activeSukiKey && sukiUnsubs.length) return;
+
+    // Keep listening for owner requests even when the Firestore composite
+    // index has not been deployed. The index-backed query remains the fast
+    // path; the bounded placeId-only query is a safe compatibility fallback.
+    function listenToSukiInbox(ownerUid, placeIds, force = false) {
+        const sortedIds = [...new Set(placeIds || [])].sort();
+        const sukiKey = (ownerUid || "") + "|" + sortedIds.join(",");
+        if (!force && ownerUid && sortedIds.length && sukiKey === activeSukiKey && sukiUnsubs.length) return;
         activeSukiKey = sukiKey;
-        sukiUnsubs.forEach(unsub => { if (typeof unsub === "function") unsub(); });
+        sukiListenGeneration++;
+        sukiUnsubs.forEach(unsub => { try { unsub?.(); } catch (_) {} });
         sukiUnsubs = [];
         sukiRequestMap.clear();
         sukiClaimMap.clear();
+        sukiInboxLoadIssues.clear();
 
-        const sukiWrap = document.getElementById("biz-panel-suki");
-        if (!ownerUid || !placeIds || placeIds.length === 0) {
+        const wrap = document.getElementById("biz-panel-suki");
+        if (!ownerUid || !sortedIds.length) {
             setNotifBadge("ownerSukiBadge", 0);
-            if (sukiWrap) sukiWrap.innerHTML = `<div style="text-align:center; padding:30px; color:var(--ui-muted); font-size:15px;">No Suki Card requests yet.</div>`;
+            const quick = document.getElementById('ownerSukiQuickLink');
+            quick?.classList.add('hidden');
+            if (wrap) wrap.innerHTML = `<div style="text-align:center;padding:30px;color:var(--ui-muted);">No Suki Card requests yet.</div>`;
             return;
         }
 
-        // Bounded: pending stamp requests for this owner's places.
-        // Filtered by placeId (not owner_uid) so requests are found even
-        // when the request's owner_uid field is empty.
-        chunkArray(placeIds, 10).forEach(chunk => {
-            sukiUnsubs.push(window.db.collection("stamp_requests")
-                .where("placeId", "in", chunk)
-                .where("status", "==", "pending")
-                .limit(20)
-                .onSnapshot(snap => {
-                    snap.docChanges().forEach(change => {
-                        if (change.type === "removed") sukiRequestMap.delete(change.doc.id);
-                        else sukiRequestMap.set(change.doc.id, { id: change.doc.id, ...change.doc.data() });
-                    });
-                    renderSukiPanel();
-                }, err => window.handleFirestoreError(err)));
-        });
+        const generation = sukiListenGeneration;
+        function watchChunk(collection, chunk, field, expected, store, streamKey) {
+            let unsubscribe = null;
+            let stopped = false;
+            let fallback = false;
+            const trackedIds = new Set();
+            const stillActive = () => !stopped && generation === sukiListenGeneration &&
+                window.auth?.currentUser?.uid === ownerUid;
 
-        // Claim requests on this owner's cards (bounded per place chunk).
-        chunkArray(placeIds, 10).forEach(chunk => {
-            sukiUnsubs.push(window.db.collection("loyalty_cards")
-                .where("placeId", "in", chunk)
-                .where("claimRequested", "==", true)
-                .limit(20)
-                .onSnapshot(snap => {
-                    snap.docChanges().forEach(change => {
-                        if (change.type === "removed") sukiClaimMap.delete(change.doc.id);
-                        else sukiClaimMap.set(change.doc.id, { id: change.doc.id, ...change.doc.data() });
-                    });
-                    renderSukiPanel();
-                }, err => window.handleFirestoreError(err)));
+            const onData = snap => {
+                if (!stillActive()) return;
+                trackedIds.forEach(id => store.delete(id));
+                trackedIds.clear();
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    if (d[field] !== expected || (field === 'claimRequested' && d.claimed)) return;
+                    store.set(doc.id, { id: doc.id, ...d });
+                    trackedIds.add(doc.id);
+                });
+                sukiInboxLoadIssues.delete(streamKey);
+                renderSukiPanel();
+            };
+
+            const onError = error => {
+                if (!stillActive()) return;
+                const missingIndex = error?.code === 'failed-precondition' ||
+                    /requires an index|create an index/i.test(error?.message || '');
+                if (missingIndex && !fallback) {
+                    fallback = true;
+                    // Netlify deploys the website but does not deploy Firestore indexes.
+                    // Keep the approvals accessible until the index is deployed.
+                    try { unsubscribe?.(); } catch (_) {}
+                    start(true);
+                    return;
+                }
+                console.warn('[suki] Business inbox listener failed:', error);
+                sukiInboxLoadIssues.set(streamKey, error?.code === 'permission-denied'
+                    ? 'You do not have permission to view these requests. Check the establishment owner account.'
+                    : 'The Suki request list could not load. Check your connection and try again.');
+                renderSukiPanel();
+            };
+            const start = useFallback => {
+                if (!stillActive()) return;
+                let query = window.db.collection(collection).where('placeId', 'in', chunk);
+                query = useFallback ? query.limit(100)
+                    : query.where(field, '==', expected).limit(50);
+                unsubscribe = query.onSnapshot(onData, onError);
+            };
+            start(false);
+            return () => {
+                stopped = true;
+                try { unsubscribe?.(); } catch (_) {}
+                trackedIds.forEach(id => store.delete(id));
+            };
+        }
+
+        chunkArray(sortedIds, 10).forEach((chunk, i) => {
+            sukiUnsubs.push(watchChunk('stamp_requests', chunk, 'status', 'pending', sukiRequestMap, `requests-${i}`));
+            sukiUnsubs.push(watchChunk('loyalty_cards', chunk, 'claimRequested', true, sukiClaimMap, `claims-${i}`));
         });
+    }
+
+    function openSukiInbox() {
+        if (!window.auth?.currentUser) return;
+        if (typeof window.showPage === 'function') window.showPage('page-dashboard');
+        const tab = document.querySelector('#ownerInboxSection .biz-tab[data-biztab="suki"]');
+        if (tab && typeof tab.click === 'function') tab.click();
+        document.getElementById('ownerInboxSection')?.scrollIntoView?.({ behavior:'smooth', block:'start' });
     }
 
     function renderSukiPanel() {
@@ -866,7 +912,16 @@ globalBookingsUnsub.push(bookingUnsub);
         const claims = Array.from(sukiClaimMap.values())
             .filter(c => !c.claimed)
             .sort((a, b) => (b.claimRequestedAt?.toMillis?.() || 0) - (a.claimRequestedAt?.toMillis?.() || 0));
-        setNotifBadge("ownerSukiBadge", reqs.length + claims.length);
+        const sukiPending = reqs.length + claims.length;
+        setNotifBadge("ownerSukiBadge", sukiPending);
+        const quick = document.getElementById('ownerSukiQuickLink');
+        if (quick) {
+            quick.classList.toggle('hidden', sukiPending === 0);
+            const number = document.getElementById('ownerSukiQuickCount');
+            const title = document.getElementById('ownerSukiQuickTitle');
+            if (number) number.textContent = sukiPending > 9 ? '9+' : String(sukiPending);
+            if (title) title.textContent = `${sukiPending} pending Suki ${sukiPending === 1 ? 'request' : 'requests'}`;
+        }
 
         let html = `<div style="font-size:14px; font-weight:800; color:var(--ui-ink); margin:12px 0;">Requesting a stamp (${reqs.length})</div>`;
         if (reqs.length === 0) {
@@ -913,7 +968,12 @@ globalBookingsUnsub.push(bookingUnsub);
             });
         }
 
+        if (sukiInboxLoadIssues.size) {
+            html = `<div class="suki-inbox-load-error" role="alert"><strong>Suki inbox needs attention</strong><p>${Array.from(new Set(sukiInboxLoadIssues.values())).map(escapeHtml).join(' ')}</p><button type="button" id="retryOwnerSukiInbox">Retry loading requests</button></div>` + html;
+        }
         wrap.innerHTML = html;
+        wrap.querySelector('#retryOwnerSukiInbox')?.addEventListener('click', () =>
+            listenToSukiInbox(window.auth?.currentUser?.uid, currentAdminPlaces.map(p => p.id), true));
         window.debouncedIcons?.();
     }
     async function deleteChatThread(userId, placeId, event) {
@@ -2727,12 +2787,16 @@ let updateData = {
     function stopAllListeners() {
         activeInboxKey = "";
         activeSukiKey = "";
+        sukiListenGeneration++;
         globalBookingsUnsub.forEach(u => { try { if (typeof u === "function") u(); } catch (e) {} });
         globalMessagesUnsub.forEach(u => { try { if (typeof u === "function") u(); } catch (e) {} });
         globalBookingsUnsub = [];
         globalMessagesUnsub = [];
         sukiUnsubs.forEach(u => { try { if (typeof u === "function") u(); } catch (e) {} });
         sukiUnsubs = [];
+        sukiRequestMap.clear();
+        sukiClaimMap.clear();
+        sukiInboxLoadIssues.clear();
         if (bizPostsUnsub) { try { bizPostsUnsub(); } catch (e) {} bizPostsUnsub = null; }
         // The customer hub (My Activity) also lives on this page for standard users.
         try { window.SettingsPage?.stopAllListeners?.(); } catch (e) {}
@@ -2757,6 +2821,7 @@ let updateData = {
         approveStampRequest: (id) => window.Suki?.approveRequest(id),
         rejectStampRequest: (id) => window.Suki?.rejectRequest(id),
         markSukiClaimed: (id) => window.Suki?.markClaimed(id),
+        openSukiInbox,
         loadAdminUsers,
         updateUserRole,
         deleteChatThread,

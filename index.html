@@ -435,6 +435,12 @@
                     </div>
                     <span class="section-note">Unread badges clear when checked, history remains protected.</span>
                 </div>
+                <button type="button" id="ownerSukiQuickLink" class="owner-suki-quick-link hidden" onclick="window.DashboardPage.openSukiInbox()" aria-live="polite">
+                    <span class="owner-suki-quick-icon"><i data-lucide="stamp" aria-hidden="true"></i></span>
+                    <span class="owner-suki-quick-text"><strong id="ownerSukiQuickTitle">Suki stamp requests</strong><small>Tap to review, approve, or reject</small></span>
+                    <span class="owner-suki-quick-count" id="ownerSukiQuickCount">0</span>
+                    <i data-lucide="chevron-right" aria-hidden="true"></i>
+                </button>
                 <div class="biz-portal-tabs pro-tabs">
                     <button class="biz-tab active" data-biztab="bookings"><i data-lucide="receipt-text"></i> Transactions <span class="biz-badge hidden" id="ownerBookBadge">0</span></button>
                     <button class="biz-tab" data-biztab="messages"><i data-lucide="message-square"></i> Messages <span class="biz-badge hidden" id="ownerMsgBadge">0</span></button>
@@ -949,6 +955,8 @@
                     <div class="field" style="margin-bottom: 14px;">
                         <label style="font-size: 13px; font-weight:600; color: #475569; display: block; margin-bottom: 6px;">Add Photo (Menu/Product)</label>
                         <input type="file" id="placePostMedia" accept="image/*" style="width: 100%; border: 2px dashed #cbd5e1; background: #f8fafc; padding: 12px; border-radius: 12px; cursor: pointer;" />
+                        <img id="placePostImagePreview" class="hidden" alt="Selected photo preview (not published yet)" style="display:block;width:100%;max-height:210px;object-fit:contain;margin-top:10px;border:1px solid var(--ui-border);border-radius:10px;background:var(--ui-soft);" />
+                        <p id="placePostUploadStatus" role="status" aria-live="polite" style="font-size:12px;color:var(--ui-muted);margin:8px 0 0;">Choose a photo to preview it before uploading.</p>
                     </div>
                 </div>
                 <div class="modalFooter" style="display: flex; justify-content: flex-end; gap: 10px; margin-top:20px;">

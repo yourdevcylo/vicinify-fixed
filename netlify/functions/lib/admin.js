@@ -44,9 +44,25 @@ async function limit(userId, scope, maximum, intervalMs = 60000) {
     });
 }
 
+// Calendar-day limits are counted in Asia/Manila, not a rolling 24-hour window.
+// Firestore transaction ensures parallel tabs/devices share the same allowance.
+function manilaDay(now = Date.now()) {
+    return new Date(now + 8 * 60 * 60 * 1000).toISOString().slice(0,10).replaceAll('-', '');
+}
+async function limitDaily(userId, scope, maximum = 20, now = Date.now(), options = {}) {
+    const db = options.db || services().db;
+    const ref = db.collection('_rate_limits').doc(`${scope}_${manilaDay(now)}_${userId}`);
+    await db.runTransaction(async transaction => {
+        const snapshot = await transaction.get(ref);
+        const count = (snapshot.data()?.count || 0) + 1;
+        if (count > maximum) throw Object.assign(new Error(`Daily AI limit reached (${maximum} questions). Try again tomorrow.`), { status: 429 });
+        transaction.set(ref, { count, startedAt: now });
+    });
+}
+
 function reply(statusCode, body) {
     return { statusCode, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }, body: JSON.stringify(body) };
 }
 
-module.exports = { services, authenticate, identifier, limit, reply };
+module.exports = { services, authenticate, identifier, limit, limitDaily, manilaDay, reply };
 
