@@ -1,12 +1,15 @@
 const {authenticate,services,limit,identifier,reply}=require('./lib/admin');
 const Menu=require('./lib/menu');
 exports.handler=async event=>{if(event.httpMethod!=='POST')return reply(405,{error:'POST only'});try{
- const user=await authenticate(event);if((event.body||'').length>24000)return reply(413,{error:'Menu update is too large.'});const body=JSON.parse(event.body||'{}'),placeId=identifier(body.placeId),{db,FieldValue}=services();await limit(user.uid,'menu_edit',30);
+ const user=await authenticate(event);if((event.body||'').length>95000)return reply(413,{error:'Menu update is too large.'});const body=JSON.parse(event.body||'{}'),placeId=identifier(body.placeId),{db,FieldValue}=services();await limit(user.uid,'menu_edit',30);
  const itemId=body.itemId?identifier(body.itemId):db.collection('places').doc(placeId).collection('menu_items').doc().id;
  await db.runTransaction(async tx=>{const place=await tx.get(db.collection('places').doc(placeId));if(!place.exists||place.data().owner_uid!==user.uid)throw Object.assign(new Error('Only the current establishment owner can manage this menu.'),{status:403});if(place.data().ownershipTransferPending||(await tx.get(db.collection('account_deletions').doc(user.uid))).exists)throw Object.assign(new Error('Menu changes are unavailable during account closure or ownership transfer.'),{status:409});
  if(body.action==='settings'){if(typeof body.acceptsOrders!=='boolean')throw Object.assign(new Error('Choose whether menu orders are enabled.'),{status:400});tx.update(db.collection('places').doc(placeId),{accepts_orders:body.acceptsOrders,updatedAt:FieldValue.serverTimestamp()});return;}
  const ref=db.collection('places').doc(placeId).collection('menu_items').doc(itemId),old=await tx.get(ref);if(body.action!=='save'&&body.action!=='archive')throw Object.assign(new Error('Unknown menu action.'),{status:400});if(body.action==='archive'&&!old.exists)throw Object.assign(new Error('Menu item not found.'),{status:404});
  if(!old.exists){const active=await tx.get(db.collection('places').doc(placeId).collection('menu_items').where('archived','==',false).limit(81));if(active.docs.length>=80)throw Object.assign(new Error('Maximum 80 active menu items. Archive an item first.'),{status:409});}
- const data=body.action==='archive'?{...old.data(),archived:true,available:false}:Menu.item(body.item||{});tx.set(ref,{...data,version:(Number(old.data()?.version)||0)+1,createdAt:old.data()?.createdAt||FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()});
+ const data=body.action==='archive'?{...old.data(),archived:true,available:false}:Menu.item(body.item||{});
+ // Preserve uploaded photo when an older client edits a menu record without photoData.
+ if(body.action==='save'&&old.exists&&body.item?.photoData===undefined)data.photoData=old.data()?.photoData||'';
+ tx.set(ref,{...data,version:(Number(old.data()?.version)||0)+1,createdAt:old.data()?.createdAt||FieldValue.serverTimestamp(),updatedAt:FieldValue.serverTimestamp()});
  });return reply(200,{saved:true,itemId});
  }catch(e){return reply(e.status||(e instanceof SyntaxError?400:500),{error:e.status?e.message:'Menu could not be updated.'});}};

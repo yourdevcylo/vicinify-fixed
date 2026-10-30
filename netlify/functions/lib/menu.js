@@ -7,9 +7,19 @@ function item(input){
  const groups=Array.isArray(input.optionGroups)?input.optionGroups:[];if(groups.length>4)fail('Maximum four option groups.');
  const seen=new Set();const optionGroups=groups.map((g,index)=>{const key=g.id?id(g.id):'g'+index;if(seen.has(key))fail('Duplicate option group.');seen.add(key);const choices=Array.isArray(g.choices)?g.choices:[];if(!choices.length||choices.length>12)fail('Add 1–12 choices per option group.');const keys=new Set();return{id:key,name:text(g.name,60,true),required:g.required===true,maxSelect:Number.isInteger(g.maxSelect)&&g.maxSelect>=1&&g.maxSelect<=choices.length?g.maxSelect:1,choices:choices.map((c,i)=>{const key=c.id?id(c.id):'c'+i;if(keys.has(key))fail('Duplicate option.');keys.add(key);return{id:key,name:text(c.name,80,true),priceCents:cents(c.priceCents),available:c.available!==false};})};});
  const photoUrl=input.photoUrl?text(input.photoUrl,1500):'';if(photoUrl){let u;try{u=new URL(photoUrl);}catch{fail('Enter a valid HTTPS photo URL.');}if(u.protocol!=='https:')fail('Photo must use HTTPS.');}
- return{name:text(input.name,100,true),description:text(input.description||'',1000),category:text(input.category||'Other',60,true),priceCents:cents(input.priceCents),currency:'PHP',photoUrl,available:input.available!==false,archived:input.archived===true,optionGroups};
+ // Save tiny WebP data only. Never accept SVG, HTML, URLs or arbitrary base64 here.
+ const photoData=input.photoData===undefined||input.photoData===null?'':input.photoData;
+ if(typeof photoData!=='string')fail('Invalid photo format.');
+ if(photoData){
+  const match=/^data:image\/webp;base64,([A-Za-z0-9+/]+={0,2})$/.exec(photoData);
+  if(!match||photoData.length>42000)fail('Menu photo must be a small WebP image (maximum 28 KB).');
+  const bytes=Buffer.from(match[1],'base64');
+  if(bytes.length<20||bytes.length>28*1024||bytes.toString('ascii',0,4)!=='RIFF'||bytes.toString('ascii',8,12)!=='WEBP'||!['VP8 ','VP8L','VP8X'].includes(bytes.toString('ascii',12,16))||bytes.readUInt32LE(4)+8!==bytes.length||bytes.toString('base64')!==match[1])fail('Invalid WebP photo data.');
+ }
+ return{name:text(input.name,100,true),description:text(input.description||'',1000),category:text(input.category||'Other',60,true),priceCents:cents(input.priceCents),currency:'PHP',photoUrl,photoData,available:input.available!==false,archived:input.archived===true,optionGroups};
 }
-function publicItem(doc){const d=doc.data();return {id:doc.id,...item(d),version:Number(d.version)||1};}
+function publicItem(doc){const d=doc.data();const {photoData,...safe}=item(d);return {id:doc.id,...safe,version:Number(d.version)||1};} // No base64 in AI prompts or order quotes.
+
 function optionsFor(menu,source){const options=source&&typeof source==='object'&&!Array.isArray(source)?source:{};if(Object.keys(options).some(key=>!menu.optionGroups.some(g=>g.id===key)))fail('Unknown item option.');let extra=0;const chosen={},labels=[];
  for(const group of menu.optionGroups){const values=options[group.id]||[];if(!Array.isArray(values)||new Set(values).size!==values.length||values.length>group.maxSelect||group.required&&!values.length)fail('Choose the required options for '+menu.name+'.',422);chosen[group.id]=values;for(const key of values){const choice=group.choices.find(c=>c.id===key);if(!choice||!choice.available)fail('A selected menu option is unavailable.',409);extra+=choice.priceCents;labels.push(group.name+': '+choice.name);}}
  return{extra,chosen,labels};
