@@ -9,11 +9,13 @@
     admin: { label: 'Admin User', email: 'yourdevcylo@gmail.com', icon: 'shield-check' }
   });
   const key = 'vicinify.capstone.defaultRole.v1';
+  const previousKey = 'vicinify.capstone.previousRole.v1';
   const params = new URLSearchParams(location.search);
   const requestedRole = Object.hasOwn(accounts, params.get('demoRole')) ? params.get('demoRole') : '';
   const roleFromEmail = email => Object.keys(accounts).find(k => accounts[k].email === String(email || '').trim().toLowerCase()) || '';
   const readBootstrap = () => { try { const role = localStorage.getItem(key); return Object.hasOwn(accounts, role) ? role : ''; } catch { return ''; } };
   const writeBootstrap = role => { try { if (!readBootstrap() && Object.hasOwn(accounts, role)) localStorage.setItem(key, role); } catch {} };
+  const previousRole = () => { try { const role=localStorage.getItem(previousKey); return Object.hasOwn(accounts,role) ? role : readBootstrap(); } catch { return readBootstrap(); } };
   let auth = null;
   let current = null;
   let menuBound = false;
@@ -30,14 +32,33 @@
   }
   function loginHint(user) {
     const note = document.getElementById('demoSignInHint');
-    if (!note) return;
+    const chooser = document.getElementById('demoLoginOptions');
     const target = selectedAccount();
-    show(note, !!target && !user);
-    if (target && !user) {
+    const isCorrect = !!target && roleFromEmail(user?.email) === requestedRole;
+    const hasDemoSetup = !!readBootstrap();
+    // Keep normal registration and non-demo login unchanged.
+    const needsSelection = !!target && !isCorrect;
+    show(note, needsSelection);
+    show(chooser, needsSelection && hasDemoSetup);
+    if (needsSelection && note) {
+      if (user) {
+        note.textContent = `CAPSTONE DEMO · ${target.label} is selected, but this browser slot is signed in to a different account. Use the correct account for this slot.`;
+      } else {
+        note.textContent = `CAPSTONE DEMO · ${target.label} selected. Sign in once with ${target.email}. After that, use the DEMO dropdown to switch quickly.`;
+      }
       const input = document.getElementById('loginEmail');
-      // Prefill only when blank; never touch a typed password or email.
-      if (input && !input.value) input.value = target.email;
-      note.textContent = 'CAPSTONE DEMO · Sign in to ' + target.label + ' once to keep this account ready for quick switching.';
+      if (!user && input && (!input.value || roleFromEmail(input.value) && roleFromEmail(input.value) !== requestedRole)) input.value = target.email;
+    }
+    chooser?.querySelectorAll('[data-demo-login-role]').forEach(button => {
+      const role=button.getAttribute('data-demo-login-role');
+      button.setAttribute('aria-current',role===requestedRole?'true':'false');
+      button.disabled=role===requestedRole;
+    });
+    const back = document.getElementById('demoLoginBack');
+    if (back) {
+      const previous = previousRole();
+      show(back, !!previous && previous!==requestedRole && hasDemoSetup);
+      if (previous && previous!==requestedRole) back.textContent='← Back to '+accounts[previous].label;
     }
   }
   function closeMenu() {
@@ -70,6 +91,11 @@
     if (!Object.hasOwn(accounts, role) || !roleFromEmail(auth?.currentUser?.email)) return;
     closeMenu();
     if (role === activeRole()) return;
+    try { localStorage.setItem(previousKey, activeRole()); } catch {}
+    navigateTo(role);
+  }
+  function navigateTo(role) {
+    if (!Object.hasOwn(accounts,role) || !readBootstrap()) return;
     const url = new URL(location.href);
     url.searchParams.set('demoRole', role);
     // Full navigation cleans up all Firestore listeners, maps, modals, and drafts.
@@ -89,6 +115,8 @@
         trigger.setAttribute('aria-expanded',opening?'true':'false');
       });
       menu?.querySelectorAll('[data-demo-switch-role]').forEach(button => button.addEventListener('click',()=>switchTo(button.dataset.demoSwitchRole)));
+      document.getElementById('demoLoginOptions')?.querySelectorAll('[data-demo-login-role]').forEach(button => button.addEventListener('click',()=>navigateTo(button.dataset.demoLoginRole)));
+      document.getElementById('demoLoginBack')?.addEventListener('click',()=>navigateTo(previousRole()));
       document.addEventListener('click',e=>{if(!document.getElementById('demoQuickSwitch')?.contains(e.target))closeMenu();});
       document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
       render(auth?.currentUser);

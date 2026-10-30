@@ -10,3 +10,14 @@
 #demoSignInHint { color:#137d6d; background:#effbf5; border:1px solid #bce6d2; padding:12px; margin:12px 0; border-radius:10px; font-size:12px; line-height:1.5; }
 @media(max-width:800px) { .workspace-actions { gap:8px; } #demoSwitchTrigger { padding:7px 8px; } #demoSwitchTrigger .demo-switch-label { max-width:90px; overflow:hidden; text-overflow:ellipsis; } #demoSwitchOptions { right:-43px; min-width:min(252px,calc(100vw - 24px)); } }
 @media(max-width:360px) { #demoSwitchTrigger .demo-switch-label { max-width:58px; } }
+
+/* Clear first-time role selection instead of a confusing dead-end login page. */
+html body.vicinify-ui .demo-login-options{display:grid;gap:10px;margin:0 0 16px;padding:13px;border:1px solid var(--ui-border,#d8e4df);border-radius:12px;background:var(--ui-soft,#f0f6f2)}
+html body.vicinify-ui .demo-login-options[hidden]{display:none!important}
+html body.vicinify-ui .demo-login-options-title{font-size:11px;font-weight:750;color:var(--ui-ink,#183d34)}
+html body.vicinify-ui .demo-login-roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+html body.vicinify-ui .demo-login-roles button{min-width:0;min-height:42px;padding:8px 3px;font-size:12px;font-weight:650;border:1px solid var(--ui-border,#d8e4df);border-radius:9px;background:var(--ui-surface,#fff);color:var(--ui-ink,#183d34);cursor:pointer}
+html body.vicinify-ui .demo-login-roles button[aria-current=true]{color:#117468;border-color:#79bca8;background:#e6f5ef;cursor:default}
+html body.vicinify-ui .demo-login-back{min-height:40px;padding:9px 11px;border:1px solid #87caba;border-radius:9px;background:var(--ui-surface,#fff);color:var(--ui-accent,#137d6d);text-align:center;font-size:12px;font-weight:700;cursor:pointer}
+html body.vicinify-ui .demo-login-back[hidden]{display:none!important}
+html body.vicinify-ui #demoSignInHint { font-size:13px;line-height:1.55;overflow-wrap:anywhere }
