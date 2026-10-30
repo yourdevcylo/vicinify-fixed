@@ -466,6 +466,8 @@ service cloud.firestore {
       allow delete: if verifiedEmail() && (isAdmin() || isPlaceOwner(resource.data.placeId));
     }
 
+    match /_admin_backups/{backupId} { allow read, write: if false; }
+
     match /admin_audit/{entryId} {
       // Written by admins as actions happen; readable only by admins.
       // Entries are never edited or deleted (append-only trail).

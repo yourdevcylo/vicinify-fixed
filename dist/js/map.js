@@ -240,7 +240,7 @@ window.MapPage = (() => {
         finally { if (_placesInFlight === run) _placesInFlight = null; }
     }
     const publicCacheKey='vicinify:approved-catalog:20261028';
-    const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','hours','operatingHours','operating_hours','is_verified','owner_uid','addedBy','approval_status','avgRating','reviewCount','ratingCount','priceRange','accepts_booking','accepts_orders','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
+    const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','hours','operatingHours','operating_hours','is_verified','owner_uid','addedBy','approval_status','avgRating','reviewCount','ratingCount','priceRange','accepts_booking','accepts_orders','accepts_advance_booking','accepts_requests','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
     function readPublicSessionCache(now) {
         try {
             const cached=JSON.parse(window.sessionStorage?.getItem(publicCacheKey)||'null');
@@ -2265,8 +2265,8 @@ window.MapPage = (() => {
 
                 <div class="placeActionBtns">
                     <button class="btnNav" onclick="window.routeToPlace(${p.lat}, ${p.lng})" style="display:flex; align-items:center; justify-content:center; gap:8px;"><i data-lucide="send"></i> <span data-i18n="Navigate">Navigate</span></button>
-                    <button class="btnBook" onclick="window.openBookingModal('${p.id}', '${safeName}')" style="display:flex; align-items:center; justify-content:center; gap:8px;"><i data-lucide="calendar"></i> <span data-i18n="Send Request">Send Request</span></button>
-                    <button class="btnBook" style="background:#eef2ff; color:#3b82f6; border:none; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="window.openChatModal('${p.id}', '${safeName}')"><i data-lucide="message-square"></i> <span data-i18n="Message">Message</span></button>
+                    ${(p.accepts_booking === true || p.accepts_orders === true || p.accepts_advance_booking === true) ? `<button class="btnBook" onclick="window.openBookingModal('${p.id}', '${safeName}')" style="display:flex; align-items:center; justify-content:center; gap:8px;"><i data-lucide="calendar"></i> <span data-i18n="Send Request">Send Request</span></button>` : ''}
+                    ${p.accepts_requests !== false ? `<button class="btnBook" style="background:#eef2ff; color:#3b82f6; border:none; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="window.openChatModal('${p.id}', '${safeName}')"><i data-lucide="message-square"></i> <span data-i18n="Message">Message</span></button>` : ''}
                 </div>
                 ${trustActionsHtml}
                 <div id="placeSukiSection"></div>
@@ -3094,11 +3094,18 @@ window.MapPage = (() => {
         const orderBtn = document.getElementById("reqGroupOrder");
         const selectedMeta = getRequestMetaForSubmit(selected);
 
+        document.querySelectorAll('[data-request-type]').forEach(btn => {
+            const allowed = !currentRequestServices || requestEnabled(btn.dataset.requestType, currentRequestServices);
+            btn.disabled = !allowed;
+            btn.style.display = allowed ? '' : 'none';
+        });
         renderBookingChoiceContent();
 
         if (resBox) resBox.style.display = group === "reservation" ? "block" : "none";
         if (orderBox) orderBox.style.display = group === "order" ? "block" : "none";
 
+        if (resBtn) resBtn.style.display = !currentRequestServices || ['table_reservation','food_reservation'].some(t=>requestEnabled(t,currentRequestServices)) ? '' : 'none';
+        if (orderBtn) orderBtn.style.display = !currentRequestServices || ['pickup_order','delivery_order','advance_order'].some(t=>requestEnabled(t,currentRequestServices)) ? '' : 'none';
         styleRequestButton(resBtn, group === "reservation", { color: "#2563eb", light: "#eff6ff", dark: "#1d4ed8" });
         styleRequestButton(orderBtn, group === "order", { color: "#7c3aed", light: "#f5f3ff", dark: "#5b21b6" });
 
@@ -3113,11 +3120,26 @@ window.MapPage = (() => {
     }
 
     window.setRequestGroup = function(group) {
-        const nextType = group === "order" ? "pickup_order" : "table_reservation";
-        window.setRequestTypeChoice(nextType);
+        const choices = group === 'order' ? ['pickup_order','delivery_order','advance_order'] : ['table_reservation','food_reservation'];
+        const nextType = choices.find(t => !currentRequestServices || requestEnabled(t,currentRequestServices));
+        if (nextType) window.setRequestTypeChoice(nextType);
     };
 
+    let currentRequestServices = null;
+    function requestEnabled(type, place) {
+        if (!place) return false;
+        if (type === 'table_reservation') return place.accepts_booking === true;
+        if (type === 'food_reservation' || type === 'advance_order') return place.accepts_advance_booking === true || (place.accepts_advance_booking == null && place.accepts_booking === true);
+        return place.accepts_orders === true;
+    }
+    function firstEnabledRequest(place) {
+        return ['table_reservation','food_reservation','pickup_order','delivery_order','advance_order'].find(t => requestEnabled(t,place));
+    }
     window.setRequestTypeChoice = function(type) {
+        if (currentRequestServices && !requestEnabled(type,currentRequestServices)) {
+            window.showToast?.('This service is disabled by the establishment.', 'info');
+            return;
+        }
         const input = document.getElementById("bookType");
         if (input) input.value = type;
         window.updateRequestTypeFields();
@@ -3317,24 +3339,18 @@ window.MapPage = (() => {
         const user = await requireVerifiedUser("send a request");
         if (!user) return;
 
+        let placeForRequest;
         try {
-            // Cache-first: the map already holds this place's data.
-            const cachedPlace = cloudPlaces.find(x => x.id === placeId);
-            if (cachedPlace) {
-                if(cachedPlace.accepts_booking===false){window.showToast('This establishment is not accepting requests. Please message the business.','info');return false;}
-                if (cachedPlace.owner_uid === user.uid) {
-                    return window.showToast("This is your own establishment. You cannot send a request to yourself.", "error");
-                }
-            } else {
-                const placeDoc = await window.db.collection("places").doc(placeId).get();
-                if(placeDoc.exists&&placeDoc.data().accepts_booking===false){window.showToast('This establishment is not accepting requests. Please message the business.','info');return false;}
-                if (placeDoc.exists && placeDoc.data().owner_uid === user.uid) {
-                    return window.showToast("This is your own establishment. You cannot send a request to yourself.", "error");
-                }
-            }
+            const placeDoc = await window.db.collection('places').doc(placeId).get();
+            if (!placeDoc.exists) return window.showToast?.('Establishment not found.', 'error');
+            placeForRequest = placeDoc.data();
+            if (placeForRequest.owner_uid === user.uid) return window.showToast?.('You cannot send a request to your own establishment.', 'error');
+            if (!firstEnabledRequest(placeForRequest)) return window.showToast?.('This establishment is not accepting new bookings or orders.', 'info');
         } catch (e) {
-            console.warn("Own establishment check failed:", e);
+            console.error('Could not verify service availability:', e);
+            return window.showToast?.('Could not check services. Please try again.', 'error');
         }
+        currentRequestServices = placeForRequest;
 
         const modal = document.getElementById("bookingModal");
         if (bookingSending) return;
@@ -3358,9 +3374,10 @@ window.MapPage = (() => {
         syncBookingSchedule();
 
         const typeSelect = document.getElementById("bookType");
-        if (typeSelect) typeSelect.value = "table_reservation";
+        const initialType = firstEnabledRequest(currentRequestServices);
+        if (typeSelect) typeSelect.value = initialType;
 
-        updateRequestPickerUI("table_reservation");
+        updateRequestPickerUI(initialType);
         window.updateRequestTypeFields();
         if(assistedDraft){
             const d=window.ViciRequest.clean(assistedDraft);

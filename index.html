@@ -466,6 +466,12 @@
                     <p id="categoryManagerNotice" role="status" aria-live="polite"></p>
                     <div id="categoryManagerList" class="category-manager-list">Loading categories…</div>
                 </section>
+<section class="category-manager" id="adminDatabaseManagement" aria-label="Database management" style="margin-top:18px">
+ <div class="category-manager-heading"><div><h4>Database Management</h4><p>Admin-only exports, JSON imports and downloadable backups. Firebase Auth and uploaded photos are not included.</p></div></div>
+ <div class="db-management-actions"><button type="button" id="dbExportJson">Export JSON</button><button type="button" id="dbExportCsv">Export CSV</button><button type="button" id="dbCreateBackup">Create Backup</button><button type="button" id="dbImportBtn">Import JSON</button><input id="dbImportFile" type="file" accept=".json,application/json" hidden></div>
+ <p id="dbManagementStatus" role="status" aria-live="polite">Select an action. No data will be overwritten by import.</p>
+ <div id="dbBackupHistory"></div>
+</section>
                 <div id="pendingList"></div>
             </section>
         
@@ -1123,11 +1129,13 @@
     <script src="js/vici-commerce.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/vici-chat.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <link rel="stylesheet" href="css/categories.css?v=VICINIFY_CATEGORIES_20261030">
+    <link rel="stylesheet" href="css/database-management.css?v=VICINIFY_DB_MANAGEMENT_20261030">
     <script src="js/categories.js?v=VICINIFY_CATEGORIES_20261030"></script>
     <script src="js/map.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/add.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/buzz.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/dashboard.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
+    <script src="js/database-management.js?v=VICINIFY_DB_MANAGEMENT_20261030"></script>
     <script src="js/ownership-transfer.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/settings.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
 

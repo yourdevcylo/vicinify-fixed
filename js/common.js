@@ -6978,58 +6978,42 @@ window.uploadFileToStorage = async function(file, folderName) {
 
 
 
-window.compressImageFile = function(file, maxWidth = 900, quality = 0.8) {
-    return new Promise((resolve, reject) => {
-        if (!file || !file.type || !file.type.startsWith("image/")) {
-            reject(new Error("Only image files are supported."));
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onerror = () => reject(new Error("File read error."));
-        reader.onload = (event) => {
-            const img = new Image();
-            img.onerror = () => reject(new Error("Image could not be loaded."));
-            img.onload = () => {
-                const scale = Math.min(1, maxWidth / img.width);
-                const canvas = document.createElement("canvas");
-                canvas.width = Math.max(1, Math.round(img.width * scale));
-                canvas.height = Math.max(1, Math.round(img.height * scale));
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                canvas.toBlob((blob) => {
-                    if (!blob) {
-                        reject(new Error("Image compression failed."));
-                        return;
-                    }
-                    resolve({ blob, dataUrl: canvas.toDataURL("image/jpeg", quality) });
-                }, "image/jpeg", quality);
-            };
-            img.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
-    });
+// Decode and re-encode image pixels; never store original user-provided bytes.
+window.compressImageFile = async function(file, maxWidth = 800, quality = 0.6) {
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!file || !allowed.includes(file.type)) throw new Error("Only JPG, PNG and WebP photos are allowed.");
+    if (file.size > 5 * 1024 * 1024) throw new Error("Photo must be 5 MB or smaller.");
+    const bytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+    const jpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    const png = [137,80,78,71,13,10,26,10].every((n,i)=>bytes[i]===n);
+    const webp = String.fromCharCode(...bytes.slice(0,4)) === "RIFF" && String.fromCharCode(...bytes.slice(8,12)) === "WEBP";
+    if (!(file.type === "image/jpeg" && jpeg || file.type === "image/png" && png || file.type === "image/webp" && webp)) throw new Error("Invalid photo content.");
+    let bitmap;
+    try { bitmap = await createImageBitmap(file); } catch (_) { throw new Error("Photo could not be decoded."); }
+    try {
+        if (bitmap.width < 1 || bitmap.height < 1 || bitmap.width * bitmap.height > 40000000) throw new Error("Photo dimensions are not supported.");
+        const scale = Math.min(1, maxWidth / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", quality));
+        if (!blob) throw new Error("Photo conversion failed.");
+        return { blob, dataUrl: "" };
+    } finally { bitmap.close?.(); }
 };
 
 window.uploadImageFileToStorage = async function(file, folderName, options = {}) {
-    const maxWidth = options.maxWidth || 900;
-    const quality = options.quality || 0.8;
-    const { blob, dataUrl } = await window.compressImageFile(file, maxWidth, quality);
-
+    const { blob } = await window.compressImageFile(file, options.maxWidth || 800, options.quality ?? 0.6);
     try {
-        const baseName = String(file.name || "image.jpg").replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_") || "image";
-        const uniqueFileName = `${folderName}/${Date.now()}_${Math.random().toString(36).slice(2)}_${baseName}.jpg`;
+        const uniqueFileName = `${folderName}/${crypto.randomUUID()}.webp`;
         const storageRef = window.storage.ref().child(uniqueFileName);
         const snapshot = await storageRef.put(blob, {
-            contentType: "image/jpeg",
-            cacheControl: "public,max-age=31536000"
+            contentType: "image/webp", cacheControl: "public,max-age=31536000"
         });
         return await snapshot.ref.getDownloadURL();
     } catch (error) {
-        // Small fallback only. A large base64 string inside a Firestore
-        // document bloats every query and can hit the 1MB doc limit.
-
-        throw new Error("Photo upload failed. Please check your connection and try again.");
+        throw new Error("Photo upload failed. Check Firebase Storage rules and your connection.");
     }
 };
 

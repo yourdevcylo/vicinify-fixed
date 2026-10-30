@@ -22,13 +22,14 @@
     <link rel="dns-prefetch" href="https://tile.openstreetmap.org" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <link rel="stylesheet" href="css/style.css?v=VICI_f13bd927531ca937" />
-    <link rel="stylesheet" href="css/ui.css?v=VICI_f13bd927531ca937" />
-    <link rel="stylesheet" href="css/reference.css?v=VICI_f13bd927531ca937" />
-    <link rel="stylesheet" href="css/components.css?v=VICI_f13bd927531ca937" />
-    <link rel="stylesheet" href="css/place-preview.css?v=VICI_f13bd927531ca937">
-    <link rel="stylesheet" href="css/suki-polish.css?v=VICI_f13bd927531ca937">
-    <link rel="stylesheet" href="css/vici-chat.css?v=VICI_f13bd927531ca937" />
+    <link rel="stylesheet" href="css/style.css?v=VICI_0cec8b770ca5ad89" />
+    <link rel="stylesheet" href="css/ui.css?v=VICI_0cec8b770ca5ad89" />
+    <link rel="stylesheet" href="css/reference.css?v=VICI_0cec8b770ca5ad89" />
+    <link rel="stylesheet" href="css/components.css?v=VICI_0cec8b770ca5ad89" />
+    <link rel="stylesheet" href="css/place-preview.css?v=VICI_0cec8b770ca5ad89">
+    <link rel="stylesheet" href="css/suki-polish.css?v=VICI_0cec8b770ca5ad89">
+    <link rel="stylesheet" href="css/vici-chat.css?v=VICI_0cec8b770ca5ad89" />
+    <link rel="stylesheet" href="css/amenities-layout-fix.css?v=20261030b" />
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -459,6 +460,18 @@
                     </div>
                     <span class="section-note">Review establishments, users, posts, transactions, messages, claims, and reports.</span>
                 </div>
+                <section id="categoryManager" class="category-manager" aria-label="Manage establishment categories">
+                    <div class="category-manager-heading"><div><h4>Manage Categories</h4><p>Add, rename, enable or disable establishment types. Changes appear in forms and map filters.</p></div></div>
+                    <form id="categoryCreateForm" class="category-create-form"><input id="categoryNewName" maxlength="40" required placeholder="New category name (e.g. Carinderia)" aria-label="New category name"><button type="submit">Add Category</button></form>
+                    <p id="categoryManagerNotice" role="status" aria-live="polite"></p>
+                    <div id="categoryManagerList" class="category-manager-list">Loading categories…</div>
+                </section>
+<section class="category-manager" id="adminDatabaseManagement" aria-label="Database management" style="margin-top:18px">
+ <div class="category-manager-heading"><div><h4>Database Management</h4><p>Admin-only exports, JSON imports and downloadable backups. Firebase Auth and uploaded photos are not included.</p></div></div>
+ <div class="db-management-actions"><button type="button" id="dbExportJson">Export JSON</button><button type="button" id="dbExportCsv">Export CSV</button><button type="button" id="dbCreateBackup">Create Backup</button><button type="button" id="dbImportBtn">Import JSON</button><input id="dbImportFile" type="file" accept=".json,application/json" hidden></div>
+ <p id="dbManagementStatus" role="status" aria-live="polite">Select an action. No data will be overwritten by import.</p>
+ <div id="dbBackupHistory"></div>
+</section>
                 <div id="pendingList"></div>
             </section>
         
@@ -644,9 +657,12 @@
 
                 <h3 class="bizedit-section-title">Requests &amp; Cancellation</h3>
                 <div class="card bizedit-card">
-                    <div class="bizedit-toggle-row">
-                        <label for="bizPortalBooking">Accepting Requests</label>
-                        <input type="checkbox" id="bizPortalBooking" class="bizedit-switch" />
+                    <p class="bizedit-hint">Choose the services this location accepts. Disabled services cannot receive new transactions; existing requests remain in your Transactions tab.</p>
+                    <div class="bizedit-service-grid">
+                        <label class="bizedit-toggle-row"><span><strong>Table Reservations</strong><small>Customers reserve seats for a date and time.</small></span><input type="checkbox" id="bizPortalBooking" class="bizedit-switch" /></label>
+                        <label class="bizedit-toggle-row"><span><strong>Food & Drink Orders</strong><small>Pickup, delivery and menu orders.</small></span><input type="checkbox" id="bizPortalOrders" class="bizedit-switch" /></label>
+                        <label class="bizedit-toggle-row"><span><strong>Advance Bookings</strong><small>Food reservations and advance or bulk requests.</small></span><input type="checkbox" id="bizPortalAdvance" class="bizedit-switch" /></label>
+                        <label class="bizedit-toggle-row"><span><strong>Customer Messages</strong><small>Show the message shortcut for questions and special requests.</small></span><input type="checkbox" id="bizPortalRequests" class="bizedit-switch" /></label>
                     </div>
                     <div class="field bizedit-refund">
                         <label>Cancellation Refund (before preparation starts)</label>
@@ -658,6 +674,7 @@
                     </div>
                 </div>
 
+                <style>.bizedit-service-grid{display:grid;gap:10px}.bizedit-service-grid .bizedit-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--border,#e2e8f0);border-radius:12px;min-width:0}.bizedit-service-grid .bizedit-toggle-row span{min-width:0;flex:1}.bizedit-service-grid .bizedit-toggle-row small{display:block;font-weight:400;opacity:.75;margin-top:4px;line-height:1.4}.bizedit-service-grid .bizedit-switch{flex-shrink:0}</style>
                 <h3 class="bizedit-section-title">Automatic replies</h3>
                 <section class="card bizedit-card auto-reply-settings">
                     <label class="auto-reply-switch"><input type="checkbox" id="bizAutoReplies"> Reply automatically to customer quick questions</label>
@@ -1100,23 +1117,27 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-    <script src="js/data.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/payment-policy.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/place-features.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/place-preview.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/content-policy.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/account-deletion.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/password-policy.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/common.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/vici-request.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/vici-commerce.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/vici-chat.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/map.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/add.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/buzz.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/dashboard.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/ownership-transfer.js?v=VICI_f13bd927531ca937"></script>
-    <script src="js/settings.js?v=VICI_f13bd927531ca937"></script>
+    <script src="js/data.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/payment-policy.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/place-features.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/place-preview.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/content-policy.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/account-deletion.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/password-policy.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/common.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/vici-request.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/vici-commerce.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/vici-chat.js?v=VICI_0cec8b770ca5ad89"></script>
+    <link rel="stylesheet" href="css/categories.css?v=VICINIFY_CATEGORIES_20261030">
+    <link rel="stylesheet" href="css/database-management.css?v=VICINIFY_DB_MANAGEMENT_20261030">
+    <script src="js/categories.js?v=VICINIFY_CATEGORIES_20261030"></script>
+    <script src="js/map.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/add.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/buzz.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/dashboard.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/database-management.js?v=VICINIFY_DB_MANAGEMENT_20261030"></script>
+    <script src="js/ownership-transfer.js?v=VICI_0cec8b770ca5ad89"></script>
+    <script src="js/settings.js?v=VICI_0cec8b770ca5ad89"></script>
 
     <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
     <script>lucide.createIcons();</script>
@@ -1201,8 +1222,8 @@ html body #page-place.active #placeUpdatesList > .place-menu-card {
 }
 </style>
 
-<link rel="stylesheet" href="css/mobile.css?v=VICI_f13bd927531ca937" />
+<link rel="stylesheet" href="css/mobile.css?v=VICI_0cec8b770ca5ad89" />
 <!-- build: VICINIFY_MODERN_FINAL_20261003 -->
-    <script src="js/ui.js?v=VICI_f13bd927531ca937"></script>
+    <script src="js/ui.js?v=VICI_0cec8b770ca5ad89"></script>
 </body>
 </html>
