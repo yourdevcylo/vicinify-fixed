@@ -71,3 +71,35 @@ test('request validation writes nothing and server failure preserves review for 
   r.w.document.getElementById('bookItems').value='1x Meal';await r.w.confirmBookingSubmit();r.w.ViciData.command=async()=>{throw Error('Connection failed')};await r.w.confirmBookingSubmit();assert.match(r.toasts.at(-1)[0],/Connection failed/);assert.equal(r.w.document.getElementById('confirmBookingBtn').disabled,false);assert.equal(r.w.document.getElementById('bookItems').value,'1x Meal');
  }finally{r.dom.window.close();}
 });
+
+// Regression: mobile Safari must not show an orphaned date validity bubble
+// over the map after the user closes a booking request.
+test('invalid booking shows in-app error without browser validation bubble and clears on close',async()=>{
+ const r=requestRuntime();try{
+  await r.w.openBookingModal('shop','Real Shop');
+  const date=r.w.document.getElementById('bookDate');
+  date.value='2000-01-01';
+  r.w.document.getElementById('bookTime').value='12:00';
+  date.reportValidity=()=>{throw Error('Native browser validation popup must not run')};
+  await r.w.confirmBookingSubmit();
+  assert.equal(r.calls.length,0);
+  assert.match(r.toasts.at(-1)[0],/today or a future date/i);
+  assert.equal(date.validity.customError,true);
+  r.w.closeBookingModal();
+  assert.equal(r.w.document.getElementById('bookingModal').classList.contains('hidden'),true);
+  assert.equal(date.validity.customError,false);
+  assert.equal(r.w.document.getElementById('bookTime').validity.customError,false);
+ }finally{r.dom.window.close();}
+});
+test('booking cannot validate if modal is already closed',async()=>{
+ const r=requestRuntime();try{
+  await r.w.confirmBookingSubmit();
+  assert.equal(r.calls.length,0);
+  assert.equal(r.toasts.length,0);
+  await r.w.openBookingModal('shop','Real Shop');
+  r.w.closeBookingModal();
+  await r.w.confirmBookingSubmit();
+  assert.equal(r.calls.length,0);
+  assert.equal(r.toasts.length,0);
+ }finally{r.dom.window.close();}
+});

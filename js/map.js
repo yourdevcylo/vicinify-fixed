@@ -3352,8 +3352,9 @@ window.MapPage = (() => {
         document.getElementById("bookDate").value = "";
         document.getElementById("bookTime").value = "";
         document.getElementById("bookDetails").value = "";
-        const today = new Date();
-        document.getElementById("bookDate").value = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+        // Booking rules are based on Philippine time, not the device timezone.
+        const todayPH = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+        document.getElementById("bookDate").value = todayPH;
         syncBookingSchedule();
 
         const typeSelect = document.getElementById("bookType");
@@ -3389,12 +3390,29 @@ window.MapPage = (() => {
         return true;
     };
 
-    window.closeBookingModal = (force = false) => { if (bookingSending && force !== true) return; bookingReviewSnapshot = null; window.lockBodyScroll(false); const modal = document.getElementById("bookingModal"); modal?.classList.add("hidden"); modal?.setAttribute("aria-hidden", "true"); };
+    window.closeBookingModal = (force = false) => {
+        if (bookingSending && force !== true) return;
+        bookingReviewSnapshot = null;
+        const modal = document.getElementById("bookingModal");
+        // On iOS Safari, a native date/time validation bubble can remain on the
+        // Map screen after the sheet closes. Dismiss focus and stale errors.
+        if (modal?.contains(document.activeElement)) document.activeElement?.blur?.();
+        for (const id of ["bookDate", "bookTime"]) {
+            const input = document.getElementById(id);
+            if (input) input.setCustomValidity("");
+        }
+        window.lockBodyScroll(false);
+        modal?.classList.add("hidden");
+        modal?.setAttribute("aria-hidden", "true");
+    };
 
     window.confirmBookingSubmit = async function () {
-        if (bookingSending) return;
+        const modal = document.getElementById("bookingModal");
+        // Do not validate or focus a booking input after the user has navigated
+        // back to the map while an authentication check was in progress.
+        if (bookingSending || !modal || modal.classList.contains("hidden")) return;
         const user = await requireVerifiedUser("send a request");
-        if (!user || bookingSending) return;
+        if (!user || bookingSending || modal.classList.contains("hidden")) return;
 
         const placeId = getValue("bookPlaceId");
         const placeName = getValue("bookPlaceName");
@@ -3421,8 +3439,10 @@ window.MapPage = (() => {
             const input = document.getElementById(id);
             if (input && !input.checkValidity()) {
                 if (bookingReviewSnapshot) { bookingReviewSnapshot = null; setBookingStep(false); }
-                input.reportValidity();
-                input.focus();
+                // Do not use reportValidity(): Safari may leave its native
+                // validation bubble floating above the map after closing.
+                window.showToast(input.validationMessage || "Please choose a valid future date and time.", "error");
+                input.focus({ preventScroll: true });
                 return;
             }
         }
