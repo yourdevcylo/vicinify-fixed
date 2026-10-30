@@ -18,15 +18,14 @@ test('delivery cannot jump directly to fulfilled or customer receipt before deli
  assert.deepEqual(transition({status:'delivered',requestType:'delivery_order'},'customer',{status:'received'}),{status:'received',customer_confirmed:true,feedbackStatus:'feedback_waiting'});
 });
 test('server atomically creates a pending booking and matching chat card',async()=>{
- const helpers=require('../netlify/functions/lib/admin'),old={...helpers},created=[];
- let i=0;const db={collection:name=>({doc:id=>({id:id||'new'+(++i),kind:name})}),runTransaction:async fn=>fn({get:async ref=>({exists:ref.kind!=='account_deletions',data:()=>ref.kind==='places'?place:{fullName:'Customer'}}),create:(ref,data)=>created.push({ref,data})})};
- helpers.authenticate=async()=>user;helpers.limit=async()=>{};helpers.services=()=>({db,FieldValue:{serverTimestamp:()=>123}});
+ const helpers=require('../netlify/functions/lib/admin'),old={...helpers},state=require('./helpers/memory-admin.cjs').memory({['places/'+input.placeId]:place});
+ helpers.authenticate=async()=>user;helpers.limit=async()=>{};helpers.services=()=>state;
  try {
   delete require.cache[require.resolve('../netlify/functions/booking')];
   const {handler}=require('../netlify/functions/booking');
   const request={...input,bookingDate:'2099-10-29'};
-  const response=await handler({httpMethod:'POST',body:JSON.stringify({action:'create',request})});
-  assert.equal(response.statusCode,200,response.body);assert.equal(created.length,2);assert.equal(created[0].data.transactionId,created[1].data.bookingId);assert.equal(created[1].data.bookingStatus,'pending');assert.equal(created[1].data.userId,'customer');
+  const response=await handler({httpMethod:'POST',body:JSON.stringify({action:'create',confirmed:true,idempotencyKey:'test-confirmation',request})});
+  assert.equal(response.statusCode,200,response.body);const id=JSON.parse(response.body).bookingId,order=state.rows.get('bookings/'+id),card=state.rows.get('messages/request_'+id);assert.equal(order.transactionId,card.bookingId);assert.equal(card.bookingStatus,'pending');assert.equal(card.userId,'customer');
  } finally {Object.assign(helpers,old);delete require.cache[require.resolve('../netlify/functions/booking')];}
 });
 

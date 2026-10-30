@@ -379,6 +379,7 @@ updateDashboardKpis(places);
             <button class="biz-edit-btn" style="padding: 8px 12px; background:var(--ui-surface); border: 1px solid #e2e8f0; color:var(--ui-ink); border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;" data-suki-edit="${p.id}">
                 <i data-lucide="stamp" style="width: 14px; height: 14px;"></i> Suki Card
             </button>
+            <button type="button" class="biz-edit-btn" data-manage-menu="${p.id}">Manage menu</button>
             <button class="biz-edit-btn" style="padding: 8px 12px; background:var(--ui-surface); border: 1px solid #e2e8f0; color:var(--ui-ink); border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;" data-posts="${p.id}">
                 <i data-lucide="store" style="width: 14px; height: 14px;"></i> View page
             </button>
@@ -438,6 +439,7 @@ updateDashboardKpis(places);
             wrap.querySelectorAll("[data-suki-edit]").forEach(btn => {
                 btn.addEventListener("click", () => openSukiStudio(btn.dataset.sukiEdit));
             });
+            wrap.querySelectorAll('[data-manage-menu]').forEach(b=>b.onclick=()=>window.ViciCommerce.openMenu(b.dataset.manageMenu));
             wrap.querySelectorAll("[data-posts]").forEach(btn => {
                 btn.addEventListener("click", () => openBizPosts(btn.dataset.posts));
             });
@@ -1711,7 +1713,7 @@ async function updateBookingStatus(id, stat) {
                 owner_email: firebase.firestore.FieldValue.delete(),
                 approval_status: "approved",
                 claimStatus: "verified",
-                is_verified: true 
+                is_verified: true
             });
 
             await batch.commit();
@@ -2496,7 +2498,7 @@ let updateData = {
             .limit(15)
             .onSnapshot(snap => {
                 if (snap.empty) {
-                    wrap.innerHTML = `<div style="text-align:center; padding: 40px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; color:var(--ui-muted); font-size: 15px;">No posts for this establishment yet. Click "Add Post" to upload a menu or promo!</div>`;
+                    wrap.innerHTML = `<div style="text-align:center; padding: 40px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; color:var(--ui-muted); font-size: 15px;">No posts for this establishment yet. Use Add Post for announcements and promos. Manage menu separately from the Menu tab.</div>`;
                     return;
                 }
 

@@ -1,3 +1,21 @@
+## Current release — Smart Vici AI, structured menus and confirmed requests (30 October 2026)
+
+Read SMART-AI-COMMERCE.md first; it supersedes older AI instructions below. Menu and Establishment posts are separate tabs. Business Hub → Manage menu lets the current owner add priced items/options and enable menu ordering. Existing announcement posts remain intact; they are not treated as verified menu prices.
+
+Deploy the new Firestore rules for menu read permissions and private idempotency records:
+
+```sh
+firebase deploy --only firestore:rules --project vicinify-c9828
+```
+
+Then commit/push the full source and wait for Netlify Published. No new composite indexes were introduced by structured menus; prior indexes still apply. Keep provider keys only in Netlify Functions/Production. No new Firebase Storage setup is needed for text menus and optional public HTTPS image URLs.
+
+Actual AI interprets conversation; the app renders validated actions and drafts. Only an explicit customer confirmation submits a pending request. Server quote validation, request keys and real owner status updates protect the transaction. Existing prepaid preparation and refund controls remain.
+
+Validation: 31 test files and build pass; six actual UI/local backend fixture workflows cover mobile/light/dark. Firebase emulator startup was blocked by the environment network/proxy, and live provider/production verification remains after deployment.
+
+---
+
 ## Vici AI flow finalization — 30 October 2026
 
 Deploy the complete ZIP source through GitHub/Netlify and wait for Published. Keep OPENROUTER_API_KEY secret in Netlify Functions environment variables. Read AI_API_SETUP.md for current provider setup, public-data scope, memory and assisted requests. No new Firebase indexes/rules are introduced by this AI update; earlier transaction rules still need to be deployed if not done yet.

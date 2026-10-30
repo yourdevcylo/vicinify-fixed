@@ -87,7 +87,7 @@
                 body: JSON.stringify(body), signal: AbortSignal.timeout(25000)
             });
             const result = await response.json().catch(() => ({ error: 'The server is unavailable. Please try again.' }));
-            if (!response.ok) throw new Error(result.error || 'Request failed.');
+            if (!response.ok) throw Object.assign(new Error(result.error || 'Request failed.'),{status:response.status});
             return result;
         },
         stop() { releaseProofs(); listeners.forEach(entry => entry.stop?.()); listeners.clear(); },

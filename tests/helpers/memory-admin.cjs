@@ -1,7 +1,7 @@
 function memory(seed={}){
  const rows=new Map(Object.entries(seed).map(([id,data])=>[id,structuredClone(data)]));let next=0;
  const remove=Symbol('delete');
- function ref(collection,id){const path=collection+'/'+(id||'new'+(++next));return{path,id:path.split('/').at(-1),collection,get:async()=>snapshot(path),set:async(data,opts)=>set(path,data,opts?.merge),update:async data=>set(path,data,true),delete:async()=>rows.delete(path),create:async data=>{if(rows.has(path))throw Error('Already exists');set(path,data);}};}
+ function ref(collection,id){const path=collection+'/'+(id||'new'+(++next));return{path,id:path.split('/').at(-1),collection:sub=>query(path+'/'+sub),get:async()=>snapshot(path),set:async(data,opts)=>set(path,data,opts?.merge),update:async data=>set(path,data,true),delete:async()=>rows.delete(path),create:async data=>{if(rows.has(path))throw Error('Already exists');set(path,data);}};}
  function set(path,data,merge=false){const value=merge?{...(rows.get(path)||{}),...data}:{...data};for(const key of Object.keys(value))if(value[key]===remove)delete value[key];rows.set(path,value);}
  function snapshot(path){return{id:path.split('/').at(-1),exists:rows.has(path),data:()=>rows.get(path),ref:ref(path.split('/').slice(0,-1).join('/'),path.split('/').at(-1))};}
  function query(collection,filters=[],size=Infinity,cursor=''){

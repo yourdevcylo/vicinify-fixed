@@ -358,7 +358,7 @@
                 </div>
             </section>
             <section class="card place-features-add-card"><details><summary>About &amp; amenities <small>optional</small></summary><p class="place-features-help">Select only details you can confirm for this place.</p><div id="bizFeatures" data-place-feature-form></div></details></section>
-            <p class="place-features-help">After approval, edit your profile picture, logo and cover from Business Hub. Manage posts and menu photos on your establishment page.</p>
+            <p class="place-features-help">After approval, edit your profile picture, logo and cover from Business Hub. Manage menu items in the Menu tab and announcements in Establishment posts.</p>
             <section class="stickyBar">
                 <button id="submitPendingBtn" class="primaryWide"><span class="btnIcon"><i data-lucide="send"></i></span> Submit for Approval</button>
             </section>
@@ -930,14 +930,14 @@
             <div class="modalBackdrop" onclick="closePlacePostModal()" style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
             <div class="modalBox" style="position: relative; width: 90%; max-width: 420px; background: #fff; border-radius: 18px; padding: 20px; z-index: 1;">
                 <div class="modalHeader" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="margin:0; font-size:18px; color:#0f172a;">Post Menu / Store Update</h3>
+                    <h3 style="margin:0; font-size:18px; color:#0f172a;">Post Establishment Update</h3>
                     <button onclick="closePlacePostModal()" class="modalClose" style="background: none; border: none; font-size: 18px; cursor: pointer;">X</button>
                 </div>
                 <div class="modalBody">
                     <input type="hidden" id="placePostPlaceId" />
                     <div class="field" style="margin-bottom: 14px;">
-                        <label style="font-size: 13px; font-weight:600; color: #475569; display: block; margin-bottom: 6px;">Menu / Promo Details</label>
-                        <textarea id="placePostBody" rows="3" placeholder="Example: Bestseller milktea - P89 today, or upload your menu photo." style="width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px; font-family:inherit;"></textarea>
+                        <label style="font-size: 13px; font-weight:600; color: #475569; display: block; margin-bottom: 6px;">Announcement / Promo Details</label>
+                        <textarea id="placePostBody" rows="3" placeholder="Example: Holiday hours, a promotion, or a store announcement. Add priced menu items in the Menu tab." style="width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px; font-family:inherit;"></textarea>
                     </div>
                     <div class="field" style="margin-bottom: 14px;">
                         <label style="font-size: 13px; font-weight:600; color: #475569; display: block; margin-bottom: 6px;">Add Photo (Menu/Product)</label>
@@ -946,7 +946,7 @@
                 </div>
                 <div class="modalFooter" style="display: flex; justify-content: flex-end; gap: 10px; margin-top:20px;">
                     <button onclick="closePlacePostModal()" style="background: #f1f5f9; color: #475569; border: none; border-radius: 10px; padding: 12px 18px; font-weight: 600; cursor: pointer;">Cancel</button>
-                    <button id="submitPlacePostBtn" onclick="submitPlacePost()" style="background: #f97316; color: white; border: none; border-radius: 10px; padding: 12px 18px; font-weight: 600; cursor: pointer;">Post Menu</button>
+                    <button id="submitPlacePostBtn" onclick="submitPlacePost()" style="background: #f97316; color: white; border: none; border-radius: 10px; padding: 12px 18px; font-weight: 600; cursor: pointer;">Post Update</button>
                 </div>
             </div>
         </div>
@@ -1093,8 +1093,9 @@
     <script src="js/account-deletion.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/password-policy.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/common.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
-        <script src="js/vici-request.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
-<script src="js/vici-chat.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/vici-request.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/vici-commerce.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
+    <script src="js/vici-chat.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/vici-launcher.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/map.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>
     <script src="js/add.js?v=VICINIFY_GREEN_EDITOR_20261029"></script>

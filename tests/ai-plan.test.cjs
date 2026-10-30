@@ -1,0 +1,17 @@
+const test=require('node:test'),assert=require('node:assert/strict'),{parse}=require('../netlify/functions/lib/ai-plan');
+const places=[{id:'cafe',name:'Everyday Cafe',category:'cafe',accepts_booking:true,priceRange:'₱150–₱300'},{id:'r',name:'Resto',category:'restaurant',delivery_inhouse:false},{id:'d',name:'Delivery Cafe',delivery_inhouse:true,accepts_booking:true}];
+const plan=p=>JSON.stringify({mode:'recommend',answer:'Here are the relevant saved places.',placeIds:['cafe'],...p});
+test('model understands a new drinks/budget topic without creating a booking',()=>{const r=parse(plan({kind:'drinks',budget:500} ),places,'im thirsty i only have 500 pesos');assert.equal(r.requestReady,false);assert.equal(r.requestDraft.active,false);assert.deepEqual(r.placeIds,['cafe']);});
+test('new craving clears draft focus, and delivery selections require saved delivery evidence',()=>{const dessert=parse(plan({kind:'sweet'}),places,'i want something sweet');assert.equal(dessert.requestDraft.active,false);const bad=parse(plan({kind:'delivery',placeIds:['r']}),places,'delivery nearby');assert.deepEqual(bad.placeIds,[]);const good=parse(plan({kind:'delivery',placeIds:['d']}),places,'delivery nearby');assert.deepEqual(good.placeIds,['d']);});
+test('AI draft remains unsent and validates future dates, capacity, saved permission and public IDs',()=>{
+ const make=d=>parse(plan({mode:'draft',requestDraft:{placeId:'cafe',requestType:'table_reservation',date:'2099-01-01',time:'18:00',guests:4,...d}}),places,'Arrange a table');
+ const d=make({});assert.equal(d.requestReady,true);assert.equal(d.requestDraft.guests,4);assert.match(d.answer,/Nothing has been submitted/);assert(!('status'in d.requestDraft));
+ assert.equal(make({date:'2026-02-30'}).requestDraft.date,'');assert.equal(make({placeId:'forged'}).requestReady,false);assert.equal(make({placeId:'r'}).requestUnavailable,true);assert.equal(make({guests:999}).requestDraft.guests,null);
+});
+test('invalid JSON plans fail closed and plaintext does not become a tool action',()=>{assert.equal(parse('Plain answer',places,'coffee'),null);assert.throws(()=>parse('{}',places,'coffee'));});
+test('menu previews and semantic order drafts use actual item IDs and prices; unsupported actions are removed',()=>{
+ const shops=[{id:'cafe',name:'Real Cafe',accepts_orders:true,accepts_booking:true,lat:13,lng:121}],menus={cafe:[{id:'meal',name:'Chicken meal',description:'Chicken and rice',category:'Meals',priceCents:15000,available:true,optionGroups:[]}]};
+ const menu=parse(JSON.stringify({mode:'menu',answer:'Ito ang listed menu.',placeIds:['cafe'],menuPlaceId:'cafe',actions:[{type:'SUBMIT_ORDER',placeId:'cafe'},{type:'VIEW_MENU',placeId:'cafe'},{type:'GET_DIRECTIONS',placeId:'unknown'}]}),shops,'Yung pangalawa ano menu nila?',Date.now(),menus);assert.equal(menu.menuPreview.items[0].name,'Chicken meal');assert.deepEqual(menu.actions,[{type:'VIEW_MENU',placeId:'cafe'}]);
+ const order=parse(JSON.stringify({mode:'order',answer:'Invented total ₱1',placeIds:['cafe'],orderDraft:{placeId:'cafe',lines:[{itemId:'meal',quantity:2,unitCents:1}],requestType:'pickup_order'}}),shops,'Dalawa nga nung chicken meal',Date.now(),menus);assert.equal(order.estimatedSubtotalCents,30000);assert(!order.answer.includes('₱1'));assert.equal(order.orderDraft.lines[0].quantity,2);assert.equal(order.requestReady,false);
+ assert.throws(()=>parse(JSON.stringify({mode:'order',answer:'Fake',placeIds:['cafe'],orderDraft:{placeId:'cafe',lines:[{itemId:'invented',quantity:2}]}}),shops,'order',Date.now(),menus));
+});

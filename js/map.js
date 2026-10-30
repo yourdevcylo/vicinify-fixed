@@ -239,7 +239,7 @@ window.MapPage = (() => {
         finally { if (_placesInFlight === run) _placesInFlight = null; }
     }
     const publicCacheKey='vicinify:approved-catalog:20261028';
-    const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','hours','operatingHours','operating_hours','is_verified','owner_uid','addedBy','approval_status','avgRating','reviewCount','ratingCount','priceRange','accepts_booking','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
+    const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','hours','operatingHours','operating_hours','is_verified','owner_uid','addedBy','approval_status','avgRating','reviewCount','ratingCount','priceRange','accepts_booking','accepts_orders','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
     function readPublicSessionCache(now) {
         try {
             const cached=JSON.parse(window.sessionStorage?.getItem(publicCacheKey)||'null');
@@ -752,7 +752,7 @@ window.MapPage = (() => {
     }
 
     function getSmartRecommendations(intent, places = cloudPlaces) {
-        return (places || [])
+        return (window.ViciRelevance?.filter(places,intent.query)||places||[])
             .filter(place => place.approval_status !== "rejected" && place.lat != null && place.lng != null)
             .map(place => scorePlaceForSmartAsk(place, intent))
             .sort((a, b) => (b._smartScore || 0) - (a._smartScore || 0))
@@ -864,13 +864,16 @@ window.MapPage = (() => {
                 const response = await fetch(endpoint, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", Authorization: `Bearer ${await window.auth.currentUser.getIdToken()}` },
-                    signal: context.signal && AbortSignal.any ? AbortSignal.any([context.signal, AbortSignal.timeout(20000)]) : AbortSignal.timeout(20000),
+                    signal: context.signal && AbortSignal.any ? AbortSignal.any([context.signal, AbortSignal.timeout(28000)]) : AbortSignal.timeout(28000),
                     body: JSON.stringify({
                         query: intent.query,
                         uiLanguage: window.LangManager?.getLanguage?.() || 'en',
                         history: context.history || [],
                         memory:context.memory || {},
                         requestDraft:context.requestDraft || null,
+                        orderDraft:context.orderDraft || null,
+                        requestRefs:context.requestRefs || [],
+                        location:AppState.userLocation?{lat:Math.round(AppState.userLocation.lat*1000)/1000,lng:Math.round(AppState.userLocation.lng*1000)/1000}:null,
                         radius: AppState.radius,
                         recommendations: allPlaces.map(place => ({ id: place.id })),
                         pureAI: true
@@ -888,42 +891,28 @@ window.MapPage = (() => {
                 }
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.answer) return { answer: data.answer, source: data.source === "guard" ? "guard" : "ai",requestDraft:data.requestDraft?window.ViciRequest?.clean(data.requestDraft):undefined,requestReady:data.requestReady===true,requestUnavailable:data.requestUnavailable===true, placeIds: Array.isArray(data.placeIds) ? data.placeIds : [] };
+                    if (data.answer) return { answer: data.answer, source: data.source === "guard" ? "guard" : "ai",...(Object.hasOwn(data,'orderDraft')?{orderDraft:data.orderDraft}:{}),menuPreview:data.menuPreview||null,actions:data.actions||[],placeCards:data.placeCards||[],requestDraft:data.requestDraft?window.ViciRequest?.clean(data.requestDraft):undefined,requestReady:data.requestReady===true,requestUnavailable:data.requestUnavailable===true, placeIds: Array.isArray(data.placeIds) ? data.placeIds : [] };
                 }
             } catch (e) { console.warn("Vici AI endpoint unavailable.", e); if(e.name === "TimeoutError" || e.name === "AbortError")return {answer:"AI timed out. Please try again.",source:"error",error:true}; }
         }
         return { answer: VICI_AI_ERROR, source: "error", error: true };
     }
 
-    window.openViciMenu=async function(id){
-        await getAcceptedPlaces();const place=cloudPlaces.find(p=>p.id===id);if(!place)return false;
-        document.getElementById('viciMenuDialog')?.remove();
-        const dialog=document.createElement('dialog');dialog.id='viciMenuDialog';dialog.className='vici-menu-dialog';
-        dialog.innerHTML=`<header><div><small>MENU & STORE POSTS</small><h2 data-no-translate>${escapeHtml(place.name)}</h2></div><button type="button" aria-label="Close menu"><i data-lucide="x"></i></button></header><div class="vici-menu-content" aria-live="polite"><p>Loading menu and store posts…</p></div><footer><button type="button">Message business</button><button type="button">View place</button></footer>`;
-        document.body.append(dialog);const dismiss=()=>{dialog.close?.();dialog.remove();};dialog.querySelector('header button').onclick=dismiss;dialog.addEventListener('cancel',e=>{e.preventDefault();dismiss();});dialog.addEventListener('click',e=>{if(e.target===dialog)dismiss();});
-        const buttons=dialog.querySelectorAll('footer button');buttons[0].onclick=()=>{dismiss();window.ViciChat.close();window.openChatModal?.(place.id,place.name);};buttons[1].onclick=()=>{dismiss();window.ViciChat.close();window.viewPlace(place.id);};
-        if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');window.debouncedIcons?.();
-        try{const snap=await window.db.collection('place_posts').where('placeId','==',id).orderBy('createdAt','desc').limit(20).get();if(!dialog.isConnected)return false;
-            dialog.querySelector('.vici-menu-content').innerHTML=snap.empty?'<div class="vici-menu-empty"><i data-lucide="utensils"></i><h3>No menu posts yet</h3><p>The business has not added menu or store posts. Message them for available items and prices.</p></div>':snap.docs.map(doc=>{const data=doc.data(),photo=getSafeImageUrl(data.mediaUrl);return `<article><p data-no-translate>${escapeHtml(String(data.body||'').slice(0,4000))}</p>${photo?`<a href="${escapeHtml(photo)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(photo)}" alt="Menu or store photo" loading="lazy"></a>`:''}</article>`;}).join('');
-        }catch{if(dialog.isConnected)dialog.querySelector('.vici-menu-content').innerHTML='<p>Could not load the menu. Please try again or message the business.</p>';}
-        dialog.querySelectorAll('img').forEach(img=>img.onerror=()=>img.remove());window.debouncedIcons?.();return true;
-    };
+    window.openViciMenu=id=>window.ViciCommerce.openMenu(id);
 
     window.ViciChat?.configure({
         ask: async (query, context) => {
             if (!window.auth?.currentUser?.emailVerified) return { answer: "Sign in with a verified email to use Vici AI.", error: true, picks: [] };
             await getAcceptedPlaces();
-            const memory=window.ViciChat.resolveContext(query,context.memory,cloudPlaces);
-            const intent=inferSmartIntent(memory.searchQuery);
-            let recommendations=getSmartRecommendations(intent);
-            const pendingDraft=window.ViciRequest?.clean(context.requestDraft);
-            const focusIds=memory.placeIds.length?memory.placeIds:pendingDraft?.active&&pendingDraft.placeId?[pendingDraft.placeId]:[];
-            const focused=focusIds.map(id=>cloudPlaces.find(p=>p.id===id)).filter(Boolean);
-            if(focused.length)recommendations=focused;
-            const reply=await getViciAIReply({...intent,query},recommendations,{...context,memory});
+            const memory=context.memory||{searchQuery:'',placeIds:[]};
+            const focused=(memory.placeIds||[]).map(id=>cloudPlaces.find(p=>p.id===id)).filter(Boolean);
+            const named=cloudPlaces.filter(p=>String(p.name||'').length>=3&&query.toLowerCase().includes(p.name.toLowerCase()));
+            const nearby=[...cloudPlaces].sort((a,b)=>(getPlaceDistanceMeters(a)??Infinity)-(getPlaceDistanceMeters(b)??Infinity));
+            const recommendations=[...named,...focused,...nearby].filter((p,i,all)=>p.approval_status!=='rejected'&&all.findIndex(x=>x.id===p.id)===i).slice(0,20);
+            const reply=await getViciAIReply({query},recommendations,{...context,memory});
             const ids = new Set(reply.placeIds || []);
             const selectedPlaces=recommendations.filter(p=>ids.has(p.id)).slice(0,3);
-            return { ...reply, memory:reply.error||!reply.placeIds?.length?context.memory:{searchQuery:memory.searchQuery,placeIds:selectedPlaces.map(p=>p.id)}, picks: reply.error ? [] : selectedPlaces.map(p => ({
+            return { ...reply, memory:reply.error?context.memory:{searchQuery:query,placeIds:selectedPlaces.map(p=>p.id)}, picks: reply.error ? [] : reply.placeCards?.length?reply.placeCards:selectedPlaces.map(p => ({
                 id:p.id,name:p.name,category:p.cat || p.category,rating:p.avgRating || 0,reviewCount:p.reviewCount || 0,
                 distance:p._distance != null ? formatDistance(p._distance) : "",photo:getSafeImageUrl(p.coverPhoto || p.photos?.[0]) || ""
             })) };
@@ -937,6 +926,7 @@ window.MapPage = (() => {
         messageBusiness:async id=>{await getAcceptedPlaces();const p=cloudPlaces.find(p=>p.id===id);if(!p)return false;await window.openChatModal?.(p.id,p.name);return true;},
         viewPlace:async id=>{await window.viewPlace(id);return true;},
         viewMenu:async id=>window.openViciMenu(id),
+        directions:async id=>{await getAcceptedPlaces();const p=cloudPlaces.find(p=>p.id===id);if(!p||!Number.isFinite(Number(p.lat))||!Number.isFinite(Number(p.lng)))return false;window.routeToPlace(Number(p.lat),Number(p.lng));return true;},
         viewOnMap: async id => {
             await getAcceptedPlaces();
             const place = cloudPlaces.find(p => p.id === id);
@@ -2353,20 +2343,23 @@ window.MapPage = (() => {
                 </div>
 
                 <div class="placeContent place-menu-feed">
+                    <nav class="commerce-tabs" role="tablist" aria-label="Establishment content"><button type="button" id="placeMenuTab" role="tab" aria-controls="placeStructuredMenu" data-place-tab="menu" aria-selected="true">Menu</button><button type="button" id="placePostsTab" role="tab" aria-controls="placeStorePosts" data-place-tab="posts" aria-selected="false">Establishment posts</button></nav>
+                    <section id="placeStructuredMenu" role="tabpanel" aria-labelledby="placeMenuTab"><p>Loading listed menu…</p></section><section id="placeStorePosts" role="tabpanel" aria-labelledby="placePostsTab" hidden>
                     <div class="place-section-title">
                         <div>
-                            <span>Menu board</span>
-                            <h3><i data-lucide="utensils"></i> <span data-i18n="Menu & Store Posts">Menu & Store Posts</span></h3>
+                            <span>From the business</span>
+                            <h3><i data-lucide="utensils"></i> <span>Establishment posts</span></h3>
                         </div>
                         ${isOwnerOrAdmin ? `<button type="button" onclick="window.openPlacePostModal('${p.id}', '${safeName}')"><i data-lucide="image-plus"></i> Add post / photo</button>` : ""}
                     </div>
                     <div id="placeUpdatesList">
-                        <div class="muted" style="text-align:center; padding: 20px; font-size: 13px;">Checking menu and store posts...</div>
-                    </div>
+                        <div class="muted" style="text-align:center; padding: 20px; font-size: 13px;">Loading establishment posts...</div>
+                    </div></section>
                 </div>
                 </div>
             </div>
             `;
+        if(typeof placeUpdatesUnsub==='function'){placeUpdatesUnsub();placeUpdatesUnsub=null;}
         showPage('page-place');
 
         setTimeout(() => {
@@ -2374,7 +2367,9 @@ window.MapPage = (() => {
             window.LangManager?.translateDOM?.();
         }, 50);
 
-        listenToPlaceUpdates(p.id, isOwnerOrAdmin);
+        document.querySelectorAll('[data-place-tab]').forEach(button=>button.onclick=()=>{const menu=button.dataset.placeTab==='menu';document.getElementById('placeStructuredMenu').hidden=!menu;document.getElementById('placeStorePosts').hidden=menu;document.querySelectorAll('[data-place-tab]').forEach(b=>b.setAttribute('aria-selected',String(b===button)));if(!menu)listenToPlaceUpdates(p.id,isOwnerOrAdmin);else if(typeof placeUpdatesUnsub==='function'){placeUpdatesUnsub();placeUpdatesUnsub=null;}});
+        document.querySelector('.commerce-tabs').onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...document.querySelectorAll('[data-place-tab]')],index=tabs.indexOf(document.activeElement),next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(index+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;tabs[next].click();tabs[next].focus();};
+        window.ViciCommerce?.mountMenu(document.getElementById('placeStructuredMenu'),p.id,isOwnerOrAdmin);
         // Suki Card section (customer card + Vicinify Scan / owner QR)
         if (window.Suki) window.Suki.mountPlaceSection(p, isOwnerOrAdmin);
         if (options?.focusReviews) {
@@ -2628,7 +2623,7 @@ window.MapPage = (() => {
         postBodyEl.style.height = "";
         document.getElementById('placePostMedia').value = "";
         const submitBtn = document.getElementById('submitPlacePostBtn');
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Post Menu"; }
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Post Update"; }
         const modal = document.getElementById('placePostModal');
         modal.classList.remove('hidden');
         if (!window.__postScrollLocked) { window.__postScrollLocked = true; window.lockBodyScroll?.(true); }
@@ -2721,7 +2716,7 @@ window.MapPage = (() => {
             window.showToast("Error: " + e.message, "error");
         } finally {
             btn.disabled = false;
-            btn.textContent = "Post Menu";
+            btn.textContent = "Post Update";
         }
     };
 
@@ -2756,7 +2751,7 @@ window.MapPage = (() => {
         try {
             const postRef = window.db.collection("place_posts").doc(postId);
             const postDoc = await postRef.get();
-            if (!postDoc.exists) return window.showToast("This menu/store post no longer exists.", "error");
+            if (!postDoc.exists) return window.showToast("This establishment post no longer exists.", "error");
 
             const post = { ...postDoc.data(), id: postDoc.id };
             const allowed = await canManagePlace(post.placeId);
@@ -2841,7 +2836,7 @@ window.MapPage = (() => {
             .onSnapshot(snap => {
                 forcePlaceUpdatesFeedLayout(wrap);
                 if (snap.empty) {
-                    wrap.innerHTML = `<div class="place-menu-empty"><i data-lucide="utensils"></i><strong>No menu posts yet</strong><span>Businesses can post best sellers, promos, menus, and new items here.</span></div>`;
+                    wrap.innerHTML = `<div class="place-menu-empty"><i data-lucide="utensils"></i><strong>No establishment posts yet</strong><span>Businesses can post announcements, promos, and store updates here. Priced items are in the Menu tab.</span></div>`;
                     forcePlaceUpdatesFeedLayout(wrap);
                     window.debouncedIcons?.();
                     return;
@@ -2857,7 +2852,7 @@ window.MapPage = (() => {
                     let imgHtml = "";
                     const safeMediaUrl = getSafeImageUrl(data.mediaUrl);
                     if (safeMediaUrl) {
-                        imgHtml = `<div class="place-menu-media"><a class="place-menu-image-link" href="${escapeHtml(safeMediaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Open menu photo in full size"><img src="${escapeHtml(safeMediaUrl)}" alt="${escapeHtml(String(data.body || 'Menu and store photo').slice(0,100))}" loading="lazy" onerror="this.closest('.place-menu-media')?.remove()" /><span>View full image <i data-lucide="arrow-up-right"></i></span></a></div>`;
+                        imgHtml = `<div class="place-menu-media"><a class="place-menu-image-link" href="${escapeHtml(safeMediaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Open post photo in full size"><img src="${escapeHtml(safeMediaUrl)}" alt="${escapeHtml(String(data.body || 'Establishment post photo').slice(0,100))}" loading="lazy" onerror="this.closest('.place-menu-media')?.remove()" /><span>View full image <i data-lucide="arrow-up-right"></i></span></a></div>`;
                     }
                     const sharedBadgeHtml = data.sharedToBuzz ? `
                         <span class="place-menu-shared"><i data-lucide="share-2"></i> Shared to Buzz</span>
@@ -3178,6 +3173,7 @@ window.MapPage = (() => {
 
     let bookingReviewSnapshot = null;
     let bookingSending = false;
+    let bookingSubmissionKey=null;
     const bookingText = text => window.LangManager?.translateKey?.(text) || text;
 
     function setBookingStep(review) {
@@ -3266,7 +3262,7 @@ window.MapPage = (() => {
 
         const modal = document.getElementById("bookingModal");
         if (bookingSending) return;
-        bookingReviewSnapshot = null;
+        bookingReviewSnapshot = null;bookingSubmissionKey=null;
         setBookingStep(false);
         window.lockBodyScroll(true);
         document.getElementById("bookPlaceId").value = placeId;
@@ -3451,7 +3447,13 @@ window.MapPage = (() => {
             };
 
             // The server validates identity, Philippine schedule, place and initial payment state.
-            const createdBooking=await window.ViciData.command('booking', {action:'create',request:requestData});
+            const attemptSnapshot=JSON.stringify(reviewData),attemptStorage='vicinify:request-attempt:'+user.uid;
+            try{const prior=JSON.parse(sessionStorage.getItem(attemptStorage)||'null');if(prior?.snapshot===attemptSnapshot)bookingSubmissionKey=prior.key;}catch{}
+            bookingSubmissionKey=bookingSubmissionKey||window.crypto.randomUUID();
+            try{sessionStorage.setItem(attemptStorage,JSON.stringify({snapshot:attemptSnapshot,key:bookingSubmissionKey}));}catch{}
+            const createdBooking=await window.ViciData.command('booking', {action:'create',confirmed:true,idempotencyKey:bookingSubmissionKey,request:requestData});
+            try{sessionStorage.removeItem(attemptStorage);}catch{}
+            window.ViciChat?.recordRequest?.({...createdBooking,placeId,placeName,requestType:meta.key});
 
             window.showToast(bookingText("Request sent. Opening your transaction chat..."), "success");
             window.closeBookingModal(true);

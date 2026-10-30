@@ -230,6 +230,13 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Structured menus are separate from ordinary establishment posts. Writes use owner-authorized backend functions.
+    match /places/{placeId}/menu_items/{itemId} {
+      allow read: if get(/databases/$(database)/documents/places/$(placeId)).data.approval_status == 'approved' || isPlaceOwner(placeId) || isAdmin();
+      allow write: if false;
+    }
+    match /request_keys/{keyId} { allow read, write: if false; }
+
     match /favorites/{favId} {
       allow read: if signedIn()
         && (

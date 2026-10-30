@@ -228,3 +228,10 @@ test('transaction chat must reference a booking belonging to the same customer a
  await assertFails(gatedWrite('customer','chat','missingbooking',{...base,bookingId:'missing',transactionId:'missing'}));
  await assertFails(gatedWrite('customer','chat','mismatchedlink',{...base,transactionId:'other'}));
 });
+test('structured menus are public only for approved places and all menu/request-key writes are server-only',async()=>{
+ await env.withSecurityRulesDisabled(async ctx=>{const db=ctx.firestore();await setDoc(doc(db,'places/shop/menu_items/meal'),{name:'Chicken meal',priceCents:15000,available:true,archived:false});await setDoc(doc(db,'places/pending/menu_items/secret'),{name:'Unpublished menu',priceCents:15000,archived:false});await setDoc(doc(db,'request_keys/private-key'),{userId:'customer',bookingId:'order'});});
+ await assertSucceeds(getDocs(query(collection(env.unauthenticatedContext().firestore(),'places/shop/menu_items'),where('archived','==',false))));
+ await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(),'places/pending/menu_items/secret')));
+ for(const uid of ['customer','owner','other']){await assertFails(setDoc(doc(dbFor(uid),'places/shop/menu_items/forged'),{name:'Fake',priceCents:1}));await assertFails(getDoc(doc(dbFor(uid),'request_keys/private-key')));await assertFails(setDoc(doc(dbFor(uid),'request_keys/forged'),{userId:uid}));}
+ await assertFails(updateDoc(doc(dbFor('customer'),'bookings/order'),{estimatedSubtotalCents:1,menuLines:[]}));
+});

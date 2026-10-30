@@ -1,3 +1,5 @@
+const crypto=require('node:crypto');
+const Menu=require('./lib/menu');
 const { services, authenticate, identifier, limit, reply } = require('./lib/admin');
 const { createBooking } = require('./lib/booking-create');
 const PaymentPolicy = require('../../js/payment-policy');
@@ -11,25 +13,40 @@ exports.handler = async event => {
         const { db, FieldValue } = services();
         if (body.action === 'create') {
             const input = body.request || {};
+            if(body.confirmed!==true||!body.idempotencyKey)return reply(400,{error:'Review and explicitly confirm the request first.'});
             const placeId = identifier(input.placeId);
             await limit(user.uid, 'booking_create', 6);
             const placeRef = db.collection('places').doc(placeId);
-            const ref = db.collection('bookings').doc();
-            const card = db.collection('messages').doc();
+            const key=body.idempotencyKey?identifier(body.idempotencyKey):null;
+            const menuOrder=Array.isArray(input.menuLines);
+            if(menuOrder&&(!key||body.confirmed!==true))return reply(400,{error:'Review and explicitly confirm the order first.'});
+            const stable=value=>Array.isArray(value)?value.map(stable):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(k=>[k,stable(value[k])])):value;
+            const hash=crypto.createHash('sha256').update(JSON.stringify(stable(Object.fromEntries(Object.entries(input).filter(([k])=>!['createdAt','updatedAt'].includes(k)))))).digest('hex');
+            const keyRef=key?db.collection('request_keys').doc(crypto.createHash('sha256').update(user.uid+':'+key).digest('hex')):null;
+            const ref = keyRef?db.collection('bookings').doc(keyRef.id):db.collection('bookings').doc();
+            const card = keyRef?db.collection('messages').doc('request_'+ref.id):db.collection('messages').doc();
+            let repeated=false;
+
             await db.runTransaction(async transaction => {
+                if(keyRef){const previous=await transaction.get(keyRef);if(previous.exists){if(previous.data().requestHash!==hash)throw Object.assign(new Error('This confirmation key belongs to a different request. Review again.'),{status:409});repeated=true;return;}}
                 const deletionLock = await transaction.get(db.collection('account_deletions').doc(user.uid));
                 if(deletionLock.exists)throw Object.assign(new Error('Account deletion is in progress.'),{status:409});
                 const place = await transaction.get(placeRef);
                 if(place.data()?.owner_uid && (await transaction.get(db.collection('account_deletions').doc(place.data().owner_uid))).exists)throw Object.assign(new Error('This business is closing its account.'),{status:409});
                 const profile = await transaction.get(db.collection('users').doc(user.uid));
                 if (!place.exists) throw Object.assign(new Error('Establishment not found.'), {status:404});
-                const order = {...createBooking(input,user,place.data(),profile.data()), transactionId:ref.id,
+                let verified=null;
+                if(menuOrder){if(input.requestType==='table_reservation'||place.data().accepts_orders!==true||input.requestType==='delivery_order'&&place.data().delivery_inhouse!==true)throw Object.assign(new Error('This ordering option is not supported.'),{status:409});verified=await Menu.quote(transaction,db,placeId,input.menuLines);if(body.expectedQuoteDigest!==verified.digest)throw Object.assign(new Error('Menu prices or options changed. Review the updated order before confirming.'),{status:409});}
+                const checked=verified?{...input,orderItems:verified.lines.map(l=>`${l.quantity} × ${l.name}${l.optionLabels.length?' ('+l.optionLabels.join(', ')+')':''}`).join('\n')}:input;
+                const order = {...createBooking(checked,user,place.data(),profile.data()), transactionId:ref.id,reference:'VC-'+ref.id.slice(0,8).toUpperCase(),
+                    ...(verified?{menuLines:verified.lines,estimatedSubtotalCents:verified.totalCents,currency:'PHP',quoteDigest:verified.digest}:{}),
                     createdAt:FieldValue.serverTimestamp(), updatedAt:FieldValue.serverTimestamp()};
+                if(keyRef)transaction.create(keyRef,{userId:user.uid,bookingId:ref.id,requestHash:hash,createdAt:FieldValue.serverTimestamp()});
                 transaction.create(ref,order);
                 transaction.create(card,{...order,type:'booking_card',bookingId:ref.id,bookingStatus:'pending',
                     senderUid:user.uid,senderRole:'customer',senderName:order.userName,createdBy:user.uid,reply:null});
             });
-            return reply(200, {saved:true,bookingId:ref.id});
+            return reply(200, {saved:true,bookingId:ref.id,reference:'VC-'+ref.id.slice(0,8).toUpperCase(),status:'pending',repeated});
         }
         if (body.action && body.action!=='update') return reply(400,{error:'Unknown booking action.'});
         const bookingId = identifier(body.bookingId);

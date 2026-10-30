@@ -1,41 +1,31 @@
-# Vici AI deployment — Netlify
+# Vici AI — current setup
 
-Vici uses `/.netlify/functions/askVici`. No frontend API keys or SDK installation needed.
+Use `/.netlify/functions/askVici` on Netlify. Secrets remain server-side; no browser AI key or SDK is required.
 
-## Netlify environment variables
+## Environment variables (Functions / Production)
 
-- `OPENROUTER_API_KEY`: your new secret key, Functions scope, Production context. Never paste it into code, chat, GitHub or logs.
-- OpenRouter model is pinned server-side to `google/gemma-4-31b-it:free`; no automatic paid model or model override.
-- `GEMINI_API_KEY`: optional. When configured, Gemini is tried first (5-second timeout), then OpenRouter (7-second timeout). With only OpenRouter configured it is called directly. Gemini access may have its own billing terms; remove that variable if you want OpenRouter only.
-- `GEMINI_MODEL`: optional, defaults to `gemini-2.5-flash`.
-- `FIREBASE_SERVICE_ACCOUNT`: existing server credential for login validation, rate limits, and public catalog reads.
-- `ALLOWED_ORIGIN`: exact deployed website origin, including https://, no trailing slash. Defaults to Netlify URL when unset.
+- OPENROUTER_API_KEY: new secret key. The selected model is pinned to `google/gemma-4-31b-it:free`; there is no paid OpenRouter model fallback.
+- GEMINI_API_KEY: optional; when present, Gemini is tried first, then OpenRouter. Remove it if you want OpenRouter only. The app cannot guarantee Google's billing terms; use a free-tier project/model if budget is zero.
+- GEMINI_MODEL: optional, default `gemini-2.5-flash`.
+- FIREBASE_SERVICE_ACCOUNT: existing Firebase Admin credential for authenticated server operations.
+- ALLOWED_ORIGIN: exact deployed origin, including https:// and no trailing slash. Otherwise Netlify URL is used.
 
-Redeploy matching frontend and Netlify functions after adding variables. No new Firebase rules or index changes for this integration.
+Redeploy after environment changes. Do not paste keys into code, GitHub, chat or screenshots.
 
-## Scope and fallback
+## Actual AI behavior
 
-Only selected approved public establishment fields are projected into the model prompt: name, category, address/barangay, saved hours, rating, price range, delivery flags and description. No database lookups of private bookings, payments, chats or personal Suki records. Recent Vici chat text (up to six messages, 500 characters each) is included as question context; users should not enter personal secrets. Saved menu details not supplied are treated as unknown.
+All substantive messages go to the model for semantic interpretation with bounded recent conversation, approved public places, real menu previews and the customer's unsent drafts. Greetings/thanks are small local replies. No keyword booking parser or generic all-establishments fallback is used. New cravings/budgets must not be mistaken for guest-count corrections. Structured output is validated by the server; only supported public actions and unsent drafts are rendered.
 
-Rate limits remain 6 requests/minute and 50 per rolling 24-hour account window. Provider quotas are separate and may change. Upstream quota errors, timeouts, missing credentials and invalid replies fall back to a deterministic public-list response. Authentication and application rate limits still return their error codes.
+The model cannot execute writes, accept reservations, change prices, confirm payments, access other customers or submit without the customer's confirmation screen. Orders are quoted/validated again against live Firestore menus. See SMART-AI-COMMERCE.md for schema, permissions and owner/customer workflows.
 
-## After deployment
+Provider calls request JSON and final answer content only, not internal reasoning. Timeouts are 5 seconds for Gemini, 18 seconds for OpenRouter, with 28-second browser transport timeout. No available provider or invalid structured output produces a clear failure message, not fake AI recommendations or simulated transactions. Application model limits remain 6 requests/minute and 50 per 24-hour account window; provider limits are separate and change over time.
 
-1. Wait for Netlify Published. Sign in with a verified email.
-2. Ask about a listed establishment's saved hours or address.
-3. In the browser Network panel inspect the askVici response: `source: openrouter` means OpenRouter answered; `basic` is fallback; `guard` means the topic/output guard responded; `gemini` means Gemini answered.
-4. A basic response is not proof that the key works. Check OpenRouter Activity for successful requests. If needed check the key expiration/limit, model availability and project quota. Do not share raw keys or request authorization headers.
+## Verify after publishing
 
-Local mocked tests cover routing, quota fallback, timeout, malformed replies, pinned model and public-field projection. They do not verify live Netlify credentials, OpenRouter model availability or free-tier quota.
+1. Owner: add real menu items from Business Hub → Manage menu, and enable Accept menu orders only if supported.
+2. Customer: New chat → “I’m thirsty and have 500 pesos” → relevant suggestions/clarification; “yung pangalawa, ano menu nila?” → real listed menu; “dalawa nung chicken meal” → editable draft only if that item exists.
+3. Use Review current prices → Confirm request; owner must accept/decline before any confirmation claim.
+4. Check askVici Network JSON `source`: `openrouter` / `gemini` means the provider answered; `basic` is only greeting, `unavailable` is provider failure, `guard` is invalid/rejected output.
+5. Check OpenRouter Activity for actual successful requests. Netlify Functions logs report safe provider/status/reason only; share a sanitized status line, never authorization headers or keys.
 
-## Conversation memory
-
-Each AI conversation keeps its own public establishment focus (up to three IDs) and search context (up to 500 characters), plus the last six non-error messages sent to the model. Up to 20 visible messages per conversation and 20 recent conversations are saved on the current browser, scoped to the signed-in account. Reopen a recent chat to continue after refresh; New chat resets context. Clearing browser storage or deleting a chat removes that local history; it does not sync across devices. Selecting View on map remembers the chosen establishment for the next follow-up. Focus IDs are rechecked against the current approved public catalog. No private account data is loaded. Context is bounded, not unlimited memory.
-
-## Assisted requests and direct menu
-
-Vici can prepare an UNSENT request draft from customer-provided place, ISO date or today/tomorrow (Philippine time), explicit AM/PM or 24-hour time, guest count and explicit `Items:` text. Common English/Tagalog booking phrases are recognized deterministically; ambiguous/unsupported details are left blank and requested, not invented. This draft flow uses no model call. General establishment answers still use the configured AI providers. Non-greeting Vici chat requests are limited to 30/minute; actual model questions additionally retain 6/minute and 50/24-hour account limits.
-
-`Review reservation/request` opens the existing editable request form. Nothing is submitted until the customer reviews that form and presses Send Request. Approval, requirements and verified payment still follow the existing transaction process. Drafts do not read booking history or payment/account records. Cancel draft only discards the unsent draft, never cancels an actual booking. Only the latest active draft has an action button. Disabled request settings are checked again on server booking creation.
-
-Recommendation cards have View menu (a compact dialog of up to 20 saved public menu/store posts), View on map, and a clickable place name for full details. Missing menu/images are clearly handled; no generated menu, image uploads or Firebase Storage setup is introduced. No new indexes: the menu query matches the existing place-post feed.
+Unit/browser fixtures are local verification, not proof of live API credentials/model availability. The production smoke test is still required.

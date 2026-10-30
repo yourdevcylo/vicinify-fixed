@@ -7,7 +7,7 @@ function createBooking(input, user, place, profile, now = Date.now()) {
     if (!types.has(input.requestType)) invalid('Choose a valid request type.');
     if (place.approval_status !== 'approved' || !place.owner_uid || place.owner_uid === user.uid)
         throw Object.assign(new Error('This establishment cannot accept this request.'),{status:409});
-    if(place.accepts_booking===false)throw Object.assign(new Error('This establishment is not accepting requests. Please message the business.'),{status:409});
+    if(input.requestType==='table_reservation'?place.accepts_booking===false:Array.isArray(input.menuLines)?place.accepts_orders!==true:place.accepts_booking===false)throw Object.assign(new Error('This establishment is not accepting requests. Please message the business.'),{status:409});
     if(place.ownershipTransferPending)throw Object.assign(new Error('This establishment is completing an ownership transfer. Try again later.'),{status:409});
     const text = (key, max = 1000) => {
         const value = input[key];
@@ -24,7 +24,7 @@ function createBooking(input, user, place, profile, now = Date.now()) {
     const guests=Number(input.guestCount);
     if (requestType==='table_reservation' && (!Number.isInteger(guests)||guests<1||guests>500)) invalid('Enter 1 to 500 guests.');
     if (requestType!=='table_reservation' && !orderItems) invalid('Enter the food or items requested.');
-    if (requestType==='delivery_order' && !deliveryAddress) invalid('Enter a delivery address.');
+    if (requestType==='delivery_order' && !deliveryAddress && !Array.isArray(input.menuLines)) invalid('Enter a delivery address.');
     if (!['GCash','Maya','Bank Transfer'].includes(paymentMethod)) invalid('Choose GCash, Maya or Bank Transfer. Payment is required before preparation.');
     const rate=Number(place.refund_percent ?? 50);
     return {

@@ -22,6 +22,7 @@ const APP_SHELL = [
     "./js/common.js?v=VICINIFY_GREEN_EDITOR_20261029",
     "./js/data.js?v=VICINIFY_GREEN_EDITOR_20261029",
     "./js/vici-request.js?v=VICINIFY_GREEN_EDITOR_20261029",
+    "./js/vici-commerce.js?v=VICINIFY_GREEN_EDITOR_20261029",
     "./js/vici-chat.js?v=VICINIFY_GREEN_EDITOR_20261029",
     "./js/vici-launcher.js?v=VICINIFY_GREEN_EDITOR_20261029",
     "./js/map.js?v=VICINIFY_GREEN_EDITOR_20261029",
