@@ -32,7 +32,7 @@ The OpenAI key should have **Responses: Write** and **Moderations: Request** per
 2. Confirm Netlify Functions includes `askVici` and `OPENAI_API_KEY` is available to functions; no secret appears in the website source.
 3. Test as a verified **customer account**: ask “May affordable cafe ba malapit sa akin?” (not just “Hi”). Inspect the browser Network response to `/.netlify/functions/askVici`—`source: openai` indicates the backend returned an OpenAI model result; `unavailable` and `guard` are not a successful model reply.
 4. Confirm that valid place cards come from the saved public database, not invented businesses. Test a blocked request and a normal menu query. Use a separate owner account to confirm a genuine booking still requires approval.
-5. Verify 20 questions/day quota with a dedicated test account rather than spending all credits on a production account. The counter resets at **00:00 Philippine time**.
+5. Verify 50 questions/day quota with a dedicated test account rather than spending all credits on a production account. The counter resets at **00:00 Philippine time**.
 6. If error 503: check `OPENAI_API_KEY`, billing, access permissions (Responses Write/Moderations Request), Firebase service account, and Netlify function logs. If error 429: check daily quota, OpenAI API account limits, or request frequency.
 
 Local tests use mocked OpenAI/Firebase responses. **Actual live API connectivity is not verified until after deployment.**

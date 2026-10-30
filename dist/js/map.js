@@ -855,7 +855,7 @@ window.MapPage = (() => {
                     const data = await response.json().catch(()=>({}));
                     const message = data.error === 'Forbidden origin' ? 'Vici AI cannot accept requests from this site address. Please contact the site administrator.'
                         : response.status === 503 ? (typeof data.error === 'string' && /safety check/i.test(data.error) ? 'Vici AI safety checks are temporarily unavailable. Please try again later.' : 'Vici AI backend is unavailable. Please contact the site administrator if this continues.')
-                        : response.status === 429 ? (typeof data.error === 'string' && data.error.startsWith('Daily AI limit reached') ? 'You have used your 20 Vici AI questions for today. Your limit resets at midnight (Philippine time).' : 'Too many AI requests. Please wait before trying again.')
+                        : response.status === 429 ? (typeof data.error === 'string' && data.error.startsWith('Daily AI limit reached') ? 'You have used your 50 Vici AI questions for today. Your limit resets at midnight (Philippine time).' : 'Too many AI requests. Please wait before trying again.')
                         : response.status === 401 || response.status === 403 ? 'Please sign in again with a verified email to use Vici AI.'
                         : response.status === 504 ? 'AI timed out. Please try again.' : VICI_AI_ERROR;
                     console.warn('Vici AI request failed.', {status:response.status, reason:data.error === 'Forbidden origin'?'origin_rejected':response.status===503?'server_setup':'request_failed'});

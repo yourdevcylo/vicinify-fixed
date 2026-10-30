@@ -62,7 +62,7 @@ exports.handler=async event=>{
   if(/^(thanks|thank you|salamat|salamat po)[!. ]*$/i.test(query))return reply(200,{answer:lang==='ph'?'Walang anuman! May iba ka pa bang gustong malaman tungkol sa mga kainan?':'You’re welcome! Is there another establishment you would like to ask about?',source:'basic',placeIds:[]});
   if(!process.env.OPENAI_API_KEY)return reply(503,{error:'OpenAI API key is not configured on the server.'});
   await limit(user.uid,'ai',6);
-  await limitDaily(user.uid,'ai_daily',20);
+  await limitDaily(user.uid,'ai_daily',50);
   // A moderation outage must not silently bypass safety checks.
   const inputSafety=await AI.moderate(query,{onFailure:info=>{console.warn('Vici input moderation unavailable',info);}});
   if(!inputSafety)return reply(503,{error:'Vici AI safety check is temporarily unavailable. Please try again.'});

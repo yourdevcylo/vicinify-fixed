@@ -144,3 +144,18 @@ html body.vicinify-ui #placeListPreview .list-preview-tabs { grid-template-colum
  html body.vicinify-ui #placeListPreview .list-preview-business-photo { width:46px; height:46px; flex-basis:46px; border-radius:12px; }
  html body.vicinify-ui #placeListPreview .list-preview-business h2 { font-size:19px; }
 }
+
+/* Live structured menu from the same Firestore collection as Business Hub. */
+#placeListPreview .list-structured-menu {display:grid;gap:10px;margin:14px 0 22px;}
+#placeListPreview .list-structured-item {display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:13px;border:1px solid var(--ui-border);background:var(--ui-surface);min-width:0;}
+#placeListPreview .list-structured-item>img,#placeListPreview .list-structured-placeholder {width:74px;height:74px;flex:0 0 74px;border-radius:10px;object-fit:cover;background:var(--ui-success-bg);border:1px solid var(--ui-success-line);}
+#placeListPreview .list-structured-placeholder {display:grid;place-items:center;color:var(--ui-success-ink);}
+#placeListPreview .list-structured-info {flex:1;min-width:0;overflow-wrap:anywhere;}
+#placeListPreview .list-structured-info small {font-size:10px;color:var(--ui-muted);}
+#placeListPreview .list-structured-info h4 {margin:4px 0 5px;font-size:14px;font-weight:700;color:var(--ui-ink);}
+#placeListPreview .list-structured-info p {margin:0 0 9px;font-size:11px;line-height:1.6;color:var(--ui-muted);white-space:pre-wrap;}
+#placeListPreview .list-structured-meta {display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;}
+#placeListPreview .list-structured-meta strong {font-size:13px;color:var(--ui-success-ink);}
+#placeListPreview .list-structured-meta span {font-size:10px;color:var(--ui-muted);}
+#placeListPreview .list-preview-post-heading {margin-top:22px;}
+@media(max-width:400px){#placeListPreview .list-structured-item>img,#placeListPreview .list-structured-placeholder {width:58px;height:58px;flex-basis:58px;}}

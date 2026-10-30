@@ -49,7 +49,7 @@ async function limit(userId, scope, maximum, intervalMs = 60000) {
 function manilaDay(now = Date.now()) {
     return new Date(now + 8 * 60 * 60 * 1000).toISOString().slice(0,10).replaceAll('-', '');
 }
-async function limitDaily(userId, scope, maximum = 20, now = Date.now(), options = {}) {
+async function limitDaily(userId, scope, maximum = 50, now = Date.now(), options = {}) {
     const db = options.db || services().db;
     const ref = db.collection('_rate_limits').doc(`${scope}_${manilaDay(now)}_${userId}`);
     await db.runTransaction(async transaction => {

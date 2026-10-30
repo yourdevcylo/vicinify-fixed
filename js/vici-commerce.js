@@ -41,7 +41,7 @@
    wrap._menuLiveUnsub = () => { menuStreamActive=false; menuLiveStop?.(); wrap._menuLiveUnsub=null; };
    wrap.closest('dialog')?.addEventListener('close', () => wrap._menuLiveUnsub?.(), { once:true });
    wrap.querySelector('[data-ordering]')?.addEventListener('change',async e=>{e.target.disabled=true;try{await root.ViciData.command('menu',{action:'settings',placeId,acceptsOrders:e.target.checked});root.invalidatePlacesCache?.();mountMenu(wrap,placeId,true);}catch(error){e.target.checked=!e.target.checked;root.showToast?.(error.message,'error');e.target.disabled=false;}});
-   wrap.querySelector('input[type=search]').oninput=render;wrap.querySelector('select').onchange=render;wrap.onclick=async e=>{const b=e.target.closest('button');if(!b)return;const item=items.find(i=>i.id===(b.dataset.add||b.dataset.edit||b.dataset.details));if(b.hasAttribute('data-template')){downloadMenuTemplate();return;}else if(b.hasAttribute('data-import')){await importMenuCSV(place,items,()=>{menus.delete(placeId);mountMenu(wrap,placeId,true);});return;}else if(b.hasAttribute('data-new')||b.dataset.edit){await editItem(place,item,()=>{menus.delete(placeId);mountMenu(wrap,placeId,true);});}else if(b.dataset.add){addItem(place,item);}else if(b.dataset.details){const d=dialog(item.name);d.querySelector('.commerce-body').innerHTML=`<p data-no-translate>${esc(item.description)}</p><p>${money(item.priceCents)} · ${item.available?'Available':'Unavailable'}</p>${item.optionGroups?.map(g=>`<p>${esc(g.name)} (${g.required?'required':'optional'}): ${g.choices.map(c=>esc(c.name)+' +'+money(c.priceCents)+(c.available?'':' — unavailable')).join(', ')}</p>`).join('')||''}${item.available&&place.accepts_orders===true&&root.auth?.currentUser?.uid!==place.owner_uid?'<button type="button" data-add-detail>Add to order</button>':''}`;d.querySelector('[data-add-detail]')?.addEventListener('click',()=>{d.close();addItem(place,item);});}};render();
+   wrap.querySelector('input[type=search]').oninput=render;wrap.querySelector('select').onchange=render;wrap.onclick=async e=>{const b=e.target.closest('button');if(!b)return;const item=items.find(i=>i.id===(b.dataset.add||b.dataset.edit||b.dataset.details));if(b.hasAttribute('data-template')){downloadMenuTemplate();return;}else if(b.hasAttribute('data-import')){await importMenuCSV(place,items,()=>{menus.delete(placeId);mountMenu(wrap,placeId,true);});return;}else if(b.hasAttribute('data-new')||b.dataset.edit){await editItem(place,item,()=>{menus.delete(placeId);root.PlacePreview?.refreshMenu?.(placeId);mountMenu(wrap,placeId,true);});}else if(b.dataset.add){addItem(place,item);}else if(b.dataset.details){const d=dialog(item.name);d.querySelector('.commerce-body').innerHTML=`<p data-no-translate>${esc(item.description)}</p><p>${money(item.priceCents)} · ${item.available?'Available':'Unavailable'}</p>${item.optionGroups?.map(g=>`<p>${esc(g.name)} (${g.required?'required':'optional'}): ${g.choices.map(c=>esc(c.name)+' +'+money(c.priceCents)+(c.available?'':' — unavailable')).join(', ')}</p>`).join('')||''}${item.available&&place.accepts_orders===true&&root.auth?.currentUser?.uid!==place.owner_uid?'<button type="button" data-add-detail>Add to order</button>':''}`;d.querySelector('[data-add-detail]')?.addEventListener('click',()=>{d.close();addItem(place,item);});}};render();
   }catch(e){if(wrap.isConnected)wrap.innerHTML=`<p role="alert">${esc(e.message||'Could not load menu.')}</p><button type="button">Retry</button>`;wrap.querySelector('button')?.addEventListener('click',()=>mountMenu(wrap,placeId,manage));}
  }
  async function openMenu(id){const place=await getPlace(id),d=dialog(place.name+' · Menu');await mountMenu(d.querySelector('.commerce-body'),id,root.auth?.currentUser?.uid===place.owner_uid);return true;}
@@ -84,11 +84,25 @@
     if(items.length+existing.length>80)throw Error('Maximum 80 active menu items per establishment.');
     const table=document.createElement('div');table.innerHTML='<p><b>'+items.length+' items ready</b> · No photos included</p><div style="max-height:260px;overflow:auto"><table style="width:100%"><thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Options</th></tr></thead><tbody>'+items.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+esc(x.category)+'</td><td>'+money(x.priceCents)+'</td><td>'+x.optionGroups.length+'</td></tr>').join('')+'</tbody></table></div><button type="button" data-confirm-import>Confirm and save '+items.length+' items</button><p role="status" data-progress></p>';
     preview.append(table);table.querySelector('[data-confirm-import]').onclick=async()=>{
-     const ok=await root.vConfirm('Import '+items.length+' menu items?','This will create new menu entries for '+place.name+'. Existing menu entries will not be replaced.','Import');if(!ok)return;
-     const button=table.querySelector('[data-confirm-import]');button.disabled=true;body.querySelector('[data-csv]').disabled=true;let saved=0;
-     for(const item of items){try{await root.ViciData.command('menu',{action:'save',placeId:place.id,item});saved++;table.querySelector('[data-progress]').textContent='Saved '+saved+' of '+items.length+'.';}catch(e){error.textContent='Import stopped after '+saved+' items: '+e.message+'. Already saved items remain. Reopen Import with only the remaining items.';break;}}
-     if(saved===items.length){d.close();root.showToast?.('Imported '+saved+' menu items.','success');}else body.querySelector('[data-csv]').disabled=false;
-     after();
+     // One explicit confirmation button is enough: a nested vConfirm dialog can
+     // leave this modal stuck even after Firestore has saved the CSV items.
+     const button=table.querySelector('[data-confirm-import]');
+     if(button.disabled)return;
+     button.disabled=true;button.textContent='Importing…';
+     body.querySelector('[data-csv]').disabled=true;let saved=0,failed=null;
+     for(const item of items){
+      try{await root.ViciData.command('menu',{action:'save',placeId:place.id,item});saved++;table.querySelector('[data-progress]').textContent='Saved '+saved+' of '+items.length+'…';}
+      catch(e){failed=e;break;}
+     }
+     if(saved){menus.delete(place.id);root.PlacePreview?.refreshMenu?.(place.id);try{after();}catch(e){console.warn('[menu-import] Refresh failed:',e);}}
+     if(saved===items.length){
+      table.querySelector('[data-progress]').textContent='All '+saved+' items saved successfully.';
+      button.textContent='Imported successfully ✓';
+      d.close();root.showToast?.('Imported '+saved+' menu items.','success');
+     }else{
+      error.textContent='Import stopped after '+saved+' item'+(saved===1?'':'s')+': '+(failed?.message||'Please retry')+'. Saved items remain in the menu. Close this window and remove already-imported rows before retrying.';
+      button.textContent='Import stopped';body.querySelector('[data-csv]').disabled=false;
+     }
     };
    }catch(e){error.textContent=e.message;}
   };

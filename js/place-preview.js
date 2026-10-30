@@ -1,7 +1,8 @@
-/* Read-only menu preview: reuse public store posts/reviews, loaded only on demand. */
+/* Read-only preview: show live structured menu items, and legacy public store posts separately. */
 (function(root) {
     let overlay, place = null, tab = 'menu', generation = 0, previousFocus, selectedPost = null;
     let content = {menu:null,reviews:null}, loading = {}, errors = {};
+    let menuListenerStop = null;
     const cache = new Map(), pending = new Map(), failedImages = new Set();
     let ownsScrollLock = false;
     const isDocked = () => root.innerWidth >= 1500;
@@ -36,7 +37,7 @@
             if(action==='close')close();
             if(action==='tab')selectTab(button.dataset.tab,true);
             if(action==='retry')load(tab,true);
-            if(action==='image'){selectedPost=content.menu?.find(post=>post.id===button.dataset.post);render();overlay.querySelector('.list-menu-back')?.focus();}
+            if(action==='image'){selectedPost=content.menu?.posts?.find(post=>post.id===button.dataset.post);render();overlay.querySelector('.list-menu-back')?.focus();}
             if(action==='gallery')openGallery();
             if(action==='details'){const id=place.id;close();root.viewPlace?.(id);}
             if(action==='booking'){const p=place;close();root.openBookingModal?.(p.id,p.name||'Establishment');}
@@ -71,21 +72,61 @@
         })();pending.set(key,request);
         try{return await request;}finally{if(pending.get(key)===request)pending.delete(key);}
     }
+    function structuredMenuQuery(id) {
+        return root.db.collection('places').doc(id).collection('menu_items').where('archived','==',false).limit(80);
+    }
+    function menuRows(snapshot) {
+        return snapshot.docs.map(doc=>({id:doc.id,...doc.data()})).filter(item=>item.archived!==true);
+    }
+    function stopMenuListener() {
+        if (menuListenerStop) { menuListenerStop(); menuListenerStop=null; }
+    }
     async function load(type,force=false) {
         if(!place||type==='about')return;
         if(content[type]!==null&&!force)return;
-        const ticket=generation, id=place.id;loading[type]=true;errors[type]='';render();
-        try{const docs=await query(type,id,force);if(ticket!==generation)return;content[type]=docs;}
-        catch(error){if(ticket!==generation)return;errors[type]='Could not load '+(type==='menu'?'menu posts':'public reviews')+'. Please try again.';}
+        const ticket=generation, id=place.id;
+        loading[type]=true;errors[type]='';if(tab===type)render();
+        try{
+            if(type==='menu'){
+                stopMenuListener();
+                // Menu Manager writes to places/{id}/menu_items, NOT place_posts.
+                // Always fetch the newest items on open/retry rather than the cached store posts.
+                const items=menuRows(await structuredMenuQuery(id).get());
+                if(ticket!==generation)return;
+                content.menu={items,posts:[]};
+                // Optional legacy menu/store posts must not prevent the actual menu from loading.
+                try{content.menu.posts=await query('menu',id,force);}catch(error){console.warn('[preview] Optional store posts unavailable:',error?.code||error);}
+                if(ticket!==generation)return;
+                const live=structuredMenuQuery(id);
+                if(typeof live.onSnapshot==='function'){
+                    menuListenerStop=live.onSnapshot(snapshot=>{
+                        if(ticket!==generation||!place||place.id!==id)return;
+                        content.menu={...(content.menu||{posts:[]}),items:menuRows(snapshot)};
+                        if(tab==='menu'&&!selectedPost)render();
+                    },error=>console.warn('[preview] Live menu updates unavailable:',error?.code||error));
+                }
+            }else{
+                const docs=await query(type,id,force);
+                if(ticket!==generation)return;
+                content[type]=docs;
+            }
+        }catch(error){if(ticket!==generation)return;errors[type]='Could not load '+(type==='menu'?'the current menu':'public reviews')+'. Please try again.';}
         finally{if(ticket===generation){loading[type]=false;if(tab===type)render();}}
     }
     function selectTab(value,focus=false){if(!['menu','reviews','about'].includes(value))return;tab=value;selectedPost=null;render();if(focus)overlay.querySelector('[data-tab="'+tab+'"]').focus();load(tab);}
     function openGallery(){const previous=selectedPost?.id;selectedPost=null;render();[...overlay.querySelectorAll('.list-menu-thumbnail')].find(button=>button.dataset.post===previous)?.focus();}
     function menuHtml(){
-        if(selectedPost){const photo=safeImage(selectedPost.mediaUrl);return `<div class="list-menu-detail"><button type="button" class="list-menu-back" data-preview-action="gallery"><i data-lucide="arrow-left"></i> All menu posts</button>${photo?`<div class="list-menu-full-image"><img src="${esc(photo)}" alt="Menu or store post from ${esc(place.name)}"></div><a class="list-menu-image-link" href="${esc(photo)}" target="_blank" rel="noopener noreferrer">Open full-size image <i data-lucide="external-link"></i></a>`:''}${selectedPost.mediaUrl&&!photo?'<p class="list-preview-image-error">This image could not be loaded. You can still read the post below. Close and reopen the preview to retry.</p>':''}<p>${esc(selectedPost.body || '')}</p><small>${esc(dateLabel(selectedPost))}</small></div>`;}
-        const posts=content.menu||[];
-        if(!posts.length)return `<div class="list-preview-empty"><i data-lucide="book-open"></i><h3>No menu uploaded yet</h3><p>This business has not shared menu or store posts here. Ask them in chat for their current menu.</p><button type="button" data-preview-action="chat">Ask about the menu</button></div>`;
-        return `<div class="list-preview-section-heading"><h3>Menu & store posts</h3><span>${posts.length} post${posts.length===1?'':'s'}</span></div><p class="list-preview-hint">Shared by the business. Confirm current prices and availability before ordering.</p><div class="list-menu-grid">${posts.map(post=>{const photo=safeImage(post.mediaUrl);return `<article class="list-menu-post"><button type="button" class="list-menu-thumbnail${photo?'':' no-photo'}" data-preview-action="image" data-post="${esc(post.id)}" aria-label="View menu or store post"><i data-lucide="${photo?'maximize-2':'file-text'}"></i>${photo?`<img src="${esc(photo)}" alt="Menu or store post from ${esc(place.name)}" loading="lazy">`:''}<span>${photo?'View image':'Read post'}</span></button><div class="list-menu-post-caption"><p>${esc(String(post.body||'Menu / store update').slice(0,180))}</p><small>${esc(dateLabel(post))}</small></div></article>`;}).join('')}</div><p class="list-preview-hint">Showing up to 30 available posts.</p>`;
+        if(selectedPost){const photo=safeImage(selectedPost.mediaUrl);return `<div class="list-menu-detail"><button type="button" class="list-menu-back" data-preview-action="gallery"><i data-lucide="arrow-left"></i> Back to menu</button>${photo?`<div class="list-menu-full-image"><img src="${esc(photo)}" alt="Menu or store post from ${esc(place.name)}"></div><a class="list-menu-image-link" href="${esc(photo)}" target="_blank" rel="noopener noreferrer">Open full-size image <i data-lucide="external-link"></i></a>`:''}${selectedPost.mediaUrl&&!photo?'<p class="list-preview-image-error">This image could not be loaded. You can still read the post below. Close and reopen the preview to retry.</p>':''}<p>${esc(selectedPost.body || '')}</p><small>${esc(dateLabel(selectedPost))}</small></div>`;}
+        const items=content.menu?.items||[], posts=content.menu?.posts||[];
+        if(!items.length&&!posts.length)return `<div class="list-preview-empty"><i data-lucide="book-open"></i><h3>No menu items listed yet</h3><p>This business has not added menu items. Ask them in chat for their current menu.</p><button type="button" data-preview-action="chat">Ask about the menu</button></div>`;
+        let html='';
+        if(items.length){
+            html+=`<div class="list-preview-section-heading"><h3>Listed menu</h3><span>${items.length} item${items.length===1?'':'s'}</span></div><p class="list-preview-hint">Prices and availability are provided by the business.</p><div class="list-structured-menu">${items.map(item=>{const photo=safeImage(item.photoUrl),price=Number(item.priceCents);return `<article class="list-structured-item">${photo?`<img src="${esc(photo)}" alt="${esc(item.name)}" loading="lazy">`:`<div class="list-structured-placeholder"><i data-lucide="utensils"></i></div>`}<div class="list-structured-info"><small>${esc(item.category||'Other')}</small><h4>${esc(item.name||'Menu item')}</h4>${item.description?`<p>${esc(item.description)}</p>`:''}<div class="list-structured-meta"><strong>${Number.isFinite(price)&&price>=0?'₱'+(price/100).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2}):'Price unavailable'}</strong><span>${item.available===false?'Unavailable':'Available'}</span></div></div></article>`;}).join('')}</div>`;
+        }
+        if(posts.length){
+            html+=`<div class="list-preview-section-heading list-preview-post-heading"><h3>Store posts & menu photos</h3><span>${posts.length} post${posts.length===1?'':'s'}</span></div><div class="list-menu-grid">${posts.map(post=>{const photo=safeImage(post.mediaUrl);return `<article class="list-menu-post"><button type="button" class="list-menu-thumbnail${photo?'':' no-photo'}" data-preview-action="image" data-post="${esc(post.id)}" aria-label="View store post"><i data-lucide="${photo?'maximize-2':'file-text'}"></i>${photo?`<img src="${esc(photo)}" alt="Store post from ${esc(place.name)}" loading="lazy">`:''}<span>${photo?'View image':'Read post'}</span></button><div class="list-menu-post-caption"><p>${esc(String(post.body||'Store update').slice(0,180))}</p><small>${esc(dateLabel(post))}</small></div></article>`;}).join('')}</div>`;
+        }
+        return html;
     }
     function headerInfoHtml(){
         const address=place.address||place.addr||place.barangay||place.brgy||'Lipa City';
@@ -115,14 +156,15 @@
         const focusedAction=overlay.contains(document.activeElement)?document.activeElement.dataset.previewAction:null;
         const focusedTab=document.activeElement.dataset?.tab;
         const photo=safeImage(place.coverPhoto||place.photos?.[0]), rating=Number(place.avgRating);
-        overlay.innerHTML=`<button type="button" class="list-preview-backdrop" tabindex="-1" data-preview-action="close" aria-label="Close menu preview"></button><section class="list-preview-sheet" role="dialog" aria-modal="true" aria-labelledby="listPreviewTitle"><header class="list-preview-header"><span class="list-preview-eyebrow">EXPLORE THIS PLACE</span><button type="button" class="list-preview-close" data-preview-action="close" aria-label="Close establishment preview"><i data-lucide="x"></i></button><div class="list-preview-business"><div class="list-preview-business-photo"><i data-lucide="store"></i>${photo?`<img src="${esc(photo)}" alt="${esc(place.name)}" loading="lazy">`:''}</div><div><h2 id="listPreviewTitle">${esc(place.name||'Establishment')}</h2><p>${esc(place.category||place.cat||'Local business')}${rating>0?` · <span class="list-preview-overall-rating">★ ${esc(rating)} (${esc(place.reviewCount||0)})</span>`:''}</p></div></div>${headerInfoHtml()}</header><nav class="list-preview-tabs" role="tablist" aria-label="Establishment information">${['menu','reviews','about'].map(key=>`<button type="button" role="tab" id="listPreviewTab-${key}" aria-selected="${tab===key}" aria-controls="listPreviewContent" tabindex="${tab===key?'0':'-1'}" data-preview-action="tab" data-tab="${key}">${key==='menu'?'Menu':key==='reviews'?'Reviews':'About'}</button>`).join('')}</nav><div class="list-preview-body" id="listPreviewContent" role="tabpanel" aria-labelledby="listPreviewTab-${tab}">${loading[tab]?'<div class="list-preview-loading" role="status">Loading '+(tab==='menu'?'menu posts':'public reviews')+'…</div>':errors[tab]?`<div class="list-preview-empty"><i data-lucide="wifi-off"></i><h3>Could not load this section</h3><p>${esc(errors[tab])}</p><button type="button" data-preview-action="retry">Try again</button></div>`:tab==='menu'?menuHtml():tab==='reviews'?reviewsHtml():aboutHtml()}</div><footer class="list-preview-footer"><button type="button" data-preview-action="chat"><i data-lucide="message-square"></i> Chat</button><button type="button" data-preview-action="booking"><i data-lucide="calendar"></i> Send request</button></footer></section>`;
+        overlay.innerHTML=`<button type="button" class="list-preview-backdrop" tabindex="-1" data-preview-action="close" aria-label="Close menu preview"></button><section class="list-preview-sheet" role="dialog" aria-modal="true" aria-labelledby="listPreviewTitle"><header class="list-preview-header"><span class="list-preview-eyebrow">EXPLORE THIS PLACE</span><button type="button" class="list-preview-close" data-preview-action="close" aria-label="Close establishment preview"><i data-lucide="x"></i></button><div class="list-preview-business"><div class="list-preview-business-photo"><i data-lucide="store"></i>${photo?`<img src="${esc(photo)}" alt="${esc(place.name)}" loading="lazy">`:''}</div><div><h2 id="listPreviewTitle">${esc(place.name||'Establishment')}</h2><p>${esc(place.category||place.cat||'Local business')}${rating>0?` · <span class="list-preview-overall-rating">★ ${esc(rating)} (${esc(place.reviewCount||0)})</span>`:''}</p></div></div>${headerInfoHtml()}</header><nav class="list-preview-tabs" role="tablist" aria-label="Establishment information">${['menu','reviews','about'].map(key=>`<button type="button" role="tab" id="listPreviewTab-${key}" aria-selected="${tab===key}" aria-controls="listPreviewContent" tabindex="${tab===key?'0':'-1'}" data-preview-action="tab" data-tab="${key}">${key==='menu'?'Menu':key==='reviews'?'Reviews':'About'}</button>`).join('')}</nav><div class="list-preview-body" id="listPreviewContent" role="tabpanel" aria-labelledby="listPreviewTab-${tab}">${loading[tab]?'<div class="list-preview-loading" role="status">Loading '+(tab==='menu'?'current menu':'public reviews')+'…</div>':errors[tab]?`<div class="list-preview-empty"><i data-lucide="wifi-off"></i><h3>Could not load this section</h3><p>${esc(errors[tab])}</p><button type="button" data-preview-action="retry">Try again</button></div>`:tab==='menu'?menuHtml():tab==='reviews'?reviewsHtml():aboutHtml()}</div><footer class="list-preview-footer"><button type="button" data-preview-action="chat"><i data-lucide="message-square"></i> Chat</button><button type="button" data-preview-action="booking"><i data-lucide="calendar"></i> Send request</button></footer></section>`;
         root.debouncedIcons?.();
         if(focusedAction==='tab')overlay.querySelector('[data-tab="'+focusedTab+'"]')?.focus();
         if(focusedAction==='close')overlay.querySelector('.list-preview-close')?.focus();
         if(focusedAction==='gallery')overlay.querySelector('.list-menu-back')?.focus();
         syncMode();
     }
-    function open(value){if(!value?.id)return;ensure();generation++;previousFocus=document.activeElement;failedImages.clear();place={...value,id:String(value.id)};tab='menu';selectedPost=null;content={menu:null,reviews:null};loading={};errors={};overlay.hidden=false;render();overlay.querySelector('.list-preview-close').focus();load('menu');}
-    function close(){if(!overlay||overlay.hidden)return;generation++;overlay.hidden=true;place=null;selectedPost=null;syncMode();previousFocus?.focus?.();}
-    root.PlacePreview={open,close,syncSelection};
+    function open(value){if(!value?.id)return;ensure();stopMenuListener();generation++;previousFocus=document.activeElement;failedImages.clear();place={...value,id:String(value.id)};tab='menu';selectedPost=null;content={menu:null,reviews:null};loading={};errors={};overlay.hidden=false;render();overlay.querySelector('.list-preview-close').focus();load('menu');}
+    function close(){if(!overlay||overlay.hidden)return;stopMenuListener();generation++;overlay.hidden=true;place=null;selectedPost=null;syncMode();previousFocus?.focus?.();}
+    function refreshMenu(id){if(place&&place.id===String(id)&&!overlay?.hidden){content.menu=null;load('menu',true);}}
+    root.PlacePreview={open,close,refreshMenu,syncSelection};
 })(window);
