@@ -66,3 +66,14 @@ test('same-page rerenders do not pollute Back history',async()=>{
  assert.equal(r.window.ViciNavigation.debugState().routes.length,2);
  r.window.viciGoBack();await r.flush();assert.equal(r.AppState.activePage,'page-map');
 });
+test('Vici AI View Restaurant Back restores chat overlay exactly once',async()=>{
+ const r=runtime();let opens=0;r.window.ViciChat={open:()=>{opens++}};
+ r.ctx.showPage('page-map',{resetHistory:true});
+ r.window.ViciNavigation.markViciReturn();
+ r.window.currentPlaceReviewId='test-cafe';r.ctx.showPage('page-place');
+ r.window.history.back();await r.flush();
+ assert.equal(r.AppState.activePage,'page-map');assert.equal(opens,1);
+ r.window.history.forward();await r.flush();
+ r.window.history.back();await r.flush();
+ assert.equal(opens,1,'AI should not automatically reopen after a later unrelated Back');
+});

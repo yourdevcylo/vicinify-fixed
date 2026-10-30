@@ -1,0 +1,10 @@
+
+/* Admin category management */
+.category-manager{margin:18px 0;padding:18px;border:1px solid var(--ui-border,#cbd5e1);border-radius:16px;background:var(--ui-surface,transparent);color:var(--ui-text,inherit)}
+.category-manager-heading h4{margin:0 0 4px;font-size:17px}.category-manager-heading p{font-size:12px;opacity:.75;margin:0 0 15px}
+.category-create-form{display:flex;gap:8px;flex-wrap:wrap}.category-create-form input{flex:1 1 220px;min-width:0;padding:11px;border:1px solid #94a3b8;border-radius:9px;background:var(--ui-bg,#fff);color:inherit}
+.category-create-form button,.category-row button{cursor:pointer;border-radius:9px;border:1px solid #94a3b8;padding:9px 12px;background:var(--ui-bg,#fff);color:inherit}
+.category-create-form button{background:#047857;color:white;border-color:#047857}.category-manager-list{display:grid;gap:8px;margin-top:12px}
+.category-row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--ui-border,#cbd5e1);padding:10px;border-radius:10px}
+.category-row small{opacity:.65;display:block}.category-row-actions{display:flex;gap:6px;flex-wrap:wrap}.category-row button:disabled{opacity:.5;cursor:not-allowed}
+#categoryManagerNotice{font-size:12px;min-height:1em}#categoryManagerNotice[data-error="true"]{color:#dc2626}

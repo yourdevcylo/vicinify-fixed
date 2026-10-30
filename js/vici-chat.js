@@ -59,7 +59,7 @@
             if(action==='request-status'){const r=current()?.messages[Number(button.dataset.message)]?.requestMeta;if(r){close();root.openChatModal?.(r.placeId,r.placeName,null,'transaction',r.bookingId);}}
             if(action==='model-action'){const a=current()?.messages[Number(button.dataset.message)]?.actions?.[Number(button.dataset.actionIndex)];if(a)await runAction(a);}
             if(action==='menu')await config.viewMenu?.(button.dataset.place);
-            if(action==='details'||action==='inquire'){const fn=action==='details'?config.viewPlace:config.messageBusiness;if(await fn?.(button.dataset.place)===true)close();}
+            if(action==='details'||action==='inquire'){const fn=action==='details'?viewPlaceFromVici:config.messageBusiness;if(await fn?.(button.dataset.place)===true)close();}
             if (action === 'map') { const ok = await config.viewOnMap?.(button.dataset.place); if (ok !== false) { const chat=current();if(chat){chat.memory={...cleanMemory(chat.memory),placeIds:[button.dataset.place]};save();}close(); } }
         };
         panel.addEventListener('click',event=>handleClick(event).catch(error=>root.showToast?.(error.message||'Action could not be completed.','error')));
@@ -76,6 +76,22 @@
             }
         });
         return panel;
+    }
+    async function viewPlaceFromVici(placeId) {
+        // The AI panel is an overlay on Map, not a separate route. Record the
+        // overlay as the return target before opening the establishment page.
+        root.ViciNavigation?.markViciReturn?.();
+        try {
+            const result = await config.viewPlace?.(placeId);
+            if (result !== true || !document.getElementById('page-place')?.classList.contains('active')) {
+                root.ViciNavigation?.clearViciReturn?.();
+                return false;
+            }
+            return true;
+        } catch (error) {
+            root.ViciNavigation?.clearViciReturn?.();
+            throw error;
+        }
     }
     const clock = time => new Date(time).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
     const recentDate = time => new Date(time).toLocaleDateString([], {month:'short',day:'numeric'});
@@ -139,7 +155,7 @@
       if(a.type==='VIEW_ORDER'||a.type==='EDIT_ORDER')return root.ViciCommerce?.openCart(current()?.orderDraft);
       if(a.type==='CANCEL_DRAFT'){if(!current()?.orderDraft?.pendingSubmission){current().orderDraft=null;current().requestDraft=root.ViciRequest?.clean();save();render();}return;}
       if(a.type==='ADD_TO_ORDER'){const items=await root.ViciCommerce.getMenu(a.placeId);const item=items.find(i=>i.id===a.itemId);if(item?.available)root.ViciCommerce.addItem({id:a.placeId,name:current()?.messages.flatMap(m=>m.picks||[]).find(p=>p.id===a.placeId)?.name||'Establishment'},item);return;}
-      const result=a.type==='VIEW_RESTAURANT'?await config.viewPlace?.(a.placeId):a.type==='SHOW_ON_MAP'?await config.viewOnMap?.(a.placeId):a.type==='GET_DIRECTIONS'?await config.directions?.(a.placeId):await config.reviewRequest?.({active:true,placeId:a.placeId,requestType:'table_reservation'});if(result===true)close();
+      const result=a.type==='VIEW_RESTAURANT'?await viewPlaceFromVici(a.placeId):a.type==='SHOW_ON_MAP'?await config.viewOnMap?.(a.placeId):a.type==='GET_DIRECTIONS'?await config.directions?.(a.placeId):await config.reviewRequest?.({active:true,placeId:a.placeId,requestType:'table_reservation'});if(result===true)close();
     }
     function interactiveHtml(m,index){let html='';if(m.menuPreview){const p=m.menuPreview;html+=`<section class="vici-menu-preview"><b>${esc(p.placeName)} · Listed menu</b>${p.items?.length?p.items.map(i=>`<article>${imageUrl(i.photoUrl)?`<img src="${esc(imageUrl(i.photoUrl))}" alt="${esc(i.name)}" loading="lazy">`:''}<strong>${esc(i.name)}</strong><small>${root.ViciCommerce?.money(i.priceCents)||''} · ${i.available?'Available':'Unavailable'}</small>${i.available&&p.canOrder?`<button type="button" data-action="add-menu" data-place="${esc(p.placeId)}" data-item="${esc(i.id)}">Add to order</button>`:''}</article>`).join(''):'<p>No structured menu items are listed.</p>'}<button type="button" data-action="menu" data-place="${esc(p.placeId)}">View full menu</button></section>`;}
       const labels={VIEW_RESTAURANT:'View restaurant',VIEW_MENU:'View menu',SHOW_ON_MAP:'View on map',GET_DIRECTIONS:'Get directions',ADD_TO_ORDER:'Add to order',VIEW_ORDER:'Review order',EDIT_ORDER:'Edit order',REQUEST_ORDER:'Request order',REQUEST_RESERVATION:'Request reservation',CANCEL_DRAFT:'Cancel draft',VIEW_REQUEST_STATUS:'View request status'};

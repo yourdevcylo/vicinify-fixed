@@ -460,6 +460,12 @@
                     </div>
                     <span class="section-note">Review establishments, users, posts, transactions, messages, claims, and reports.</span>
                 </div>
+                <section id="categoryManager" class="category-manager" aria-label="Manage establishment categories">
+                    <div class="category-manager-heading"><div><h4>Manage Categories</h4><p>Add, rename, enable or disable establishment types. Changes appear in forms and map filters.</p></div></div>
+                    <form id="categoryCreateForm" class="category-create-form"><input id="categoryNewName" maxlength="40" required placeholder="New category name (e.g. Carinderia)" aria-label="New category name"><button type="submit">Add Category</button></form>
+                    <p id="categoryManagerNotice" role="status" aria-live="polite"></p>
+                    <div id="categoryManagerList" class="category-manager-list">Loading categories…</div>
+                </section>
                 <div id="pendingList"></div>
             </section>
         
@@ -645,9 +651,12 @@
 
                 <h3 class="bizedit-section-title">Requests &amp; Cancellation</h3>
                 <div class="card bizedit-card">
-                    <div class="bizedit-toggle-row">
-                        <label for="bizPortalBooking">Accepting Requests</label>
-                        <input type="checkbox" id="bizPortalBooking" class="bizedit-switch" />
+                    <p class="bizedit-hint">Choose the services this location accepts. Disabled services cannot receive new transactions; existing requests remain in your Transactions tab.</p>
+                    <div class="bizedit-service-grid">
+                        <label class="bizedit-toggle-row"><span><strong>Table Reservations</strong><small>Customers reserve seats for a date and time.</small></span><input type="checkbox" id="bizPortalBooking" class="bizedit-switch" /></label>
+                        <label class="bizedit-toggle-row"><span><strong>Food & Drink Orders</strong><small>Pickup, delivery and menu orders.</small></span><input type="checkbox" id="bizPortalOrders" class="bizedit-switch" /></label>
+                        <label class="bizedit-toggle-row"><span><strong>Advance Bookings</strong><small>Food reservations and advance or bulk requests.</small></span><input type="checkbox" id="bizPortalAdvance" class="bizedit-switch" /></label>
+                        <label class="bizedit-toggle-row"><span><strong>Customer Messages</strong><small>Show the message shortcut for questions and special requests.</small></span><input type="checkbox" id="bizPortalRequests" class="bizedit-switch" /></label>
                     </div>
                     <div class="field bizedit-refund">
                         <label>Cancellation Refund (before preparation starts)</label>
@@ -659,6 +668,7 @@
                     </div>
                 </div>
 
+                <style>.bizedit-service-grid{display:grid;gap:10px}.bizedit-service-grid .bizedit-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--border,#e2e8f0);border-radius:12px;min-width:0}.bizedit-service-grid .bizedit-toggle-row span{min-width:0;flex:1}.bizedit-service-grid .bizedit-toggle-row small{display:block;font-weight:400;opacity:.75;margin-top:4px;line-height:1.4}.bizedit-service-grid .bizedit-switch{flex-shrink:0}</style>
                 <h3 class="bizedit-section-title">Automatic replies</h3>
                 <section class="card bizedit-card auto-reply-settings">
                     <label class="auto-reply-switch"><input type="checkbox" id="bizAutoReplies"> Reply automatically to customer quick questions</label>
@@ -1112,6 +1122,8 @@
     <script src="js/vici-request.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/vici-commerce.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/vici-chat.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
+    <link rel="stylesheet" href="css/categories.css?v=VICINIFY_CATEGORIES_20261030">
+    <script src="js/categories.js?v=VICINIFY_CATEGORIES_20261030"></script>
     <script src="js/map.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/add.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/buzz.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>

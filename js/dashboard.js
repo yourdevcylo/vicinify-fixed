@@ -2286,6 +2286,9 @@ if (description.length < 10) {
         document.getElementById("bizPortalPhone").value = place.contact_phone || place.phone || "";
         document.getElementById("bizPortalEmail").value = place.contact_email || "";
         document.getElementById("bizPortalBooking").checked = place.accepts_booking || false;
+        document.getElementById("bizPortalOrders").checked = place.accepts_orders === true;
+        document.getElementById("bizPortalAdvance").checked = place.accepts_advance_booking === true || (place.accepts_advance_booking == null && place.accepts_booking === true);
+        document.getElementById("bizPortalRequests").checked = place.accepts_requests !== false;
         const bizRefundEl = document.getElementById("bizRefund");
         if (bizRefundEl) bizRefundEl.value = String(place.refund_percent ?? 50);
         const bizPriceEl = document.getElementById("bizPortalPriceRange");
@@ -2574,6 +2577,9 @@ let updateData = {
     phone: phone,
 
     accepts_booking: document.getElementById("bizPortalBooking").checked,
+    accepts_orders: document.getElementById("bizPortalOrders").checked,
+    accepts_advance_booking: document.getElementById("bizPortalAdvance").checked,
+    accepts_requests: document.getElementById("bizPortalRequests").checked,
 
     refund_percent: Number(document.getElementById("bizRefund")?.value || 50),
 

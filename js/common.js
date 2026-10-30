@@ -2305,6 +2305,7 @@ const ViciNavigation = (() => {
     let routes = [];
     let position = -1;
     let skipStudioCheck = false;
+    let pendingViciReturnIndex = null;
     const stateFor = (route, index) => ({ vicinifyRoute: true, vicinifySession: session,
         vicinifyIndex: index, vicinifyPage: route.page, vicinifyPlaceId: route.placeId || null });
     const getPlaceId = page => page === 'page-place' ? (window.currentPlaceReviewId || null) : null;
@@ -2316,7 +2317,7 @@ const ViciNavigation = (() => {
         const route = { page, placeId: getPlaceId(page) };
         if (!routes.length || options.resetHistory) {
             if (options.resetHistory) session = Math.random().toString(36).slice(2) + Date.now().toString(36);
-            routes = [route]; position = 0; write(route, position, true); return;
+            routes = [route]; position = 0; pendingViciReturnIndex = null; write(route, position, true); return;
         }
         if (options.fromHistory) return;
         if (page === AppState.activePage) {
@@ -2372,8 +2373,14 @@ const ViciNavigation = (() => {
             }
             window.DashboardPage?.cleanupSukiStudio?.();
         } else skipStudioCheck = false;
+        const shouldRestoreVici = pendingViciReturnIndex === target.vicinifyIndex &&
+            AppState.activePage === 'page-place' && nextPage === 'page-map';
+        // One-shot return target: never reopen AI during unrelated navigation.
+        if (shouldRestoreVici || (pendingViciReturnIndex !== null && target.vicinifyIndex < pendingViciReturnIndex))
+            pendingViciReturnIndex = null;
         position = target.vicinifyIndex;
         showPage(nextPage, { fromHistory: true });
+        if (shouldRestoreVici) window.ViciChat?.open?.();
         if (nextPage === 'page-place') {
             const id = target.vicinifyPlaceId || routes[position]?.placeId;
             // Leaving place details unmounts live subscriptions; resubscribe on return.
@@ -2389,6 +2396,8 @@ const ViciNavigation = (() => {
         }
     });
     return { remember, goBack, canGoBack, allowStudioBackOnce,
+        markViciReturn: () => { if (AppState.activePage === 'page-map') pendingViciReturnIndex = position; },
+        clearViciReturn: () => { pendingViciReturnIndex = null; },
         isAt: (index, page) => position === index && AppState.activePage === page,
         debugState: () => ({ routes: routes.map(r => r.page), position }) };
 })();
