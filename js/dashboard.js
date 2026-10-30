@@ -1996,6 +1996,8 @@ if (description.length < 10) {
     // form state bago pa mag-save (gumagana kahit quota-blocked).
     // =====================================
     let sukiDraft = null;
+    // Remember the last confirmed Firebase version for safe Back navigation.
+    let sukiSavedSnapshot = null;
     let sukiChipsBuilt = false;
     let sukiStudioBound = false;
     let sukiStudioPlace = null;
@@ -2171,6 +2173,9 @@ if (description.length < 10) {
         sukiDraft = sukiDefaultDraft(place);
         sukiBuildStudioChips();
         sukiSyncStudioFromDraft();
+        // Normalize inputs before recording the clean version: preset gradient
+        // colors may initially be populated by the UI, not stored in Firebase.
+        sukiSavedSnapshot = JSON.stringify(sukiReadStudioToDraft());
         sukiRenderStudioPreview();
 
         if (sukiStudioBound) return;
@@ -2359,6 +2364,39 @@ if (description.length < 10) {
         window.debouncedIcons?.();
     }
 
+    async function confirmLeaveSukiStudio() {
+        if (sukiSaving) {
+            window.showToast?.("Please finish saving before leaving Suki Card Studio.", "error");
+            return false;
+        }
+        if (sukiDraft && sukiSavedSnapshot !== null &&
+            JSON.stringify(sukiReadStudioToDraft()) !== sukiSavedSnapshot) {
+            const message = "Your Suki Card has unsaved changes. Go back without saving?";
+            const discard = typeof window.vConfirm === "function"
+                ? await window.vConfirm("Unsaved Suki Card changes", message, "Discard changes", true)
+                : window.confirm(message);
+            if (!discard) return false;
+        }
+        return true;
+    }
+
+    function cleanupSukiStudio() {
+        const qr = document.getElementById("sukiStudioQr");
+        if (qr) {
+            if (qr._sukiQrTimer) { clearInterval(qr._sukiQrTimer); qr._sukiQrTimer = null; }
+            qr.classList.add("hidden");
+        }
+    }
+
+    async function backFromSukiStudio() {
+        if (!(await confirmLeaveSukiStudio())) return false;
+        cleanupSukiStudio();
+        // The browser Back event must not show the same confirmation twice.
+        if (window.ViciNavigation?.canGoBack?.()) window.ViciNavigation.allowStudioBackOnce();
+        window.viciGoBack?.("page-dashboard");
+        return true;
+    }
+
     async function saveSukiStudio() {
         if (sukiSaving) return;
         const id = document.getElementById("sukiStudioPlaceId")?.value;
@@ -2376,6 +2414,9 @@ if (description.length < 10) {
                 throw new Error("Only the owner or an admin can edit the Suki Card.");
             }
             const sd = sukiReadStudioToDraft();
+            // Snapshot exactly the version being written. Later edits remain
+            // unsaved until their own successful Firebase write.
+            const savingSnapshot = JSON.stringify(sd);
             const updateData = {
                 suki_enabled: sd.enabled,
                 suki_stamp_count: sd.stampCount,
@@ -2391,6 +2432,7 @@ if (description.length < 10) {
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             await window.db.collection("places").doc(id).update(updateData);
+            sukiSavedSnapshot = savingSnapshot;
             // Public place listings cache the old suki_enabled/configuration.
             // Invalidate immediately so returning to the map uses the saved card.
             window.invalidatePlacesCache?.();
@@ -2724,6 +2766,9 @@ let updateData = {
         openBizPosts,
         openAddPostFromPosts,
         openSukiStudio,
+        backFromSukiStudio,
+        confirmLeaveSukiStudio,
+        cleanupSukiStudio,
         saveSukiStudio,
         deletePlacePost,
         confirmBusinessInfo,

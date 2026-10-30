@@ -2298,7 +2298,106 @@ document.addEventListener("error", function (e) {
 }, true);
 
 // ---------- Navigation ----------
-function showPage(pageId) {
+// Browser history and the app's page history use the same small, in-memory route list.
+// Do not persist private place/account state in URLs or localStorage.
+const ViciNavigation = (() => {
+    let session = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    let routes = [];
+    let position = -1;
+    let skipStudioCheck = false;
+    const stateFor = (route, index) => ({ vicinifyRoute: true, vicinifySession: session,
+        vicinifyIndex: index, vicinifyPage: route.page, vicinifyPlaceId: route.placeId || null });
+    const getPlaceId = page => page === 'page-place' ? (window.currentPlaceReviewId || null) : null;
+    function write(route, index, replace) {
+        try { window.history[replace ? 'replaceState' : 'pushState'](stateFor(route, index), '', window.location.href); }
+        catch (error) { console.warn('[navigation] Browser history unavailable:', error); }
+    }
+    function remember(page, options = {}) {
+        const route = { page, placeId: getPlaceId(page) };
+        if (!routes.length || options.resetHistory) {
+            if (options.resetHistory) session = Math.random().toString(36).slice(2) + Date.now().toString(36);
+            routes = [route]; position = 0; write(route, position, true); return;
+        }
+        if (options.fromHistory) return;
+        if (page === AppState.activePage) {
+            routes[position] = route;
+            write(route, position, true);
+            return;
+        }
+        if (options.replaceHistory) {
+            routes[position] = route;
+            write(route, position, true);
+            return;
+        }
+        routes = routes.slice(0, position + 1);
+        routes.push(route);
+        position += 1;
+        write(route, position, false);
+    }
+    function canGoBack() { return position > 0 && window.history.state?.vicinifySession === session; }
+    function goBack(fallback = 'page-map') {
+        if (canGoBack()) { window.history.back(); return true; }
+        skipStudioCheck = false;
+        const destination = document.getElementById(fallback) ? fallback : (AppState.user ? 'page-map' : 'page-login');
+        showPage(destination, { replaceHistory: true });
+        return false;
+    }
+    function allowStudioBackOnce() { skipStudioCheck = true; }
+    window.addEventListener('popstate', async event => {
+        const target = event.state;
+        // A stale or external browser entry must not revive pages from an old login session.
+        if (!target?.vicinifyRoute || target.vicinifySession !== session ||
+            !Number.isInteger(target.vicinifyIndex) ||
+            target.vicinifyIndex < 0 || target.vicinifyIndex >= routes.length ||
+            routes[target.vicinifyIndex]?.page !== target.vicinifyPage) {
+            const fallback = AppState.user ? 'page-map' : 'page-login';
+            showPage(fallback, { resetHistory: true });
+            return;
+        }
+        if (target.vicinifyIndex === position && target.vicinifyPage === AppState.activePage) return;
+        const nextPage = target.vicinifyPage;
+        if ((!AppState.user && nextPage !== 'page-login') ||
+            (AppState.user && nextPage === 'page-login') || !document.getElementById(nextPage)) {
+            showPage(AppState.user ? 'page-map' : 'page-login', { resetHistory: true });
+            return;
+        }
+        const oldPosition = position;
+        if (AppState.activePage === 'page-suki-studio' && nextPage !== 'page-suki-studio') {
+            const approved = skipStudioCheck || await window.DashboardPage?.confirmLeaveSukiStudio?.();
+            skipStudioCheck = false;
+            if (approved === false) {
+                // Undo only this back/forward gesture; the editor and its draft remain intact.
+                window.history.go(oldPosition - target.vicinifyIndex);
+                return;
+            }
+            window.DashboardPage?.cleanupSukiStudio?.();
+        } else skipStudioCheck = false;
+        position = target.vicinifyIndex;
+        showPage(nextPage, { fromHistory: true });
+        if (nextPage === 'page-place') {
+            const id = target.vicinifyPlaceId || routes[position]?.placeId;
+            // Leaving place details unmounts live subscriptions; resubscribe on return.
+            if (id && typeof window.viewPlace === 'function') {
+                const restorePosition = position;
+                const restorePage = nextPage;
+                // Reload the existing place (and its Suki listeners) without adding history.
+                Promise.resolve().then(() => {
+                    if (position === restorePosition && AppState.activePage === restorePage)
+                        window.viewPlace(id, { fromNavigationHistory: true, restorePosition });
+                }).catch(error => console.warn('[navigation] Could not restore place:', error));
+            }
+        }
+    });
+    return { remember, goBack, canGoBack, allowStudioBackOnce,
+        isAt: (index, page) => position === index && AppState.activePage === page,
+        debugState: () => ({ routes: routes.map(r => r.page), position }) };
+})();
+window.ViciNavigation = ViciNavigation;
+window.viciGoBack = fallback => ViciNavigation.goBack(fallback);
+
+function showPage(pageId, options = {}) {
+    if (!document.getElementById(pageId)) return;
+    ViciNavigation.remember(pageId, options);
     const isMapPage = pageId === "page-map";
 
     applyViciPageScrollState(pageId);
@@ -2395,6 +2494,10 @@ function initNav() {
                 return;
             }
 
+            if (AppState.activePage === 'page-suki-studio' && target !== 'page-suki-studio') {
+                if (!(await window.DashboardPage?.confirmLeaveSukiStudio?.())) return;
+                window.DashboardPage?.cleanupSukiStudio?.();
+            }
             showPage(target);
         });
     });
@@ -2798,7 +2901,7 @@ window.auth.onAuthStateChanged(async (user) => {
                     if (window.alert) window.alert("Your account is unverified. Please check your email to verify your account.");
                 }, 2500);
             }
-            showPage("page-map");
+            showPage("page-map", { resetHistory: true });
         };
 
         currentUserDocUnsub = window.db.collection("users").doc(user.uid).onSnapshot(async doc => {
@@ -2864,7 +2967,7 @@ window.auth.onAuthStateChanged(async (user) => {
         document.getElementById('chatMessageList')?.replaceChildren();
         currentChatDocsCache = [];
         window.ViciData?.stop();
-        showPage("page-login");
+        showPage("page-login", { resetHistory: true });
     }
 });
 

@@ -129,7 +129,6 @@ html body.vicinify-ui #smartAnswerPanel.vici-workspace #viciAiChatInput { min-wi
 #smartAnswerPanel .vici-delete-chat { flex:0 0 32px; width:32px; height:36px; border:0; border-radius:8px; color:var(--ui-muted); background:transparent; cursor:pointer; }
 #smartAnswerPanel .vici-delete-chat svg { width:15px; height:15px; }
 #smartAnswerPanel .vici-delete-chat:hover { background:var(--ui-accent-soft); color:var(--ui-accent); }
-#viciAiResume { position:fixed; right:18px; bottom:calc(80px + env(safe-area-inset-bottom,0px)); z-index:12000; border:1px solid var(--ui-border); border-radius:24px; padding:12px 18px; background:var(--ui-accent,#237e72); color:white; font-weight:700; cursor:pointer; box-shadow:0 4px 16px #0002; }
 
 /* Compact public-place actions and assisted request hand-off. */
 html body.vicinify-ui .vici-card-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}

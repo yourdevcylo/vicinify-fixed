@@ -776,39 +776,10 @@ window.MapPage = (() => {
         return panel;
     }
 
-    function ensureViciAIBubble() {
-        const mapWrap = document.querySelector("#page-map .mapWrap");
-        if (!mapWrap) return null;
-        document.getElementById("viciAiBubbleBtn")?.remove();
-        let btn = document.getElementById("locateBtn");
-        if (!btn) {
-            btn = document.createElement("button");
-            btn.id = "locateBtn";
-            btn.type = "button";
-            mapWrap.appendChild(btn);
-        }
-        btn.classList.add("vici-ai-bubble-launcher");
-        btn.classList.remove("hidden");
-        btn.title = "Open Vici AI";
-        btn.setAttribute("aria-label", "Open Vici AI");
-        btn.innerHTML = `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>AI</span>`;
-        if (!btn.dataset.viciAiLauncher) {
-            btn.dataset.viciAiLauncher = "true";
-            btn.addEventListener("click", (event) => {
-                event.preventDefault();
-                window.toggleViciAI(true);
-            });
-        }
-        window.FloatingVici?.mount(btn);
-        window.debouncedIcons?.();
-        return btn;
-    }
-
-    function updateViciAIBubbleVisibility(show = true) {
-        const btn = ensureViciAIBubble();
-        if (!btn) return;
-        btn.classList.toggle("hidden", !show);
-    }
+    // Vici AI has a SINGLE entry point: #openViciChatBtn in the Map header.
+    // Do not hijack #locateBtn (the map's real geolocation button) or
+    // create a second floating/restore launcher.
+    function updateViciAIBubbleVisibility() { /* Legacy answer-panel compatibility. */ }
 
     function getVisibleSmartPicks(intent, recommendations) {
         const matchedCat = intent?.matchedCat || "all";
@@ -2170,6 +2141,8 @@ window.MapPage = (() => {
             } catch (e) { console.error("Error fetching data:", e); }
         }
 
+        if (options?.fromNavigationHistory &&
+            !window.ViciNavigation?.isAt(options.restorePosition, 'page-place')) return;
         const wrap = document.getElementById("placeViewContent");
         const safeName = safeString(p.name);
         const user = window.auth?.currentUser;
@@ -2215,7 +2188,7 @@ window.MapPage = (() => {
         wrap.innerHTML = `
             <div class="placeCover ${finalCoverImg ? 'has-cover' : 'no-cover'}" style="${coverStyle}">
                 <div class="placeTopBar">
-                    <button class="circleBackBtn" aria-label="Back to map" onclick="showPage('page-map')"><i data-lucide="arrow-left"></i></button>
+                    <button class="circleBackBtn" aria-label="Back to previous page" onclick="window.viciGoBack('page-map')"><i data-lucide="arrow-left"></i></button>
 
                     <div style="display: flex; gap: 10px; align-items: center;">
 
@@ -3503,10 +3476,10 @@ window.MapPage = (() => {
         if (!AppState.mapFilters) AppState.mapFilters = { openNow: false, verified: false, booking: false, delivery: false, highRated: false, freshOnly: false };
         if (AppState.mapFilters.freshOnly == null) AppState.mapFilters.freshOnly = false;
 
-        initMap(); initRadius(); initCats(); initSmartFilters(); ensureViciAIBubble();
+        initMap(); initRadius(); initCats(); initSmartFilters();
 
         const locateBtn = document.getElementById("locateBtn");
-        if (locateBtn && !locateBtn.classList.contains("vici-ai-bubble-launcher")) {
+        if (locateBtn) {
             locateBtn.addEventListener("click", locate);
         }
         document.getElementById("refreshMapBtn")?.addEventListener("click", refreshPlaces);

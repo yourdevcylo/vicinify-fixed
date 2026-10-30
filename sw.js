@@ -24,7 +24,6 @@ const APP_SHELL = [
     "./js/vici-request.js?v=VICINIFY_SUKI_REALTIME_20261030",
     "./js/vici-commerce.js?v=VICINIFY_SUKI_REALTIME_20261030",
     "./js/vici-chat.js?v=VICINIFY_SUKI_REALTIME_20261030",
-    "./js/vici-launcher.js?v=VICINIFY_SUKI_REALTIME_20261030",
     "./js/map.js?v=VICINIFY_SUKI_REALTIME_20261030",
     "./js/add.js?v=VICINIFY_SUKI_REALTIME_20261030",
     "./js/buzz.js?v=VICINIFY_SUKI_REALTIME_20261030",

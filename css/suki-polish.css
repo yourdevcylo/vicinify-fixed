@@ -174,3 +174,5 @@ html body.vicinify-ui .suki-scan-hint { min-height:54px; }
 /* Public establishment card preview: visible to guests and store owners too. */
 html body.vicinify-ui #placeSukiSection .suki-place-preview { display:flex; justify-content:center; max-width:100%; min-width:0; margin:10px 0 16px; }
 html body.vicinify-ui #placeSukiSection .suki-place-preview > .suki-3d { max-width:100%; }
+
+html body.vicinify-ui #page-suki-studio .suki-editor-actions-save-only { justify-content:flex-end; }

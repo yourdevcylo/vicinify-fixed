@@ -330,7 +330,7 @@ function listenToCustomerActivities(user) {
                                 Open transaction
                             </button>
 
-                            <button class="transaction-action-chat" onclick="showPage('page-map'); setTimeout(() => window.viewPlace('${d.placeId}', { focusReviews: true }), 350)">
+                            <button class="transaction-action-chat" onclick="window.viewPlace('${d.placeId}', { focusReviews: true })">
                                 Reviews
                             </button>
                         </div>
@@ -433,7 +433,7 @@ function startFavorites(user) {
 
             docs.forEach(d => {
                 html += `
-                    <div class="inbox-row" style="position:relative; padding-right:50px;" onclick="showPage('page-map'); setTimeout(() => window.viewPlace('${d.placeId}'), 300)">
+                    <div class="inbox-row" style="position:relative; padding-right:50px;" onclick="window.viewPlace('${d.placeId}')">
                         <div class="inbox-avatar favorite-heart">
                             <i data-lucide="heart" style="fill:currentColor;"></i>
                         </div>
