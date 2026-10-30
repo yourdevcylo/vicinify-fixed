@@ -209,47 +209,30 @@ html body.vicinify-ui #page-suki-studio .suki-editor-status[data-state="success"
 html body.vicinify-ui #page-suki-studio .suki-editor-status[data-state="error"] {
     background:#fff1f2;color:#9f1239;border-color:#fecdd3;
 }
-html body.vicinify-ui #page-suki-studio .suki-editor-savebar {
-    display:flex;gap:12px;justify-content:space-between;align-items:center;
-    border-top:1px solid var(--ui-border);background:var(--ui-surface);
-    padding:12px max(16px,calc((100% - 680px) / 2));
-    min-height:68px;
+/* Single, in-form Save action: no large fixed footer or duplicate edit indicator. */
+html body.vicinify-ui #page-suki-studio .suki-editor-form-footer {
+    margin-top:24px;padding-top:18px;border-top:1px solid var(--ui-border);
+    display:flex;align-items:center;justify-content:flex-end;gap:14px;flex-wrap:wrap;
 }
-html body.vicinify-ui #page-suki-studio .suki-editor-savebar-label {
-    display:inline-flex;align-items:center;gap:7px;color:var(--ui-muted);
-    font-size:12px;font-weight:600;
+html body.vicinify-ui #page-suki-studio .suki-editor-status {
+    flex:1 1 240px;font-size:12px;line-height:1.5;color:var(--ui-ink);
+    background:var(--ui-soft);border:1px solid var(--ui-border);border-radius:9px;
+    padding:10px 12px;margin:0;
 }
-html body.vicinify-ui #page-suki-studio .suki-editor-savebar-label svg { width:16px;height:16px; }
-html body.vicinify-ui #page-suki-studio .suki-editor-save-btn,
-html body.vicinify-ui #page-suki-studio #saveSukiStudioBtn {
-    background:#237e72 !important;color:#fff !important;border:1px solid #237e72 !important;
-    border-radius:10px !important;padding:12px 18px !important;min-height:44px;
+html body.vicinify-ui #page-suki-studio .suki-editor-status[hidden] {display:none!important;}
+html body.vicinify-ui #page-suki-studio .suki-editor-status[data-state="success"] {background:#ecfdf5;color:#166534;border-color:#a7f3d0;}
+html body.vicinify-ui #page-suki-studio .suki-editor-status[data-state="error"] {background:#fff1f2;color:#9f1239;border-color:#fecdd3;}
+html body.vicinify-ui #page-suki-studio .suki-editor-save-btn {
+    background:#237e72!important;color:#fff!important;border:1px solid #237e72!important;
+    border-radius:10px!important;padding:12px 20px!important;min-height:44px;
     cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap;
-    display:inline-flex !important;align-items:center;justify-content:center;gap:8px;flex-shrink:0;
+    display:inline-flex!important;align-items:center;justify-content:center;gap:8px;
 }
-html body.vicinify-ui #page-suki-studio .suki-editor-save-btn svg,
-html body.vicinify-ui #page-suki-studio #saveSukiStudioBtn svg { width:16px;height:16px; }
-html body.vicinify-ui #page-suki-studio :is(.suki-editor-save-btn,#saveSukiStudioBtn):disabled { opacity:.65;cursor:wait; }
+html body.vicinify-ui #page-suki-studio .suki-editor-save-btn svg {width:16px;height:16px;}
+html body.vicinify-ui #page-suki-studio .suki-editor-save-btn:disabled {opacity:.65;cursor:wait;}
 @media(max-width:800px) {
-    /* The page itself is inset below the mobile header; don't add a second header-height padding. */
-    html body.vicinify-ui:not(.on-login) #main-content #page-suki-studio.active {
-        padding-top:0 !important;padding-bottom:100px !important;
-    }
-    html body.vicinify-ui #page-suki-studio .suki-studio-header {
-        display:flex !important;gap:6px !important;flex-wrap:wrap;align-items:center;
-    }
-    html body.vicinify-ui #page-suki-studio .suki-studio-header>div { flex:1 1 180px;min-width:0; }
-    html body.vicinify-ui #page-suki-studio #saveSukiStudioBtn { min-height:42px;padding:9px 12px !important; }
-    /* Keep Save Changes visible above the mobile tab bar while editing. */
-    html body.vicinify-ui #main-content #page-suki-studio.active .suki-editor-savebar {
-        position:fixed;left:0;right:0;bottom:var(--navH,62px);z-index:5000;
-        padding:10px 14px max(10px,env(safe-area-inset-bottom,0px));
-        box-shadow:0 -5px 18px #00000012;min-height:64px;
-    }
-    html body.vicinify-ui #page-suki-studio .suki-editor-savebar-label { font-size:11px; }
-    html body.vicinify-ui #page-suki-studio .suki-editor-save-btn { min-width:145px; }
-}
-@media(max-width:350px) {
-    html body.vicinify-ui #page-suki-studio .suki-editor-savebar-label {display:none;}
+    html body.vicinify-ui:not(.on-login) #main-content #page-suki-studio.active {padding-top:0!important;padding-bottom:90px!important;}
+    html body.vicinify-ui #page-suki-studio .suki-studio-header {display:flex!important;gap:6px!important;align-items:center;}
+    html body.vicinify-ui #page-suki-studio .suki-editor-form-footer {align-items:stretch;}
     html body.vicinify-ui #page-suki-studio .suki-editor-save-btn {width:100%;}
 }

@@ -207,3 +207,16 @@ html body.vicinify-ui .vici-card-address{display:block;overflow-wrap:anywhere;fo
 html body.vicinify-ui .commerce-dialog .commerce-form :is(input:not([type=checkbox]):not([type=radio]),select,textarea){background:var(--ui-soft)!important;border:1px solid var(--ui-border)!important;color:var(--ui-ink)!important;box-shadow:none!important;border-radius:10px;font-weight:400}
 html body.vicinify-ui .commerce-dialog .commerce-form :is(input,select,textarea):focus-visible{outline:2px solid var(--ui-accent);outline-offset:2px}
 html body.vicinify-ui .commerce-quote{scroll-margin-top:76px}
+
+html body.vicinify-ui #smartAnswerPanel.vici-workspace .vici-header-new-chat {
+display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px;
+flex:0 0 auto;min-height:34px;padding:6px 10px;border:1px solid var(--ui-success-line);
+border-radius:10px;background:var(--ui-success-bg);color:var(--ui-success-ink);font-size:12px;font-weight:650;
+}
+html body.vicinify-ui #smartAnswerPanel.vici-workspace .vici-header-new-chat svg{width:15px;height:15px;flex-shrink:0}
+@media(max-width:700px){
+html body.vicinify-ui #smartAnswerPanel.vici-workspace .vici-header-new-chat{padding:6px 9px;font-size:11px}
+html body.vicinify-ui #smartAnswerPanel.vici-workspace .vici-workspace-header{gap:6px!important;padding:12px 10px!important}
+html body.vicinify-ui #smartAnswerPanel.vici-workspace .vici-workspace-title span{display:none!important}
+}
+@media(max-width:360px){html body.vicinify-ui #smartAnswerPanel.vici-workspace .vici-header-new-chat span{display:none}}

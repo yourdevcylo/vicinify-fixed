@@ -6890,7 +6890,7 @@ window.SukiDesign = (() => {
 
 window.Suki = (() => {
     const D = window.SukiDesign;
-    const TOKEN_WINDOW_MS = 30000; // Client display rotates every 30s; not a server-issued challenge.
+    const TOKEN_WINDOW_MS = 60000; // Give phones more time to focus; still not a server-issued challenge.
 
     function sukiEsc(str) {
         if (str == null) return "";
@@ -7156,12 +7156,12 @@ window.Suki = (() => {
         if (!m) return null;
         return { placeId: m[1], windowId: parseInt(m[2], 10) };
     }
-    // DEMO-GRADE validation: recompute the time window in JS (allows
-    // the previous window for clock skew). NOT a server-side check.
+    // DEMO-GRADE validation: permit up to one QR window of clock skew
+    // in either direction. NOT a signed token or server-side check.
     function tokenValid(parsed, nowMs) {
         if (!parsed || !parsed.placeId || !Number.isFinite(parsed.windowId)) return false;
         const cur = tokenWindow(nowMs);
-        return parsed.windowId === cur || parsed.windowId === cur - 1;
+        return Math.abs(parsed.windowId - cur) <= 1;
     }
 
     const sukiLibraryLoads = new Map();
@@ -7211,9 +7211,9 @@ window.Suki = (() => {
         const tick = () => {
             const w = tokenWindow();
             if (w !== lastWindow) { lastWindow = w; paint(); }
-            const left = 30 - Math.floor(Date.now() / 1000) % 30;
+            const remaining = Math.ceil((TOKEN_WINDOW_MS - (Date.now() % TOKEN_WINDOW_MS)) / 1000);
             const countEl = el.querySelector(".suki-qr-count");
-            if (countEl) countEl.textContent = `QR changes every 30s · ${left}s left`;
+            if (countEl) countEl.textContent = `QR refreshes every 60s · ${remaining}s left`;
         };
         if (gen !== ownerQrGen) return; // superseded: a newer mount/unmount won the race
         paint();
@@ -7229,7 +7229,17 @@ window.Suki = (() => {
        full QRCode into detached DOM every 10s. The timer is now module-scoped
        with a generation counter: re-mounting increments the generation so stale
        async mounts abort, and unmounting clears the interval outright. */
+    let sukiPlaceMountGeneration = 0;
+    let sukiPlaceLiveStops = [];
+    function stopSukiPlaceLive() {
+        sukiPlaceLiveStops.forEach(stop => { try { stop(); } catch (_) {} });
+        sukiPlaceLiveStops = [];
+        window.SukiPlaceMarkPending = null;
+        window.SukiPlaceSubmissionState = null;
+    }
     function unmountPlaceSection() {
+        stopSukiPlaceLive();
+        sukiPlaceMountGeneration++; // invalidate any pending Firestore reads for the old establishment
         activeSukiScannerClose?.();
         ownerQrGen++;
         if (ownerQrTimer) { clearInterval(ownerQrTimer); ownerQrTimer = null; }
@@ -7237,32 +7247,37 @@ window.Suki = (() => {
     }
 
     /* ---------- stamp request / claim flows ---------- */
-    async function createCardDocIfMissing(place) {
-        const user = window.auth?.currentUser;
-        if (!user || !place || !place.id) return;
-        const cardId = `${place.id}_${user.uid}`;
+    async function pendingSukiRequest(placeId, customerUid) {
         try {
-            // Rules let the customer create their own card doc on first
-            // request (deterministic ID). merge:true keeps it idempotent.
-            await window.db.collection("loyalty_cards").doc(cardId).set({
-                placeId: place.id,
-                customerUid: user.uid,
-                customerName: customerDisplayName(),
-                stamps: 0,
-                claimed: false,
-                claimRequested: false,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-        } catch (err) {
-            // Non-fatal: the owner approval still creates the card.
-            // Swallow permission-denied quietly: on repeat requests the doc
-            // already exists and customers may only touch claim fields.
-            if (err && err.code !== "permission-denied") window.handleFirestoreError(err);
-            else console.warn("[suki] card doc ensure skipped:", (err && err.code) || err);
+            return await window.db.collection('stamp_requests')
+                .where('placeId', '==', placeId)
+                .where('customerUid', '==', customerUid)
+                .where('status', '==', 'pending')
+                .limit(1).get();
+        } catch (error) {
+            if (error?.code !== 'failed-precondition') throw error;
+            // Older deployments sometimes lack the three-field composite
+            // index. Query only the authenticated customer (a built-in
+            // single-field index), then filter locally until the provided
+            // firestore.indexes.json has been deployed. No cross-user read.
+            console.warn('[suki] stamp_requests composite index missing; using customer-scoped fallback.');
+            const scoped = await window.db.collection('stamp_requests')
+                .where('customerUid', '==', customerUid).get();
+            const docs = scoped.docs.filter(doc => {
+                const data = doc.data();
+                return data.placeId === placeId && data.customerUid === customerUid && data.status === 'pending';
+            }).slice(0, 1);
+            return { empty: docs.length === 0, docs };
         }
     }
-
+    // A successful QR scan may reuse a recently verified GPS fix for at most
+    // eight seconds. This removes the second slow iOS GPS lookup on a quick
+    // scan, without accepting expired/failed geolocation checks. Direct
+    // requestStamp calls still perform their own fresh location verification.
+    let recentScanProof = null;
+    let stampSubmitBusy = false;
     async function requestStamp(place) {
+        if (stampSubmitBusy) return;
         const user = window.auth?.currentUser;
         if (!user) { if (typeof showPage === "function") showPage("page-login"); return; }
         if (!place || !place.id) return;
@@ -7270,17 +7285,27 @@ window.Suki = (() => {
             window.showToast?.("This is your own store — you can't request a stamp from yourself.", "error");
             return;
         }
+        if (user.emailVerified === false) { window.showToast?.('Verify your email before requesting a stamp.', 'error'); return; }
+        // Always verify here as well; direct calls to Suki.requestStamp must
+        // never skip the location gate. A browser GPS value is not tamper-proof.
+        const proof = recentScanProof;
+        recentScanProof = null; // consume immediately; never retain an unlock
+        const pin = scanPlaceCoords(place);
+        const useProof = !!(proof && proof.placeId === place.id &&
+            proof.userUid === user.uid && proof.checkedAt <= Date.now() &&
+            Date.now() - proof.checkedAt <= 8000 && pin &&
+            proof.lat === pin.lat && proof.lng === pin.lng && proof.proximity?.ok);
+        const proximity = useProof ? proof.proximity : await verifyScanLocation(place);
+        if (!proximity.ok) { window.showToast?.(proximity.msg || 'You must be near the establishment to scan.', 'error'); return; }
+        stampSubmitBusy = true;
+        window.SukiPlaceSubmissionState?.('sending');
         try {
-            const dup = await window.db.collection("stamp_requests")
-                .where("placeId", "==", place.id)
-                .where("customerUid", "==", user.uid)
-                .where("status", "==", "pending")
-                .limit(1).get();
+            const dup = await pendingSukiRequest(place.id, user.uid);
             if (!dup.empty) {
                 window.showToast?.("You already have a pending stamp request — waiting for the owner's approval.", "info");
                 return;
             }
-            await window.db.collection("stamp_requests").add({
+            const requestDoc = await window.db.collection("stamp_requests").add({
                 placeId: place.id,
                 placeName: place.name || "",
                 owner_uid: place.owner_uid || "",
@@ -7289,12 +7314,21 @@ window.Suki = (() => {
                 status: "pending",
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
-            await createCardDocIfMissing(place);
+            // Owner approval creates the card atomically (if needed). Writing a
+            // zero-stamp card *after* request submission can race an approval
+            // and reset a newly awarded stamp to zero. Do not do that here.
+            window.SukiPlaceMarkPending?.({ id: requestDoc?.id || '', status: 'pending', placeId: place.id });
             window.showToast?.("Stamp request sent! Please wait for the owner's approval.", "success");
         } catch (err) {
-            window.handleFirestoreError(err, "Could not send the stamp request.");
+            if (err?.code === 'failed-precondition') {
+                window.showToast?.('Suki request could not be checked. The Firestore stamp_requests index may still need deployment.', 'error');
+            } else if (err?.code === 'permission-denied') {
+                window.showToast?.('Stamp request denied. Check that your account email is verified and that this store is enabled.', 'error');
+            } else window.handleFirestoreError?.(err, 'Could not send the stamp request.');
+        } finally {
+            stampSubmitBusy = false;
+            window.SukiPlaceSubmissionState?.('idle');
         }
-        if (typeof window.SukiPlaceRefresh === "function") window.SukiPlaceRefresh();
     }
 
     async function cancelRequest(requestId) {
@@ -7391,163 +7425,306 @@ window.Suki = (() => {
         } catch (err) { window.handleFirestoreError(err, "Could not mark the claim."); }
     }
 
-    /* ---------- Vicinify Scan: live-camera QR + location verification ---------- */
-    // Anti-fraud: stamps are requested ONLY through this built-in live-camera
-    // scanner. There is no image-upload / screenshot option and no scan-less
-    // request button. After a valid rotating token, the customer's location
-    // is verified against the establishment's coordinates (200 m radius).
-    // The owner-tap [Approve]/[Reject] inbox stays as the final gate.
-    const SUKI_SCAN_RADIUS_M = 200;
+    /* ---------- Vicinify Scan: live-camera QR + strict proximity verification ---------- */
+    // A browser cannot prove a GPS reading has not been spoofed. This gate
+    // rejects distant/unknown locations in the normal UI; the owner still
+    // must approve each stamp. Do not treat it as server-enforced geofencing.
+    const SUKI_SCAN_RADIUS_M = 150;
+    const SUKI_MAX_GPS_ACCURACY_M = 100;
 
     function haversineM(lat1, lon1, lat2, lon2) {
         const R = 6371000;
-        const toRad = d => d * Math.PI / 180;
-        const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-            + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2))
-            * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        return 2 * R * Math.asin(Math.sqrt(a));
+        const rad = d => d * Math.PI / 180;
+        const dLat = rad(lat2 - lat1), dLng = rad(lon2 - lon1);
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return 2 * R * Math.asin(Math.min(1, Math.sqrt(Math.max(0, a))));
     }
 
-    // Device-side only (zero Firestore cost). Resolves {ok:true} or
-    // {ok:false, msg}. Skips the check when the place has no coordinates.
+    function scanPlaceCoords(place) {
+        // No fallback to a map viewport, customer GPS, or (0,0): only the
+        // actual saved establishment pin qualifies for a stamp.
+        const lat = Number(place?.lat), lng = Number(place?.lng);
+        if (place?.lat == null || place?.lng == null ||
+            String(place.lat).trim() === '' || String(place.lng).trim() === '' ||
+            !Number.isFinite(lat) || !Number.isFinite(lng) ||
+            Math.abs(lat) > 90 || Math.abs(lng) > 180 || (lat === 0 && lng === 0)) return null;
+        return { lat, lng };
+    }
+
+    function checkScanDistance(place, position) {
+        const pin = scanPlaceCoords(place);
+        if (!pin) return { ok: false, reason: 'missing-pin', msg: "This store has no valid map pin. Ask the business owner to correct the establishment's location before scanning." };
+        const coords = position?.coords;
+        const lat = Number(coords?.latitude), lng = Number(coords?.longitude);
+        const accuracy = Number(coords?.accuracy);
+        if (!coords || !Number.isFinite(lat) || !Number.isFinite(lng) ||
+            Math.abs(lat) > 90 || Math.abs(lng) > 180 || !Number.isFinite(accuracy) || accuracy < 0) {
+            return { ok: false, reason: 'gps-unavailable', msg: 'Could not verify your current location. Turn on precise location and try again.' };
+        }
+        if (accuracy > SUKI_MAX_GPS_ACCURACY_M) {
+            return { ok: false, reason: 'gps-inaccurate', accuracy, msg: `Your GPS is only accurate to about ${Math.round(accuracy)} m. Enable Precise Location or move to an open area, then retry.` };
+        }
+        const distance = haversineM(lat, lng, pin.lat, pin.lng);
+        // Account for GPS uncertainty so someone apparently beyond the
+        // radius is not accepted just because the device reports a wide fix.
+        if (distance + accuracy > SUKI_SCAN_RADIUS_M) {
+            return { ok: false, reason: 'too-far', distance, accuracy, msg: `You must be within ${SUKI_SCAN_RADIUS_M} m of this store to scan. Your reported distance is about ${Math.round(distance)} m (±${Math.round(accuracy)} m).` };
+        }
+        return { ok: true, distance, accuracy };
+    }
+
+    // Always get a fresh, accurate position. Missing pin, denied permissions,
+    // expired fixes, and browser geolocation errors must NOT bypass scanning.
     function verifyScanLocation(place) {
-        const plat = parseFloat(place && place.lat);
-        const plng = parseFloat(place && place.lng);
-        if (!isFinite(plat) || !isFinite(plng)) return Promise.resolve({ ok: true, skipped: true });
-        if (!navigator.geolocation) {
-            return Promise.resolve({ ok: false, msg: "Location is not available on this device. Please scan from a device with location services." });
+        const pin = scanPlaceCoords(place);
+        if (!pin) return Promise.resolve(checkScanDistance(place));
+        if (!navigator.geolocation?.getCurrentPosition) {
+            return Promise.resolve({ ok: false, reason: 'gps-unavailable', msg: 'Location services are unavailable. Use a phone with GPS and enable location permission to scan.' });
         }
         return new Promise(resolve => {
             navigator.geolocation.getCurrentPosition(
-                pos => {
-                    const d = haversineM(pos.coords.latitude, pos.coords.longitude, plat, plng);
-                    if (d <= SUKI_SCAN_RADIUS_M) resolve({ ok: true });
-                    else resolve({ ok: false, msg: "You must be at the establishment to scan for a stamp." });
+                position => resolve({ ...checkScanDistance(place, position), verifiedAt: Date.now() }),
+                error => {
+                    const denied = error?.code === 1;
+                    const timedOut = error?.code === 3;
+                    resolve({ ok: false, reason: denied ? 'gps-denied' : 'gps-unavailable', msg: denied
+                        ? 'Location permission is blocked. Allow Precise Location for Vicinify in your browser settings and try again.'
+                        : timedOut ? 'Getting your GPS location took too long. Turn on Location and try again outside or near a window.'
+                            : 'Could not get your GPS location. Enable location services and try again.' });
                 },
-                err => {
-                    const denied = err && err.code === 1;
-                    resolve({
-                        ok: false,
-                        msg: denied
-                            ? "Location access was denied. Please enable location permissions for this site and try again."
-                            : "Could not determine your location. Please enable location services and try again."
-                    });
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
             );
         });
     }
+
+    function scannerErrorMessage(error) {
+        if (error?.name === 'NotAllowedError' || error?.name === 'PermissionDeniedError') return 'Camera permission was denied. Allow camera access for this website in your browser settings.';
+        if (error?.name === 'NotFoundError' || error?.name === 'DevicesNotFoundError') return 'No camera was found. Open Vicinify on a phone with a camera.';
+        if (error?.name === 'NotReadableError' || error?.name === 'TrackStartError') return 'Camera is in use by another app. Close the other app and try again.';
+        if (error?.name === 'OverconstrainedError') return 'Could not start the rear camera. Try again with the device camera enabled.';
+        return 'Could not start the camera. Check browser camera permissions and try again.';
+    }
+
     async function openScanner(expectedPlace) {
         activeSukiScannerClose?.();
-        if(!navigator.mediaDevices?.getUserMedia){window.showToast?.("Camera scanning requires a supported browser with HTTPS.","error");return;}
-        const overlay = document.createElement("div");
-        overlay.className = "suki-scan-overlay";
+        if (!window.auth?.currentUser) { window.showToast?.('Log in to scan a Suki Card.', 'error'); return; }
+        if (window.auth.currentUser.emailVerified === false) { window.showToast?.('Verify your email address before requesting a stamp.', 'error'); return; }
+        if (!navigator.mediaDevices?.getUserMedia) { window.showToast?.('Camera scanning requires HTTPS and a supported browser. Try Chrome or Safari on your phone.', 'error'); return; }
+        if (!window.isSecureContext && window.location?.hostname !== 'localhost') { window.showToast?.('Camera and GPS permissions require a secure HTTPS website.', 'error'); return; }
+
+        const overlay = document.createElement('div');
+        overlay.className = 'suki-scan-overlay';
+        overlay.setAttribute('role','dialog');
+        overlay.setAttribute('aria-label','Vicinify Suki QR scanner');
         overlay.innerHTML = `
             <div class="suki-scan-box">
-                <div style="padding:14px 16px; display:flex; align-items:center; justify-content:space-between;">
-                    <b style="color:#fff; font-size:15px;">Vicinify Scan</b>
-                    <button type="button" class="suki-scan-close" style="background:rgba(255,255,255,.12); color:#fff; border:none; border-radius:8px; padding:8px 12px; font-weight:700; cursor:pointer;">Close</button>
+                <div class="suki-scan-title">
+                    <b>Vicinify Scan</b>
+                    <button type="button" class="suki-scan-close">Close</button>
                 </div>
-                <video playsinline muted style="width:100%; display:block; background:#000;"></video>
-                <canvas style="display:none;"></canvas>
-                <div class="suki-scan-hint">Point the camera at the store's Suki QR. You must be at the establishment — your location will be verified.</div>
+                <div class="suki-scan-camera"><video playsinline muted autoplay></video><canvas hidden></canvas></div>
+                <div class="suki-scan-hint" role="status" aria-live="polite">Checking that you're within ${SUKI_SCAN_RADIUS_M} m of this establishment…</div>
             </div>`;
         document.body.appendChild(overlay);
-        let cancelledWhileLoading=false;
-        activeSukiScannerClose=()=>{cancelledWhileLoading=true;overlay.remove();activeSukiScannerClose=null;};
-        overlay.querySelector('.suki-scan-close').onclick=activeSukiScannerClose;
-        try { await loadScriptOnce(JSQR_LIB); }
-        catch (e) {
-            overlay.remove();
-            window.showToast?.("Could not load the scanner. Please check your connection and try again.", "error");
-            return;
-        }
-        if(cancelledWhileLoading||!overlay.isConnected)return;
-        const video = overlay.querySelector("video");
-        const canvas = overlay.querySelector("canvas");
-        const ctx = canvas.getContext("2d", { willReadFrequently: true });
-        let stream = null, raf = 0, done = false;
+        const hint = overlay.querySelector('.suki-scan-hint');
+        const video = overlay.querySelector('video');
+        const canvas = overlay.querySelector('canvas');
+        let done = false, stream = null, raf = 0, decodeBusy = false, lastDecode = 0;
+        let geoWatchId = null, latestGeo = null;
         const close = () => {
+            if (done) return;
             done = true;
             cancelAnimationFrame(raf);
-            if (stream) stream.getTracks().forEach(t => t.stop());
-            overlay.remove();
-            activeSukiScannerClose=null;
-        };
-        activeSukiScannerClose=close;
-        overlay.querySelector(".suki-scan-close").onclick = close;
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: {ideal:"environment"}, width:{ideal:1280}, height:{ideal:720}, frameRate:{ideal:24,max:30} }, audio: false });
-        } catch (e) {
-            close();
-            window.showToast?.("Could not open the camera. Please allow camera access and try again.", "error");
-            return;
-        }
-        if(done||!overlay.isConnected){stream.getTracks().forEach(track=>track.stop());return;}
-        video.srcObject = stream;
-        try { await video.play(); } catch (e) { close(); return; }
-        let lastDecode=0;
-        const loop = () => {
-            if (done) return;
-            if(!overlay.isConnected){close();return;}
-            const now=performance.now();
-            if(now-lastDecode<100){raf=requestAnimationFrame(loop);return;}
-            lastDecode=now;
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                const scale=Math.min(1,960/video.videoWidth);
-                canvas.width = Math.round(video.videoWidth*scale);
-                canvas.height = Math.round(video.videoHeight*scale);
-                ctx.drawImage(video, 0, 0,canvas.width,canvas.height);
-                try {
-                    const code = window.jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
-                    if (code && code.data) {
-                        const parsed = parseToken(String(code.data).trim());
-                        if (parsed && tokenValid(parsed) && (!expectedPlace || parsed.placeId === expectedPlace.id)) {
-                            close();
-                            requestStampForPlaceId(parsed.placeId);
-                            return;
-                        }
-                        overlay.querySelector('.suki-scan-hint').textContent=parsed?(!tokenValid(parsed)?'This QR expired. Scan the current QR on the store screen.':'This QR belongs to another establishment.'):'This is not a Vicinify Suki QR.';
-                    }
-                } catch (e) { /* keep scanning */ }
+            if (geoWatchId !== null) {
+                try { navigator.geolocation?.clearWatch?.(geoWatchId); } catch (_) {}
+                geoWatchId = null;
             }
-            raf = requestAnimationFrame(loop);
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            video.srcObject = null;
+            overlay.remove();
+            if (activeSukiScannerClose === close) activeSukiScannerClose = null;
         };
-        loop();
+        activeSukiScannerClose = close;
+        overlay.querySelector('.suki-scan-close').onclick = close;
+
+        try {
+            // Verify before ever opening the camera; use the current saved
+            // Firebase place coordinates rather than potentially stale UI data.
+            if (!expectedPlace?.id) throw new Error('Store not identified. Open the establishment and try again.');
+            const storeSnap = await window.db.collection('places').doc(expectedPlace.id).get();
+            if (done) return;
+            if (!storeSnap.exists) throw new Error('This store was not found.');
+            const store = { ...storeSnap.data(), id: storeSnap.id };
+            if (!store.suki_enabled) throw new Error('This store does not currently offer Suki Card stamps.');
+            const near = await verifyScanLocation(store);
+            if (done) return;
+            if (!near.ok) throw new Error(near.msg);
+            latestGeo = near;
+            hint.textContent = `Location verified. You are about ${Math.round(near.distance)} m away. Point your camera at the store's current Suki QR.`;
+            // Keep the GPS fix fresh while the QR camera is running. On most
+            // phones this avoids a blocking second GPS lookup even if the
+            // customer needs several seconds to focus on the QR.
+            if (typeof navigator.geolocation?.watchPosition === 'function') {
+                try {
+                    geoWatchId = navigator.geolocation.watchPosition(position => {
+                        if (done) return;
+                        latestGeo = { ...checkScanDistance(store, position), verifiedAt: Date.now() };
+                        if (!latestGeo.ok) hint.textContent = latestGeo.msg;
+                    }, () => {}, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
+                } catch (_) { geoWatchId = null; }
+            }
+            await loadScriptOnce(JSQR_LIB);
+            if (done) return;
+            if (typeof window.jsQR !== 'function') throw new Error('Scanner library unavailable. Please refresh Vicinify and retry.');
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+            } catch (cameraError) {
+                // Some browsers reject ideal video constraints. Try a simpler
+                // request, and retain a useful error if permissions are denied.
+                if (cameraError?.name === 'OverconstrainedError') {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                } else throw new Error(scannerErrorMessage(cameraError));
+            }
+            if (done) { stream.getTracks().forEach(t => t.stop()); return; }
+            video.srcObject = stream;
+            await video.play();
+            if (done) return;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            if (!ctx) throw new Error('This browser could not initialize the camera scanner.');
+
+            // Use native QR detection on supported devices, with bundled
+            // jsQR as a cross-browser fallback. No photo uploads or manual
+            // entry are permitted for customer stamp requests.
+            let nativeDetector = null;
+            if (typeof window.BarcodeDetector === 'function') {
+                try { nativeDetector = new window.BarcodeDetector({ formats: ['qr_code'] }); } catch (_) {}
+            }
+            const decode = async () => {
+                if (done || decodeBusy) return;
+                const now = performance.now();
+                if (now - lastDecode < 130) return;
+                if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) return;
+                lastDecode = now;
+                decodeBusy = true;
+                try {
+                    let content = null;
+                    if (nativeDetector) {
+                        try {
+                            const codes = await nativeDetector.detect(video);
+                            content = codes?.find(q => q?.rawValue)?.rawValue || null;
+                        } catch (_) { nativeDetector = null; }
+                    }
+                    if (!content && !done) {
+                        const scale = Math.min(1, 960 / video.videoWidth);
+                        const width = Math.max(1, Math.round(video.videoWidth * scale));
+                        const height = Math.max(1, Math.round(video.videoHeight * scale));
+                        if (canvas.width !== width) canvas.width = width;
+                        if (canvas.height !== height) canvas.height = height;
+                        ctx.drawImage(video, 0, 0, width, height);
+                        const result = window.jsQR(ctx.getImageData(0, 0, width, height).data, width, height, { inversionAttempts: 'attemptBoth' });
+                        content = result?.data || null;
+                    }
+                    if (done || !content) return;
+                    const parsed = parseToken(String(content).trim());
+                    if (!parsed) { hint.textContent = 'This is not a Vicinify Suki QR. Scan the QR shown by the establishment.'; return; }
+                    if (parsed.placeId !== store.id) { hint.textContent = 'This QR belongs to a different establishment.'; return; }
+                    if (!tokenValid(parsed)) { hint.textContent = 'This QR expired. Ask the store to display its current QR and try again.'; return; }
+                    if (!latestGeo?.ok) { hint.textContent = latestGeo?.msg || 'Your location could not be verified. Try again.'; return; }
+                    const finalGeo = latestGeo;
+                    close();
+                    const pin = scanPlaceCoords(store);
+                    recentScanProof = pin ? { placeId: store.id, userUid: window.auth?.currentUser?.uid,
+                        checkedAt: finalGeo.verifiedAt || 0, proximity: finalGeo, lat: pin.lat, lng: pin.lng } : null;
+                    // The current store was just verified from Firebase.
+                    // Do not fetch it again on the successful QR path.
+                    await requestStamp(store);
+                } catch (error) {
+                    if (!done) { console.warn('[suki] scanner decode:', error); hint.textContent = 'Could not read QR. Hold the camera steady in good lighting and try again.'; }
+                } finally { decodeBusy = false; }
+            };
+            const loop = () => { if (done) return; raf = requestAnimationFrame(loop); void decode(); };
+            loop();
+        } catch (error) {
+            const message = error?.message || scannerErrorMessage(error);
+            close();
+            window.showToast?.(message, 'error');
+            console.warn('[suki] scanner:', message);
+        }
     }
 
     async function requestStampForPlaceId(placeId) {
         if (!placeId) return;
         try {
-            const snap = await window.db.collection("places").doc(placeId).get();
-            if (!snap.exists) { window.showToast?.("Store not found.", "error"); return; }
+            const snap = await window.db.collection('places').doc(placeId).get();
+            if (!snap.exists) { window.showToast?.('Store not found.', 'error'); return; }
             const place = { ...snap.data(), id: snap.id };
-            if (!place.suki_enabled) { window.showToast?.("This store has no Suki Card.", "info"); return; }
-            // Anti-fraud location gate (device-side, zero Firestore cost).
-            const loc = await verifyScanLocation(place);
-            if (!loc.ok) { window.showToast?.(loc.msg, "error"); return; }
+            if (!place.suki_enabled) { window.showToast?.('This store has no active Suki Card.', 'error'); return; }
             await requestStamp(place);
-        } catch (err) { window.handleFirestoreError(err, "Could not load the store."); }
+        } catch (error) { window.handleFirestoreError?.(error, 'Could not verify this Suki stamp.'); }
     }
 
     /* ---------- place-page mount ---------- */
     async function mountPlaceSection(place, isOwner) {
         const el = document.getElementById("placeSukiSection");
-        if (!el) return;
-        const d = designOf(place);
-        if (!d.enabled) { el.remove(); return; }
-        const user = window.auth?.currentUser;
+        if (!el || !place?.id) return;
+        // The public map intentionally caches places for five minutes. A saved
+        // Suki configuration must NOT depend on that cached copy: always read
+        // the current establishment document before deciding whether to show it.
+        stopSukiPlaceLive();
+        const generation = ++sukiPlaceMountGeneration;
+        const stillHere = () => generation === sukiPlaceMountGeneration &&
+            document.getElementById('placeSukiSection') === el;
+        el.innerHTML = '<div class="suki-place-block"><p class="suki-note" role="status">Checking Suki Card availability…</p></div>';
+        let livePlace;
+        try {
+            const snap = await window.db.collection('places').doc(place.id).get();
+            if (!stillHere()) return;
+            if (!snap.exists) throw new Error('This establishment could not be found.');
+            livePlace = { ...snap.data(), id: snap.id };
+        } catch (error) {
+            if (!stillHere()) return;
+            console.warn('[suki] could not load fresh establishment details:', error);
+            el.innerHTML = `<div class="suki-place-block">
+                <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card</h3></div>
+                <p class="suki-note" role="alert">Couldn't verify this establishment's current Suki Card status. Check your connection and try again.</p>
+                <button type="button" class="suki-req-btn" data-suki-retry>Retry</button>
+            </div>`;
+            el.querySelector('[data-suki-retry]')?.addEventListener('click', () => mountPlaceSection(place, isOwner));
+            window.debouncedIcons?.();
+            return;
+        }
+        if (!designOf(livePlace).enabled) {
+            // Keep the mount point in the DOM: removing the div made a
+            // subsequently enabled Suki Card impossible to mount in this view.
+            if (isOwner) {
+                el.innerHTML = `<div class="suki-place-block">
+                    <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card is off</h3></div>
+                    <p class="suki-note">Enable and save your card in Suki Card Studio to show it to customers.</p>
+                    <button type="button" class="suki-req-btn" data-suki-edit>Edit Suki Card</button>
+                </div>`;
+                el.querySelector('[data-suki-edit]')?.addEventListener('click', () => window.DashboardPage?.openSukiStudio?.(livePlace.id));
+                window.debouncedIcons?.();
+            } else el.replaceChildren();
+            return;
+        }
 
+        const user = window.auth?.currentUser;
+        // Store owners need to see the actual public-facing card design, not
+        // just the QR. The preview is *not* a real customer's loyalty card.
         if (isOwner) {
             el.innerHTML = `
                 <div class="suki-place-block">
-                    <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Store Suki QR</h3></div>
-                    <p class="suki-note">Let customers scan this code to request a stamp. Review requests before approving.</p>
+                    <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Store Suki Card</h3></div>
+                    <p class="suki-note">This is the card design your customers will see.</p>
+                    <div class="suki-place-preview">${renderCard(livePlace, { stamps: 0, customerName: 'Preview' }, { hideActions: true })}</div>
+                    <div class="suki-place-actions"><button type="button" class="suki-req-btn" data-suki-edit><i data-lucide="pencil"></i> Edit Suki Card</button></div>
+                    <div class="suki-place-head" style="margin-top:22px"><i data-lucide="qr-code"></i><h3>Store Suki QR</h3></div>
+                    <p class="suki-note">Customers must be near your saved map pin (within 150 m, allowing for GPS accuracy) to scan. You approve or reject each request.</p>
                     <div data-suki-qr></div>
                 </div>`;
-            window.debouncedIcons?.();
-            renderOwnerQr(el.querySelector("[data-suki-qr]"), place.id);
+            attachInteraction(el);
+            el.querySelector('[data-suki-edit]')?.addEventListener('click', () => window.DashboardPage?.openSukiStudio?.(livePlace.id));
+            renderOwnerQr(el.querySelector('[data-suki-qr]'), livePlace.id);
             return;
         }
 
@@ -7555,54 +7732,162 @@ window.Suki = (() => {
             el.innerHTML = `
                 <div class="suki-place-block">
                     <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card</h3></div>
-                    <p class="suki-note">This store has a Suki Card! Log in to see your card and request a stamp.</p>
-                    <button type="button" class="suki-req-btn" onclick="showPage('page-login')"><i data-lucide="log-in"></i> Log in</button>
+                    <p class="suki-note">This establishment offers Suki Card rewards. Sign in to see your stamps.</p>
+                    <div class="suki-place-preview">${renderCard(livePlace, { stamps: 0, customerName: 'Preview' }, { hideActions: true })}</div>
+                    <div class="suki-place-actions"><button type="button" class="suki-req-btn" data-suki-login><i data-lucide="log-in"></i> Log in to collect stamps</button></div>
                 </div>`;
-            window.debouncedIcons?.();
+            attachInteraction(el);
+            el.querySelector('[data-suki-login]')?.addEventListener('click', () => showPage('page-login'));
             return;
         }
 
-        el.innerHTML = `<div class="suki-place-block"><div class="muted" style="text-align:center; padding:16px;">Loading Suki Card…</div></div>`;
-        const cardId = `${place.id}_${user.uid}`;
-        try {
-            const [cardSnap, reqSnap] = await Promise.all([
-                window.db.collection("loyalty_cards").doc(cardId).get(),
-                window.db.collection("stamp_requests")
-                    .where("placeId", "==", place.id)
-                    .where("customerUid", "==", user.uid)
-                    .where("status", "==", "pending")
-                    .limit(1).get()
-            ]);
-            const card = cardSnap.exists
-                ? { cardId, id: cardSnap.id, ...cardSnap.data() }
-                : { cardId, stamps: 0, claimed: false, claimRequested: false, customerName: customerDisplayName() };
-            const pendingReq = reqSnap.empty ? null : { id: reqSnap.docs[0].id, ...reqSnap.docs[0].data() };
-
-            el.innerHTML = `
-                <div class="suki-place-block">
-                    <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card</h3></div>
-                    ${renderCard(place, card)}
-                    <div class="suki-place-actions">
-                        ${pendingReq ? `
-                            <button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="clock"></i> Stamp request pending</button>
-                            <button type="button" class="suki-plain-btn" data-suki-cancel-req="${sukiEsc(pendingReq.id)}">Cancel request</button>
-                        ` : `
-                            <button type="button" class="suki-req-btn" data-suki-scan><i data-lucide="qr-code"></i> Scan store QR</button>
-                        `}
-                    </div>
-                </div>`;
-            attachInteraction(el);
-            el.querySelector("[data-suki-scan]")?.addEventListener("click", () => openScanner(place));
-            window.SukiPlaceRefresh = () => mountPlaceSection(place, false);
-        } catch (err) {
-            el.innerHTML = `<div class="suki-place-block"><div class="muted" style="text-align:center; padding:16px;">Could not load the Suki Card right now.</div></div>`;
-            window.handleFirestoreError(err);
+        el.innerHTML = '<div class="suki-place-block"><p class="suki-note" role="status">Loading your Suki Card…</p></div>';
+        const cardId = `${livePlace.id}_${user.uid}`;
+        // A missing index or an unavailable stamp_requests query must not
+        // hide the entire card. Show the card but disable new scan requests
+        // until the pending-request status can be verified.
+        const [cardResult, requestResult] = await Promise.allSettled([
+            window.db.collection('loyalty_cards').doc(cardId).get(),
+            pendingSukiRequest(livePlace.id, user.uid)
+        ]);
+        if (!stillHere()) return;
+        const cardError = cardResult.status === 'rejected';
+        const reqError = requestResult.status === 'rejected';
+        if (cardError) console.warn('[suki] could not load customer card:', cardResult.reason);
+        if (reqError) console.warn('[suki] could not load pending stamp request:', requestResult.reason);
+        if (cardError) {
+            el.innerHTML = `<div class="suki-place-block">
+                <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card</h3></div>
+                <p class="suki-note" role="alert">Your stamps could not be loaded. No changes were made. Please retry.</p>
+                <div class="suki-place-actions"><button type="button" class="suki-req-btn" data-suki-retry>Retry</button></div>
+            </div>`;
+            el.querySelector('[data-suki-retry]')?.addEventListener('click', () => mountPlaceSection(livePlace, isOwner));
+            window.debouncedIcons?.();
+            return;
         }
+        const cardSnap = cardResult.value;
+        const card = cardSnap.exists
+            ? { cardId, id: cardSnap.id, ...cardSnap.data() }
+            : { cardId, stamps: 0, claimed: false, claimRequested: false, customerName: customerDisplayName() };
+        const reqSnap = reqError ? null : requestResult.value;
+        const pendingReq = reqSnap && !reqSnap.empty ? { id: reqSnap.docs[0].id, ...reqSnap.docs[0].data() } : null;
+        el.innerHTML = `
+            <div class="suki-place-block">
+                <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card</h3></div>
+                <div class="suki-place-preview">${renderCard(livePlace, card)}</div>
+                <p class="suki-note">Scanning requires camera, Precise Location, and being within 150 m of the store's saved map pin. Stamps still require store approval.</p>
+                <div class="suki-place-actions">
+                    ${reqError ? `
+                        <p class="suki-note" role="alert">Could not check pending requests. Scan is temporarily unavailable to prevent duplicate requests.</p>
+                        <button type="button" class="suki-req-btn" data-suki-retry>Retry request status</button>
+                    ` : pendingReq ? `
+                        <button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="clock"></i> Stamp request pending</button>
+                        <button type="button" class="suki-plain-btn" data-suki-cancel-req="${sukiEsc(pendingReq.id)}">Cancel request</button>
+                    ` : `
+                        <button type="button" class="suki-req-btn" data-suki-scan><i data-lucide="qr-code"></i> Scan store QR</button>
+                    `}
+                </div>
+            </div>`;
+        attachInteraction(el);
+        el.querySelector('[data-suki-scan]')?.addEventListener('click', () => openScanner(livePlace));
+        el.querySelector('[data-suki-retry]')?.addEventListener('click', () => mountPlaceSection(livePlace, isOwner));
+        // Keep the mounted card alive while the owner approves. onSnapshot
+        // pushes approved stamps without a reload and avoids repeated reads of
+        // the entire establishment and its GPS/QR panel.
+        const previewEl = el.querySelector('.suki-place-preview');
+        const actionsEl = el.querySelector('.suki-place-actions');
+        const uid = user.uid;
+        let latestPending = pendingReq;
+        let requestError = reqError;
+        let submitting = false;
+        let lastCardVersion = JSON.stringify([card.stamps, card.claimed, card.claimRequested, card.customerName]);
+        const stillWatching = () => stillHere() && window.auth?.currentUser?.uid === uid;
+        const displayRequestActions = () => {
+            if (!stillWatching() || !actionsEl) return;
+            actionsEl.innerHTML = requestError ? `
+                <p class="suki-note" role="alert">Could not check pending requests. Scan is temporarily unavailable to prevent duplicates.</p>
+                <button type="button" class="suki-req-btn" data-suki-retry>Retry request status</button>`
+                : latestPending ? `
+                <button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="clock"></i> Stamp request pending</button>
+                ${latestPending.id ? `<button type="button" class="suki-plain-btn" data-suki-cancel-req="${sukiEsc(latestPending.id)}">Cancel request</button>` : ''}`
+                : submitting ? `<button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="loader-circle"></i> Sending request…</button>`
+                : `<button type="button" class="suki-req-btn" data-suki-scan><i data-lucide="qr-code"></i> Scan store QR</button>`;
+            actionsEl.querySelector('[data-suki-scan]')?.addEventListener('click', () => openScanner(livePlace));
+            actionsEl.querySelector('[data-suki-retry]')?.addEventListener('click', () => mountPlaceSection(livePlace, false));
+            actionsEl.querySelectorAll('[data-suki-cancel-req]').forEach(button =>
+                button.addEventListener('click', () => cancelRequest(button.getAttribute('data-suki-cancel-req'))));
+            window.debouncedIcons?.();
+        };
+        window.SukiPlaceMarkPending = value => {
+            if (!stillWatching() || value.placeId !== livePlace.id) return;
+            latestPending = value;
+            requestError = false;
+            displayRequestActions();
+        };
+        window.SukiPlaceSubmissionState = value => {
+            if (!stillWatching()) return;
+            submitting = value === 'sending';
+            displayRequestActions();
+        };
+        if (typeof window.db.collection('loyalty_cards').doc(cardId).onSnapshot === 'function') {
+            const stop = window.db.collection('loyalty_cards').doc(cardId).onSnapshot(snap => {
+                if (!stillWatching()) return;
+                const nextCard = snap.exists ? { cardId, id: snap.id, ...snap.data() }
+                    : { cardId, stamps: 0, claimed: false, claimRequested: false, customerName: customerDisplayName() };
+                const version = JSON.stringify([nextCard.stamps, nextCard.claimed, nextCard.claimRequested, nextCard.customerName]);
+                if (lastCardVersion === version) return;
+                const previousStamps = Number(card.stamps) || 0;
+                const nextStamps = Number(nextCard.stamps) || 0;
+                Object.assign(card, nextCard);
+                lastCardVersion = version;
+                if (previewEl) {
+                    previewEl.innerHTML = renderCard(livePlace, nextCard);
+                    attachInteraction(previewEl);
+                }
+                if (nextStamps > previousStamps) window.showToast?.('Suki stamp added! 🎉', 'success');
+            }, error => {
+                if (stillWatching()) console.warn('[suki] live card updates interrupted:', error);
+            });
+            sukiPlaceLiveStops.push(stop);
+        }
+        // Prefer the existing composite index. On older Firebase projects
+        // without that deployed index, subscribe to this customer's requests
+        // and filter locally so approval still appears without a refresh.
+        const watchPending = (fallback = false) => {
+            let q = window.db.collection('stamp_requests');
+            q = fallback ? q.where('customerUid', '==', uid)
+                : q.where('placeId', '==', livePlace.id).where('customerUid', '==', uid).where('status', '==', 'pending').limit(1);
+            if (typeof q.onSnapshot !== 'function') return;
+            const stop = q.onSnapshot(snapshot => {
+                if (!stillWatching()) return;
+                const found = fallback ? snapshot.docs.find(doc => {
+                    const value = doc.data();
+                    return value.placeId === livePlace.id && value.status === 'pending';
+                }) : snapshot.docs[0];
+                latestPending = found ? { id: found.id, ...found.data() } : null;
+                requestError = false;
+                displayRequestActions();
+            }, error => {
+                if (!stillWatching()) return;
+                if (!fallback && error?.code === 'failed-precondition') {
+                    console.warn('[suki] pending-request index missing; using customer-scoped real-time fallback.');
+                    watchPending(true);
+                } else {
+                    requestError = true;
+                    displayRequestActions();
+                    console.warn('[suki] live request status unavailable:', error);
+                }
+            });
+            sukiPlaceLiveStops.push(stop);
+        };
+        watchPending();
+        window.SukiPlaceRefresh = () => { if (stillWatching()) displayRequestActions(); };
     }
 
     return {
         designOf, textTone, renderCard, attachInteraction,
         makeToken, parseToken, tokenValid, renderOwnerQr, openScanner,
+        scanPlaceCoords, checkScanDistance, verifyScanLocation, SUKI_SCAN_RADIUS_M,
         requestStamp, cancelRequest, requestClaim,
         approveRequest, rejectRequest, markClaimed,
         mountPlaceSection, unmountPlaceSection, requestStampForPlaceId, customerDisplayName

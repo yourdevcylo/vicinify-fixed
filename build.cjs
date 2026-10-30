@@ -18,7 +18,7 @@ hashTree(out);
 const version='VICI_'+digest.digest('hex').slice(0,16);
 for(const name of ['index.html','reset-password.html','update.html','sw.js']){
  const file=path.join(out,name);let text=fs.readFileSync(file,'utf8');
- text=text.replace(/VICINIFY_GREEN_EDITOR_20261029/g,version);
+ text=text.replace(/VICINIFY_SUKI_REALTIME_20261030/g,version);
  if(name==='sw.js')text=text.replace(/const CACHE_NAME = "[^"]+";/,'const CACHE_NAME = "vicinify-ui-'+version+'";');
  fs.writeFileSync(file,text);
 }

@@ -57,6 +57,9 @@
             return this.listen('customer:' + uid + ':' + collection,
                 window.db.collection(collection).where('userId', '==', uid).orderBy('createdAt', 'desc').limit(50), next, error);
         },
+        sukiFeed(uid,next,error) {
+            return this.listen('customer:'+uid+':suki',window.db.collection('loyalty_cards').where('customerUid','==',uid).limit(20),next,error);
+        },
         listen(key, query, next, error) {
             let entry = listeners.get(key);
             if (!entry) {
@@ -84,7 +87,7 @@
                 body: JSON.stringify(body), signal: AbortSignal.timeout(25000)
             });
             const result = await response.json().catch(() => ({ error: 'The server is unavailable. Please try again.' }));
-            if (!response.ok) throw new Error(result.error || 'Request failed.');
+            if (!response.ok) throw Object.assign(new Error(result.error || 'Request failed.'),{status:response.status});
             return result;
         },
         stop() { releaseProofs(); listeners.forEach(entry => entry.stop?.()); listeners.clear(); },

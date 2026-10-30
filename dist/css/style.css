@@ -8777,7 +8777,7 @@ body:not(.map-page-lock):not(.vici-map-lock) #page-place.active {
     text-shadow: 0 3px 16px rgba(15, 23, 42, .42) !important;
 }
 
-#page-place.active .placeBrandText strong {
+#page-place.active .placeBrandText :is(strong,h1) {
     display: block !important;
     max-width: min(700px, 74vw) !important;
     font-size: clamp(20px, 2.2vw, 34px) !important;
@@ -9117,7 +9117,7 @@ body:not(.map-page-lock):not(.vici-map-lock) #page-place.active {
         border-radius: 16px !important;
     }
 
-    #page-place.active .placeBrandText strong {
+    #page-place.active .placeBrandText :is(strong,h1) {
         font-size: 20px !important;
     }
 
@@ -10705,7 +10705,7 @@ body.dark-mode .buzzTabs .tab.active{ background:#2563eb !important; border-colo
 }
 .placeBrandLogo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .placeBrandText{ min-width:0; color:#fff; text-shadow:0 2px 12px rgba(2,6,23,.45); }
-.placeBrandText strong{ display:block; font-size:clamp(19px,3vw,25px); font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.placeBrandText :is(strong,h1){ display:block; font-size:clamp(19px,3vw,25px); font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .placeBrandText span{ display:block; font-size:13px; font-weight:750; opacity:.92; text-transform:capitalize; }
 
 #page-place .placeDetailsCard{ border-radius:26px 26px 0 0 !important; }
@@ -11095,8 +11095,8 @@ html body.dark-mode :is(
   #askInput, .vici-ai-composer input
 ){
   background:var(--field) !important;
-  border-color:#334155 !important;
-  color:#f8fafc !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
 }
 html body.dark-mode input::placeholder,
 html body.dark-mode textarea::placeholder{ color:#64748b !important; }
@@ -11114,13 +11114,13 @@ html body.dark-mode :is(
 html body.dark-mode :is(h1,h2,h3,h4,h5,strong,.cardTitle,.buzzTitleMain,
   .placeHeaderTitle h1,.mec-title,.vtx-name,.vtx-step-title,.inbox-name,
   .transaction-history-place,.buzz-feed-name,.buzz-comment-name){
-  color:#f8fafc !important;
+  color:var(--text) !important;
 }
 html body.dark-mode :is(p,.muted,.sub-label,.section-note,.miniHint,
   .buzzSubtitle,.buzz-feed-meta,.buzz-feed-stats,.buzz-comment-text,
   .mec-sub,.mec-info-line,.vtx-sub,.vtx-step-sub,.vtx-mini-label,
   .inbox-snippet,.inbox-time,.transaction-history-meta,.place-description-text){
-  color:#94a3b8 !important;
+  color:var(--muted) !important;
 }
 html body.dark-mode :is(.bottom-nav,.askBar,.toolbar,.toolbar-modern,.pageHeader,
   .modalHeader,.modalFooter,.chat-header,.chat-footer,.panel-header){

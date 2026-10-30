@@ -24,19 +24,19 @@ window.AddPage = (() => {
         /* Modern Inputs */
         #page-add .field input, #page-add .field select, #page-add .field textarea {
             border-radius: 12px !important;
-            border: 1px solid #e5e7eb !important;
+            border:1px solid var(--ui-border) !important;
             padding: 12px 16px !important;
-            background: #f9fafb !important;
+            background:var(--ui-soft) !important;
             transition: all 0.2s !important;
             font-size: 14px !important;
             outline: none !important;
         }
         #page-add .field input:focus, #page-add .field select:focus, #page-add .field textarea:focus {
-            border-color: #93c5fd !important;
-            background: #ffffff !important;
-            box-shadow: 0 0 0 4px rgba(191, 219, 254, 0.4) !important;
+            border-color: var(--ui-success-line) !important;
+            background:var(--ui-surface) !important;
+            box-shadow: 0 0 0 4px color-mix(in srgb,var(--ui-accent) 18%,transparent) !important;
         }
-        #page-add .card { border-radius: 20px !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important; border: 1px solid #f3f4f6 !important; }
+        #page-add .card { border-radius: 20px !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important; border:1px solid var(--ui-border) !important; }
         
         /* 🔥 Photo Grid System 🔥 */
         .photo-grid-wrap {
@@ -86,11 +86,11 @@ window.AddPage = (() => {
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            background: #f8fafc;
+            background:var(--ui-soft);
             transition: 0.2s;
-            color: #64748b;
+            color:var(--ui-muted);
         }
-        .add-photo-btn:hover { border-color: #93c5fd; background: #eff6ff; color: #3b82f6; }
+        .add-photo-btn:hover { border-color: var(--ui-success-line); background: var(--ui-accent-soft); color:var(--ui-accent); }
         
         /* Modern Submit Button */
         #submitPendingBtn {
@@ -136,38 +136,34 @@ window.AddPage = (() => {
         document.getElementById("lngOut").textContent = lng?.toFixed?.(6) ?? "—";
     }
 
-    // Reverse-geocode the pin into the Barangay select + Address line.
-    // Debounced (drags fire repeatedly); the street line is only filled
-    // when empty or previously auto-filled — never over the user's text.
-    let pinGeocodeTimer = null, lastPinBarangay = "";
+    // Debounce pin detection and apply only the newest result. Manual edits are preserved.
+    let pinGeocodeTimer = null, pinGeocodeVersion = 0, lastPinBarangay = "";
     function autofillFromPin(lat, lng) {
+        const version=++pinGeocodeVersion;
         clearTimeout(pinGeocodeTimer);
+        const fields=[document.getElementById('bizAddr'),document.getElementById('bizBrgy')];
+        fields.forEach(field=>{
+            if(!field||field.dataset.geoBound)return;
+            field.dataset.geoBound='1';
+            field.addEventListener(field.tagName==='SELECT'?'change':'input',()=>{field.dataset.geoManual=field.value.trim()?'1':'';delete field.dataset.geoValue;});
+        });
         pinGeocodeTimer = setTimeout(async () => {
             if (!window.reverseGeocode) return;
             const geo = await window.reverseGeocode(lat, lng);
-            if (!geo) return;
+            if (version!==pinGeocodeVersion || !geo) return;
+            const canFill=field=>field&&field.dataset.geoManual!=='1'&&(!field.value.trim()||field.value===field.dataset.geoValue);
+            const assign=(field,value)=>{field.value=value;field.dataset.geoValue=value;};
             const sel = document.getElementById("bizBrgy");
-            if (sel && geo.barangay) {
-                const norm = s => String(s || "").toLowerCase().replace(/^barangay\s+/, "").trim();
-                const want = norm(geo.barangay);
-                let opt = Array.from(sel.options).find(o => norm(o.value) === want);
-                if (!opt) {
-                    const hits = Array.from(sel.options).filter(o => want && norm(o.value).includes(want));
-                    if (hits.length === 1) opt = hits[0];
-                }
-                if (opt) sel.value = opt.value;
+            if (canFill(sel)) {
+                const norm = value => String(value || "").toLowerCase().replace(/^(?:barangay|brgy\.?)\s+/i, "").trim();
+                const want=norm(geo.barangay);
+                let opt=Array.from(sel.options).find(option=>want&&norm(option.value)===want);
+                if(!opt){const hits=Array.from(sel.options).filter(option=>want&&norm(option.value).includes(want));if(hits.length===1)opt=hits[0];}
+                assign(sel,opt?.value||'');
             }
-            const addr = document.getElementById("bizAddr");
-            if (addr) {
-                if (!addr.dataset.geoBound) {
-                    addr.dataset.geoBound = "1";
-                    addr.addEventListener("input", () => { delete addr.dataset.autofilled; });
-                }
-                if (geo.road && (!addr.value.trim() || addr.dataset.autofilled === "1")) {
-                    addr.value = geo.road + (geo.barangay ? `, Brgy. ${geo.barangay}` : "");
-                    addr.dataset.autofilled = "1";
-                }
-            }
+            const addr=document.getElementById('bizAddr');
+            const address=[geo.road,geo.barangay?`Brgy. ${geo.barangay}`:'',geo.city,geo.province].filter(Boolean).join(', ');
+            if(canFill(addr))assign(addr,address);
             if (geo.barangay && geo.barangay !== lastPinBarangay) {
                 lastPinBarangay = geo.barangay;
                 window.showToast?.(`Address detected: ${geo.label}`, "success");
@@ -192,9 +188,9 @@ window.AddPage = (() => {
         // 🔥 MODERN REACT MAP PIN 🔥
         const addPinSvg = `
             <svg viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 50C20 50 5 31.5 5 19.5C5 10.94 11.72 4 20 4C28.28 4 35 10.94 35 19.5C35 31.5 20 50 20 50Z" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+                <path d="M20 50C20 50 5 31.5 5 19.5C5 10.94 11.72 4 20 4C28.28 4 35 10.94 35 19.5C35 31.5 20 50 20 50Z" fill="#237e72" stroke="#ffffff" stroke-width="4"/>
                 <circle cx="20" cy="19.5" r="7" fill="#ffffff"/>
-                <circle cx="20" cy="19.5" r="3.2" fill="#2563eb"/>
+                <circle cx="20" cy="19.5" r="3.2" fill="#237e72"/>
             </svg>
         `;
 
@@ -410,6 +406,8 @@ window.AddPage = (() => {
         const ll = pinMarker.getLatLng();
 
 const name = (document.getElementById("bizName").value || "").trim();
+const nameProblem = window.ContentPolicy?.error('place',name);
+if(nameProblem) return window.showToast(nameProblem,'error');
 const cat = document.getElementById("bizCat").value;
 const priceRange = document.getElementById("bizPriceRange") ? document.getElementById("bizPriceRange").value : "";
 const addr = (document.getElementById("bizAddr").value || "").trim();
@@ -457,20 +455,14 @@ if (desc.length < 10) {
         }
 
         try {
-            // 🔥 Gamitin yung Array natin galing sa Photo Grid 🔥
-            const photos = await readPhotos(selectedFilesArray);
-
-            // PLUS49: optional logo — same upload path as photos, smaller cap
-            let logoUrl = "";
-            const logoInput = document.getElementById("bizLogo");
-            if (logoInput && logoInput.files && logoInput.files.length > 0) {
-                logoUrl = await window.uploadImageFileToStorage(logoInput.files[0], "place_logos/new", { maxWidth: 512, quality: 0.85 });
-            }
+            // Branding and photo uploads belong to the verified owner edit flow.
+            const photos = [];
+            const logoUrl = "";
             // Admins (incl. the permanent admin UID) skip the approval
             // queue — the status AND the success message both use this.
             const isAdminSubmitter = AppState.userProfile?.role === "admin" || window.auth.currentUser.uid === "Z45NZhQTgsTUX79WJ5ksCH8N3c02";
 
-           await window.db.collection("places").add({
+           await window.ContentPolicy.create(window.db,'places',{
     name,
 
     // old field names
@@ -481,6 +473,7 @@ if (desc.length < 10) {
     phone,
     desc,
 
+    ...(window.PlaceFeatures && document.getElementById("bizFeatures") ? { place_features: window.PlaceFeatures.readForm(document.getElementById("bizFeatures")) } : {}),
     // new/standard field names
     category: cat,
     address: addr,
@@ -502,6 +495,7 @@ owner_uid: null,
 });
 
             // Reset Form
+            window.PlaceFeatures?.renderForm(document.getElementById("bizFeatures"));
             document.getElementById("bizName").value = "";
             document.getElementById("bizCat").value = "";
             if (document.getElementById("bizPriceRange")) document.getElementById("bizPriceRange").value = "";

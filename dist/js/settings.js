@@ -73,37 +73,63 @@ async function deleteCustomerBooking(bookingId) {
     window.alert("Transaction history is kept for records and cannot be deleted.");
 }
 
-// Customer cancellation (status-based, manual flow):
-// pending -> 100% refund; accepted/payment_submitted -> the establishment's
-// refundPercent (snapshotted at order time); preparing or later -> closed.
+// Eligibility remains enforced by the server transaction, including races with preparation.
+function cancellationInfo(booking) {
+    const status = getStatusTone(booking.status || booking.bookingStatus || "pending");
+    const policy=window.PaymentPolicy?.cancellation(booking);
+    const raw = Number(booking.refundPercent ?? 50);
+    const rate=policy?.rate ?? (status==='pending'?100:raw);
+    const isBooking=["booking","table","table_reservation","food","food_reservation"].includes(String(booking.requestType||"booking"));
+    return {status,rate,label:isBooking?'booking':'order',allowed:policy?.allowed ?? ['pending','accepted','payment_submitted','payment_confirmed'].includes(status),paid:policy?.evidence ?? !!booking.paymentReference};
+}
+function reviewCancellation(booking) {
+    const info = cancellationInfo(booking);
+    return new Promise(resolve => {
+        const modal = document.createElement("div");
+        modal.className = "cancellation-modal";
+        modal.innerHTML = `<div class="modalBackdrop"></div><section class="cancellation-sheet" role="dialog" aria-modal="true" aria-labelledby="cancelReviewTitle">
+            <header><span class="cancel-review-icon"><i data-lucide="calendar-x"></i></span><button type="button" class="cancel-review-close" aria-label="Close cancellation"><i data-lucide="x"></i></button></header>
+            <span class="cancel-review-eyebrow">REVIEW CANCELLATION</span><h3 id="cancelReviewTitle">Cancel this ${info.label}?</h3>
+            <p>Your request with <strong>${escapeHtml(booking.placeName || "this establishment")}</strong> will be cancelled. This cannot be undone.</p>
+            <div class="cancel-policy-summary"><span>${info.status === "pending" ? "Not accepted yet" : "Accepted by the business"}</span><strong>${!info.paid ? "Free cancellation" : info.rate + "% refund policy"}</strong><p>${!info.paid ? "No payment is recorded. No refund transfer is needed." : "The business must verify money received before a refund is calculated. Follow the refund status in the transaction summary."}</p></div>
+            <p class="cancel-manual-note">If paid: the business reviews the refund amount, confirms the transfer reference, then you confirm receipt after checking your account. The conversation stays open until the refund is settled. Vicinify does not transfer money.</p>
+            <footer><button type="button" class="cancel-review-keep">Keep ${info.label}</button><button type="button" class="cancel-review-confirm">Cancel ${info.label}</button></footer>
+        </section>`;
+        const previousFocus = document.activeElement;
+        const finish = answer => { document.removeEventListener("keydown", onKey); modal.remove(); window.lockBodyScroll?.(false); previousFocus?.focus?.(); resolve(answer); };
+        const onKey = event => {
+            if (event.key === "Escape") finish(false);
+            if (event.key === "Tab") {
+                const buttons = [...modal.querySelectorAll("button")];
+                if (event.shiftKey && document.activeElement === buttons[0]) { event.preventDefault(); buttons.at(-1).focus(); }
+                else if (!event.shiftKey && document.activeElement === buttons.at(-1)) { event.preventDefault(); buttons[0].focus(); }
+            }
+        };
+        modal.querySelector(".modalBackdrop").onclick = () => finish(false);
+        modal.querySelector(".cancel-review-close").onclick = () => finish(false);
+        modal.querySelector(".cancel-review-keep").onclick = () => finish(false);
+        modal.querySelector(".cancel-review-confirm").onclick = () => finish(true);
+        document.body.appendChild(modal); window.lockBodyScroll?.(true);
+        document.addEventListener("keydown", onKey); window.debouncedIcons?.();
+        modal.querySelector(".cancel-review-keep").focus();
+    });
+}
+const cancellingBookings = new Set();
 async function cancelCustomerBooking(bookingId) {
+    if (cancellingBookings.has(bookingId)) return;
     const d = (currentTransactionDocs || []).find(x => x.id === bookingId);
     if (!d) return;
-    const status = String(d.status || "pending").toLowerCase();
-    if (!["pending", "accepted", "payment_submitted"].includes(status)) return;
-
-    const refundPercent = status === "pending" ? 100 : (d.refundPercent ?? 50);
-    const placeName = d.placeName || "The establishment";
-    const msg = status === "pending"
-        ? `${placeName} hasn't accepted your order yet — cancelling now gives you a 100% refund.`
-        : `${placeName} has accepted your order and is about to prepare it. If you cancel now, you'll get a ${refundPercent}% refund — they keep ${100 - refundPercent}% as compensation for their effort.`;
-
-    const ans = await window.vConfirm("Cancel this order?", msg, "Yes, cancel", true);
-    if (!ans) return;
-
+    if (!cancellationInfo(d).allowed) return window.showToast?.("Cancellation is no longer available at this stage.", "info");
+    cancellingBookings.add(bookingId);
     try {
-        await window.ViciData.command("booking", { bookingId: bookingId, patch: {
-            status: "cancelled",
-            refundPercent,
-            cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        } });
-
-
-        window.showToast("Order cancelled.", "info");
+        if (!await reviewCancellation(d)) return;
+        // The server reads the current status and original refund policy; the
+        // browser never supplies a refund rate or marks money as refunded.
+        await window.ViciData.command("booking", { bookingId, patch: { status: "cancelled" } });
+        window.showToast?.("Request cancelled. Any refund must be arranged with the business.", "info");
     } catch (error) {
-        alert("Error cancelling: " + error.message);
-    }
+        window.showToast?.("Could not cancel this request. " + error.message, "error");
+    } finally { cancellingBookings.delete(bookingId); }
 }
 
 async function confirmReceivedBooking(bookingId, placeId) {
@@ -220,18 +246,17 @@ async function markCustomerChatsRead() {
 
 function listenToCustomerActivities(user) {
     if (!user || !user.uid) return;
-    if (activeCustKey === user.uid && custBookingsUnsub) return;
+    if (activeCustKey === user.uid && custBookingsUnsub) {syncOptionalActivityTab(user);return;}
     activeCustKey = user.uid;
     if (custBookingsUnsub) custBookingsUnsub();
     if (custChatsUnsub) custChatsUnsub();
     if (custFavoritesUnsub) custFavoritesUnsub();
     if (custSukiUnsub) custSukiUnsub();
+    custBookingsUnsub = custChatsUnsub = custFavoritesUnsub = custSukiUnsub = null;
+    currentTransactionDocs = []; currentChatDocs = [];
 
     // TRANSACTION HISTORY LISTENER
-    // No server orderBy: the (userId, createdAt) composite index is new
-    // and may not exist yet on a fresh project — a missing index would
-    // kill the query and leave the section on "Loading" forever.
-    // The handler sorts client-side below; the window is the same 15.
+    // Reuse the notifier's ordered, bounded customer feed.
     custBookingsUnsub = window.ViciData.customerFeed("bookings", user.uid, snap => {
             const badge = document.getElementById("custBookBadge");
             const wrap = document.getElementById("myBookingsList");
@@ -244,10 +269,7 @@ function listenToCustomerActivities(user) {
                 return;
             }
 
-            let docs = snap.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            let docs = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
 
             docs.sort((a, b) => {
                 return (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0);
@@ -269,8 +291,9 @@ function listenToCustomerActivities(user) {
             docs.forEach(d => {
                 const status = getStatusTone(d.status || d.bookingStatus || "pending");
                 const meta = getRequestMeta(d.requestType);
+                const cancellation = cancellationInfo(d);
                 const dateStr = formatDateTime(d.createdAt);
-                const summary = getTransactionSummary(d);
+                const summary = window.renderRequestDetailRows(d);
                 const txId = d.transactionId || d.id;
                 const unreadDot = isCustomerUnreadTransaction(d, user.uid) ? `<span class="inbox-unread-dot" title="Unread update"></span>` : "";
 
@@ -284,7 +307,7 @@ function listenToCustomerActivities(user) {
                             <div style="display:flex; align-items:center; gap:10px;">${unreadDot}<span class="status-badge status-${status}" style="font-size:11px; padding:6px 10px; white-space:nowrap;">${escapeHtml(normalizeStatusLabel(d.status || d.bookingStatus || "pending"))}</span></div>
                         </div>
 
-                        <div class="transaction-history-details">${escapeHtml(summary)}</div>
+                        <div class="transaction-history-details request-output-history">${summary}</div>
 
                         <div class="transaction-history-meta">
                             <span>${escapeHtml(dateStr)}</span>
@@ -298,26 +321,13 @@ function listenToCustomerActivities(user) {
                                 </button>
                             ` : ""}
 
-                            ${status === "pending" ? `
-                                <div style="font-size:11px; color:#16a34a; flex-basis:100%;">You can still cancel this order — free while it is pending.</div>
-                            ` : ""}
+                            ${cancellation.allowed ? `
+                                <div class="transaction-cancel-note">${status === "pending" ? "Free cancellation while pending." : `Cancellation available · ${cancellation.rate}% refund policy if paid.`}</div>
+                                <button class="transaction-cancel-button" onclick="window.SettingsPage.cancelCustomerBooking('${d.id}')">Cancel ${cancellation.label}</button>
+                            ` : status === "cancelled" ? `<div class="transaction-cancel-note">Cancelled · Open the transaction to follow the refund status.</div>` : ["preparing", "ready", "ready_for_pickup", "payment_confirmed", "out_for_delivery", "delivered", "fulfilled", "received"].includes(status) ? `<div class="transaction-cancel-note is-closed">Cancellation is closed at this stage. Contact the business if you need help.</div>` : ""}
 
-                            ${["accepted", "payment_submitted"].includes(status) ? `
-                                <div style="font-size:11px; color:#d97706; flex-basis:100%;">You can still cancel this order — a ${d.refundPercent ?? 50}% refund applies.</div>
-                            ` : ""}
-
-                            ${["pending", "accepted", "payment_submitted"].includes(status) ? `
-                                <button class="transaction-action-chat" style="color:#dc2626;" onclick="window.SettingsPage.cancelCustomerBooking('${d.id}')">
-                                    Cancel Order
-                                </button>
-                            ` : ""}
-
-                            ${["preparing", "ready", "payment_confirmed"].includes(status) ? `
-                                <div style="font-size:11px; color:#94a3b8; flex-basis:100%;">Preparation has started — this order can no longer be cancelled. No refund.</div>
-                            ` : ""}
-
-                            <button class="transaction-action-chat" onclick="window.openChatModal('${d.placeId}', '${safeString(d.placeName || "Establishment")}')">
-                                Open Chat
+                            <button class="transaction-action-chat" onclick="window.openChatModal('${d.placeId}', '${safeString(d.placeName || "Establishment")}', null, 'transaction', '${d.id}')">
+                                Open transaction
                             </button>
 
                             <button class="transaction-action-chat" onclick="showPage('page-map'); setTimeout(() => window.viewPlace('${d.placeId}', { focusReviews: true }), 350)">
@@ -349,10 +359,7 @@ function listenToCustomerActivities(user) {
                 return;
             }
 
-            let docs = snap.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })).filter(d => !(d.deletedBy || []).includes(user.uid));
+            let docs = snap.docs.map(doc => ({ ...doc.data(), id: doc.id })).filter(d => !(d.deletedBy || []).includes(user.uid) && window.isConversationMessage(d));
 
             let threads = {};
 
@@ -375,60 +382,21 @@ function listenToCustomerActivities(user) {
             window._settingsChatCount = unreadChatCount;
             window.GlobalNotifier?.refreshSettingsBadge?.();
 
-            let unreadHtml = "";
-            let readHtml = "";
-
-            threadArr.forEach(d => {
-                const dateStr = d.createdAt && d.createdAt.toDate
-                    ? d.createdAt.toDate().toLocaleDateString("en-US", { month: "short", day: "numeric" })
-                    : "Just now";
-
-                const initial = (d.placeName || "P").charAt(0).toUpperCase();
-                const lastMsg = d.reply ? `Reply: ${d.reply}` : `You: ${d.text}`;
-
-                const rowHtml = `
-                    <div class="inbox-row" style="position:relative; padding-right:50px;" onclick="window.SettingsPage.markCustomerChatThreadRead('${d.placeId}'); window.openChatModal('${d.placeId}', '${safeString(d.placeName)}')">
-                        <div class="inbox-avatar">${initial}</div>
-
-                        <div class="inbox-content">
-                            <div class="inbox-top">
-                                <div class="inbox-name">${escapeHtml(d.placeName)}</div>
-                                <div class="inbox-time">${dateStr}</div>
-                            </div>
-
-                            <div class="inbox-bottom">
-                                <div class="inbox-snippet" style="${d.reply ? "font-weight:700; color:#0f172a;" : "color:#64748b;"}">
-                                    ${escapeHtml(lastMsg)}
-                                </div>
-                                ${isCustomerUnreadMessage(d, user.uid) ? `<div class="inbox-unread" style="background:#ef4444;">NEW</div>` : ""}
-                            </div>
-                        </div>
-
-                        <button onclick="window.SettingsPage.deleteCustomerChatThread('${d.placeId}', event)"
-                            style="position:absolute; right:16px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:#ef4444; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.2s;"
-                            title="Hide Chat">
-                            <i data-lucide="trash-2" style="width:18px; height:18px;"></i>
-                        </button>
-                    </div>
-                `;
-
-                if (d.reply) unreadHtml += rowHtml;
-                else readHtml += rowHtml;
-            });
-
-            let finalHtml = "";
-
-            if (unreadHtml) {
-                finalHtml += `<div style="font-size:12px; font-weight:700; color:#3b82f6; margin-bottom:10px; margin-top:10px; text-transform:uppercase; letter-spacing:0.5px;">Active Conversations</div>` + unreadHtml;
-            }
-
-            if (readHtml) {
-                finalHtml += `<div style="font-size:12px; font-weight:700; color:#64748b; margin-top:24px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">Awaiting Reply</div>` + readHtml;
-            }
-
-            if (threadArr.length === 0) {
-                finalHtml = `<div class="muted" style="text-align:center; padding: 20px;">No messages, or they have been deleted.</div>`;
-            }
+            const finalHtml = threadArr.length ? threadArr.map(d => {
+                const title = window.MapPage?.getCachedPlace?.(d.placeId)?.name || currentTransactionDocs.find(order=>order.placeId===d.placeId)?.placeName || d.placeName || 'Establishment';
+                const own = d.senderUid === user.uid || (!d.senderUid && !d.reply);
+                const preview = d.reply ? `Business: ${d.reply}` : d.type === 'text' ? `${own ? 'You' : 'Business'}: ${d.text || ''}` : d.text || 'Transaction update';
+                const date = d.createdAt?.toDate ? d.createdAt.toDate().toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'Just now';
+                const unread = isCustomerUnreadMessage(d,user.uid);
+                return `<article class="activity-thread${unread?' is-unread':''}">
+                    <button type="button" class="activity-thread-open" onclick="window.SettingsPage.markCustomerChatThreadRead('${safeString(d.placeId)}');window.openChatModal('${safeString(d.placeId)}','${safeString(title)}')">
+                        <span class="activity-thread-avatar">${escapeHtml(title.charAt(0).toUpperCase())}</span>
+                        <span class="activity-thread-copy"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(preview)}</span></span>
+                        <span class="activity-thread-meta"><time>${escapeHtml(date)}</time>${unread?'<span class="activity-thread-unread">New</span>':''}</span>
+                    </button>
+                    <button type="button" class="activity-thread-hide" aria-label="Hide conversation with ${escapeHtml(title)}" onclick="window.SettingsPage.deleteCustomerChatThread('${safeString(d.placeId)}',event)"><i data-lucide="archive"></i></button>
+                </article>`;
+            }).join('') : '<div class="activity-empty">Your conversations will appear here.</div>';
 
             wrap.innerHTML = finalHtml;
             window.debouncedIcons?.();
@@ -438,6 +406,10 @@ function listenToCustomerActivities(user) {
             if (w) w.innerHTML = `<div class="muted" style="text-align:center; padding: 20px;">Could not load. Please try again later.</div>`;
         });
 
+    syncOptionalActivityTab(user);
+}
+function startFavorites(user) {
+    if(custFavoritesUnsub)return;
     // FAVORITES LISTENER
     custFavoritesUnsub = window.db.collection("favorites")
         .where("userId", "==", user.uid)
@@ -451,10 +423,7 @@ function listenToCustomerActivities(user) {
                 return;
             }
 
-            let docs = snap.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            let docs = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
 
             docs.sort((a, b) => {
                 return (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0);
@@ -465,13 +434,13 @@ function listenToCustomerActivities(user) {
             docs.forEach(d => {
                 html += `
                     <div class="inbox-row" style="position:relative; padding-right:50px;" onclick="showPage('page-map'); setTimeout(() => window.viewPlace('${d.placeId}'), 300)">
-                        <div class="inbox-avatar" style="background:#fef2f2; color:#ef4444;">
-                            <i data-lucide="heart" style="fill:#ef4444;"></i>
+                        <div class="inbox-avatar favorite-heart">
+                            <i data-lucide="heart" style="fill:currentColor;"></i>
                         </div>
 
                         <div class="inbox-content">
                             <div class="inbox-name">${escapeHtml(d.placeName)}</div>
-                            <div class="inbox-snippet" style="color:#3b82f6;">Click to view on map</div>
+                            <div class="inbox-snippet" style="color:var(--ui-accent);">Click to view on map</div>
                         </div>
 
                         <button onclick="window.SettingsPage.removeFavorite('${d.id}', event)"
@@ -487,12 +456,12 @@ function listenToCustomerActivities(user) {
             window.debouncedIcons?.();
         }, err => window.handleFirestoreError(err));
 
+}
+function startSukiCards(user) {
+    if(custSukiUnsub)return;
     // SUKI CARDS LISTENER — one card per establishment, each rendered
     // in that place's own design. Bounded (customerUid filter + limit).
-    custSukiUnsub = window.db.collection("loyalty_cards")
-        .where("customerUid", "==", user.uid)
-        .limit(20)
-        .onSnapshot(snap => {
+    custSukiUnsub = window.ViciData.sukiFeed(user.uid, snap => {
             const wrap = document.getElementById("mySukiCardsList");
             if (!wrap) return;
 
@@ -501,7 +470,7 @@ function listenToCustomerActivities(user) {
                 return;
             }
 
-            const cards = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const cards = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             cards.sort((a, b) => (b.updatedAt?.toMillis?.() || 0) - (a.updatedAt?.toMillis?.() || 0));
 
             (async () => {
@@ -510,12 +479,15 @@ function listenToCustomerActivities(user) {
                     const placeMap = {};
                     const placeIds = [...new Set(cards.map(c => c.placeId).filter(Boolean))];
                     for (const pid of placeIds) {
+                        const cached=window.MapPage?.getCachedPlace?.(pid);
+                        if(cached) {placeMap[pid]=cached;continue;}
                         if (placeJoinCache.has(pid)) { placeMap[pid] = placeJoinCache.get(pid); continue; }
                         try {
                             const pd = await window.db.collection("places").doc(pid).get();
-                            if (pd.exists) { placeMap[pid] = { id: pd.id, ...pd.data() }; placeJoinCache.set(pid, placeMap[pid]); }
+                            if (pd.exists) { placeMap[pid] = { ...pd.data(), id: pd.id }; placeJoinCache.set(pid, placeMap[pid]); }
                         } catch (e) { window.handleFirestoreError(e); }
                     }
+                    if(window.auth?.currentUser?.uid!==user.uid || activeCustKey!==user.uid)return;
                     const html = cards.map(c => {
                         const p = placeMap[c.placeId];
                         if (!p) return "";
@@ -539,6 +511,13 @@ function listenToCustomerActivities(user) {
             window.handleFirestoreError(err, "Could not load Suki Cards.");
         });
 }
+function syncOptionalActivityTab(user) {
+    if(!user)return;
+    const tab=document.querySelector('#customerActivitySection .cust-tab.active')?.dataset.custtab;
+    if(tab==='favorites')startFavorites(user);
+    if(tab==='suki')startSukiCards(user);
+}
+
 
 function syncSettingsSegment(group, value) {
     const selector = `[data-settings-segment="${group}"] button`;
@@ -595,7 +574,7 @@ function init() {
     const soundKnob = document.getElementById("soundToggleKnob");
     function updateSoundToggle() {
         const on = window.NavSound?.enabled !== false;
-        if (soundBtn) soundBtn.style.background = on ? "#4f46e5" : "#cbd5e1";
+        if (soundBtn) { soundBtn.style.background = on ? "#237e72" : "#94a3b8"; soundBtn.setAttribute("role", "switch"); soundBtn.setAttribute("aria-checked", String(on)); soundBtn.setAttribute("aria-label", "Navigation sounds"); }
         if (soundKnob) soundKnob.style.left = on ? "23px" : "3px";
     }
     soundBtn?.addEventListener("click", () => {
@@ -661,7 +640,7 @@ function init() {
         const currentPass = curEl?.value || "", newPass = newEl?.value || "", confirmPass = confEl?.value || "";
         if (!currentPass || !newPass || !confirmPass) return alert("Please fill in current, new, and confirm password fields.");
         if (newPass !== confirmPass) return alert("New password and confirmation do not match.");
-        if (newPass.length < 8 || !/[a-z]/.test(newPass) || !/[A-Z]/.test(newPass) || !/\d/.test(newPass) || !/[!@#$%^&*(),.?":{}|<>]/.test(newPass)) return alert("New password must be at least 8 characters with uppercase, lowercase, a number, and a special character (!@#$%).");
+        if (!window.PasswordPolicy.isStrong(newPass)) return alert("New password must be at least 8 characters with uppercase, lowercase, a number, and a special character (!@#$%).");
         settingsChangeBtn.disabled = true; const old = settingsChangeBtn.textContent; settingsChangeBtn.textContent = "Updating...";
         try {
             const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPass);
@@ -684,6 +663,8 @@ function init() {
 
         const newName = nicknameInput ? nicknameInput.value.trim() : "User";
 
+        const nameProblem = window.ContentPolicy?.error('name',newName);
+        if(nameProblem) return alert(nameProblem);
         saveProfileBtn.textContent = "Saving to Cloud...";
         saveProfileBtn.disabled = true;
 
@@ -714,99 +695,15 @@ function init() {
         if (!ans) return;
 
         try {
+            window.clearAccountCredentials?.();
             await window.auth.signOut();
+            window.clearAccountCredentials?.();
         } catch (error) {
             alert("Error logging out: " + error.message);
         }
     });
 
-    deleteAccountBtn?.addEventListener("click", () => {
-        const user = window.auth.currentUser;
-        if (!user) return;
-
-        const overlay = document.createElement("div");
-        overlay.style.position = "fixed";
-        overlay.style.top = "0";
-        overlay.style.left = "0";
-        overlay.style.width = "100%";
-        overlay.style.height = "100%";
-        overlay.style.background = "rgba(0,0,0,0.6)";
-        overlay.style.zIndex = "9999";
-        overlay.style.display = "flex";
-        overlay.style.alignItems = "center";
-        overlay.style.justifyContent = "center";
-
-        overlay.innerHTML = `
-            <div style="background:white; padding:24px; border-radius:16px; width:90%; max-width:340px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
-                <div style="background:#fef2f2; width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 6h18"></path>
-                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                    </svg>
-                </div>
-
-                <h3 style="margin-top:0; color:#0f172a; font-size:18px;">Delete Account</h3>
-                <p style="font-size:13px; color:#64748b; margin-bottom:20px; line-height:1.5;">
-                    This deletes your sign-in and profile. Transaction and business history remain; this is not a full data-erasure request. Enter your password to confirm.
-                </p>
-
-                <input type="password" id="delConfirmPass" placeholder="Enter your password" autocomplete="off"
-                    style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:20px; box-sizing:border-box; font-family:inherit; font-size:14px;" />
-
-                <div style="display:flex; gap:10px;">
-                    <button id="delCancelBtn" style="flex:1; padding:12px; border-radius:8px; border:none; background:#f1f5f9; color:#475569; font-weight:bold; cursor:pointer;">Cancel</button>
-                    <button id="delConfirmBtn" style="flex:1; padding:12px; border-radius:8px; border:none; background:#ef4444; color:white; font-weight:bold; cursor:pointer;">Delete Data</button>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(overlay);
-
-        document.getElementById("delCancelBtn").onclick = () => overlay.remove();
-
-        document.getElementById("delConfirmBtn").onclick = async () => {
-            const passInput = document.getElementById("delConfirmPass").value;
-
-            if (!passInput) {
-                return alert("Password cannot be empty.");
-            }
-
-            const btn = document.getElementById("delConfirmBtn");
-            btn.textContent = "Verifying...";
-            btn.disabled = true;
-
-            try {
-                const credential = firebase.auth.EmailAuthProvider.credential(user.email, passInput);
-                await user.reauthenticateWithCredential(credential);
-
-                window.isSelfDeleting = true;
-
-                const deletion = window.db.batch();
-                deletion.delete(window.db.collection("public_profiles").doc(user.uid));
-                deletion.delete(window.db.collection("users").doc(user.uid));
-                await deletion.commit();
-                await user.delete();
-
-                alert("Your sign-in account and profile were deleted. Related history records may remain for business and transaction records.");
-                window.location.reload();
-            } catch (error) {
-                window.isSelfDeleting = false;
-                console.error("Delete Error:", error);
-
-                if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
-                    alert("❌ INCORRECT PASSWORD! Account deletion failed.");
-                } else if (error.code === "auth/too-many-requests") {
-                    alert("Too many failed attempts. Please try again later.");
-                } else {
-                    alert("Error: " + error.message);
-                }
-
-                btn.textContent = "Delete Data";
-                btn.disabled = false;
-            }
-        };
-    });
+    deleteAccountBtn?.addEventListener("click", () => window.AccountDeletion?.open());
 
     document.body.addEventListener("click", e => {
         const tabBtn = e.target.closest(".cust-tab");
@@ -827,13 +724,13 @@ function init() {
             targetPanel.classList.add("active");
         }
 
+        syncOptionalActivityTab(window.auth?.currentUser);
         if (tabBtn.dataset.custtab === "bookings") {
             markCustomerTransactionsRead();
         }
 
-        if (tabBtn.dataset.custtab === "chats") {
-            markCustomerChatsRead();
-        }
+        // Opening the list does not read every conversation. Mark only the
+        // selected thread when it opens, avoiding a bulk write/read fan-out.
     });
 }
 
@@ -851,6 +748,7 @@ return {
     deleteCustomerBooking,
     confirmReceivedBooking,
     cancelCustomerBooking,
+    reviewCancellation,
     deleteCustomerChatThread,
     markCustomerTransactionsRead,
     markCustomerChatsRead,

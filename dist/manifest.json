@@ -3,8 +3,8 @@
   "short_name": "Vicinify",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#eef2f7",
-  "theme_color": "#2563eb",
+  "background_color": "#eef5f2",
+  "theme_color": "#237e72",
   "description": "Vicinify \u2014 AI-powered service locator for Lipa City.",
   "icons": [
     {
@@ -19,5 +19,7 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "id": "/",
+  "scope": "./"
 }

@@ -22,239 +22,55 @@
     <link rel="dns-prefetch" href="https://tile.openstreetmap.org" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <link rel="stylesheet" href="css/style.css?v=VICINIFY_REPAIR_20261026" />
+    <link rel="stylesheet" href="css/style.css?v=VICI_ef3401485f7584b3" />
+    <link rel="stylesheet" href="css/ui.css?v=VICI_ef3401485f7584b3" />
+    <link rel="stylesheet" href="css/reference.css?v=VICI_ef3401485f7584b3" />
+    <link rel="stylesheet" href="css/components.css?v=VICINIFY_MOBILE_AI_UI_20261030" />
+    <link rel="stylesheet" href="css/place-preview.css?v=VICI_ef3401485f7584b3">
+    <link rel="stylesheet" href="css/suki-polish.css?v=VICI_ef3401485f7584b3">
+    <link rel="stylesheet" href="css/vici-chat.css?v=VICINIFY_MOBILE_AI_UI_20261030" />
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <meta name="theme-color" content="#3b82f6">
+    <meta name="theme-color" content="#147d70">
 
-    <style id="vici-map-no-scroll-lock">
-        /* VICINIFY + VICI6 DESIGN MAP NO-SCROLL LOCK — FINAL
-           This is intentionally inside index.html so it beats old CSS/import order.
-           Root cause removed: mapWrap must NOT add bottom margin while bottom nav is fixed. */
 
-        html,
-        body {
-            width: 100% !important;
-            margin: 0 !important;
-            overflow-x: hidden !important;
-        }
-
-        html.vici-map-lock,
-        body.vici-map-lock,
-        html.map-page-lock,
-        body.map-page-lock,
-        html:has(#page-map.active),
-        body:has(#page-map.active) {
-            width: 100vw !important;
-            height: 100dvh !important;
-            min-height: 100dvh !important;
-            max-height: 100dvh !important;
-            overflow: hidden !important;
-            overflow-y: hidden !important;
-            overflow-x: hidden !important;
-            overscroll-behavior: none !important;
-            scrollbar-width: none !important;
-        }
-
-        html.vici-map-lock::-webkit-scrollbar,
-        body.vici-map-lock::-webkit-scrollbar,
-        html.map-page-lock::-webkit-scrollbar,
-        body.map-page-lock::-webkit-scrollbar,
-        html:has(#page-map.active)::-webkit-scrollbar,
-        body:has(#page-map.active)::-webkit-scrollbar {
-            width: 0 !important;
-            height: 0 !important;
-            display: none !important;
-        }
-
-        body.vici-map-lock .app,
-        body.map-page-lock .app,
-        body:has(#page-map.active) .app {
-            width: 100vw !important;
-            height: 100dvh !important;
-            min-height: 100dvh !important;
-            max-height: 100dvh !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow: hidden !important;
-        }
-
-        /* The map page uses the area ABOVE the fixed bottom nav only. */
-        body.vici-map-lock #page-map,
-        body.vici-map-lock #page-map.active,
-        body.map-page-lock #page-map,
-        body.map-page-lock #page-map.active,
-        html body #page-map.active {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: var(--navH, 78px) !important;
-            width: 100vw !important;
-            height: auto !important;
-            min-height: 0 !important;
-            max-height: none !important;
-            display: flex !important;
-            flex-direction: column !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            overflow: hidden !important;
-            background: var(--bg, #f3f5f9) !important;
-            z-index: 10 !important;
-            box-sizing: border-box !important;
-        }
-
-        body.vici-map-lock #page-map .askBar,
-        body.vici-map-lock #page-map .toolbar,
-        body.vici-map-lock #page-map .toolbar-modern,
-        body.vici-map-lock #page-map .chips,
-        body.vici-map-lock #page-map #catChips,
-        body.map-page-lock #page-map .askBar,
-        body.map-page-lock #page-map .toolbar,
-        body.map-page-lock #page-map .toolbar-modern,
-        body.map-page-lock #page-map .chips,
-        body.map-page-lock #page-map #catChips,
-        html body #page-map.active .askBar,
-        html body #page-map.active .toolbar,
-        html body #page-map.active .toolbar-modern,
-        html body #page-map.active .chips,
-        html body #page-map.active #catChips {
-            flex: 0 0 auto !important;
-            width: 100% !important;
-            max-width: 100vw !important;
-            min-width: 0 !important;
-            box-sizing: border-box !important;
-        }
-
-        body.vici-map-lock #page-map .askBar,
-        body.map-page-lock #page-map .askBar,
-        html body #page-map.active .askBar {
-            margin: 12px 16px 8px !important;
-            width: calc(100vw - 32px) !important;
-        }
-
-        body.vici-map-lock #page-map .toolbar-modern,
-        body.map-page-lock #page-map .toolbar-modern,
-        html body #page-map.active .toolbar-modern {
-            padding: 4px 16px !important;
-            margin: 0 0 8px 0 !important;
-            overflow: visible !important;
-        }
-
-        body.vici-map-lock #page-map .chips,
-        body.vici-map-lock #page-map #catChips,
-        body.vici-map-lock #page-map .radius-wrapper,
-        body.vici-map-lock #page-map .radius-segment-container,
-        body.map-page-lock #page-map .chips,
-        body.map-page-lock #page-map #catChips,
-        body.map-page-lock #page-map .radius-wrapper,
-        body.map-page-lock #page-map .radius-segment-container,
-        html body #page-map.active .chips,
-        html body #page-map.active #catChips,
-        html body #page-map.active .radius-wrapper,
-        html body #page-map.active .radius-segment-container {
-            overflow-x: auto !important;
-            overflow-y: hidden !important;
-            scrollbar-width: none !important;
-        }
-
-        body.vici-map-lock #page-map .chips::-webkit-scrollbar,
-        body.vici-map-lock #page-map #catChips::-webkit-scrollbar,
-        body.vici-map-lock #page-map .radius-wrapper::-webkit-scrollbar,
-        body.map-page-lock #page-map .chips::-webkit-scrollbar,
-        body.map-page-lock #page-map #catChips::-webkit-scrollbar,
-        body.map-page-lock #page-map .radius-wrapper::-webkit-scrollbar,
-        html body #page-map.active .chips::-webkit-scrollbar,
-        html body #page-map.active #catChips::-webkit-scrollbar,
-        html body #page-map.active .radius-wrapper::-webkit-scrollbar {
-            display: none !important;
-        }
-
-        /* CRITICAL FIX: no margin-bottom. The nav is fixed and outside the map height. */
-        body.vici-map-lock #page-map .mapWrap,
-        body.map-page-lock #page-map .mapWrap,
-        body:has(#page-map.active) #page-map .mapWrap,
-        html body #page-map.active .mapWrap {
-            position: relative !important;
-            flex: 1 1 auto !important;
-            min-height: 0 !important;
-            height: auto !important;
-            max-height: none !important;
-            width: 100% !important;
-            max-width: 100vw !important;
-            margin: 0 !important;
-            margin-bottom: 0 !important;
-            padding: 0 !important;
-            overflow: hidden !important;
-            display: block !important;
-            box-sizing: border-box !important;
-        }
-
-        body.vici-map-lock #page-map #map,
-        body.map-page-lock #page-map #map,
-        html body #page-map.active #map {
-            position: absolute !important;
-            inset: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            min-height: 0 !important;
-            max-height: 100% !important;
-            overflow: hidden !important;
-            z-index: 1 !important;
-        }
-
-        body.vici-map-lock #page-map #listViewContainer,
-        body.map-page-lock #page-map #listViewContainer,
-        html body #page-map.active #listViewContainer {
-            position: absolute !important;
-            inset: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            max-height: 100% !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            padding-bottom: 24px !important;
-            background: var(--bg, #f3f5f9) !important;
-            box-sizing: border-box !important;
-            z-index: 10 !important;
-        }
-
-        body.vici-map-lock .bottom-nav,
-        body.map-page-lock .bottom-nav,
-        body:has(#page-map.active) .bottom-nav {
-            position: fixed !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100vw !important;
-            height: calc(var(--navH, 78px) + var(--safeBottom, 0px)) !important;
-            padding-bottom: var(--safeBottom, 0px) !important;
-            z-index: 9999 !important;
-        }
-    </style>
 </head>
 
-<body>
-    <div class="app">
+<body class="vicinify-ui on-login">
+    <a href="#main-content" class="skip-link">Skip to content</a>
+    <div class="app" id="main-content" tabindex="-1">
+
+        <header class="workspace-header">
+            <div class="workspace-heading"><span class="workspace-eyebrow">YOUR LOCAL COMPANION</span><strong id="workspaceTitle">Explore Lipa</strong></div>
+            <a class="mobile-brand" href="#" data-goto="page-map"><span class="brand-symbol"><i data-lucide="map-pin"></i></span><span class="brand-wordmark">vicinify<span class="brand-dot">.</span></span></a>
+            <div class="workspace-actions"><span class="city-label"><i data-lucide="map-pin"></i> Lipa City, Batangas</span><button type="button" class="account-button" data-goto="page-settings" aria-label="Open profile and settings"><span id="accountInitials">V</span><span class="account-copy"><strong id="accountName">Your account</strong><small id="accountRole">Standard</small></span><i data-lucide="chevron-down"></i></button></div>
+            <div id="connectionNotice" class="connection-notice" role="status" hidden>You’re offline. Some features need an internet connection.</div>
+        </header>
 
         <main id="page-login" class="page active">
             <div class="login-wrapper">
+                <aside class="auth-story" aria-label="Discover Vicinify">
+                    <div class="story-brand"><span class="brand-symbol"><i data-lucide="map-pin"></i></span><span class="brand-wordmark">vicinify<span class="brand-dot">.</span></span></div>
+                    <div class="story-content"><span class="story-kicker"><span></span> MADE FOR LIPA CITY</span><h2>Go somewhere <br>good. <br><em>Around the<br>neighborhood.</em></h2><p>From your morning kapeng barako to a new neighborhood find. Discover the local places that make Lipa, Lipa.</p></div>
+                    <div class="neighborhood-art" aria-hidden="true"><svg viewBox="0 0 540 270" fill="none"><rect x="12" y="20" width="516" height="240" rx="28" fill="#e5eeeb"/><path d="M0 206 540 80M122 0 250 280M332 0 406 280M0 76 540 230" stroke="#fff" stroke-width="23"/><path d="M-5 206 540 80M122 0 250 280M332 0 406 280M0 76 540 230" stroke="#cbdcd6" stroke-width="1.5" stroke-dasharray="5 6"/><rect x="60" y="105" width="68" height="43" rx="9" fill="#bfd8cc" transform="rotate(-14 60 105)"/><rect x="245" y="62" width="67" height="48" rx="9" fill="#c6d4cb" transform="rotate(-14 245 62)"/><rect x="288" y="184" width="66" height="45" rx="9" fill="#bfd8cc" transform="rotate(14 288 184)"/><circle cx="268" cy="142" r="39" fill="#137e72" fill-opacity=".08"/><circle cx="268" cy="142" r="25" fill="#137e72" fill-opacity=".12"/><circle cx="268" cy="142" r="9" fill="#137e72" stroke="#fff" stroke-width="4"/><g transform="translate(109 54)"><rect width="52" height="52" rx="17" fill="#fff"/><path d="M17 17h18v13a8 8 0 0 1-8 8h-2a8 8 0 0 1-8-8V17Zm18 3h3a5 5 0 0 1 0 10h-3M20 12v-3m7 3V7m6 5V9" stroke="#b77b44" stroke-width="2.5" stroke-linecap="round"/></g><g transform="translate(365 125)"><rect width="52" height="52" rx="17" fill="#fff"/><path d="M14 25h24l-3-10H17l-3 10Zm3 2v12h18V27M23 39v-9h6v9" stroke="#137e72" stroke-width="2.5" stroke-linejoin="round"/></g></svg><div class="art-label"><i data-lucide="navigation"></i><span>A little closer to your community.</span></div></div>
+                    <div class="story-footer"><span><i data-lucide="compass"></i> Discover local</span><span><i data-lucide="heart-handshake"></i> Support local</span><span><i data-lucide="sparkles"></i> Ask Vici</span></div>
+                </aside>
                 <div class="login-card" id="authBox">
                     <div class="login-header">
                         <div class="login-logo-circle"><i data-lucide="map-pin" style="color:white; width:28px; height:28px;"></i></div>
                         <h1 id="authTitle">Welcome to Vicinify</h1>
-                        <p id="authSubtitle">Sign in to continue</p>
+                        <p id="authSubtitle">Sign in to continue to Lipa’s local guide</p>
                         <div class="auth-brand-chip"><i data-lucide="map-pin"></i> Lipa City &middot; Local Guide</div>
                     </div>
                     <div class="auth-tabs" role="tablist" aria-label="Authentication">
-                        <button type="button" id="authTabSignIn" class="active">Sign In</button>
-                        <button type="button" id="authTabSignUp">Sign Up</button>
+                        <button type="button" id="authTabSignIn" role="tab" aria-selected="true" aria-controls="authForm" class="active">Sign In</button>
+                        <button type="button" id="authTabSignUp" role="tab" aria-selected="false" aria-controls="authForm" tabindex="-1">Sign Up</button>
                     </div>
-                    <div class="auth-form">
+                    <div class="auth-form" id="authForm" role="tabpanel" aria-labelledby="authTabSignIn">
                         <div class="field signup-field">
                             <label>Full Name</label>
-                            <div class="input-group"><i data-lucide="user"></i><input type="text" id="regName" placeholder="e.g., Cylo De Torres" autocomplete="name" /></div>
+                            <div class="input-group"><i data-lucide="user"></i><input type="text" id="regName" placeholder="e.g., Cylo De Torres" minlength="2" maxlength="80" autocomplete="name" /></div>
                         </div>
                         <div class="field">
                             <label>Email</label>
@@ -266,7 +82,7 @@
                                 <i data-lucide="lock"></i>
                                 <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" style="padding-right: 44px !important;" />
                                 
-                                <button type="button" id="togglePassBtn" style="position: absolute; right: 14px; background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; color: #94a3b8; outline: none;">
+                                <button type="button" id="togglePassBtn" aria-label="Show password" aria-pressed="false" style="position: absolute; right: 14px; background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; color: #94a3b8; outline: none;">
                                     <i data-lucide="eye" id="eyeIcon" style="position: static; width: 18px; height: 18px; pointer-events: none;"></i>
                                 </button>
                             </div>
@@ -297,16 +113,19 @@
                     <div id="forgotRow" class="forgot-row"><button type="button" id="forgotPasswordLink" class="forgot-link" data-i18n="Forgot password?">Forgot password?</button></div>
                     <button type="button" id="loginBtn" class="auth-primary-btn">Sign in</button>
                     <div class="login-footer"><span id="authPrompt">Don't have an account?</span> <button type="button" id="toggleAuthBtn" class="auth-switch-btn">Sign up</button></div>
-                    <div class="auth-secure-note"><i data-lucide="shield-check"></i> Secure sign-in powered by Firebase</div>
+                    <div class="auth-secure-note"><i data-lucide="shield-check"></i> Your neighborhood starts here.</div>
                 </div>
             </div>
         </main>
 
         <main id="page-map" class="page">
+            <div class="discovery-panel">
+                <div class="discovery-art" aria-hidden="true"><svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 540 270" fill="none"><rect x="12" y="20" width="516" height="240" rx="28" fill="#e5eeeb"/><path d="M0 206 540 80M122 0 250 280M332 0 406 280M0 76 540 230" stroke="#fff" stroke-width="23"/><path d="M-5 206 540 80M122 0 250 280M332 0 406 280M0 76 540 230" stroke="#cbdcd6" stroke-width="1.5" stroke-dasharray="5 6"/><rect x="60" y="105" width="68" height="43" rx="9" fill="#bfd8cc" transform="rotate(-14 60 105)"/><rect x="245" y="62" width="67" height="48" rx="9" fill="#c6d4cb" transform="rotate(-14 245 62)"/><rect x="288" y="184" width="66" height="45" rx="9" fill="#bfd8cc" transform="rotate(14 288 184)"/><circle cx="268" cy="142" r="39" fill="#137e72" fill-opacity=".08"/><circle cx="268" cy="142" r="25" fill="#137e72" fill-opacity=".12"/><circle cx="268" cy="142" r="9" fill="#137e72" stroke="#fff" stroke-width="4"/><g transform="translate(109 54)"><rect width="52" height="52" rx="17" fill="#fff"/><path d="M17 17h18v13a8 8 0 0 1-8 8h-2a8 8 0 0 1-8-8V17Zm18 3h3a5 5 0 0 1 0 10h-3M20 12v-3m7 3V7m6 5V9" stroke="#b77b44" stroke-width="2.5" stroke-linecap="round"/></g><g transform="translate(365 125)"><rect width="52" height="52" rx="17" fill="#fff"/><path d="M14 25h24l-3-10H17l-3 10Zm3 2v12h18V27M23 39v-9h6v9" stroke="#137e72" stroke-width="2.5" stroke-linejoin="round"/></g></svg></div><div class="explore-heading"><span class="section-kicker">GO SOMEWHERE GOOD</span><h1>Around the<br><span>neighborhood.</span></h1><p>Good food. Local favorites. New discoveries.</p></div>
+
             <div class="askBar">
-                <i data-lucide="sparkles"></i> <input type="text" id="askInput" data-i18n-placeholder="Ask Vicinify" placeholder="Ask Vicinify (e.g. 'Where is cheap coffee?')" />
-                <button type="button" id="askBtn" aria-label="Search" title="Search Vicinify">
-                    <i data-lucide="send"></i>
+                <i data-lucide="search"></i> <input type="search" id="askInput" data-i18n-placeholder="Search places" placeholder="Search places" />
+                <button type="button" id="askBtn" aria-label="Search" title="Search places">
+                    <i data-lucide="search"></i>
                 </button>
             </div>
            <style>
@@ -343,8 +162,8 @@
 
             <div class="toolbar-modern">
                 <div class="radius-wrapper">
-                    <span class="radius-label"><i data-lucide="crosshair" style="width: 14px; height: 14px;"></i> Radius:</span>
-                    <div id="radiusSegment" class="radius-segment-container">
+                    <div class="radius-caption"><span class="radius-label">Radius:</span><span class="radius-help"><i data-lucide="info"></i>Search within this distance</span></div>
+                    <div id="radiusSegment" class="radius-segment-container" style="display:none !important">
                         <div id="radiusIndicator" class="radius-indicator"></div>
                         <button type="button" class="seg active" data-radius="300">300m</button>
                         <button type="button" class="seg" data-radius="500">500m</button>
@@ -354,15 +173,22 @@
                         <button type="button" class="seg" data-radius="10000">10km</button>
                         <button type="button" class="seg" data-radius="15000">15km</button>
                         <button type="button" class="seg" data-radius="20000">20km</button>
+                        <button type="button" class="seg" id="customRadiusChoice" data-radius="30000" style="display:none !important" aria-hidden="true" tabindex="-1">Custom</button>
+                    </div>
+                    <div id="customRadiusForm" class="custom-radius-form">
+                        <label for="radiusSlider">Search distance <strong id="radiusSliderValue">0.3 km</strong></label>
+                        <input id="radiusSlider" class="radius-slider" type="range" min="0.1" max="30" step="0.1" value="0.3" aria-label="Search radius in kilometers">
+                        <div class="radius-scale"><span>0.1 km</span><span>30 km max</span></div>
+                        <output id="customRadiusStatus" aria-live="polite"></output>
                     </div>
                 </div>
                 
                 <div class="top-actions-modern">
                     <div class="toggle-group">
-                        <button type="button" id="btnMapView" class="active" onclick="window.toggleView('map')"><i data-lucide="map" style="width:14px;"></i></button>
-                        <button type="button" id="btnListView" onclick="window.toggleView('list')"><i data-lucide="list" style="width:14px;"></i></button>
+                        <button type="button" id="btnMapView" aria-label="Map view" aria-pressed="true" class="active" onclick="window.toggleView('map')"><i data-lucide="map" style="width:14px;"></i></button>
+                        <button type="button" id="btnListView" aria-label="List view" aria-pressed="false" onclick="window.toggleView('list')"><i data-lucide="list" style="width:14px;"></i></button>
                     </div>
-                    <button type="button" id="resetMapBtn" class="refresh-btn" title="Reset map" onclick="window.MapPage.resetMap()"><i data-lucide="rotate-ccw" style="width:16px;"></i></button>
+                    <button type="button" id="resetMapBtn" class="refresh-btn" title="Reset map" onclick="window.MapPage.resetMap()"><i data-lucide="rotate-ccw" style="width:16px;"></i><span>Reset</span></button>
                 </div>
             </div>
           <style>
@@ -453,17 +279,20 @@
 
             <div id="catChips" class="modern-chips">
                 <button type="button" class="chip active" data-cat="all" data-color="gray"><i data-lucide="package"></i> <span data-i18n="All">All</span></button>
-                <button type="button" class="chip" data-cat="restaurant" data-color="red"><i data-lucide="utensils"></i> Restaurant</button>
-                <button type="button" class="chip" data-cat="cafe" data-color="amber"><i data-lucide="coffee"></i> Café</button>
-                <button type="button" class="chip" data-cat="bakery" data-color="orange"><i data-lucide="croissant"></i> Bakery</button>
-                <button type="button" class="chip" data-cat="milktea" data-color="pink"><i data-lucide="cup-soda"></i> Milk Tea</button>
-                <button type="button" class="chip" data-cat="snackhouse" data-color="cyan"><i data-lucide="cookie"></i> Snack House</button>
-                <button type="button" class="chip" data-cat="foodstall" data-color="green"><i data-lucide="store"></i> Food Stall</button>
-                <button type="button" class="chip" data-cat="eatery" data-color="slate"><i data-lucide="chef-hat"></i> Eatery</button>
-                <button type="button" class="chip" data-cat="dessert" data-color="purple"><i data-lucide="ice-cream"></i> Dessert Shop</button>
-                <button type="button" class="chip" data-cat="fastfood" data-color="blue"><i data-lucide="pizza"></i> Fast-Food</button>
+                <button type="button" class="chip" data-cat="restaurant" data-color="red"><i data-lucide="utensils"></i> <span data-i18n="Restaurant">Restaurant</span></button>
+                <button type="button" class="chip" data-cat="cafe" data-color="amber"><i data-lucide="coffee"></i> <span data-i18n="Café">Café</span></button>
+                <button type="button" class="chip" data-cat="bakery" data-color="orange"><i data-lucide="croissant"></i> <span data-i18n="Bakery">Bakery</span></button>
+                <button type="button" class="chip" data-cat="milktea" data-color="pink"><i data-lucide="cup-soda"></i> <span data-i18n="Milk Tea">Milk Tea</span></button>
+                <button type="button" class="chip" data-cat="snackhouse" data-color="cyan"><i data-lucide="cookie"></i> <span data-i18n="Snack House">Snack House</span></button>
+                <button type="button" class="chip" data-cat="foodstall" data-color="green"><i data-lucide="store"></i> <span data-i18n="Food Stall">Food Stall</span></button>
+                <button type="button" class="chip" data-cat="eatery" data-color="slate"><i data-lucide="chef-hat"></i> <span data-i18n="Eatery">Eatery</span></button>
+                <button type="button" class="chip" data-cat="dessert" data-color="purple"><i data-lucide="ice-cream"></i> <span data-i18n="Dessert Shop">Dessert Shop</span></button>
+                <button type="button" class="chip" data-cat="fastfood" data-color="blue"><i data-lucide="pizza"></i> <span data-i18n="Fast-Food">Fast-Food</span></button>
             </div>
-     <section class="mapWrap">
+            <button type="button" id="openViciChatBtn" class="discovery-ai-button" onclick="window.toggleViciAI(true)"><i data-lucide="sparkles" aria-hidden="true"></i><span data-i18n="Open Vici AI">Open Vici AI</span><i data-lucide="arrow-up-right" aria-hidden="true"></i></button>
+            </div>
+            <section class="mapWrap" aria-label="Nearby places">
+                <div class="map-location-label"><span class="location-dot"></span><span>Lipa City, Batangas</span><span class="map-label-detail">Your neighborhood map</span></div>
                 <div id="map"></div>
                 
                 <button type="button" id="locateBtn" aria-label="Use my location" class="floating-btn" title="Find my location">
@@ -528,21 +357,8 @@
                     <div class="field"><label>Description (optional)</label><textarea id="bizDesc" rows="3" placeholder="Short description…" maxlength="1000"></textarea></div>
                 </div>
             </section>
-            <section class="card">
-                <div class="cardTitle"><span class="miniIcon"><i data-lucide="image"></i></span> Photos (optional)</div>
-                <div class="uploadBox">
-                    <input id="bizPhotos" type="file" accept="image/*" multiple />
-                    <div class="uploadHint">Max 5 photos (Optimized for cloud storage).</div>
-                </div>
-            </section>
-            <section class="card">
-                <div class="cardTitle"><span class="miniIcon"><i data-lucide="badge-check"></i></span> Logo (optional)</div>
-                <div class="uploadBox">
-                    <input id="bizLogo" type="file" accept="image/*" />
-                    <div class="uploadHint">Your store logo, shown beside your store name in the list view. Square images work best.</div>
-                    <img id="bizLogoPreview" alt="Logo preview" style="display:none; width:84px; height:84px; object-fit:contain; border-radius:16px; border:1px solid #e2e8f0; margin-top:10px; background:#fff;" />
-                </div>
-            </section>
+            <section class="card place-features-add-card"><details><summary>About &amp; amenities <small>optional</small></summary><p class="place-features-help">Select only details you can confirm for this place.</p><div id="bizFeatures" data-place-feature-form></div></details></section>
+            <p class="place-features-help">After approval, edit your profile picture, logo and cover from Business Hub. Manage menu items in the Menu tab and announcements in Establishment posts.</p>
             <section class="stickyBar">
                 <button id="submitPendingBtn" class="primaryWide"><span class="btnIcon"><i data-lucide="send"></i></span> Submit for Approval</button>
             </section>
@@ -661,7 +477,7 @@
         <main id="page-place" class="page"><div id="placeViewContent"></div></main>
 
         <main id="page-settings" class="page">
-           <section class="dash-pro-hero" style="margin-bottom: 24px; padding: 20px;">
+<section class="dash-pro-hero" style="margin-bottom: 24px; padding: 20px;">
     <div class="dash-pro-hero-left">
         <div class="dash-pro-icon" style="background: linear-gradient(135deg, #6366f1, #4338ca); box-shadow: 0 14px 25px rgba(99, 102, 241, 0.25);">
             <i data-lucide="user-cog"></i>
@@ -672,28 +488,14 @@
         </div>
     </div>
 </section>
-            <section class="card">
+<div class="settings-layout">
+<div class="settings-column settings-account-column">
+<section class="card">
                 <h3 style="margin-top:0; margin-bottom:16px; font-size:16px; color:#0f172a;" data-i18n="User Profile">User Profile</h3>
-                <div class="field"><label>Nickname (Display Name)</label><input type="text" id="profileNickname" placeholder="e.g. Cylo"><p style="font-size:11px; color:#64748b; margin-top:4px;">This will appear on your Buzz posts and comments.</p></div>
+                <div class="field"><label>Nickname (Display Name)</label><input type="text" id="profileNickname" minlength="2" maxlength="80" placeholder="e.g. Cylo"><p style="font-size:11px; color:#64748b; margin-top:4px;">This will appear on your Buzz posts and comments.</p></div>
                 <button id="saveProfileBtn" class="primaryWide" style="margin-top:10px;">Save Profile</button>
             </section>
-
-            <section class="card" style="margin-top: 16px;">
-                <h3 style="margin-top:0; margin-bottom:8px; font-size:16px; color:#0f172a; display:flex; align-items:center; gap:8px;">
-                    <i data-lucide="volume-2"></i> <span>Sounds</span>
-                </h3>
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0;">
-                    <div>
-                        <div style="font-weight:600; font-size:14px; color:#0f172a;">Navigation sounds</div>
-                        <div style="font-size:12px; color:#64748b;">Subtle clicks when navigating</div>
-                    </div>
-                    <button type="button" id="soundToggleBtn" class="toggle-btn" style="width:48px; height:28px; border-radius:14px; border:none; background:#4f46e5; position:relative; cursor:pointer;">
-                        <span style="position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:left 0.2s;" id="soundToggleKnob"></span>
-                    </button>
-                </div>
-            </section>
-            
-            <section class="card" style="margin-top: 16px;" id="passwordSecuritySection">
+<section class="card" style="margin-top: 16px;" id="passwordSecuritySection">
                 <h3 style="margin-top:0; margin-bottom:8px; font-size:16px; color:#0f172a; display: flex; align-items: center; gap: 8px;">
                     <i data-lucide="shield"></i> <span data-i18n="Password & Security">Password &amp; Security</span>
                 </h3>
@@ -708,8 +510,23 @@
                     <button type="button" id="settingsChangePasswordBtn" class="primaryWide" data-i18n="Update Password">Update Password</button>
                 </div>
             </section>
-
-            <section class="card" style="margin-top: 16px;">
+</div>
+<div class="settings-column settings-preferences-column">
+<section class="card" style="margin-top: 16px;">
+                <h3 style="margin-top:0; margin-bottom:8px; font-size:16px; color:#0f172a; display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="volume-2"></i> <span>Sounds</span>
+                </h3>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0;">
+                    <div>
+                        <div style="font-weight:600; font-size:14px; color:#0f172a;">Navigation sounds</div>
+                        <div style="font-size:12px; color:#64748b;">Subtle clicks when navigating</div>
+                    </div>
+                    <button type="button" id="soundToggleBtn" class="toggle-btn" style="width:48px; height:28px; border-radius:14px; border:none; background:#237e72; position:relative; cursor:pointer;">
+                        <span style="position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:left 0.2s;" id="soundToggleKnob"></span>
+                    </button>
+                </div>
+            </section>
+<section class="card" style="margin-top: 16px;">
                 <h3 style="margin-top:0; margin-bottom:16px; font-size:16px; color:#0f172a; display: flex; align-items: center; gap: 8px;">
                     <i data-lucide="moon"></i> Appearance
                 </h3>
@@ -739,11 +556,17 @@
                     </select>
                 </div>
             </section>
-
-            
-
-            <button id="logoutBtn" class="danger" style="margin-top: 24px; width: 100%; padding: 16px; border-radius: 12px; font-weight: bold; background: white; color: #ef4444; border: 2px solid #fee2e2; cursor: pointer;">Log Out</button>
-            <button id="deleteAccountBtn" style="margin-top: 12px; width: 100%; padding: 16px; border-radius: 12px; font-weight: bold; background: #fef2f2; color: #dc2626; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;"><i data-lucide="trash-2" style="width: 18px; height: 18px;"></i> Delete My Account</button>
+<section class="card" id="installVicinifyCard">
+                <h3>Install Vicinify</h3>
+                <p id="installVicinifyHelp" class="place-features-help">Add Vicinify to your home screen for quick access.</p>
+                <button type="button" id="installVicinifyBtn" class="primaryWide">Install app</button>
+            </section>
+</div>
+</div>
+<div class="settings-account-actions">
+<button id="logoutBtn" class="danger" style="margin-top: 24px; width: 100%; padding: 16px; border-radius: 12px; font-weight: bold; background: white; color: #ef4444; border: 2px solid #fee2e2; cursor: pointer;">Log Out</button>
+<button id="deleteAccountBtn" style="margin-top: 12px; width: 100%; padding: 16px; border-radius: 12px; font-weight: bold; background: #fef2f2; color: #dc2626; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;"><i data-lucide="trash-2" style="width: 18px; height: 18px;"></i> Delete My Account</button>
+</div>
         </main>
 
         <main id="page-biz-edit" class="page bizedit">
@@ -759,9 +582,10 @@
 
             <div class="bizedit-wrap">
                 <input type="hidden" id="bizPortalId" />
+                <button type="button" class="req-btn ghost biz-transfer-btn" onclick="window.OwnershipTransfer.open(document.getElementById('bizPortalId').value)" data-i18n="Transfer ownership">Transfer ownership</button>
 
                 <h3 class="bizedit-section-title">Basic Info</h3>
-                <div class="card bizedit-card">
+                <div class="card bizedit-card bizedit-basic-card">
                     <div class="field"><label>Establishment Name</label><input type="text" id="bizPortalName" /></div>
                     <div class="field">
                         <label>Category</label>
@@ -803,7 +627,7 @@
 
                     <div class="bizedit-cover">
                         <label class="bizedit-cover-label">
-                            <i data-lucide="badge-check"></i> Store Logo (optional)
+                            <i data-lucide="badge-check"></i> Profile Picture / Store Logo (optional)
                         </label>
                         <div id="bizPortalLogoPreview" class="bizedit-cover-preview" style="height:110px; background-size:contain; background-repeat:no-repeat; background-position:center;"></div>
                         <input type="file" id="bizPortalLogo" class="bizedit-cover-input" accept="image/*" />
@@ -828,6 +652,20 @@
                     </div>
                 </div>
 
+                <h3 class="bizedit-section-title">Automatic replies</h3>
+                <section class="card bizedit-card auto-reply-settings">
+                    <label class="auto-reply-switch"><input type="checkbox" id="bizAutoReplies"> Reply automatically to customer quick questions</label>
+                    <p class="bizedit-hint">Replies are labeled automatic. Leave an answer blank to use your saved business details. Bookings and payments still need your confirmation.</p>
+                    <div class="auto-reply-fields">
+                        <div class="field"><label for="bizAutoMenu">Menu answer <small>optional</small></label><textarea id="bizAutoMenu" rows="2" maxlength="500" placeholder="Use the menu button and store posts by default."></textarea></div>
+                        <div class="field"><label for="bizAutoHours">Opening hours answer <small>optional</small></label><textarea id="bizAutoHours" rows="2" maxlength="500" placeholder="Use your saved opening hours by default."></textarea></div>
+                        <div class="field"><label for="bizAutoDelivery">Delivery answer <small>optional</small></label><textarea id="bizAutoDelivery" rows="2" maxlength="500" placeholder="Use your saved delivery options by default."></textarea></div>
+                        <div class="field"><label for="bizAutoBooking">Booking answer <small>optional</small></label><textarea id="bizAutoBooking" rows="2" maxlength="500" placeholder="Tell customers how to request a booking."></textarea></div>
+                    </div>
+                    <p class="bizedit-hint">Custom answers: 3–500 characters, up to 100 words.</p>
+                </section>
+                <h3 class="bizedit-section-title"><i data-lucide="clipboard-list"></i> About &amp; Amenities</h3>
+                <div class="card bizedit-card"><p class="place-features-help">Select only features available at your establishment. Unchecked items will not be shown as available.</p><div id="bizPortalFeatures" data-place-feature-form></div></div>
                 <h3 class="bizedit-section-title"><i data-lucide="bike"></i> Delivery &amp; Logistics</h3>
                 <div class="card bizedit-card">
                     <div class="bizedit-checks">
@@ -860,33 +698,34 @@
             </div>
         </main>
         <main id="page-suki-studio" class="page" style="background: #f8fafc; padding: 0 !important; overflow-y: auto;">
-            <div style="background: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+            <div class="suki-studio-header" style="background: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                 <div style="display: flex; align-items: center; gap: 16px;">
-                    <button onclick="showPage('page-dashboard')" style="background: none; border: none; cursor: pointer; color: #0f172a; padding: 4px;" aria-label="Back"><i data-lucide="arrow-left"></i></button>
+                    <button onclick="showPage('page-dashboard')" style="background: none; border: none; cursor: pointer; color: #0f172a; padding: 4px;" aria-label="Back to Business Hub"><span aria-hidden="true">←</span><span>Back</span></button>
                     <div>
-                        <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px;"><i data-lucide="stamp" style="width: 18px; height: 18px;"></i> Suki Card Studio <span style="font-size: 10px; font-weight: 800; letter-spacing: 1px; background: linear-gradient(135deg,#b8860b,#f5c542); color: #3a2a00; padding: 3px 8px; border-radius: 99px;">PREMIUM</span></h2>
+                        <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px;"><i data-lucide="stamp" style="width: 18px; height: 18px;"></i> Edit Suki Card <span style="font-size: 10px; font-weight: 800; letter-spacing: 1px; background: linear-gradient(135deg,#b8860b,#f5c542); color: #3a2a00; padding: 3px 8px; border-radius: 99px;">PREMIUM</span></h2>
                         <div id="sukiStudioPlaceName" style="font-size: 12px; color: #64748b; margin-top: 2px;"></div>
                     </div>
                 </div>
-                <button id="saveSukiStudioBtn" onclick="window.DashboardPage.saveSukiStudio()" style="background: #0f172a; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <i data-lucide="save" style="width: 16px; height: 16px;"></i> Save
-                </button>
+
             </div>
 
-            <div style="max-width: 680px; margin: 0 auto; padding: 24px; padding-bottom: 120px;">
+            <div class="suki-studio-container" style="max-width: 680px; margin: 0 auto; padding: 24px; padding-bottom: 120px;">
                 <input type="hidden" id="sukiStudioPlaceId" />
+
                 <p style="font-size: 13px; color: #64748b; margin: 0 0 16px;">Design your store's loyalty stamp card. The preview is live — drag to rotate, tap <i data-lucide="rotate-3d" style="width:12px; height:12px; vertical-align:-2px;"></i> to flip. Works even without internet or quota.</p>
                 <div class="card" style="border-radius: 12px; padding: 24px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid #f1f5f9;">
-                        <label style="font-weight: 700; color: #0f172a; font-size: 14px;">I-enable ang Suki Card</label>
-                        <input type="checkbox" id="sukiEnabled" style="width: 40px; height: 20px; cursor: pointer; accent-color: #b8860b;" />
+                        <label style="font-weight: 700; color: #0f172a; font-size: 14px;">Enable Suki Card</label>
+                        <input type="checkbox" id="sukiEnabled" aria-describedby="sukiEnabledHelp" style="width: 40px; height: 20px; cursor: pointer; accent-color: #b8860b;" />
                     </div>
+                    <p id="sukiEnabledHelp" class="suki-editor-help">Turn this on to show the card to customers. You can edit the design while it is off.</p>
 
                     <div id="sukiStudioBody">
-                        <div class="suki-field-label">Live 3D Preview <span style="font-weight:400; text-transform:none; letter-spacing:0;">(drag to rotate, tap <i data-lucide="rotate-3d" style="width:12px; height:12px; vertical-align:-2px;"></i> to flip)</span></div>
+                        <h3 class="suki-editor-title"><i data-lucide="pencil"></i> Edit card design</h3>
+                        <div class="suki-field-label">Your card preview <span style="font-weight:400; text-transform:none; letter-spacing:0;">(drag to rotate, tap <i data-lucide="rotate-3d" style="width:12px; height:12px; vertical-align:-2px;"></i> to flip)</span></div>
                         <div id="sukiStudioPreview" style="padding: 12px 0 4px;"></div>
 
-                        <div class="suki-field-label">Template <span style="font-weight:400; text-transform:none; letter-spacing:0;">(Canva-style: pick one, then edit freely)</span></div>
+                        <div class="suki-field-label">Template <span style="font-weight:400; text-transform:none; letter-spacing:0;">(choose a style, then customize)</span></div>
                         <div id="sukiTemplateChips" class="suki-chips"></div>
 
                         <div class="suki-field-label">Color mode</div>
@@ -934,6 +773,10 @@
                         </div>
                         <div id="sukiStudioQr" class="hidden" style="margin-top:12px;"></div>
                     </div>
+                    <div class="suki-editor-form-footer">
+                        <div id="sukiStudioSaveStatus" class="suki-editor-status" role="status" aria-live="polite" data-state="idle" hidden></div>
+                        <button type="button" id="saveSukiStudioBtn" onclick="window.DashboardPage.saveSukiStudio()" class="suki-editor-save-btn"><i data-lucide="save"></i> Save Changes</button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -961,10 +804,10 @@
 
 
 
-        <div id="termsModal" class="hidden" aria-hidden="true">
-            <div class="modalBackdrop" onclick="document.getElementById('termsModal').classList.add('hidden')"></div>
+        <div id="termsModal" class="hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
+            <div class="modalBackdrop" onclick="window.closeTermsModal()"></div>
             <div class="modalBox">
-                <div class="modalHeader"><h3>Terms and Conditions</h3><button type="button" class="modalClose" onclick="document.getElementById('termsModal').classList.add('hidden')">✕</button></div>
+                <div class="modalHeader"><h3 id="termsTitle">Terms and Conditions</h3><button type="button" class="modalClose" aria-label="Close" onclick="window.closeTermsModal()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div>
                 <div class="modalBody terms-body">
                     <p>Welcome to Vicinify: An AI-Assisted Food Establishment Locator and Recommendation System in Lipa City. By creating an account and using Vicinify, you agree to the following terms. Please read them carefully.</p>
                     <h4>1. Use of the Platform</h4>
@@ -981,22 +824,22 @@
                     <p>Participating food establishments may set their own terms regarding reservations, bookings, pre-orders, cancellations and refund percentages, pickup arrangements, and delivery arrangements, which are shown in the request process, including the cancellation policy notice. Payment is arranged directly between the user and the establishment. Users are responsible for reviewing and following the applicable establishment terms before proceeding with any request.</p>
                     <p>Vicinify may update these terms from time to time. Continued use of the platform after an update means the user accepts the updated terms.</p>
                 </div>
-                <div class="modalFooter"><button type="button" class="primary" onclick="document.getElementById('termsModal').classList.add('hidden')">Close</button></div>
+                <div class="modalFooter"><button type="button" class="primary" onclick="window.closeTermsModal()">Close</button></div>
             </div>
         </div>
 
-        <div id="postModal" class="hidden" aria-hidden="true">
+        <div id="postModal" class="hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="postModalTitle">
             <div class="modalBackdrop" onclick="document.getElementById('postModal').classList.add('hidden')"></div>
             <div class="modalBox">
-                <div class="modalHeader"><span class="post-modal-ico"><i data-lucide="zap"></i></span><h3>Create Post</h3><button id="closePostModalBtn" class="modalClose">✕</button></div>
+                <div class="modalHeader"><span class="post-modal-ico"><i data-lucide="zap"></i></span><h3 id="postModalTitle">Create Post</h3><button id="closePostModalBtn" class="modalClose">✕</button></div>
                 <div class="modalBody">
                     <div class="field"><label>Select Barangay</label><select id="postBarangay"></select></div>
                     <div class="field"><label>Type</label><select id="postType"><option value="promo">Promo</option><option value="event">Event</option><option value="tip">Tip</option><option value="announcement">Announcement</option></select></div>
                     <div class="field"><label>Title</label><input type="text" id="postTitle" placeholder="Enter title" /></div>
-                    <div class="field"><label>Details</label><textarea id="postBody" rows="4" placeholder="Write something..."></textarea></div>
+                    <div class="field"><label>Details</label><textarea id="postBody" minlength="3" maxlength="500" rows="4" placeholder="Write something..."></textarea></div>
                     <div class="field">
                         <label><i data-lucide="image" style="width:16px; height:16px; vertical-align:middle;"></i> Add Photo or Video</label>
-                        <input type="file" id="postMedia" accept="image/*,video/*" style="border: 1px dashed #cbd5e1; background: #f8fafc; padding: 10px; cursor: pointer; border-radius: 8px; width: 100%;" />
+                        <input type="file" id="postMedia" accept="image/*" style="border: 1px dashed #cbd5e1; background: #f8fafc; padding: 10px; cursor: pointer; border-radius: 8px; width: 100%;" />
                         <div id="mediaPreview" style="margin-top: 10px; max-height: 150px; overflow: hidden; border-radius: 8px; display: none; border: 1px solid #e2e8f0;"></div>
                     </div>
                 </div>
@@ -1006,16 +849,18 @@
 
         <div id="bookingModal" class="hidden" aria-hidden="true">
             <div class="modalBackdrop" onclick="closeBookingModal()"></div>
-            <div class="modalBox booking-sheet">
-                <div class="modalHeader"><h3 id="bookingModalTitle">Send Request</h3><button type="button" onclick="closeBookingModal()" class="modalClose" aria-label="Close"><i data-lucide="x"></i></button></div>
-                <div class="modalBody">
+            <div class="modalBox booking-sheet" role="dialog" aria-modal="true" aria-labelledby="bookingModalTitle">
+                <div class="modalHeader"><div><span class="booking-eyebrow">BOOKINGS &amp; ORDERS</span><h3 id="bookingModalTitle" tabindex="-1">Send a request</h3><p id="bookingStepLabel" class="booking-step-label">1 of 2 · Request details</p></div><button type="button" onclick="closeBookingModal()" class="modalClose" aria-label="Close"><i data-lucide="x"></i></button></div>
+                <div class="modalBody" id="bookingDetailsStep">
+                    <div class="booking-store-summary"><span class="booking-store-icon"><i data-lucide="store"></i></span><div><span class="booking-store-label">Sending to</span><strong id="bookingStoreChip"><span data-i18n="Establishment">Establishment</span></strong></div></div>
+                    <p class="booking-intro-copy">Choose a booking or order, then add the details. The business will review your request.</p>
                     <input type="hidden" id="bookPlaceId" />
                     <input type="hidden" id="bookPlaceName" />
                     <input type="hidden" id="bookType" value="table_reservation" />
 
                     <div class="field booking-field">
-                        <label>Request Category *</label>
-                        <div class="booking-choice-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <label>1. What would you like to do?</label>
+                        <div id="bookingCategoryChoices" class="booking-choice-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                             <button type="button" id="reqGroupReservation" class="request-choice active" onclick="window.setRequestGroup && window.setRequestGroup('reservation')" style="border:1px solid #2563eb; background:#eff6ff; color:#1d4ed8; border-radius:14px; padding:13px; text-align:left; cursor:pointer; font-weight:900;">
                                 <div style="margin-bottom:4px;"><i data-lucide="calendar-check" style="width:22px;height:22px;"></i></div>
                                 <div>Reservation</div>
@@ -1030,7 +875,7 @@
                     </div>
 
                     <div id="reservationRequestOptions" class="field booking-field">
-                        <label>Reservation Type *</label>
+                        <label>Choose your booking</label>
                         <div class="booking-choice-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                             <button type="button" data-request-type="table_reservation" onclick="window.setRequestTypeChoice && window.setRequestTypeChoice('table_reservation')" style="border:1px solid #f97316; background:#fff7ed; color:#c2410c; border-radius:14px; padding:12px; text-align:left; cursor:pointer; font-weight:800;">
                                 <i data-lucide="utensils" style="width:16px;height:16px;vertical-align:-3px;"></i> Table Reservation
@@ -1044,7 +889,7 @@
                     </div>
 
                     <div id="orderRequestOptions" class="field booking-field" style="display:none;">
-                        <label>Order Type *</label>
+                        <label>Choose your order</label>
                         <div class="booking-choice-grid booking-choice-grid-single" style="display:grid; grid-template-columns:1fr; gap:10px;">
                             <button type="button" data-request-type="pickup_order" onclick="window.setRequestTypeChoice && window.setRequestTypeChoice('pickup_order')" style="border:1px solid #e2e8f0; background:#fff; color:#334155; border-radius:14px; padding:12px; text-align:left; cursor:pointer; font-weight:800;">
                                 <i data-lucide="shopping-bag" style="width:16px;height:16px;vertical-align:-3px;"></i> Pickup Pre-order
@@ -1062,14 +907,14 @@
                     </div>
 
                     <div class="booking-date-grid" style="display: flex; gap: 12px; margin-bottom: 16px;">
-                        <div class="field booking-field" style="flex: 1;"><label>Date *</label><input type="date" id="bookDate" required style="font-family: inherit;" /></div>
-                        <div class="field booking-field" style="flex: 1;"><label>Time *</label><input type="time" id="bookTime" required style="font-family: inherit;" /></div>
+                        <div class="field booking-field" style="flex: 1;"><label for="bookDate">Date *</label><input type="date" id="bookDate" required style="font-family: inherit;" /></div>
+                        <div class="field booking-field" style="flex: 1;"><label for="bookTime">Time *</label><input type="time" id="bookTime" required style="font-family: inherit;" /></div>
                     </div>
 
                     <div id="requestDynamicFields"></div>
 
                     <div class="field booking-field">
-                        <label>Additional Notes</label>
+                        <label for="bookDetails">Additional Notes</label>
                         <textarea id="bookDetails" rows="3" placeholder="Add any special request or instruction..."></textarea>
                     </div>
 
@@ -1077,11 +922,12 @@
                         <i data-lucide="shield-check"></i>
                         <div>
                             <b>Cancellation policy</b>
-                            <p>You may cancel for free while your request is still pending. Once the establishment accepts it, cancelling refunds the establishment's stated rate (shown on your order card). Once preparation starts, cancellation is no longer available.</p>
+                            <p>Free cancellation before preparation if no payment is recorded. Paid cancellations use the saved refund rate. Refund transfers are manual and must be confirmed separately.</p>
                         </div>
                     </div>
                 </div>
-                <div class="modalFooter booking-footer"><button onclick="closeBookingModal()" class="ghost">Cancel</button><button id="confirmBookingBtn" onclick="confirmBookingSubmit()" class="primary">Send Request</button></div>
+                <div class="modalBody booking-review hidden" id="bookingReviewStep" aria-live="polite"></div>
+                <div class="modalFooter booking-footer"><button id="bookingSecondaryBtn" onclick="bookingBackOrCancel()" class="ghost">Cancel</button><button id="confirmBookingBtn" onclick="confirmBookingSubmit()" class="primary">Review request</button></div>
             </div>
         </div>
 
@@ -1089,14 +935,14 @@
             <div class="modalBackdrop" onclick="closePlacePostModal()" style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
             <div class="modalBox" style="position: relative; width: 90%; max-width: 420px; background: #fff; border-radius: 18px; padding: 20px; z-index: 1;">
                 <div class="modalHeader" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="margin:0; font-size:18px; color:#0f172a;">Post Menu / Store Update</h3>
+                    <h3 style="margin:0; font-size:18px; color:#0f172a;">Post Establishment Update</h3>
                     <button onclick="closePlacePostModal()" class="modalClose" style="background: none; border: none; font-size: 18px; cursor: pointer;">X</button>
                 </div>
                 <div class="modalBody">
                     <input type="hidden" id="placePostPlaceId" />
                     <div class="field" style="margin-bottom: 14px;">
-                        <label style="font-size: 13px; font-weight:600; color: #475569; display: block; margin-bottom: 6px;">Menu / Promo Details</label>
-                        <textarea id="placePostBody" rows="3" placeholder="Example: Bestseller milktea - P89 today, or upload your menu photo." style="width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px; font-family:inherit;"></textarea>
+                        <label style="font-size: 13px; font-weight:600; color: #475569; display: block; margin-bottom: 6px;">Announcement / Promo Details</label>
+                        <textarea id="placePostBody" rows="3" placeholder="Example: Holiday hours, a promotion, or a store announcement. Add priced menu items in the Menu tab." style="width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px; font-family:inherit;"></textarea>
                     </div>
                     <div class="field" style="margin-bottom: 14px;">
                         <label style="font-size: 13px; font-weight:600; color: #475569; display: block; margin-bottom: 6px;">Add Photo (Menu/Product)</label>
@@ -1105,30 +951,31 @@
                 </div>
                 <div class="modalFooter" style="display: flex; justify-content: flex-end; gap: 10px; margin-top:20px;">
                     <button onclick="closePlacePostModal()" style="background: #f1f5f9; color: #475569; border: none; border-radius: 10px; padding: 12px 18px; font-weight: 600; cursor: pointer;">Cancel</button>
-                    <button id="submitPlacePostBtn" onclick="submitPlacePost()" style="background: #f97316; color: white; border: none; border-radius: 10px; padding: 12px 18px; font-weight: 600; cursor: pointer;">Post Menu</button>
+                    <button id="submitPlacePostBtn" onclick="submitPlacePost()" style="background: #f97316; color: white; border: none; border-radius: 10px; padding: 12px 18px; font-weight: 600; cursor: pointer;">Post Update</button>
                 </div>
             </div>
         </div>
 
         <div id="chatModal" class="hidden" aria-hidden="true">
             <div class="modalBackdrop" onclick="closeChatModal()"></div>
-            <div class="modalBox chat-modal-box">
+            <div class="modalBox chat-modal-box" role="dialog" aria-modal="true" aria-labelledby="chatModalTitle">
                 <div class="modalHeader chat-header">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <div class="chat-avatar" id="chatModalAvatar">S</div>
-                        <h3 id="chatModalTitle" style="margin: 0; font-size: 16px; font-weight: 600;">Send a Message</h3>
+                        <div class="chat-header-copy"><span class="chat-header-eyebrow">CONVERSATION</span><h3 id="chatModalTitle" style="margin: 0; font-size: 16px; font-weight: 600;">Send a Message</h3><p>Messages &amp; request updates</p></div>
                     </div>
-                    <button onclick="closeChatModal()" class="modalClose">✕</button>
+                    <button type="button" onclick="closeChatModal()" class="modalClose" aria-label="Close conversation"><i data-lucide="x"></i></button>
                 </div>
-                <div class="chat-body" id="chatMessageList">
+                <section id="chatTransactionSummary" class="transaction-desk hidden" aria-label="Current transaction"></section>
+                <div class="chat-body" id="chatMessageList" role="log" aria-label="Conversation">
                     <div class="muted" style="text-align: center; padding: 20px; font-size: 12px;">Loading conversation...</div>
                 </div>
                 <div class="chat-footer">
                     <input type="hidden" id="chatPlaceId" />
                     <input type="hidden" id="chatPlaceName" />
                     <input type="hidden" id="chatCustomerUid" />
-                    <input type="text" id="chatMessageInput" placeholder="Type your message..." autocomplete="off" />
-                    <button id="sendChatBtn" onclick="sendChatMessage()">
+                    <textarea id="chatMessageInput" maxlength="2000" aria-label="Message" rows="1" placeholder="Write a message…" autocomplete="off"></textarea>
+                    <button id="sendChatBtn" aria-label="Send message" onclick="sendChatMessage()">
                         <i data-lucide="send" style="width:18px; height:18px; color: white;"></i>
                     </button>
                 </div>
@@ -1161,13 +1008,11 @@
                     <div class="admin-field"><label>description</label><div class="sub-label">Short description</div><input type="text" id="editDesc" /></div>
                     <div class="admin-field"><label>address</label><div class="sub-label">Street address in Lipa City</div><input type="text" id="editAddress" /></div>
                     <div class="admin-field"><label>barangay</label><div class="sub-label">Barangay location</div><input type="text" id="editBrgy" /></div>
-                    <div class="admin-checkbox-field"><div><label>is_verified</label><div class="sub-label">Verified by admin</div></div><input type="checkbox" id="editVerified" /></div>
-                    <div class="admin-checkbox-field"><div><label>is_premium</label><div class="sub-label">Premium business listing</div></div><input type="checkbox" id="editPremium" /></div>
-                    <div class="admin-checkbox-field"><div><label>is_featured</label><div class="sub-label">Featured on map</div></div><input type="checkbox" id="editFeatured" /></div>
-                    <div class="admin-field"><label>owner_email</label><div class="sub-label">Business owner email</div><input type="text" id="editOwnerEmail" placeholder="Enter user's email..." /></div>
-                    <div class="admin-checkbox-field"><label>accepts_booking</label><input type="checkbox" id="editBooking" /></div>
+                    <div class="admin-checkbox-field"><div><label>Verified</label><div class="sub-label">Verified by admin</div></div><input type="checkbox" id="editVerified" /></div>
+                    <div class="admin-field"><label>Owner Email</label><div class="sub-label">Business owner email</div><input type="text" id="editOwnerEmail" placeholder="Enter user's email..." /></div>
+                    <div class="admin-checkbox-field"><label>Accepts booking</label><input type="checkbox" id="editBooking" /></div>
                     <div class="admin-field">
-                        <label>approval_status</label>
+                        <label>Approval status</label>
                         <select id="editApproval"><option value="pending">pending</option><option value="approved">approved</option><option value="rejected">rejected</option></select>
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 10px;">
@@ -1185,7 +1030,7 @@
         <div id="forgotModal" class="forgot-modal" hidden role="dialog" aria-modal="true" aria-labelledby="forgotTitle">
             <div class="forgot-backdrop" data-close-forgot></div>
             <div class="forgot-box">
-                <button type="button" class="forgot-close" data-close-forgot aria-label="Close">&times;</button>
+                <button type="button" class="forgot-close" data-close-forgot aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
                 <div class="forgot-icon"><i data-lucide="key-round"></i></div>
                 <h3 id="forgotTitle">Reset your password</h3>
                 <p class="forgot-sub">Enter the email you used for Vicinify. We will send you a secure link to reset your password.</p>
@@ -1199,7 +1044,9 @@
                 <p class="forgot-note">Check your inbox and spam folder. The link expires after a short time for your security.</p>
             </div>
         </div>
-        <nav class="bottom-nav" aria-label="Bottom navigation">
+        <nav class="bottom-nav" aria-label="Main navigation">
+            <a class="nav-brand" href="#" data-goto="page-map" aria-label="Vicinify home"><span class="brand-symbol"><i data-lucide="map-pin"></i></span><span class="brand-wordmark">vicinify<span class="brand-dot">.</span></span></a>
+            <span class="nav-section-label">WORKSPACE</span>
             <button type="button" class="nav-item" data-goto="page-map">
                 <span class="navIcon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /><path d="M9 3v15M15 6v15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
@@ -1232,6 +1079,7 @@
                 </span>
                 <span class="navText" data-i18n="Settings">Settings</span>
             </button>
+        <div class="nav-footer"><span class="location-dot"></span><div><strong>Rooted in Lipa.</strong><span>Connected to your community.</span></div></div>
         </nav>
 
     </div>
@@ -1242,13 +1090,24 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-    <script src="js/data.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/common.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/map.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/add.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/buzz.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/dashboard.js?v=VICINIFY_REPAIR_20261026"></script>
-    <script src="js/settings.js?v=VICINIFY_REPAIR_20261026"></script>
+    <script src="js/data.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/payment-policy.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/place-features.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/place-preview.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/content-policy.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/account-deletion.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/password-policy.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/common.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/vici-request.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/vici-commerce.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/vici-chat.js?v=VICINIFY_MOBILE_AI_UI_20261030"></script>
+    <script src="js/vici-launcher.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/map.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/add.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/buzz.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/dashboard.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/ownership-transfer.js?v=VICI_ef3401485f7584b3"></script>
+    <script src="js/settings.js?v=VICI_ef3401485f7584b3"></script>
 
     <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
     <script>lucide.createIcons();</script>
@@ -1256,35 +1115,26 @@
     
     <script>
         window.toggleView = function(view) {
+            const page = document.getElementById("page-map");
             const btnMap = document.getElementById("btnMapView");
             const btnList = document.getElementById("btnListView");
             const mapCont = document.getElementById("map");
             const listCont = document.getElementById("listViewContainer");
-
-            if (!btnMap || !btnList || !mapCont || !listCont) return;
-
-            if (view === 'map') {
-                btnMap.classList.add("active");
-                btnList.classList.remove("active");
-                btnMap.style.background = "white";
-                btnMap.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-                btnList.style.background = "transparent";
-                btnList.style.boxShadow = "none";
-
-                listCont.style.display = "none";
-                mapCont.style.display = "block";
-                if (window.MapPage) setTimeout(() => window.MapPage.refresh(), 200);
-            } else {
-                btnList.classList.add("active");
-                btnMap.classList.remove("active");
-                btnList.style.background = "white";
-                btnList.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-                btnMap.style.background = "transparent";
-                btnMap.style.boxShadow = "none";
-
-                mapCont.style.display = "none";
-                listCont.style.display = "block";
-            }
+            if (!page || !btnMap || !btnList || !mapCont || !listCont) return;
+            const isList = view === "list";
+            page.classList.toggle("is-list-view", isList);
+            page.dataset.view = isList ? "list" : "map";
+            btnMap.classList.toggle("active", !isList);
+            btnList.classList.toggle("active", isList);
+            btnMap.setAttribute("aria-pressed", String(!isList));
+            btnList.setAttribute("aria-pressed", String(isList));
+            mapCont.hidden = isList;
+            mapCont.style.display = isList ? "none" : "block";
+            listCont.hidden = !isList;
+            listCont.style.display = isList ? "block" : "none";
+            if (!isList) setTimeout(() => {
+                if (!page.classList.contains("is-list-view")) window.MapPage?.refresh?.();
+            }, 200);
         };
     </script>
 
@@ -1294,267 +1144,34 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js?v=VICINIFY_REPAIR_20261026', { updateViaCache: 'none' })
-                .then((registration) => registration.update().then(() => registration))
-                .then(() => console.log('Vicinify PWA Ready!'))
-                .catch((err) => console.log('PWA Error', err));
+            let registration, refreshPending=false, reloading=false;
+            let hadController=!!navigator.serviceWorker.controller;
+            function refreshWhenIdle(){
+                if(!refreshPending || reloading || document.visibilityState!=='visible') return;
+                const editing=document.activeElement?.matches('input,textarea,select,[contenteditable=true]');
+                const dialog=[...document.querySelectorAll('[role=dialog],#bookingModal,#chatModal,#placePostModal')].some(el=>el.getClientRects().length && getComputedStyle(el).visibility!=='hidden');
+                if(editing || dialog || window.__chatSending) return;
+                reloading=true; location.reload();
+            }
+            navigator.serviceWorker.addEventListener('controllerchange',()=>{
+                if(!hadController){hadController=true;return;}
+                refreshPending=true; refreshWhenIdle();
+            });
+            navigator.serviceWorker.register('sw.js', {updateViaCache:'none'})
+                .then(value=>{registration=value;return registration.update();})
+                .catch(err=>console.warn('PWA update check unavailable',err));
+            document.addEventListener('visibilitychange',()=>{
+                if(document.visibilityState==='visible'){registration?.update().catch(()=>{});refreshWhenIdle();}
+            });
+            setInterval(()=>{
+                if(document.visibilityState!=='visible' || !navigator.onLine)return;
+                registration?.update().catch(()=>{});refreshWhenIdle();
+            },60000);
+            document.addEventListener('focusout',()=>setTimeout(refreshWhenIdle,500));
         }
     </script>
 
-<style id="vici-safe-final-map-scrollbar-css-only">
-/* =========================================================
-   VICINIFY SAFE FINAL FIX v20260701-6
-   CSS-only final override. No MutationObserver. No loop.
-   Removes the visible scrollbar on Map without breaking load.
-   ========================================================= */
-html,
-body {
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-}
 
-html.vici-map-lock,
-html.map-page-lock,
-body.vici-map-lock,
-body.map-page-lock,
-html:has(#page-map.active),
-body:has(#page-map.active) {
-    width: 100% !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
-    max-height: 100dvh !important;
-    overflow: hidden !important;
-    overflow-x: hidden !important;
-    overflow-y: hidden !important;
-    overscroll-behavior: none !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-}
-
-html.vici-map-lock::-webkit-scrollbar,
-html.map-page-lock::-webkit-scrollbar,
-body.vici-map-lock::-webkit-scrollbar,
-body.map-page-lock::-webkit-scrollbar,
-html:has(#page-map.active)::-webkit-scrollbar,
-body:has(#page-map.active)::-webkit-scrollbar {
-    width: 0 !important;
-    height: 0 !important;
-    display: none !important;
-}
-
-body.vici-map-lock .app,
-body.map-page-lock .app,
-body:has(#page-map.active) .app {
-    width: 100vw !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
-    max-height: 100dvh !important;
-    overflow: hidden !important;
-    overflow-x: hidden !important;
-    overflow-y: hidden !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-}
-
-body.vici-map-lock .app::-webkit-scrollbar,
-body.map-page-lock .app::-webkit-scrollbar,
-body:has(#page-map.active) .app::-webkit-scrollbar {
-    width: 0 !important;
-    height: 0 !important;
-    display: none !important;
-}
-
-#page-map.active,
-body.vici-map-lock #page-map,
-body.vici-map-lock #page-map.active,
-body.map-page-lock #page-map,
-body.map-page-lock #page-map.active,
-body:has(#page-map.active) #page-map {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: var(--navH, 78px) !important;
-    width: 100vw !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-    overflow-x: hidden !important;
-    overflow-y: hidden !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    box-sizing: border-box !important;
-}
-
-#page-map.active::-webkit-scrollbar,
-body.vici-map-lock #page-map::-webkit-scrollbar,
-body.map-page-lock #page-map::-webkit-scrollbar,
-body:has(#page-map.active) #page-map::-webkit-scrollbar {
-    width: 0 !important;
-    height: 0 !important;
-    display: none !important;
-}
-
-#page-map.active .askBar,
-body.vici-map-lock #page-map .askBar,
-body.map-page-lock #page-map .askBar,
-body:has(#page-map.active) #page-map .askBar {
-    flex: 0 0 auto !important;
-    width: calc(100vw - 32px) !important;
-    max-width: calc(100vw - 32px) !important;
-    margin: 12px 16px 8px !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-}
-
-#page-map.active .toolbar,
-#page-map.active .toolbar-modern,
-body.vici-map-lock #page-map .toolbar,
-body.vici-map-lock #page-map .toolbar-modern,
-body.map-page-lock #page-map .toolbar,
-body.map-page-lock #page-map .toolbar-modern,
-body:has(#page-map.active) #page-map .toolbar,
-body:has(#page-map.active) #page-map .toolbar-modern {
-    flex: 0 0 auto !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    margin: 0 !important;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-}
-
-#page-map.active .chips,
-#page-map.active #catChips,
-#page-map.active .radius,
-#page-map.active .radius-wrapper,
-#page-map.active .radius-segment-container,
-body.vici-map-lock #page-map .chips,
-body.vici-map-lock #page-map #catChips,
-body.vici-map-lock #page-map .radius,
-body.vici-map-lock #page-map .radius-wrapper,
-body.vici-map-lock #page-map .radius-segment-container,
-body.map-page-lock #page-map .chips,
-body.map-page-lock #page-map #catChips,
-body.map-page-lock #page-map .radius,
-body.map-page-lock #page-map .radius-wrapper,
-body.map-page-lock #page-map .radius-segment-container {
-    flex: 0 0 auto !important;
-    max-width: 100vw !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-
-#page-map.active .chips::-webkit-scrollbar,
-#page-map.active #catChips::-webkit-scrollbar,
-#page-map.active .radius::-webkit-scrollbar,
-#page-map.active .radius-wrapper::-webkit-scrollbar,
-#page-map.active .radius-segment-container::-webkit-scrollbar,
-body.vici-map-lock #page-map .chips::-webkit-scrollbar,
-body.vici-map-lock #page-map #catChips::-webkit-scrollbar,
-body.vici-map-lock #page-map .radius::-webkit-scrollbar,
-body.vici-map-lock #page-map .radius-wrapper::-webkit-scrollbar,
-body.vici-map-lock #page-map .radius-segment-container::-webkit-scrollbar,
-body.map-page-lock #page-map .chips::-webkit-scrollbar,
-body.map-page-lock #page-map #catChips::-webkit-scrollbar,
-body.map-page-lock #page-map .radius::-webkit-scrollbar,
-body.map-page-lock #page-map .radius-wrapper::-webkit-scrollbar,
-body.map-page-lock #page-map .radius-segment-container::-webkit-scrollbar {
-    width: 0 !important;
-    height: 0 !important;
-    display: none !important;
-}
-
-#page-map.active .mapWrap,
-body.vici-map-lock #page-map .mapWrap,
-body.map-page-lock #page-map .mapWrap,
-body:has(#page-map.active) #page-map .mapWrap {
-    position: relative !important;
-    flex: 1 1 0 !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    margin: 0 !important;
-    margin-bottom: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-    overflow-x: hidden !important;
-    overflow-y: hidden !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    box-sizing: border-box !important;
-}
-
-#page-map.active .mapWrap::-webkit-scrollbar,
-body.vici-map-lock #page-map .mapWrap::-webkit-scrollbar,
-body.map-page-lock #page-map .mapWrap::-webkit-scrollbar {
-    width: 0 !important;
-    height: 0 !important;
-    display: none !important;
-}
-
-#page-map.active #map,
-body.vici-map-lock #page-map #map,
-body.map-page-lock #page-map #map,
-body:has(#page-map.active) #page-map #map {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 0 !important;
-    max-height: 100% !important;
-    overflow: hidden !important;
-    overflow-x: hidden !important;
-    overflow-y: hidden !important;
-}
-
-#page-map.active #listViewContainer,
-body.vici-map-lock #page-map #listViewContainer,
-body.map-page-lock #page-map #listViewContainer {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    max-height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    box-sizing: border-box !important;
-}
-
-#page-map.active #listViewContainer::-webkit-scrollbar,
-body.vici-map-lock #page-map #listViewContainer::-webkit-scrollbar,
-body.map-page-lock #page-map #listViewContainer::-webkit-scrollbar {
-    width: 0 !important;
-    height: 0 !important;
-    display: none !important;
-}
-
-body.vici-map-lock .bottom-nav,
-body.map-page-lock .bottom-nav,
-body:has(#page-map.active) .bottom-nav {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: calc(var(--navH, 78px) + var(--safeBottom, 0px)) !important;
-    padding-bottom: var(--safeBottom, 0px) !important;
-    z-index: 9999 !important;
-}
-</style>
 
 <style id="vici-place-feed-force-style">
 html body #page-place #placeUpdatesList,
@@ -1575,6 +1192,8 @@ html body #page-place.active #placeUpdatesList > .place-menu-card {
 }
 </style>
 
+<link rel="stylesheet" href="css/mobile.css?v=VICI_ef3401485f7584b3" />
 <!-- build: VICINIFY_MODERN_FINAL_20261003 -->
+    <script src="js/ui.js?v=VICI_ef3401485f7584b3"></script>
 </body>
 </html>

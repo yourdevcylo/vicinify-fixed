@@ -2315,13 +2315,30 @@ if (description.length < 10) {
     }
 
     // 🔥 SUKI CARD STUDIO — sariling page, hiwalay sa Edit Establishment 🔥
-    function openSukiStudio(id) {
-        const place = currentAdminPlaces.find(p => p.id === id);
-        if (!place) return;
+    async function openSukiStudio(id) {
+        let place = currentAdminPlaces.find(p => p.id === id);
+        // The public establishment page can open before the Business Hub
+        // has loaded currentAdminPlaces. Resolve the place by ID instead of
+        // silently ignoring the Edit Suki Card button.
+        if (!place) {
+            try {
+                const snap = await window.db.collection('places').doc(id).get();
+                if (!snap.exists) throw new Error('Establishment not found.');
+                place = { ...snap.data(), id: snap.id };
+                if (!canManagePlaceData(place)) throw new Error('Only the owner or an admin can edit this Suki Card.');
+                currentAdminPlaces.push(place);
+            } catch (error) {
+                window.showToast?.(error.message || 'Could not open Suki Card Studio.', 'error');
+                return;
+            }
+        } else if (!canManagePlaceData(place)) {
+            window.showToast?.('Only the owner or an admin can edit this Suki Card.', 'error');
+            return;
+        }
         document.getElementById("sukiStudioPlaceId").value = place.id;
         document.getElementById("sukiStudioPlaceName").textContent = place.name || "";
         const status = document.getElementById("sukiStudioSaveStatus");
-        if (status) { status.textContent = "Edit your Suki Card below, then choose Save Changes."; status.dataset.state = "idle"; }
+        if (status) { status.textContent = ""; status.dataset.state = "idle"; status.hidden = true; }
         sukiStudioInit(place);
         window.debouncedIcons?.();
         showPage("page-suki-studio");
@@ -2330,7 +2347,7 @@ if (description.length < 10) {
     let sukiSaving = false;
     function setSukiSaving(value) {
         sukiSaving = value;
-        ["saveSukiStudioBtn", "saveSukiStudioBottomBtn"].forEach(id => {
+        ["saveSukiStudioBtn"].forEach(id => {
             const btn = document.getElementById(id);
             if (!btn) return;
             btn.disabled = value;
@@ -2347,13 +2364,13 @@ if (description.length < 10) {
         const id = document.getElementById("sukiStudioPlaceId")?.value;
         const status = document.getElementById("sukiStudioSaveStatus");
         if (!id || !sukiDraft) {
-            if (status) { status.textContent = "Choose an establishment first."; status.dataset.state = "error"; }
+            if (status) { status.hidden = false; status.textContent = "Choose an establishment first."; status.dataset.state = "error"; }
             window.showToast?.("No establishment selected.", "error");
             return;
         }
         // Save the exact field names already used by Firebase; no schema or DB migration.
         setSukiSaving(true);
-        if (status) { status.textContent = "Saving to Firebase..."; status.dataset.state = "saving"; }
+        if (status) { status.hidden = false; status.textContent = "Saving to Firebase..."; status.dataset.state = "saving"; }
         try {
             if (!(await canManagePlaceId(id))) {
                 throw new Error("Only the owner or an admin can edit the Suki Card.");
@@ -2374,6 +2391,9 @@ if (description.length < 10) {
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             await window.db.collection("places").doc(id).update(updateData);
+            // Public place listings cache the old suki_enabled/configuration.
+            // Invalidate immediately so returning to the map uses the saved card.
+            window.invalidatePlacesCache?.();
             const idx = currentAdminPlaces.findIndex(p => p.id === id);
             if (idx >= 0) currentAdminPlaces[idx] = { ...currentAdminPlaces[idx], ...updateData };
             if (sukiStudioPlace?.id === id) sukiStudioPlace = { ...sukiStudioPlace, ...updateData };

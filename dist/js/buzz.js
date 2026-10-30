@@ -11,11 +11,11 @@ window.BuzzPage = (() => {
     const style = document.createElement('style');
     style.innerHTML = `
         /* Modern Card Styling */
-        .mod-card { background: #fff; border-radius: 1rem; padding: 1rem; border: 1px solid #f3f4f6; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); margin-bottom: 1rem; animation: slideUp 0.4s ease forwards; opacity: 0; transform: translateY(16px); }
+        .mod-card { background:var(--ui-surface); border-radius: 1rem; padding: 1rem; border: 1px solid #f3f4f6; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); margin-bottom: 1rem; animation: slideUp 0.4s ease forwards; opacity: 0; transform: translateY(16px); }
         @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
         
         .mod-avatar { width: 2.25rem; height: 2.25rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #f3f4f6; color: #6b7280; font-weight: 700; font-size: 0.875rem; }
-        .mod-avatar.biz { background: #dbeafe; color: #2563eb; }
+        .mod-avatar.biz { background: var(--ui-success-bg); color: var(--ui-accent); }
         
         .mod-badge { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.5rem; border-radius: 9999px; white-space: nowrap; }
         
@@ -24,7 +24,7 @@ window.BuzzPage = (() => {
         .mod-btn-like:hover { background: #fef2f2; color: #f87171; }
         .mod-btn-like.liked { background: #fef2f2; color: #ef4444; }
         .mod-btn-comment { background: #f9fafb; color: #6b7280; }
-        .mod-btn-comment:hover { background: #eff6ff; color: #3b82f6; }
+        .mod-btn-comment:hover { background: var(--ui-accent-soft); color:var(--ui-accent); }
 
         /* Modern Comment Section */
         .mod-comment-wrap { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #f3f4f6; display: flex; flex-direction: column; gap: 0.75rem; }
@@ -33,26 +33,26 @@ window.BuzzPage = (() => {
         
         .mod-input-row { display: flex; gap: 0.5rem; }
         .mod-input { flex: 1; font-size: 0.75rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 9999px; padding: 0.5rem 0.75rem; outline: none; }
-        .mod-input:focus { border-color: #93c5fd; }
-        .mod-send-btn { width: 2rem; height: 2rem; border-radius: 9999px; background: #3b82f6; color: white; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+        .mod-input:focus { border-color: var(--ui-success-line); }
+        .mod-send-btn { width: 2rem; height: 2rem; border-radius: 9999px; background: var(--ui-primary,#237e72); color: white; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
         .mod-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* 🔥 MAKUKULAY NA PILLS / CHIPS 🔥 */
-        .type-chip { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; border-radius: 9999px; border: 1px solid #e5e7eb; background: #ffffff; color: #6b7280; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .type-chip { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; border-radius: 9999px; border: 1px solid #e5e7eb; background:var(--ui-surface); color: #6b7280; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .type-chip:hover { background: #f9fafb; border-color: #d1d5db; }
         
         .type-chip.active { border-color: transparent; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
         .type-chip.active.all { background: linear-gradient(to right, #6b7280, #4b5563); }
         .type-chip.active.promo { background: linear-gradient(to right, #4ade80, #16a34a); }
         .type-chip.active.event { background: linear-gradient(to right, #c084fc, #9333ea); }
-        .type-chip.active.tip { background: linear-gradient(to right, #facc15, #ca8a04); }
+        .type-chip.active.tip { background:var(--ui-primary); }
         .type-chip.active.announcement { background: linear-gradient(to right, #f87171, #dc2626); }
-        .type-chip.active.general { background: linear-gradient(to right, #60a5fa, #2563eb); }
+        .type-chip.active.general { background: linear-gradient(to right, #60a5fa, var(--ui-accent)); }
 
         /* Business Post UI */
         .mod-btn-biz { background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
-        .mod-btn-biz.active { background: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
-        .mod-select-biz { border: 1px solid #e5e7eb; border-radius: 8px; padding: 6px 10px; font-size: 12px; background: white; color: #374151; outline: none; flex: 1; display: none; }
+        .mod-btn-biz.active { background: var(--ui-success-bg); color: var(--ui-success-ink); border-color: var(--ui-success-line); }
+        .mod-select-biz { border: 1px solid #e5e7eb; border-radius: 8px; padding: 6px 10px; font-size: 12px; background:var(--ui-surface); color: #374151; outline: none; flex: 1; display: none; }
         .mod-select-biz.show { display: inline-block; }
     `;
     document.head.appendChild(style);
@@ -62,7 +62,7 @@ window.BuzzPage = (() => {
         event: { label: 'Event', icon: 'calendar-days', color: 'background:#f3e8ff; color:#7e22ce;' },
         tip: { label: 'Tip', icon: 'lightbulb', color: 'background:#fef9c3; color:#a16207;' },
         announcement: { label: 'Announcement', icon: 'megaphone', color: 'background:#fee2e2; color:#b91c1c;' },
-        general: { label: 'Update', icon: 'message-square', color: 'background:#dbeafe; color:#1d4ed8;' }
+        general: { label: 'Update', icon: 'message-square', color: 'background:var(--ui-success-bg); color:var(--ui-success-ink);' }
     };
 
     const BARANGAYS = [
@@ -97,7 +97,7 @@ window.BuzzPage = (() => {
             if (!(userEstablishments.length && (Date.now() - estCacheAt) < 60000)) {
                 const ownedSnap = await window.db.collection("places").where("owner_uid", "==", user.uid).limit(20).get();
                 let placesMap = new Map();
-                ownedSnap.forEach(doc => placesMap.set(doc.id, { id: doc.id, ...doc.data() }));
+                ownedSnap.forEach(doc => placesMap.set(doc.id, { ...doc.data(), id: doc.id }));
                 userEstablishments = Array.from(placesMap.values());
                 estCacheAt = Date.now();
             }
@@ -138,19 +138,21 @@ window.BuzzPage = (() => {
         
         isBusinessPost = false;
         document.getElementById("toggleBizPostBtn").classList.remove("active");
+        document.getElementById("toggleBizPostBtn").setAttribute("aria-pressed", "false");
         document.getElementById("bizPostSelect").classList.remove("show");
         document.getElementById("bizPostSelect").value = "";
         
         selectedMediaFile = null;
+        window.__viciSyncPublish?.();
         fetchUserEstablishments();
         
         const m = document.getElementById("postModal");
-        if (m) m.classList.remove("hidden");
+        if (m) { m.classList.remove("hidden"); m.setAttribute("aria-hidden", "false"); }
     }
 
     function closeModal() {
         const m = document.getElementById("postModal");
-        if (m) m.classList.add("hidden");
+        if (m) { m.classList.add("hidden"); m.setAttribute("aria-hidden", "true"); }
     }
 
     async function publish() {
@@ -166,6 +168,8 @@ window.BuzzPage = (() => {
         const brgy = document.getElementById("postBarangay").value;
         const selectedBizId = document.getElementById("bizPostSelect").value;
 
+        const bodyProblem=window.ContentPolicy?.error('post',body);
+        if(bodyProblem) return window.showToast ? window.showToast(bodyProblem,'error') : alert(bodyProblem);
         if (!body) {
             window.showToast ? window.showToast("Post content is empty!", "error") : alert("Post content is empty!");
             return;
@@ -196,7 +200,7 @@ window.BuzzPage = (() => {
                 mediaUrl = await window.uploadImageFileToStorage(selectedMediaFile, `buzz_posts/${user.uid}`, { maxWidth: 900, quality: 0.8 });
             }
 
-            await window.db.collection("buzz_posts").add({
+            await window.ContentPolicy.create(window.db, 'buzz_posts', {
                 type: selectedType,
                 barangay: brgy,
                 body: body,
@@ -215,7 +219,7 @@ window.BuzzPage = (() => {
             });
 
             closeModal();
-            if(window.showToast) window.showToast("Posted! 🎉", "success");
+            if(window.showToast) window.showToast("Post published.", "success");
         } catch (error) {
             if(window.showToast) window.showToast("Error: " + error.message, "error");
         } finally {
@@ -228,7 +232,7 @@ window.BuzzPage = (() => {
         if (unsubscribe) unsubscribe();
 
         const wrap = document.getElementById("buzzList");
-        if (wrap) wrap.innerHTML = `<div class="muted" style="text-align:center; padding:40px; display:flex; flex-direction:column; align-items:center; gap:8px;"><i data-lucide="loader-2" class="animate-spin" style="color:#94a3b8;"></i> Fetching live posts...</div>`;
+        if (wrap) wrap.innerHTML = `<div class="muted" style="text-align:center; padding:40px; display:flex; flex-direction:column; align-items:center; gap:8px;"><i data-lucide="loader-2" class="animate-spin" style="color:var(--ui-muted);"></i> Fetching live posts...</div>`;
         window.debouncedIcons?.();
 
         let feed = window.db.collection("buzz_posts");
@@ -239,7 +243,7 @@ window.BuzzPage = (() => {
             .orderBy("createdAt", "desc")
             .limit(15)
             .onSnapshot((snapshot) => {
-currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));                renderUI();
+currentPosts = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));                renderUI();
             }, (error) => {
                 console.error("Error fetching live posts:", error);
                 window.handleFirestoreError(error);
@@ -265,9 +269,9 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
                 <div class="buzz-empty-state">
                     <div class="buzz-empty-card">
                         <div style="background:#f1f5f9; width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
-                            <i data-lucide="zap" style="width:32px; height:32px; color:#94a3b8;"></i>
+                            <i data-lucide="zap" style="width:32px; height:32px; color:var(--ui-muted);"></i>
                         </div>
-                        <div style="font-weight:800; font-size:17px; color:#0f172a;">No posts yet</div>
+                        <div style="font-weight:800; font-size:17px; color:var(--ui-ink);">No posts yet</div>
                         <div style="font-size:13px;">Be the first to share something in ${escapeHtml(bFilter)}.</div>
                         <button class="primaryBtn buzzEmptyBtn" id="emptyPostBtn" style="padding: 10px 24px; border-radius:99px;"><i data-lucide="plus"></i> Post Now</button>
                     </div>
@@ -287,7 +291,7 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
             const initial = displayName.charAt(0).toUpperCase();
             const avatarClass = isBiz ? "mod-avatar biz" : "mod-avatar";
             const avatarIcon = isBiz ? `<i data-lucide="store" style="width:16px; height:16px;"></i>` : initial;
-            const verifiedBadge = isBiz ? `<i data-lucide="badge-check" style="width:14px; height:14px; color:#3b82f6;"></i>` : '';
+            const verifiedBadge = isBiz ? `<i data-lucide="badge-check" style="width:14px; height:14px; color:var(--ui-accent);"></i>` : '';
             
             const config = TYPE_CONFIG[p.type] || TYPE_CONFIG.general;
             
@@ -366,8 +370,8 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
                         `).join("")}
                     </div>
                     <div class="mod-input-row">
-                        <input type="text" class="mod-input" id="input-${p.id}" placeholder="Write a comment..." data-i18n-placeholder="Write a comment..." />
-                        <button class="mod-send-btn sendCommentBtn" data-id="${p.id}"><i data-lucide="send"></i></button>
+                        <input type="text" class="mod-input" maxlength="500" aria-label="Write a comment" id="input-${p.id}" placeholder="Write a comment..." data-i18n-placeholder="Write a comment..." />
+                        <button class="mod-send-btn sendCommentBtn" aria-label="Send comment" data-id="${p.id}"><i data-lucide="send"></i></button>
                     </div>
                 </div>
             </article>
@@ -485,10 +489,11 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
                 // arrayUnion = atomic append. The old read-modify-write of the
                 // whole comments array lost comments when two people commented
                 // at the same time (last writer won).
-                await postRef.update({
-                    comments: firebase.firestore.FieldValue.arrayUnion(newComment)
-                });
-                input.value = "";
+                try {
+                    await window.ContentPolicy.comment(window.db,postRef,newComment);
+                    input.value = "";
+                } catch(error) {window.showToast?.(error.code==='permission-denied'?'Wait a few seconds before commenting again, and check the comment limits.':error.message,'error');}
+                finally {btn.disabled=false;btn.textContent='Send';}
             };
         });
     }
@@ -498,39 +503,47 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
         if(!mBody) return;
 
         mBody.innerHTML = `
-            <div style="display:flex; gap:8px; justify-content:center; padding-bottom:4px; margin-bottom:12px;">
-                <button class="type-chip active general" data-val="general" style="flex:1 1 0; min-width:0; justify-content:center; text-align:center;">General</button>
-                <button class="type-chip promo" data-val="promo" style="flex:1 1 0; min-width:0; justify-content:center; text-align:center;">Promo</button>
-                <button class="type-chip event" data-val="event" style="flex:1 1 0; min-width:0; justify-content:center; text-align:center;">Event</button>
-                <button class="type-chip tip" data-val="tip" style="flex:1 1 0; min-width:0; justify-content:center; text-align:center;">Tip</button>
-                <button class="type-chip announcement" data-val="announcement" style="flex:1 1 0; min-width:0; justify-content:center; text-align:center;">Announcement</button>
+            <fieldset class="post-type-fieldset">
+                <legend>Post type</legend>
+                <div class="post-type-options">
+                    <button type="button" class="type-chip active general" data-val="general" aria-pressed="true">General</button>
+                    <button type="button" class="type-chip promo" data-val="promo" aria-pressed="false">Promo</button>
+                    <button type="button" class="type-chip event" data-val="event" aria-pressed="false">Event</button>
+                    <button type="button" class="type-chip tip" data-val="tip" aria-pressed="false">Tip</button>
+                    <button type="button" class="type-chip announcement" data-val="announcement" aria-pressed="false">Announcement</button>
+                </div>
+            </fieldset>
+            <div id="bizToggleWrapper" style="display:none;">
+                <button type="button" id="toggleBizPostBtn" class="mod-btn-biz" aria-pressed="false"><i data-lucide="megaphone"></i> Post as Business</button>
+                <select id="bizPostSelect" class="mod-select-biz" aria-label="Business to post as"></select>
             </div>
-            
-            <div id="bizToggleWrapper" style="display:none; align-items:center; gap:8px; margin-bottom:12px;">
-                <button id="toggleBizPostBtn" class="mod-btn-biz"><i data-lucide="megaphone" style="width:14px; height:14px;"></i> Post as Business</button>
-                <select id="bizPostSelect" class="mod-select-biz"></select>
+            <div class="post-field">
+                <label for="postBarangay">Barangay <span>(optional)</span></label>
+                <select id="postBarangay"></select>
             </div>
-
-            <select id="postBarangay" style="width:100%; border:1px solid #e5e7eb; border-radius:12px; padding:10px 12px; font-size:14px; margin-bottom:12px; outline:none;"></select>
-            
-            <textarea id="postBody" rows="4" placeholder="What's happening? Promo, event, tip..." maxlength="500" style="width:100%; border:1px solid #e5e7eb; border-radius:12px; padding:12px; font-size:14px; resize:none; outline:none; box-sizing:border-box; margin-bottom:4px; font-family:inherit;"></textarea>
-            <div style="text-align:right; font-size:11px; color:#9ca3af; margin-bottom:12px;" id="charCount">0/500</div>
-            
-            <div id="mediaPreviewWrap" style="display:none; position:relative; margin-bottom:12px;">
-                <img id="mediaPreviewImg" src="" style="width:100%; height:160px; object-fit:cover; border-radius:12px;" />
-                <button id="removeMediaBtn" style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.5); color:white; border:none; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; cursor:pointer;"><i data-lucide="x" style="width:14px; height:14px;"></i></button>
+            <div class="post-field">
+                <label for="postBody">Post details</label>
+                <textarea id="postBody" rows="4" placeholder="Share an update, promo, event, or local tip…" maxlength="500" aria-describedby="charCount"></textarea>
+                <div id="charCount" class="post-character-count">0/500</div>
             </div>
-
-            <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#6b7280; cursor:pointer; width:fit-content;">
-                <i data-lucide="image-plus" style="width:16px; height:16px;"></i> Add a photo (optional)
-                <input type="file" id="postMedia" accept="image/*" style="display:none;" />
+            <div id="mediaPreviewWrap" class="post-media-preview" style="display:none;">
+                <img id="mediaPreviewImg" alt="Selected post photo" />
+                <button type="button" id="removeMediaBtn" aria-label="Remove selected photo"><i data-lucide="x"></i></button>
+            </div>
+            <label for="postMedia" class="post-upload">
+                <i data-lucide="image-plus"></i><span>Add a photo <span>(optional)</span></span>
+                <input type="file" id="postMedia" class="post-file-input" accept="image/*" />
             </label>
         `;
 
         document.querySelectorAll("#postModal .type-chip").forEach(chip => {
             chip.onclick = () => {
-                document.querySelectorAll("#postModal .type-chip").forEach(c => c.classList.remove("active"));
+                document.querySelectorAll("#postModal .type-chip").forEach(c => {
+                    c.classList.remove("active");
+                    c.setAttribute("aria-pressed", "false");
+                });
                 chip.classList.add("active");
+                chip.setAttribute("aria-pressed", "true");
             };
         });
 
@@ -539,7 +552,8 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
         if (toggleBtn && bizSelect) {
             toggleBtn.onclick = () => {
                 isBusinessPost = !isBusinessPost;
-                toggleBtn.classList.toggle("active");
+                toggleBtn.classList.toggle("active", isBusinessPost);
+                toggleBtn.setAttribute("aria-pressed", String(isBusinessPost));
                 if (isBusinessPost) {
                     bizSelect.classList.add("show");
                 } else {
@@ -599,11 +613,11 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
         if (!tabsWrap) return;
         
         tabsWrap.innerHTML = `
-            <button class="type-chip active all" data-type="all"><i data-lucide="package" style="width:14px; height:14px;"></i> All</button>
-            <button class="type-chip promo" data-type="promo"><i data-lucide="tag" style="width:14px; height:14px;"></i> Promo</button>
-            <button class="type-chip event" data-type="event"><i data-lucide="calendar-days" style="width:14px; height:14px;"></i> Event</button>
-            <button class="type-chip tip" data-type="tip"><i data-lucide="lightbulb" style="width:14px; height:14px;"></i> Tip</button>
-            <button class="type-chip announcement" data-type="announcement"><i data-lucide="megaphone" style="width:14px; height:14px;"></i> Announcement</button>
+            <button type="button" aria-pressed="true" class="type-chip active all" data-type="all"><i data-lucide="package" style="width:14px; height:14px;"></i> All</button>
+            <button type="button" aria-pressed="false" class="type-chip promo" data-type="promo"><i data-lucide="tag" style="width:14px; height:14px;"></i> Promo</button>
+            <button type="button" aria-pressed="false" class="type-chip event" data-type="event"><i data-lucide="calendar-days" style="width:14px; height:14px;"></i> Event</button>
+            <button type="button" aria-pressed="false" class="type-chip tip" data-type="tip"><i data-lucide="lightbulb" style="width:14px; height:14px;"></i> Tip</button>
+            <button type="button" aria-pressed="false" class="type-chip announcement" data-type="announcement"><i data-lucide="megaphone" style="width:14px; height:14px;"></i> Announcement</button>
         `;
         
         tabsWrap.style.display = "flex";
@@ -615,8 +629,9 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
         tabsWrap.addEventListener("click", (e) => {
             const btn = e.target.closest(".type-chip");
             if (!btn) return;
-            document.querySelectorAll("#buzzTabs .type-chip").forEach(t => t.classList.remove("active"));
+            document.querySelectorAll("#buzzTabs .type-chip").forEach(t => { t.classList.remove("active"); t.setAttribute("aria-pressed", "false"); });
             btn.classList.add("active");
+            btn.setAttribute("aria-pressed", "true");
             activeType = btn.dataset.type;
             listenToPosts();
         });
@@ -630,7 +645,7 @@ currentPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));       
 
         const postBrgySelect = document.getElementById("postBarangay");
         if (postBrgySelect) {
-            postBrgySelect.innerHTML = `<option value="" disabled selected hidden>📍 Select Barangay (optional)</option>` + 
+            postBrgySelect.innerHTML = `<option value="">Choose a barangay (optional)</option>` +
                 BARANGAYS.filter(b => b !== "All Barangays").map(b => `<option value="${b}">${b}</option>`).join("");
         }
 

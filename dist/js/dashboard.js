@@ -42,7 +42,7 @@ window.DashboardPage = (() => {
         if (window.db) {
             try {
                 const snap = await window.db.collection("places").doc(placeId).get();
-                return snap.exists && canManagePlaceData({ id: snap.id, ...snap.data() });
+                return snap.exists && canManagePlaceData({ ...snap.data(), id: snap.id });
             } catch (error) {
                 console.warn("Permission place lookup failed, using dashboard cache.", error);
             }
@@ -54,19 +54,23 @@ window.DashboardPage = (() => {
     function getRequestMeta(requestType) {
         const key = String(requestType || "booking").toLowerCase();
         const map = {
-            booking: { icon: "📅", title: "General Booking", fulfillLabel: "Mark as Fulfilled", confirmLabel: "Confirm Completed" },
-            table: { icon: "🍽️", title: "Table Reservation", fulfillLabel: "Mark Dining Completed", confirmLabel: "Confirm Completed" },
-            table_reservation: { icon: "🍽️", title: "Table Reservation", fulfillLabel: "Mark Dining Completed", confirmLabel: "Confirm Completed" },
-            food: { icon: "🍱", title: "Food Reservation", fulfillLabel: "Mark Food Prepared", confirmLabel: "Confirm Received" },
-            food_reservation: { icon: "🍱", title: "Food Reservation", fulfillLabel: "Mark Food Prepared", confirmLabel: "Confirm Received" },
-            pickup: { icon: "🛍️", title: "Pickup Order", fulfillLabel: "Mark Ready for Pickup", confirmLabel: "Confirm Picked Up" },
-            pickup_order: { icon: "🛍️", title: "Pickup Pre-order", fulfillLabel: "Mark Ready for Pickup", confirmLabel: "Confirm Picked Up" },
-            advance_order: { icon: "🗓️", title: "Advance Order", fulfillLabel: "Mark Order Completed", confirmLabel: "Confirm Received" },
-            delivery: { icon: "🛵", title: "Delivery Order", fulfillLabel: "Mark Delivered", confirmLabel: "Confirm Received" },
-            delivery_order: { icon: "🛵", title: "Delivery Order", fulfillLabel: "Mark Delivered", confirmLabel: "Confirm Received" }
+            booking: { icon: "calendar-days", title: "General Booking", fulfillLabel: "Mark as Fulfilled", confirmLabel: "Confirm Completed" },
+            table: { icon: "utensils", title: "Table Reservation", fulfillLabel: "Mark Dining Completed", confirmLabel: "Confirm Completed" },
+            table_reservation: { icon: "utensils", title: "Table Reservation", fulfillLabel: "Mark Dining Completed", confirmLabel: "Confirm Completed" },
+            food: { icon: "package", title: "Food Reservation", fulfillLabel: "Mark Food Prepared", confirmLabel: "Confirm Received" },
+            food_reservation: { icon: "package", title: "Food Reservation", fulfillLabel: "Mark Food Prepared", confirmLabel: "Confirm Received" },
+            pickup: { icon: "shopping-bag", title: "Pickup Order", fulfillLabel: "Mark Ready for Pickup", confirmLabel: "Confirm Picked Up" },
+            pickup_order: { icon: "shopping-bag", title: "Pickup Pre-order", fulfillLabel: "Mark Ready for Pickup", confirmLabel: "Confirm Picked Up" },
+            advance_order: { icon: "calendar-clock", title: "Advance Order", fulfillLabel: "Mark Order Completed", confirmLabel: "Confirm Received" },
+            delivery: { icon: "truck", title: "Delivery Order", fulfillLabel: "Mark Delivered", confirmLabel: "Confirm Received" },
+            delivery_order: { icon: "truck", title: "Delivery Order", fulfillLabel: "Mark Delivered", confirmLabel: "Confirm Received" }
         };
         return map[key] || map.booking;
     }
+    function renderRequestDetails(order) {
+        return window.renderRequestDetailRows(order);
+    }
+
     function safeString(str) { return String(str ?? "").split("").map(c => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")).join(""); }
 
     function renderBusinessFreshnessTask(place) {
@@ -147,6 +151,7 @@ window.DashboardPage = (() => {
     }
 
     function isOwnerUnreadMessage(data, ownerUid) {
+        if(!window.isConversationMessage(data))return false;
         if (!ownerUid) return false;
         if (ownerHasRead(data, ownerUid)) return false;
         if (data.senderUid === ownerUid || data.createdBy === ownerUid) return false;
@@ -290,10 +295,7 @@ window.DashboardPage = (() => {
     .limit(20)
     .get();
 
-            places = ownedSnap.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-}));
+            places = ownedSnap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
 
             // Admins also operate the places they personally added: the
             // Add page always creates owner_uid: null (unclaimed until an
@@ -307,7 +309,7 @@ window.DashboardPage = (() => {
                         .get();
                     const seenPlaceIds = new Set(places.map(p => p.id));
                     addedSnap.docs.forEach(doc => {
-                        if (!seenPlaceIds.has(doc.id)) places.push({ id: doc.id, ...doc.data() });
+                        if (!seenPlaceIds.has(doc.id)) places.push({ ...doc.data(), id: doc.id });
                     });
                 } catch (e) { /* hub still works with owned places alone */ }
             }
@@ -321,11 +323,11 @@ updateDashboardKpis(places);
 
             if (places.length === 0) {
                 wrap.innerHTML = `
-                    <div style="text-align:center; padding: 40px 0;">
-                        <div style="background: #f8fafc; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-                            <i data-lucide="store" style="color: #94a3b8; width: 40px; height: 40px;"></i>
+                    <div class="business-empty-state" style="text-align:center; padding: 40px 0;">
+                        <div class="business-empty-icon" style="background: #f8fafc; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                            <i data-lucide="store" style="color:var(--ui-muted); width: 40px; height: 40px;"></i>
                         </div>
-                        <div style="font-weight: 700; font-size: 18px; color: #0f172a;">No establishments yet</div>
+                        <div style="font-weight: 700; font-size: 18px; color:var(--ui-ink);">No establishments yet</div>
                         <button class="dash-action-btn" style="margin: 20px auto 0; background: #0f172a; color: white; font-size: 15px; padding: 12px 20px;" onclick="showPage('page-add')"><i data-lucide="plus" style="width: 18px; height: 18px;"></i> Add Establishment</button>
                     </div>`;
                 if (inbox) inbox.classList.add("hidden");
@@ -359,8 +361,8 @@ updateDashboardKpis(places);
     <!-- Header: Title & Verification -->
     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
         <div>
-            <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em;">${escapeHtml(p.name)}</h3>
-            <p style="margin: 4px 0 0; font-size: 13px; color: #64748b; display: flex; align-items: center; gap: 4px;">
+            <h3 data-no-translate style="margin: 0; font-size: 18px; font-weight: 800; color:var(--ui-ink); letter-spacing: -0.02em;">${escapeHtml(p.name)}</h3>
+            <p style="margin: 4px 0 0; font-size: 13px; color:var(--ui-muted); display: flex; align-items: center; gap: 4px;">
                 <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i> ${escapeHtml(p.address || p.brgy || "Lipa City")}
             </p>
         </div>
@@ -374,18 +376,19 @@ updateDashboardKpis(places);
     <div class="biz-card-actions-row" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
         <div class="suki-status-line ${p.suki_enabled ? "on" : ""}"><span class="suki-dot"></span>${p.suki_enabled ? `Suki Card ON &bull; ${p.suki_stamp_count || 8} stamps` : "Suki Card OFF"}</div>
         <div style="display: flex; gap: 8px;">
-            <button class="biz-edit-btn" style="padding: 8px 12px; background: #ffffff; border: 1px solid #e2e8f0; color: #0f172a; border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;" data-suki-edit="${p.id}">
-                <i data-lucide="stamp" style="width: 14px; height: 14px;"></i> Suki Card
+            <button class="biz-edit-btn" style="padding: 8px 12px; background:var(--ui-surface); border: 1px solid #e2e8f0; color:var(--ui-ink); border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;" data-suki-edit="${p.id}">
+                <i data-lucide="pencil" style="width: 14px; height: 14px;"></i> Edit Suki Card
             </button>
-            <button class="biz-edit-btn" style="padding: 8px 12px; background: #ffffff; border: 1px solid #e2e8f0; color: #0f172a; border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;" data-posts="${p.id}">
-                <i data-lucide="image" style="width: 14px; height: 14px;"></i> Posts
+            <button type="button" class="biz-edit-btn" data-manage-menu="${p.id}">Manage menu</button>
+            <button class="biz-edit-btn" style="padding: 8px 12px; background:var(--ui-surface); border: 1px solid #e2e8f0; color:var(--ui-ink); border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;" data-posts="${p.id}">
+                <i data-lucide="store" style="width: 14px; height: 14px;"></i> View page
             </button>
         </div>
     </div>
 
     <!-- Unified Status Toggles -->
     <div style="margin-top: 4px;">
-        <p style="margin: 0 0 8px; font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Live Store Status</p>
+        <p style="margin: 0 0 8px; font-size: 11px; font-weight: 800; color:var(--ui-muted); text-transform: uppercase; letter-spacing: 0.5px;">Live Store Status</p>
         <div class="biz-status-group" style="background: #f8fafc; padding: 6px; border-radius: 14px; display: flex; gap: 4px; border: 1px solid #f1f5f9;">
             <button class="biz-status-btn ${opStatus === 'open' ? 'active open' : ''}" style="flex: 1; border: none; background: transparent; box-shadow: none;" data-id="${p.id}" data-val="open"><div class="biz-status-dot dot-open"></div> Open</button>
             <button class="biz-status-btn ${opStatus === 'busy' ? 'active busy' : ''}" style="flex: 1; border: none; background: transparent; box-shadow: none;" data-id="${p.id}" data-val="busy"><div class="biz-status-dot dot-busy"></div> Busy</button>
@@ -394,7 +397,7 @@ updateDashboardKpis(places);
     </div>
 
     <!-- Edit Action -->
-    <button class="biz-edit-btn" style="margin-top: 8px; padding: 12px; background: #ffffff; border: 1px solid #e2e8f0; color: #0f172a; border-radius: 12px; font-weight: 600;" data-edit="${p.id}">
+    <button class="biz-edit-btn" style="margin-top: 8px; padding: 12px; background:var(--ui-surface); border: 1px solid #e2e8f0; color:var(--ui-ink); border-radius: 12px; font-weight: 600;" data-edit="${p.id}">
         <i data-lucide="settings" style="width: 16px; height: 16px;"></i> Manage Listing
     </button>
   </div>`;
@@ -432,10 +435,11 @@ updateDashboardKpis(places);
                     }
                 });
             });
-            wrap.querySelectorAll("[data-edit]").forEach(btn => { btn.addEventListener("click", () => openPremiumBizPortal(btn.dataset.edit)); });
+            wrap.querySelectorAll("[data-edit]").forEach(btn => { btn.addEventListener("click", () => openBusinessPortal(btn.dataset.edit)); });
             wrap.querySelectorAll("[data-suki-edit]").forEach(btn => {
                 btn.addEventListener("click", () => openSukiStudio(btn.dataset.sukiEdit));
             });
+            wrap.querySelectorAll('[data-manage-menu]').forEach(b=>b.onclick=()=>window.ViciCommerce.openMenu(b.dataset.manageMenu));
             wrap.querySelectorAll("[data-posts]").forEach(btn => {
                 btn.addEventListener("click", () => openBizPosts(btn.dataset.posts));
             });
@@ -484,11 +488,11 @@ globalMessagesUnsub = [];
         setNotifBadge("ownerMsgBadge", 0);
 
         if (bookingsWrap) {
-            bookingsWrap.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8; font-size:15px;">No requests yet.</div>`;
+            bookingsWrap.innerHTML = `<div style="text-align:center; padding:30px; color:var(--ui-muted); font-size:15px;">No requests yet.</div>`;
         }
 
         if (messagesWrap) {
-            messagesWrap.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8; font-size:15px;">No messages yet.</div>`;
+            messagesWrap.innerHTML = `<div style="text-align:center; padding:30px; color:var(--ui-muted); font-size:15px;">No messages yet.</div>`;
         }
 
         return;
@@ -560,7 +564,7 @@ globalMessagesUnsub = [];
         window.GlobalNotifier?.refreshDashBadge?.();
 
         if (docs.length === 0) {
-            bookingsWrap.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8; font-size:15px;">No requests yet, or they have been deleted.</div>`;
+            bookingsWrap.innerHTML = `<div style="text-align:center; padding:30px; color:var(--ui-muted); font-size:15px;">No requests yet, or they have been deleted.</div>`;
             window.debouncedIcons?.();
             return;
         }
@@ -572,6 +576,7 @@ globalMessagesUnsub = [];
             const initial = (d.userName || "U").charAt(0).toUpperCase();
             const status = d.status || "pending";
             const meta = getRequestMeta(d.requestType);
+            const paymentFlow = window.PaymentPolicy.flow(d);
             const unreadDot = isOwnerUnreadTransaction(d, currentUserUid) ? `<span class="inbox-unread-dot" title="Unread update"></span>` : "";
 
             html += `
@@ -586,8 +591,8 @@ globalMessagesUnsub = [];
                         </div>
                         <span class="status-badge status-${status}">${status.toUpperCase()}</span>
                     </div>
-                    <p class="ticket-meta">${meta.icon} ${escapeHtml(meta.title)} • ${dateStr}</p>
-                    <p class="ticket-details" title="${escapeHtml(d.details || "")}">"${escapeHtml(d.details || "")}"</p>
+                    <p class="ticket-meta"><i data-lucide="${meta.icon}" aria-hidden="true"></i> <span>${escapeHtml(meta.title)} · ${dateStr}</span></p>
+                    <details class="ticket-request-details"><summary>Request details</summary>${renderRequestDetails(d)}</details>
                     ${
                         status === "pending" ? `
                             <div class="biz-interact-actions ticket-actions">
@@ -598,7 +603,7 @@ globalMessagesUnsub = [];
                                     <i data-lucide="check" style="width:15px; height:15px;"></i> Accept Request
                                 </button>
                             </div>
-                        ` : status === "accepted" ? `
+                        ` : status === "accepted" && !paymentFlow.canPrepare ? `<div class="payment-awaiting-note">Waiting for online payment proof. Verify the received payment before preparation.</div>` : status === "accepted" ? `
                             <div class="biz-interact-actions ticket-actions">
                                 <button class="btn-accept" style="font-size: 13px; padding: 9px; background: #ea580c; color: white; width: 100%;" onclick="window.DashboardPage.updateBookingStatus('${d.id}', 'preparing')">
                                     <i data-lucide="chef-hat" style="width:15px; height:15px;"></i> Start Preparing
@@ -606,26 +611,27 @@ globalMessagesUnsub = [];
                             </div>
                         ` : status === "preparing" ? `
                             <div class="biz-interact-actions ticket-actions">
-                                <button class="btn-accept" style="font-size: 13px; padding: 9px; background: #0d9488; color: white; width: 100%;" onclick="window.DashboardPage.updateBookingStatus('${d.id}', 'ready')">
-                                    <i data-lucide="check" style="width:15px; height:15px;"></i> Mark Ready
+                                <button class="btn-accept" style="font-size: 13px; padding: 9px; background: #0d9488; color: white; width: 100%;" onclick="window.DashboardPage.updateBookingStatus('${d.id}', '${["delivery_order", "delivery"].includes(d.requestType) ? "out_for_delivery" : "ready"}')">
+                                    <i data-lucide="check" style="width:15px; height:15px;"></i> ${["delivery_order", "delivery"].includes(d.requestType) ? "Mark Out for Delivery" : "Mark Ready"}
                                 </button>
                             </div>
-                        ` : status === "ready" ? `
+                        ` : status === "out_for_delivery" ? `<div class="ticket-actions"><button class="btn-accept" onclick="window.DashboardPage.updateBookingStatus('${d.id}', 'delivered')">Mark Delivered</button></div>` : status === "ready" ? `
                             <div class="biz-interact-actions ticket-actions">
                                 <button class="btn-accept" style="font-size: 13px; padding: 9px; background: #0f172a; color: white; width: 100%;" onclick="window.DashboardPage.updateBookingStatus('${d.id}', 'fulfilled')">
                                     <i data-lucide="check-circle" style="width:15px; height:15px;"></i> ${escapeHtml(meta.fulfillLabel)}
                                 </button>
                             </div>
                         ` : status === "payment_submitted" ? `
-                            <div class="ticket-proof" style="background:#fef3c7; border:1px solid #fde68a; border-radius:12px; padding:10px;">
-                                <div style="font-size:12px; font-weight:900; color:#92400e; margin-bottom:8px;">Payment proof submitted — please review</div>
-                                ${(d.paymentProofPath || d.paymentProofUrl) ? `<img ${d.paymentProofPath ? `data-proof-booking="${escapeHtml(d.id)}" data-proof-version="${escapeHtml(d.paymentProofPath)}"` : `src="${escapeHtml(window.safeImageUrl(d.paymentProofUrl))}"`} alt="Payment proof" style="width:100%; max-height:160px; object-fit:contain; border-radius:8px; border:1px solid #fde68a; margin-bottom:8px; background:#fff;" loading="lazy" />` : `<div style="font-size:12px; color:#92400e;">No image attached.</div>`}
+                            <div class="ticket-proof" style="background:var(--ui-success-bg); border:1px solid var(--ui-success-line); border-radius:12px; padding:10px;">
+                                <div style="font-size:12px; font-weight:900; color:#92400e; margin-bottom:8px;">Payment details submitted — please review</div>
+                                ${d.paymentReference ? `<div class="payment-reference-review">Reference: <strong>${escapeHtml(d.paymentReference)}</strong><br>Amount submitted: ₱${escapeHtml(d.paymentAmount || "—")}</div>` : ""}
+                                ${(d.paymentProofPath || d.paymentProofUrl) ? `<img ${d.paymentProofPath ? `data-proof-booking="${escapeHtml(d.id)}" data-proof-version="${escapeHtml(d.paymentProofPath)}"` : `src="${escapeHtml(window.safeImageUrl(d.paymentProofUrl))}"`} alt="Payment proof" style="width:100%; max-height:160px; object-fit:contain; border-radius:8px; border:1px solid #fde68a; margin-bottom:8px; background:var(--ui-surface);" loading="lazy" />` : `<div style="font-size:12px; color:#92400e;">No receipt image attached. Verify the submitted reference against your actual account.</div>`}
                                 <div class="biz-interact-actions" style="margin-top:0;">
                                     <button class="btn-deny" style="font-size: 13px; padding: 9px;" onclick="window.reviewPaymentProof('${d.id}', null, 'resubmit')">
-                                        <i data-lucide="x" style="width:15px; height:15px;"></i> Ask to Resubmit
+                                        <i data-lucide="x" style="width:15px; height:15px;"></i> Decline payment
                                     </button>
                                     <button class="btn-accept" style="font-size: 13px; padding: 9px;" onclick="window.reviewPaymentProof('${d.id}', null, 'confirm')">
-                                        <i data-lucide="check" style="width:15px; height:15px;"></i> Confirm Payment
+                                        <i data-lucide="check" style="width:15px; height:15px;"></i> Accept payment
                                     </button>
                                 </div>
                             </div>
@@ -639,11 +645,12 @@ globalMessagesUnsub = [];
                         ` : `
                             <div class="biz-interact-actions ticket-actions">
                                 <button class="btn-deny" onclick="window.DashboardPage.deleteBooking('${d.id}')" style="background:#fef2f2; color:#ef4444; border-color:#fee2e2; width:100%; font-size: 13px; padding: 9px;">
-                                    <i data-lucide="trash-2" style="width:15px; height:15px;"></i> Delete Record
+                                    <i data-lucide="archive" style="width:15px; height:15px;"></i> Hide record
                                 </button>
                             </div>
                         `
                     }
+                    <button type="button" class="payment-conversation-action" onclick="window.openChatModal('${d.placeId}', '${safeString(d.placeName || "Establishment")}', '${d.userId}', 'transaction', '${d.id}')"><i data-lucide="clipboard-list"></i> Open transaction</button>
                 </article>
             `;
         });
@@ -659,7 +666,7 @@ globalMessagesUnsub = [];
     const deletedBy = d.deletedBy || [];
 
     return (
-        d.userId !== currentUserUid &&
+        window.isConversationMessage(d) && d.userId !== currentUserUid &&
         !deletedBy.includes(currentUserUid) &&
         !deletedBy.includes("owner_deleted")
     );
@@ -681,17 +688,15 @@ globalMessagesUnsub = [];
             return (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0);
         });
 
-        let unreadThreads = threadArr.filter(d => !d.reply);
-        let readThreads = threadArr.filter(d => d.reply);
-
-        const unreadThreadCount = threadArr.filter(d => isOwnerUnreadMessage(d, currentUserUid)).length;
+        const threadUnread = thread => docs.some(message=>message.placeId===thread.placeId && message.userId===thread.userId && isOwnerUnreadMessage(message,currentUserUid));
+        const unreadThreadCount = threadArr.filter(threadUnread).length;
         setNotifBadge("ownerMsgBadge", unreadThreadCount);
         window._dashMsgCount = unreadThreadCount;
         updateDashboardKpis(currentAdminPlaces || []);
         window.GlobalNotifier?.refreshDashBadge?.();
 
         if (threadArr.length === 0) {
-            messagesWrap.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8; font-size:15px;">No messages yet, or they have been deleted.</div>`;
+            messagesWrap.innerHTML = `<div style="text-align:center; padding:30px; color:var(--ui-muted); font-size:15px;">No messages yet, or they have been deleted.</div>`;
             window.debouncedIcons?.();
             return;
         }
@@ -705,45 +710,47 @@ globalMessagesUnsub = [];
                 : "Just now";
 
             const initial = (d.userName || "U").charAt(0).toUpperCase();
-            const lastMsg = d.reply ? `You: ${d.reply}` : `${d.text || ""}`;
+            const waitingForBusiness = d.senderRole ? d.senderRole === 'customer' : !d.reply;
+            const lastMsg = d.reply ? `You: ${d.reply}` : `${d.senderUid===currentUserUid?'You: ':''}${d.text || 'Transaction update'}`;
+            const businessName=currentAdminPlaces.find(place=>place.id===d.placeId)?.name || (d.placeName !== d.userName ? d.placeName : '') || 'Establishment';
 
             const rowHtml = `
-                <div class="inbox-row" style="position: relative; padding: 16px; padding-right: 50px; display: flex; align-items: center; gap: 14px;" onclick="window.DashboardPage.markOwnerMessageThreadRead('${d.userId}', '${d.placeId}'); window.openChatModal('${d.placeId}', '${safeString(d.userName || "Customer")}', '${d.userId}')">
-                    <div class="inbox-avatar" style="background: #e0e7ff; color: #4f46e5; width: 44px; height: 44px; font-size: 20px;">${initial}</div>
+                <div class="inbox-row business-chat-row" style="position: relative; padding: 16px; padding-right: 50px; display: flex; align-items: center; gap: 14px;" onclick="window.DashboardPage.markOwnerMessageThreadRead('${d.userId}', '${d.placeId}'); window.openChatModal('${d.placeId}', '${safeString(d.userName || "Customer")}', '${d.userId}')">
+                    <div class="inbox-avatar" style="background: var(--ui-success-bg); color: var(--ui-success-ink); width: 44px; height: 44px; font-size: 20px;">${escapeHtml(initial)}</div>
 
                     <div class="inbox-content" style="flex: 1; overflow: hidden;">
                         <div class="inbox-top" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                             <div class="inbox-name" style="font-size: 16px; font-weight: 700;">
                                 ${escapeHtml(d.userName || "Customer")}
-                                <span style="font-size:13px; color:#94a3b8; font-weight:500;">(@ ${escapeHtml(d.placeName || "Establishment")})</span>
+                                <span data-no-translate class="business-chat-place">${escapeHtml(businessName)}</span>
                             </div>
-                            <div class="inbox-time" style="font-size: 13px; color: #64748b;">${dateStr}</div>
+                            <div class="inbox-time" style="font-size: 13px; color:var(--ui-muted);">${dateStr}</div>
                         </div>
 
                         <div class="inbox-bottom" style="display: flex; align-items: center; gap: 8px;">
-                            <div class="inbox-snippet" style="font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ${!d.reply ? "font-weight:700; color:#0f172a;" : "color:#64748b;"}">${escapeHtml(lastMsg)}</div>
-                            ${!d.reply ? `<div class="inbox-unread" style="background:#ef4444; font-size: 11px; padding: 2px 6px;">NEW</div>` : ""}
+                            <div class="inbox-snippet" style="font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ${!d.reply ? "font-weight:700; color:var(--ui-ink);" : "color:var(--ui-muted);"}">${escapeHtml(lastMsg)}</div>
+                            ${threadUnread(d) ? `<div class="inbox-unread" style="background:var(--ui-success-bg); color:var(--ui-success-ink); font-size: 11px; padding: 2px 6px;">NEW</div>` : ""}
                         </div>
                     </div>
 
-                    <button onclick="window.DashboardPage.deleteChatThread('${d.userId}', '${d.placeId}', event)" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #ef4444; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Delete Thread">
-                        <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
+                    <button onclick="window.DashboardPage.deleteChatThread('${d.userId}', '${d.placeId}', event)" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--ui-muted); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" title="Hide conversation">
+                        <i data-lucide="archive" style="width: 20px; height: 20px;"></i>
                     </button>
                 </div>
             `;
 
-            if (!d.reply) unreadHtml += rowHtml;
+            if (waitingForBusiness) unreadHtml += rowHtml;
             else readHtml += rowHtml;
         });
 
         let finalHtml = "";
 
         if (unreadHtml) {
-            finalHtml += `<div style="font-size: 14px; font-weight: 800; color: #ef4444; margin-bottom: 12px; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Awaiting Reply</div>` + unreadHtml;
+            finalHtml += `<div style="font-size: 14px; font-weight: 800; color: var(--ui-muted); margin-bottom: 12px; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px;" class="business-chat-heading">Needs your reply</div>` + unreadHtml;
         }
 
         if (readHtml) {
-            finalHtml += `<div style="font-size: 14px; font-weight: 800; color: #64748b; margin-top: 32px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Previous Conversations</div>` + readHtml;
+            finalHtml += `<div style="font-size: 14px; font-weight: 800; color:var(--ui-muted); margin-top: 32px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;" class="business-chat-heading">Conversations</div>` + readHtml;
         }
 
         messagesWrap.innerHTML = finalHtml;
@@ -813,7 +820,7 @@ globalBookingsUnsub.push(bookingUnsub);
         const sukiWrap = document.getElementById("biz-panel-suki");
         if (!ownerUid || !placeIds || placeIds.length === 0) {
             setNotifBadge("ownerSukiBadge", 0);
-            if (sukiWrap) sukiWrap.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8; font-size:15px;">No Suki Card requests yet.</div>`;
+            if (sukiWrap) sukiWrap.innerHTML = `<div style="text-align:center; padding:30px; color:var(--ui-muted); font-size:15px;">No Suki Card requests yet.</div>`;
             return;
         }
 
@@ -861,9 +868,9 @@ globalBookingsUnsub.push(bookingUnsub);
             .sort((a, b) => (b.claimRequestedAt?.toMillis?.() || 0) - (a.claimRequestedAt?.toMillis?.() || 0));
         setNotifBadge("ownerSukiBadge", reqs.length + claims.length);
 
-        let html = `<div style="font-size:14px; font-weight:800; color:#0f172a; margin:12px 0;">Requesting a stamp (${reqs.length})</div>`;
+        let html = `<div style="font-size:14px; font-weight:800; color:var(--ui-ink); margin:12px 0;">Requesting a stamp (${reqs.length})</div>`;
         if (reqs.length === 0) {
-            html += `<div style="text-align:center; padding:20px; color:#94a3b8; font-size:14px;">No pending stamp requests.</div>`;
+            html += `<div style="text-align:center; padding:20px; color:var(--ui-muted); font-size:14px;">No pending stamp requests.</div>`;
         } else {
             reqs.forEach(d => {
                 const initial = (d.customerName || "S").charAt(0).toUpperCase();
@@ -872,8 +879,8 @@ globalBookingsUnsub.push(bookingUnsub);
                     <div class="suki-req-info">
                         <div class="suki-req-avatar">${escapeHtml(initial)}</div>
                         <div>
-                            <div style="font-size:15px; font-weight:700; color:#0f172a;">${escapeHtml(d.customerName || "Customer")} is requesting a stamp</div>
-                            <div style="font-size:13px; color:#64748b;">@ ${escapeHtml(d.placeName || "Establishment")}</div>
+                            <div style="font-size:15px; font-weight:700; color:var(--ui-ink);">${escapeHtml(d.customerName || "Customer")} is requesting a stamp</div>
+                            <div style="font-size:13px; color:var(--ui-muted);">@ ${escapeHtml(d.placeName || "Establishment")}</div>
                         </div>
                     </div>
                     <div class="suki-req-actions">
@@ -884,9 +891,9 @@ globalBookingsUnsub.push(bookingUnsub);
             });
         }
 
-        html += `<div style="font-size:14px; font-weight:800; color:#0f172a; margin:20px 0 12px;">Claim requests (${claims.length})</div>`;
+        html += `<div style="font-size:14px; font-weight:800; color:var(--ui-ink); margin:20px 0 12px;">Claim requests (${claims.length})</div>`;
         if (claims.length === 0) {
-            html += `<div style="text-align:center; padding:20px; color:#94a3b8; font-size:14px;">No claims waiting.</div>`;
+            html += `<div style="text-align:center; padding:20px; color:var(--ui-muted); font-size:14px;">No claims waiting.</div>`;
         } else {
             claims.forEach(c => {
                 const initial = (c.customerName || "S").charAt(0).toUpperCase();
@@ -895,8 +902,8 @@ globalBookingsUnsub.push(bookingUnsub);
                     <div class="suki-req-info">
                         <div class="suki-req-avatar" style="background:#fef9c3; color:#854d0e;">${escapeHtml(initial)}</div>
                         <div>
-                            <div style="font-size:15px; font-weight:700; color:#0f172a;">${escapeHtml(c.customerName || "Customer")} — wants to claim the reward 🎁</div>
-                            <div style="font-size:13px; color:#64748b;">Card: ${escapeHtml(c.id)}</div>
+                            <div style="font-size:15px; font-weight:700; color:var(--ui-ink);">${escapeHtml(c.customerName || "Customer")} — wants to claim the reward 🎁</div>
+                            <div style="font-size:13px; color:var(--ui-muted);">Card: ${escapeHtml(c.id)}</div>
                         </div>
                     </div>
                     <div class="suki-req-actions">
@@ -918,20 +925,20 @@ globalBookingsUnsub.push(bookingUnsub);
             const user = window.auth.currentUser;
             const snap = await window.db.collection("messages").where("placeId", "==", placeId).where("userId", "==", userId).limit(20).get();
             const batch = window.db.batch();
-            // 🔥 FIXED: Isasama na ang universal 'owner_deleted' badge 🔥
-            snap.forEach(doc => { batch.update(doc.ref, { deletedBy: firebase.firestore.FieldValue.arrayUnion(user.uid, "owner_deleted") }); });
+            // Hide only for this account; never hide another participant’s history.
+            snap.forEach(doc => { batch.update(doc.ref, { deletedBy: firebase.firestore.FieldValue.arrayUnion(user.uid) }); });
             await batch.commit();
         } catch (e) { alert("Error: " + e.message); }
     }
 
     async function deleteBooking(id) {
-        const ans = await window.vConfirm("Delete Request", "Delete this request record from your dashboard? (It will remain in the customer's history)", "Delete", true);
+        const ans = await window.vConfirm("Hide Record", "Hide this completed request from your dashboard? It remains in the customer history.", "Hide", true);
         if (!ans) return;
 
         try {
             const user = window.auth.currentUser;
-            // 🔥 FIXED: Isasama na ang universal 'owner_deleted' badge 🔥
-            await window.db.collection("bookings").doc(id).update({ deletedBy: firebase.firestore.FieldValue.arrayUnion(user.uid, "owner_deleted") });
+            // Hide only for this account; never hide another participant’s history.
+            await window.db.collection("bookings").doc(id).update({ deletedBy: firebase.firestore.FieldValue.arrayUnion(user.uid) });
         } catch (e) { alert("Error: " + e.message); }
     }
 
@@ -944,11 +951,9 @@ globalBookingsUnsub.push(bookingUnsub);
         const selCats = Array.from(document.querySelectorAll("#fgroup-category input:checked")).map(cb => cb.value);
         const selApp = Array.from(document.querySelectorAll("#fgroup-approval_status input:checked")).map(cb => cb.value);
         const selVer = Array.from(document.querySelectorAll("#fgroup-is_verified input:checked")).map(cb => cb.value);
-        const selPrem = Array.from(document.querySelectorAll("#fgroup-is_premium input:checked")).map(cb => cb.value);
-        const selFeat = Array.from(document.querySelectorAll("#fgroup-is_featured input:checked")).map(cb => cb.value);
         const selBook = Array.from(document.querySelectorAll("#fgroup-accepts_booking input:checked")).map(cb => cb.value);
 
-        const totalFilters = selCats.length + selApp.length + selVer.length + selPrem.length + selFeat.length + selBook.length;
+        const totalFilters = selCats.length + selApp.length + selVer.length + selBook.length;
 
         document.getElementById("filterCountText").textContent = totalFilters === 1 ? `1 filter applied` : `${totalFilters} filters applied`;
 
@@ -966,11 +971,9 @@ globalBookingsUnsub.push(bookingUnsub);
             const catMatch = selCats.length === 0 || selCats.includes(row.dataset.category);
             const appMatch = selApp.length === 0 || selApp.includes(row.dataset.approval);
             const verMatch = selVer.length === 0 || selVer.includes(row.dataset.verified);
-            const premMatch = selPrem.length === 0 || selPrem.includes(row.dataset.premium);
-            const featMatch = selFeat.length === 0 || selFeat.includes(row.dataset.featured);
             const bookMatch = selBook.length === 0 || selBook.includes(row.dataset.booking);
 
-            row.style.display = (textMatch && catMatch && appMatch && verMatch && premMatch && featMatch && bookMatch) ? "" : "none";
+            row.style.display = (textMatch && catMatch && appMatch && verMatch && bookMatch) ? "" : "none";
         });
     }
 
@@ -1021,9 +1024,13 @@ globalBookingsUnsub.push(bookingUnsub);
             let places = []; let totalPlaces = 0; let pendingApprovals = 0; let totalBusinessOwners = 0;
 
             placesSnap.forEach(doc => {
-                const data = doc.data(); places.push({ id: doc.id, ...data }); totalPlaces++;
+                const data = doc.data(); places.push({ ...data, id: doc.id }); totalPlaces++;
                 if (data.status === "pending" || data.approval_status === "pending") pendingApprovals++;
             });
+            await Promise.all(places.map(async place => {
+                const privateDoc = await window.db.collection('private_places').doc(place.id).get();
+                if (privateDoc.exists) place.owner_email = privateDoc.data().owner_email || '';
+            }));
             usersSnap.forEach(doc => { if (doc.data().role === "business") totalBusinessOwners++; });
 
             const totals = await window.ViciData.command("adminSummary", {});
@@ -1035,7 +1042,7 @@ globalBookingsUnsub.push(bookingUnsub);
 
             let html = `
                 <div class="dash-stats-grid">
-                    <div class="stat-card"><div class="stat-icon-wrap" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;"><i data-lucide="store" style="width: 36px; height: 36px;"></i></div><div><p class="stat-label" style="font-size: 14px;">Total Establishments</p><h3 class="stat-value" style="font-size: 28px;">${totalPlaces}</h3></div></div>
+                    <div class="stat-card"><div class="stat-icon-wrap" style="background: var(--ui-accent-soft); color:var(--ui-accent);"><i data-lucide="store" style="width: 36px; height: 36px;"></i></div><div><p class="stat-label" style="font-size: 14px;">Total Establishments</p><h3 class="stat-value" style="font-size: 28px;">${totalPlaces}</h3></div></div>
                     <div class="stat-card"><div class="stat-icon-wrap" style="background: rgba(234, 179, 8, 0.1); color: #eab308;"><i data-lucide="clock" style="width: 36px; height: 36px;"></i></div><div><p class="stat-label" style="font-size: 14px;">Pending Approvals</p><h3 class="stat-value" style="font-size: 28px;">${pendingApprovals}</h3></div></div>
                     <div class="stat-card"><div class="stat-icon-wrap" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i data-lucide="users" style="width: 36px; height: 36px;"></i></div><div><p class="stat-label" style="font-size: 14px;">Registered Owners</p><h3 class="stat-value" style="font-size: 28px;">${totalBusinessOwners}</h3></div></div>
                 </div>
@@ -1054,7 +1061,7 @@ globalBookingsUnsub.push(bookingUnsub);
                     <div class="admin-db-container">
                         <div class="admin-db-header" style="justify-content: space-between; padding: 16px;">
                             <div class="admin-db-search">
-                                <i data-lucide="search" style="width:18px; height:18px; color:#94a3b8;"></i>
+                                <i data-lucide="search" style="width:18px; height:18px; color:var(--ui-muted);"></i>
                                 <input type="text" id="adminSearchInput" style="font-size: 15px; padding: 10px;" placeholder="Search places..." oninput="window.DashboardPage.applyAdminFilters()" />
                             </div>
                             
@@ -1070,8 +1077,6 @@ globalBookingsUnsub.push(bookingUnsub);
                                         <div class="filter-sidebar custom-scrollbar">
                                             <button class="filter-tab active" onclick="window.DashboardPage.switchFilterTab('category', this)">Category <i data-lucide="chevron-right"></i></button>
                                             <button class="filter-tab" onclick="window.DashboardPage.switchFilterTab('is_verified', this)">Is verified <i data-lucide="chevron-right"></i></button>
-                                            <button class="filter-tab" onclick="window.DashboardPage.switchFilterTab('is_premium', this)">Is premium <i data-lucide="chevron-right"></i></button>
-                                            <button class="filter-tab" onclick="window.DashboardPage.switchFilterTab('is_featured', this)">Is featured <i data-lucide="chevron-right"></i></button>
                                             <button class="filter-tab" onclick="window.DashboardPage.switchFilterTab('accepts_booking', this)">Accepts booking <i data-lucide="chevron-right"></i></button>
                                             <button class="filter-tab" onclick="window.DashboardPage.switchFilterTab('approval_status', this)">Approval status <i data-lucide="chevron-right"></i></button>
                                         </div>
@@ -1094,38 +1099,13 @@ globalBookingsUnsub.push(bookingUnsub);
                                                     <label class="filter-checkbox-label"><input type="checkbox" value="false" onchange="window.DashboardPage.applyAdminFilters()"> false</label>
                                                 </div>
                                             </div>
-
-                                            <div id="fgroup-is_premium" class="fgroup-panel hidden">
-                                                <div class="fgroup-header"><span class="fgroup-title">Is premium</span><button class="btn-clear-group" onclick="window.DashboardPage.clearFilterGroup('is_premium')">Clear filter</button></div>
-                                                <div class="fgroup-list">
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="true" onchange="window.DashboardPage.applyAdminFilters()"> true</label>
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="false" onchange="window.DashboardPage.applyAdminFilters()"> false</label>
-                                                </div>
-                                            </div>
-
-                                            <div id="fgroup-is_featured" class="fgroup-panel hidden">
-                                                <div class="fgroup-header"><span class="fgroup-title">Is featured</span><button class="btn-clear-group" onclick="window.DashboardPage.clearFilterGroup('is_featured')">Clear filter</button></div>
-                                                <div class="fgroup-list">
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="true" onchange="window.DashboardPage.applyAdminFilters()"> true</label>
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="false" onchange="window.DashboardPage.applyAdminFilters()"> false</label>
-                                                </div>
-                                            </div>
-
                                             <div id="fgroup-accepts_booking" class="fgroup-panel hidden">
                                                 <div class="fgroup-header"><span class="fgroup-title">Accepts booking</span><button class="btn-clear-group" onclick="window.DashboardPage.clearFilterGroup('accepts_booking')">Clear filter</button></div>
-                                                <div class="fgroup-list">
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="true" onchange="window.DashboardPage.applyAdminFilters()"> true</label>
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="false" onchange="window.DashboardPage.applyAdminFilters()"> false</label>
-                                                </div>
+                                                <div class="fgroup-list">${['true','false'].map(value=>`<label class="filter-checkbox-label"><input type="checkbox" value="${value}" onchange="window.DashboardPage.applyAdminFilters()"> ${value}</label>`).join('')}</div>
                                             </div>
-
                                             <div id="fgroup-approval_status" class="fgroup-panel hidden">
                                                 <div class="fgroup-header"><span class="fgroup-title">Approval status</span><button class="btn-clear-group" onclick="window.DashboardPage.clearFilterGroup('approval_status')">Clear filter</button></div>
-                                                <div class="fgroup-list">
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="pending" onchange="window.DashboardPage.applyAdminFilters()"> pending</label>
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="approved" onchange="window.DashboardPage.applyAdminFilters()"> approved</label>
-                                                    <label class="filter-checkbox-label"><input type="checkbox" value="rejected" onchange="window.DashboardPage.applyAdminFilters()"> rejected</label>
-                                                </div>
+                                                <div class="fgroup-list">${['pending','approved','rejected'].map(value=>`<label class="filter-checkbox-label"><input type="checkbox" value="${value}" onchange="window.DashboardPage.applyAdminFilters()"> ${value}</label>`).join('')}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -1137,7 +1117,7 @@ globalBookingsUnsub.push(bookingUnsub);
                             </div>
                         </div>
 
-                        <div style="overflow-x: auto;">
+                        <div class="admin-table-scroll" style="overflow-x: auto;">
                             <table class="admin-db-table">
                                 <thead><tr style="font-size: 14px;"><th>Name</th><th>Category</th><th>Owner Email</th><th>Approval Status</th></tr></thead>
                                 <tbody id="adminPlacesTableBody">
@@ -1146,12 +1126,10 @@ globalBookingsUnsub.push(bookingUnsub);
                                         data-category="${(p.category || p.cat || 'default').toLowerCase()}"
                                         data-approval="${(p.approval_status || p.status || 'pending').toLowerCase()}"
                                         data-verified="${p.is_verified ? 'true' : 'false'}"
-                                        data-premium="${p.is_premium ? 'true' : 'false'}"
-                                        data-featured="${p.is_featured ? 'true' : 'false'}"
                                         data-booking="${p.accepts_booking ? 'true' : 'false'}">
-                                        <td style="font-weight: 700;">${escapeHtml(p.name || "N/A")}</td>
+                                        <td data-no-translate style="font-weight: 700;">${escapeHtml(p.name || "N/A")}</td>
                                         <td>${escapeHtml(p.category || p.cat || "N/A")}</td>
-                                        <td onclick="event.stopPropagation(); window.DashboardPage.manualAssignOwner('${p.id}', '${safeString(p.name || "Establishment")}')" style="cursor:pointer; color: ${p.owner_email ? '#3b82f6' : '#94a3b8'}; font-weight: 600;" title="Click to manually assign owner">
+                                        <td ${p.owner_email ? 'data-no-translate' : 'data-i18n="Unclaimed"'} onclick="event.stopPropagation(); window.DashboardPage.manualAssignOwner('${p.id}', '${safeString(p.name || "Establishment")}')" style="cursor:pointer; color: ${p.owner_email ? 'var(--ui-primary,#237e72)' : '#94a3b8'}; font-weight: 600;" title="Click to manually assign owner">
                                             ${escapeHtml(p.owner_email || "Unclaimed")}
                                         </td>
                                         <td><span class="status-badge status-${(p.approval_status || p.status || 'pending').toLowerCase()}">${(p.approval_status || p.status || 'pending').toUpperCase()}</span></td>
@@ -1186,10 +1164,10 @@ globalBookingsUnsub.push(bookingUnsub);
         wrap.innerHTML = `<div class="muted" style="padding:20px; font-size:15px;">Fetching users from database...</div>`;
         try {
             const snap = await window.db.collection("users").limit(20).get();
-            let html = `<div style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead><tbody>`;
             snap.forEach(doc => {
                 const u = doc.data(); const r = u.role || 'user'; const badgeClass = r === 'admin' ? 'status-accepted' : (r === 'business' ? 'status-pending' : 'status-rejected');
-                html += `<tr style="font-size: 14px;"><td style="font-weight:700;">${escapeHtml(u.fullName || 'Unknown')}</td><td style="color:#64748b;">${escapeHtml(u.email || 'No email')}</td><td><span class="status-badge ${badgeClass}">${r.toUpperCase()}${doc.id === PERMANENT_ADMIN_UID ? " • PERMANENT" : ""}</span></td><td><select ${doc.id === PERMANENT_ADMIN_UID ? 'disabled title="Permanent admin — role is locked"' : ""} onchange="window.DashboardPage.updateUserRole('${doc.id}', this.value)" style="padding:8px; border-radius:6px; border:1px solid #cbd5e1; outline:none; font-size:14px;"><option value="user" ${r === 'user' ? 'selected' : ''}>User</option><option value="business" ${r === 'business' ? 'selected' : ''}>Business</option><option value="admin" ${r === 'admin' ? 'selected' : ''}>Admin</option></select></td></tr>`;
+                html += `<tr style="font-size: 14px;"><td data-no-translate style="font-weight:700;">${escapeHtml(u.fullName || 'Unknown')}</td><td data-no-translate style="color:var(--ui-muted);">${escapeHtml(u.email || 'No email')}</td><td><span class="status-badge ${badgeClass}">${r.toUpperCase()}${doc.id === PERMANENT_ADMIN_UID ? " • PERMANENT" : ""}</span></td><td><select ${doc.id === PERMANENT_ADMIN_UID ? 'disabled title="Permanent admin — role is locked"' : ""} onchange="window.DashboardPage.updateUserRole('${doc.id}', this.value)" style="padding:8px; border-radius:6px; border:1px solid #cbd5e1; outline:none; font-size:14px;"><option value="user" ${r === 'user' ? 'selected' : ''}>User</option><option value="business" ${r === 'business' ? 'selected' : ''}>Business</option><option value="admin" ${r === 'admin' ? 'selected' : ''}>Admin</option></select></td></tr>`;
             });
             html += `</tbody></table></div>`;
             wrap.innerHTML = html;
@@ -1221,20 +1199,20 @@ globalBookingsUnsub.push(bookingUnsub);
         wrap.innerHTML = `<div class="muted" style="padding:20px; font-size:15px;">Fetching claims...</div>`;
         try {
             const snap = await window.db.collection("business_claims").orderBy("createdAt", "desc").limit(20).get();
-            let docs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            let docs = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
             if (!docs.length) {
                 wrap.innerHTML = `<div class="muted" style="padding:24px; font-size:15px;">No business claims yet.</div>`;
                 return;
             }
-            let html = `<div style="overflow-x:auto;"><table class="admin-db-table"><thead><tr style="font-size:14px;"><th>Establishment</th><th>Claimant</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x:auto;"><table class="admin-db-table"><thead><tr style="font-size:14px;"><th>Establishment</th><th>Claimant</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
             docs.forEach(c => {
                 const st = String(c.status || "pending").toLowerCase();
                 const badge = st === "approved" ? "status-accepted" : (st === "pending" ? "status-pending" : "status-rejected");
                 const date = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleDateString() : "";
                 html += `<tr style="font-size:14px;">
-                    <td style="font-weight:700;">${escapeHtml(c.placeName || "Establishment")}<div style="font-weight:500; color:#94a3b8; font-size:12px;">${escapeHtml(date)}</div></td>
-                    <td>${escapeHtml(c.userName || "User")}<div style="color:#64748b; font-size:12px;">${escapeHtml(c.userEmail || "")}</div></td>
+                    <td style="font-weight:700;">${escapeHtml(c.placeName || "Establishment")}<div style="font-weight:500; color:var(--ui-muted); font-size:12px;">${escapeHtml(date)}</div></td>
+                    <td>${escapeHtml(c.userName || "User")}<div data-no-translate style="color:var(--ui-muted); font-size:12px;">${escapeHtml(c.userEmail || "")}</div></td>
                     <td><span class="status-badge ${badge}">${escapeHtml(st.toUpperCase())}</span></td>
                     <td>${st === "pending" ? `<button onclick="window.DashboardPage.approveClaim('${c.id}')" style="background:#dcfce7; color:#166534; border:none; padding:9px 14px; border-radius:9px; font-weight:800; cursor:pointer; margin-right:6px;">Approve</button><button onclick="window.DashboardPage.rejectClaim('${c.id}')" style="background:#fee2e2; color:#991b1b; border:none; padding:9px 14px; border-radius:9px; font-weight:800; cursor:pointer;">Reject</button>` : ""}</td>
                 </tr>`;
@@ -1254,9 +1232,10 @@ globalBookingsUnsub.push(bookingUnsub);
             const claimantSnap = await window.db.collection("users").doc(c.userId).get().catch(() => null);
             const claimantRole = claimantSnap && claimantSnap.exists ? claimantSnap.data().role : null;
             const batch = window.db.batch();
+            batch.set(window.db.collection('private_places').doc(c.placeId), {owner_email:c.userEmail || '',owner_uid:c.userId}, {merge:true});
             batch.update(window.db.collection("places").doc(c.placeId), {
                 owner_uid: c.userId,
-                owner_email: c.userEmail || "",
+                owner_email: firebase.firestore.FieldValue.delete(),
                 approval_status: "approved",
                 claimStatus: "verified",
                 is_verified: true
@@ -1289,22 +1268,22 @@ globalBookingsUnsub.push(bookingUnsub);
         wrap.innerHTML = `<div class="muted" style="padding:20px; font-size:15px;">Fetching reports...</div>`;
         try {
             const snap = await window.db.collection("place_reports").orderBy("createdAt", "desc").limit(20).get();
-            let docs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            let docs = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
             docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
             if (!docs.length) {
                 wrap.innerHTML = `<div class="muted" style="padding:24px; font-size:15px;">No reports yet.</div>`;
                 return;
             }
-            let html = `<div style="overflow-x:auto;"><table class="admin-db-table"><thead><tr style="font-size:14px;"><th>Establishment</th><th>Issue</th><th>Details</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x:auto;"><table class="admin-db-table"><thead><tr style="font-size:14px;"><th>Establishment</th><th>Issue</th><th>Details</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
             docs.forEach(r => {
                 const st = String(r.status || "open").toLowerCase();
                 const badge = st === "resolved" ? "status-accepted" : (st === "dismissed" ? "status-rejected" : "status-pending");
                 html += `<tr style="font-size:14px;">
-                    <td style="font-weight:700;">${escapeHtml(r.placeName || "Establishment")}<div style="font-weight:500; color:#94a3b8; font-size:12px;">${escapeHtml(r.userName || "")}</div></td>
+                    <td style="font-weight:700;">${escapeHtml(r.placeName || "Establishment")}<div data-no-translate style="font-weight:500; color:var(--ui-muted); font-size:12px;">${escapeHtml(r.userName || "")}</div></td>
                     <td>${escapeHtml(r.issueType || "Report")}</td>
                     <td style="max-width:280px; white-space:pre-wrap;">${escapeHtml(r.details || "")}</td>
                     <td><span class="status-badge ${badge}">${escapeHtml(st.toUpperCase())}</span></td>
-                    <td>${st === "open" ? `<button onclick="window.DashboardPage.resolveReport('${r.id}')" style="background:#dcfce7; color:#166534; border:none; padding:9px 14px; border-radius:9px; font-weight:800; cursor:pointer; margin-right:6px;">Resolve</button><button onclick="window.DashboardPage.dismissReport('${r.id}')" style="background:#f1f5f9; color:#475569; border:none; padding:9px 14px; border-radius:9px; font-weight:800; cursor:pointer;">Dismiss</button>` : ""}</td>
+                    <td>${st === "open" ? `<button onclick="window.DashboardPage.resolveReport('${r.id}')" style="background:#dcfce7; color:#166534; border:none; padding:9px 14px; border-radius:9px; font-weight:800; cursor:pointer; margin-right:6px;">Resolve</button><button onclick="window.DashboardPage.dismissReport('${r.id}')" style="background:#f1f5f9; color:var(--ui-muted); border:none; padding:9px 14px; border-radius:9px; font-weight:800; cursor:pointer;">Dismiss</button>` : ""}</td>
                 </tr>`;
             });
             html += `</tbody></table></div>`;
@@ -1335,15 +1314,15 @@ globalBookingsUnsub.push(bookingUnsub);
                 wrap.innerHTML = `<div class="muted" style="padding:24px; font-size:15px;">No admin actions logged yet.</div>`;
                 return;
             }
-            let html = `<div style="overflow-x:auto;"><table class="admin-db-table"><thead><tr style="font-size:14px;"><th>When</th><th>Admin</th><th>Action</th><th>Target</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x:auto;"><table class="admin-db-table"><thead><tr style="font-size:14px;"><th>When</th><th>Admin</th><th>Action</th><th>Target</th></tr></thead><tbody>`;
             snap.forEach(doc => {
                 const a = doc.data();
                 const when = a.createdAt?.toDate ? a.createdAt.toDate().toLocaleString() : "";
                 html += `<tr style="font-size:14px;">
                     <td style="white-space:nowrap;">${escapeHtml(when)}</td>
-                    <td>${escapeHtml(a.actorEmail || a.actorUid || "")}</td>
-                    <td><span class="status-badge" style="background:#eef2ff; color:#3b82f6;">${escapeHtml(String(a.action || "").toUpperCase())}</span></td>
-                    <td>${escapeHtml(a.targetCollection || "")} ${escapeHtml(a.targetLabel || "")}<div style="color:#94a3b8; font-size:12px;">${escapeHtml(a.detail || "")}</div></td>
+                    <td data-no-translate>${escapeHtml(a.actorEmail || a.actorUid || "")}</td>
+                    <td><span class="status-badge" style="background:var(--ui-accent-soft); color:var(--ui-accent);">${escapeHtml(String(a.action || "").toUpperCase())}</span></td>
+                    <td>${escapeHtml(a.targetCollection || "")} ${escapeHtml(a.targetLabel || "")}<div style="color:var(--ui-muted); font-size:12px;">${escapeHtml(a.detail || "")}</div></td>
                 </tr>`;
             });
             html += `</tbody></table></div>`;
@@ -1359,25 +1338,32 @@ globalBookingsUnsub.push(bookingUnsub);
         try {
             const snap = await window.db.collection("buzz_posts").orderBy("createdAt", "desc").limit(20).get();
             let posts = [];
-            let html = `<div style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Author</th><th>Barangay</th><th>Content</th><th>Type</th><th>Actions</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Author</th><th>Barangay</th><th>Content</th><th>Type</th><th>Actions</th></tr></thead><tbody>`;
             snap.forEach(doc => {
                 const d = doc.data();
-                posts.push({ id: doc.id, ...d });
+                posts.push({ ...d, id: doc.id });
                 html += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('buzz_posts', '${doc.id}')">
-                    <td style="font-weight:700;">${escapeHtml(d.authorName || 'User')}</td>
+                    <td data-no-translate style="font-weight:700;">${escapeHtml(d.authorName || 'User')}</td>
                     <td>${escapeHtml(d.barangay || 'All')}</td>
-                    <td style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.body || d.title || '')}</td>
-                    <td><span class="status-badge" style="background:#eef2ff; color:#3b82f6;">${(d.type || 'general').toUpperCase()}</span></td>
+                    <td data-no-translate style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.body || d.title || '')}</td>
+                    <td><span class="status-badge" style="background:var(--ui-accent-soft); color:var(--ui-accent);">${(d.type || 'general').toUpperCase()}</span></td>
                     <td><button onclick="event.stopPropagation(); window.DashboardPage.adminDeleteRecord('buzz_posts', '${doc.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;" title="Delete Post"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button></td>
                 </tr>`;
             });
             adminData.buzz_posts = posts;
             html += `</tbody></table></div>`;
-            if (snap.size >= 20) html += `<div style="text-align:center; padding:14px;"><button onclick="window.DashboardPage.loadAdminMore('buzz_posts')" style="padding:11px 22px; border-radius:12px; border:1.5px solid #dbeafe; background:#eff6ff; color:#1d4ed8; font-weight:800; cursor:pointer;">Load more</button></div>`;
+            if (snap.size >= 20) html += `<div style="text-align:center; padding:14px;"><button onclick="window.DashboardPage.loadAdminMore('buzz_posts')" style="padding:11px 22px; border-radius:12px; border:1.5px solid var(--ui-success-bg); background:var(--ui-accent-soft); color:var(--ui-success-ink); font-weight:800; cursor:pointer;">Load more</button></div>`;
             window.__adminCursor_buzz_posts = snap.docs[snap.docs.length - 1] || null;
             wrap.innerHTML = html;
             window.debouncedIcons?.();
         } catch (e) { wrap.innerHTML = `<div style="color:red; padding:20px; font-size:15px;">Error: ${escapeHtml(e.message)}</div>`; }
+    }
+
+    function adminBookingStatusOptions(value) {
+        const status=String(value || 'unknown');
+        const labels={payment_submitted:'Payment submitted',payment_confirmed:'Payment confirmed',preparing:'Preparing',ready:'Ready',ready_for_pickup:'Ready for pickup',out_for_delivery:'Out for delivery',delivered:'Delivered',fulfilled:'Fulfilled',received:'Received',cancelled:'Cancelled',unknown:'No status recorded'};
+        const current=['pending','accepted','rejected'].includes(status)?'':`<option value="${escapeHtml(status)}" selected disabled>${escapeHtml(labels[status] || status.replace(/_/g,' '))}</option>`;
+        return current+['pending','accepted','rejected'].map(key=>`<option value="${key}"${status===key?' selected':''}>${key[0].toUpperCase()+key.slice(1)}</option>`).join('');
     }
 
     async function loadAdminBookings() {
@@ -1388,21 +1374,19 @@ globalBookingsUnsub.push(bookingUnsub);
         try {
             const snap = await window.db.collection("bookings").orderBy("createdAt", "desc").limit(20).get();
             let bks = [];
-            let html = `<div style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Place</th><th>Customer</th><th>Details</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Place</th><th>Customer</th><th>Details</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
             snap.forEach(doc => {
                 const d = doc.data();
                 if ((d.deletedBy || []).includes("admin_deleted")) return;
-                bks.push({ id: doc.id, ...d });
-                const s = d.status || 'pending';
+                bks.push({ ...d, id: doc.id });
+                const s = d.status || d.bookingStatus || 'unknown';
                 html += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('bookings', '${doc.id}')">
-                    <td style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
-                    <td style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
+                    <td data-no-translate style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
+                    <td data-no-translate style="font-weight:600; color:var(--ui-muted);">${escapeHtml(d.userName || 'N/A')}</td>
                     <td style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.details || '')}</td>
                     <td>
                         <select onclick="event.stopPropagation()" onchange="window.DashboardPage.adminUpdateBookingStatus('${doc.id}', this.value)" style="padding:8px; border-radius:6px; border:1px solid #cbd5e1; outline:none; font-size: 13px;">
-                            <option value="pending" ${s === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="accepted" ${s === 'accepted' ? 'selected' : ''}>Accepted</option>
-                            <option value="rejected" ${s === 'rejected' ? 'selected' : ''}>Rejected</option>
+                            ${adminBookingStatusOptions(s)}
                         </select>
                     </td>
                     <td><button onclick="event.stopPropagation(); window.DashboardPage.adminDeleteRecord('bookings', '${doc.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;" title="Hide Request from Admin"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button></td>
@@ -1410,7 +1394,7 @@ globalBookingsUnsub.push(bookingUnsub);
             });
             adminData.bookings = bks;
             html += `</tbody></table></div>`;
-            if (snap.size >= 20) html += `<div style="text-align:center; padding:14px;"><button onclick="window.DashboardPage.loadAdminMore('bookings')" style="padding:11px 22px; border-radius:12px; border:1.5px solid #dbeafe; background:#eff6ff; color:#1d4ed8; font-weight:800; cursor:pointer;">Load more</button></div>`;
+            if (snap.size >= 20) html += `<div style="text-align:center; padding:14px;"><button onclick="window.DashboardPage.loadAdminMore('bookings')" style="padding:11px 22px; border-radius:12px; border:1.5px solid var(--ui-success-bg); background:var(--ui-accent-soft); color:var(--ui-success-ink); font-weight:800; cursor:pointer;">Load more</button></div>`;
             window.__adminCursor_bookings = snap.docs[snap.docs.length - 1] || null;
             wrap.innerHTML = html;
             window.debouncedIcons?.();
@@ -1425,22 +1409,22 @@ globalBookingsUnsub.push(bookingUnsub);
         try {
             const snap = await window.db.collection("messages").orderBy("createdAt", "desc").limit(20).get();
             let msgs = [];
-            let html = `<div style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Place</th><th>Sender</th><th>Message</th><th>Reply</th><th>Actions</th></tr></thead><tbody>`;
+            let html = `<div class="admin-table-scroll" style="overflow-x: auto;"><table class="admin-db-table"><thead><tr style="font-size: 14px;"><th>Place</th><th>Sender</th><th>Message</th><th>Reply</th><th>Actions</th></tr></thead><tbody>`;
             snap.forEach(doc => {
                 const d = doc.data();
                 if ((d.deletedBy || []).includes("admin_deleted")) return;
-                msgs.push({ id: doc.id, ...d });
+                msgs.push({ ...d, id: doc.id });
                 html += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('messages', '${doc.id}')">
-                    <td style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
-                    <td style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
+                    <td data-no-translate style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
+                    <td data-no-translate style="font-weight:600; color:var(--ui-muted);">${escapeHtml(d.userName || 'N/A')}</td>
                     <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.text || '')}</td>
-                    <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#64748b;">${escapeHtml(d.reply || 'No reply yet')}</td>
+                    <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ui-muted);">${escapeHtml(d.reply || 'No reply yet')}</td>
                     <td><button onclick="event.stopPropagation(); window.DashboardPage.adminDeleteRecord('messages', '${doc.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;" title="Hide Message from Admin"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button></td>
                 </tr>`;
             });
             adminData.messages = msgs;
             html += `</tbody></table></div>`;
-            if (snap.size >= 20) html += `<div style="text-align:center; padding:14px;"><button onclick="window.DashboardPage.loadAdminMore('messages')" style="padding:11px 22px; border-radius:12px; border:1.5px solid #dbeafe; background:#eff6ff; color:#1d4ed8; font-weight:800; cursor:pointer;">Load more</button></div>`;
+            if (snap.size >= 20) html += `<div style="text-align:center; padding:14px;"><button onclick="window.DashboardPage.loadAdminMore('messages')" style="padding:11px 22px; border-radius:12px; border:1.5px solid var(--ui-success-bg); background:var(--ui-accent-soft); color:var(--ui-success-ink); font-weight:800; cursor:pointer;">Load more</button></div>`;
             window.__adminCursor_messages = snap.docs[snap.docs.length - 1] || null;
             wrap.innerHTML = html;
             window.debouncedIcons?.();
@@ -1465,33 +1449,31 @@ globalBookingsUnsub.push(bookingUnsub);
                 const d = doc.data();
                 if (collectionName === "buzz_posts") {
                     rows += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('buzz_posts', '${doc.id}')">
-                        <td style="font-weight:700;">${escapeHtml(d.authorName || 'User')}</td>
+                        <td data-no-translate style="font-weight:700;">${escapeHtml(d.authorName || 'User')}</td>
                         <td>${escapeHtml(d.barangay || 'All')}</td>
-                        <td style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.body || d.title || '')}</td>
-                        <td><span class="status-badge" style="background:#eef2ff; color:#3b82f6;">${(d.type || 'general').toUpperCase()}</span></td>
+                        <td data-no-translate style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.body || d.title || '')}</td>
+                        <td><span class="status-badge" style="background:var(--ui-accent-soft); color:var(--ui-accent);">${(d.type || 'general').toUpperCase()}</span></td>
                         <td><button onclick="event.stopPropagation(); window.DashboardPage.adminDeleteRecord('buzz_posts', '${doc.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;" title="Delete Post"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button></td>
                     </tr>`;
                 } else if (collectionName === "bookings") {
                     if ((d.deletedBy || []).includes("admin_deleted")) return;
-                    const s = d.status || 'pending';
+                    const s = d.status || d.bookingStatus || 'unknown';
                     rows += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('bookings', '${doc.id}')">
-                        <td style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
-                        <td style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
+                        <td data-no-translate style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
+                        <td data-no-translate style="font-weight:600; color:var(--ui-muted);">${escapeHtml(d.userName || 'N/A')}</td>
                         <td style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.details || '')}</td>
                         <td><select onclick="event.stopPropagation()" onchange="window.DashboardPage.adminUpdateBookingStatus('${doc.id}', this.value)" style="padding:8px; border-radius:6px; border:1px solid #cbd5e1; outline:none; font-size: 13px;">
-                            <option value="pending" ${s === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="accepted" ${s === 'accepted' ? 'selected' : ''}>Accepted</option>
-                            <option value="rejected" ${s === 'rejected' ? 'selected' : ''}>Rejected</option>
+                            ${adminBookingStatusOptions(s)}
                         </select></td>
                         <td><button onclick="event.stopPropagation(); window.DashboardPage.adminDeleteRecord('bookings', '${doc.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;" title="Hide Request from Admin"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button></td>
                     </tr>`;
                 } else if (collectionName === "messages") {
                     if ((d.deletedBy || []).includes("admin_deleted")) return;
                     rows += `<tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('messages', '${doc.id}')">
-                        <td style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
-                        <td style="font-weight:600; color: #475569;">${escapeHtml(d.userName || 'N/A')}</td>
+                        <td data-no-translate style="font-weight:700;">${escapeHtml(d.placeName || 'N/A')}</td>
+                        <td data-no-translate style="font-weight:600; color:var(--ui-muted);">${escapeHtml(d.userName || 'N/A')}</td>
                         <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.text || '')}</td>
-                        <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#64748b;">${escapeHtml(d.reply || 'No reply yet')}</td>
+                        <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ui-muted);">${escapeHtml(d.reply || 'No reply yet')}</td>
                         <td><button onclick="event.stopPropagation(); window.DashboardPage.adminDeleteRecord('messages', '${doc.id}')" style="background:#fef2f2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;" title="Hide Message from Admin"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button></td>
                     </tr>`;
                 }
@@ -1567,7 +1549,7 @@ async function updateBookingStatus(id, stat) {
 
         // 🛵 DELIVERY SMART FLOW FROM DASHBOARD:
         // If owner accepts a Delivery Order from dashboard, auto-create the delivery details card in chat.
-        if (stat === "accepted" && requestType === "delivery_order") {
+        if (stat === "accepted" && requestType === "delivery_order" && bookingData.paymentFlowVersion !== 2) {
             const existingDeliveryReq = await window.db.collection("messages").where("placeId", "==", bookingData.placeId)
                 .where("type", "==", "requirement_request")
                 .where("bookingId", "==", id)
@@ -1582,10 +1564,11 @@ async function updateBookingStatus(id, stat) {
                     "GCash",
                     "Maya",
                     "Bank Transfer",
+                    "Others",
                     "Cash on Delivery if allowed"
                 ].filter(Boolean)));
 
-                await window.db.collection("messages").add({
+                await window.ContentPolicy.create(window.db, 'messages', {
                     placeId: bookingData.placeId,
                     placeName: bookingData.placeName,
                     userId: bookingData.userId,
@@ -1598,7 +1581,7 @@ async function updateBookingStatus(id, stat) {
                     requirements: {
                         address: true,
                         location: true,
-                        payment: true,
+                        payment: false,
                         orderDetails: true
                     },
                     prefillAddress: bookingData.deliveryAddress || "",
@@ -1675,13 +1658,13 @@ async function updateBookingStatus(id, stat) {
             overlay.style.justifyContent = "center";
 
             overlay.innerHTML = `
-                <div style="background: white; padding: 24px; border-radius: 16px; width: 90%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-                    <h3 style="margin-top: 0; color: #0f172a; font-size: 18px; margin-bottom: 8px;">Assign Owner</h3>
-                    <p style="font-size: 14px; color: #64748b; margin-bottom: 16px; line-height: 1.5;">Assigning owner for: <strong style="color:#0f172a;">${escapeHtml(placeName)}</strong><br><br>Enter user's registered email address:</p>
+                <div style="background:var(--ui-surface); padding: 24px; border-radius: 16px; width: 90%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                    <h3 style="margin-top: 0; color:var(--ui-ink); font-size: 18px; margin-bottom: 8px;">Assign Owner</h3>
+                    <p style="font-size: 14px; color:var(--ui-muted); margin-bottom: 16px; line-height: 1.5;">Assigning owner for: <strong data-no-translate style="color:var(--ui-ink);">${escapeHtml(placeName)}</strong><br><br>Enter user's registered email address:</p>
                     <input type="email" id="assignEmailInput" placeholder="user@example.com" autocomplete="off" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; font-family: inherit; font-size: 14px;" />
                     <div style="display: flex; gap: 10px;">
-                        <button id="assignCancelBtn" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #f1f5f9; color: #475569; font-weight: bold; cursor: pointer;">Cancel</button>
-                        <button id="assignConfirmBtn" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #3b82f6; color: white; font-weight: bold; cursor: pointer;">Assign</button>
+                        <button id="assignCancelBtn" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #f1f5f9; color:var(--ui-muted); font-weight: bold; cursor: pointer;">Cancel</button>
+                        <button id="assignConfirmBtn" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: var(--ui-primary,#237e72); color: white; font-weight: bold; cursor: pointer;">Assign</button>
                     </div>
                 </div>
             `;
@@ -1724,13 +1707,13 @@ async function updateBookingStatus(id, stat) {
             batch.update(userRef, userUpdate);
 
             const placeRef = window.db.collection("places").doc(placeId);
+            batch.set(window.db.collection('private_places').doc(placeId), {owner_email:targetEmail.toLowerCase().trim(),owner_uid:userUid}, {merge:true});
             batch.update(placeRef, { 
                 owner_uid: userUid,
-                owner_email: targetEmail.toLowerCase().trim(),
+                owner_email: firebase.firestore.FieldValue.delete(),
                 approval_status: "approved",
                 claimStatus: "verified",
-                is_verified: true,
-                is_premium: true 
+                is_verified: true
             });
 
             await batch.commit();
@@ -1768,9 +1751,9 @@ const currentCat = data.category || data.cat || "default";
 
 panelTitle.textContent = "Edit Establishment";
             formHtml += `
-                <div class="admin-field"><label>name</label><div class="sub-label">Establishment name</div><input type="text" id="dynName" value="${escapeHtml(data.name || '')}" style="font-size: 15px; padding: 12px;"/></div>
+                <div class="admin-field"><label>Name</label><div class="sub-label">Establishment name</div><input type="text" id="dynName" value="${escapeHtml(data.name || '')}" style="font-size: 15px; padding: 12px;"/></div>
                 
-                <div class="admin-field"><label>category</label><div class="sub-label">Type of establishment</div>
+                <div class="admin-field"><label>Category</label><div class="sub-label">Type of establishment</div>
                     <select id="dynCat" style="font-size: 15px; padding: 12px;">
                         <option value="restaurant" ${currentCat === 'restaurant' ? 'selected' : ''}>Restaurant</option>
 <option value="cafe" ${currentCat === 'cafe' ? 'selected' : ''}>Café</option>
@@ -1784,11 +1767,11 @@ panelTitle.textContent = "Edit Establishment";
 <option value="default" ${currentCat === 'default' ? 'selected' : ''}>Default</option>
                     </select>
                 </div>
-                <div class="admin-field"><label>description</label><div class="sub-label">Short description</div><input type="text" id="dynDesc" value="${escapeHtml(data.description || data.desc || '')}" style="font-size: 15px; padding: 12px;"/></div>
-                <div class="admin-field"><label>address</label><div class="sub-label">Street address in Lipa City</div><input type="text" id="dynAddr" value="${escapeHtml(data.address || data.addr || '')}" style="font-size: 15px; padding: 12px;"/></div>
-                <div class="admin-field"><label>barangay</label><div class="sub-label">Barangay location</div><input type="text" id="dynBrgy" value="${escapeHtml(data.barangay || data.brgy || '')}" style="font-size: 15px; padding: 12px;"/></div>
-                <div class="admin-field"><label>owner_email</label><div class="sub-label">Business owner email</div><input type="text" id="dynEmail" value="${escapeHtml(data.owner_email || '')}" placeholder="Enter user's email..." style="font-size: 15px; padding: 12px;"/></div>
-                <div class="admin-field"><label>approval_status</label>
+                <div class="admin-field"><label>Description</label><div class="sub-label">Short description</div><input type="text" id="dynDesc" value="${escapeHtml(data.description || data.desc || '')}" style="font-size: 15px; padding: 12px;"/></div>
+                <div class="admin-field"><label>Address</label><div class="sub-label">Street address in Lipa City</div><input type="text" id="dynAddr" value="${escapeHtml(data.address || data.addr || '')}" style="font-size: 15px; padding: 12px;"/></div>
+                <div class="admin-field"><label>Barangay</label><div class="sub-label">Barangay location</div><input type="text" id="dynBrgy" value="${escapeHtml(data.barangay || data.brgy || '')}" style="font-size: 15px; padding: 12px;"/></div>
+                <div class="admin-field"><label>Owner Email</label><div class="sub-label">Business owner email</div><input type="text" id="dynEmail" value="${escapeHtml(data.owner_email || '')}" placeholder="Enter user's email..." style="font-size: 15px; padding: 12px;"/></div>
+                <div class="admin-field"><label>Approval status</label>
                     <select id="dynApproval" style="font-size: 15px; padding: 12px;">
                         <option value="pending" ${(data.approval_status || data.status) === 'pending' ? 'selected' : ''}>pending</option>
                         <option value="approved" ${(data.approval_status || data.status) === 'approved' ? 'selected' : ''}>approved</option>
@@ -1796,13 +1779,11 @@ panelTitle.textContent = "Edit Establishment";
                     </select>
                 </div>
                 <div class="admin-checkbox-field"><div><label style="font-size: 15px;">is_verified</label><div class="sub-label">Verified by admin</div></div><input type="checkbox" id="dynVerified" ${data.is_verified ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
-                <div class="admin-checkbox-field"><div><label style="font-size: 15px;">is_premium</label><div class="sub-label">Premium business listing</div></div><input type="checkbox" id="dynPremium" ${data.is_premium ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
-                <div class="admin-checkbox-field"><div><label style="font-size: 15px;">is_featured</label><div class="sub-label">Featured on map</div></div><input type="checkbox" id="dynFeatured" ${data.is_featured ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
                 <div class="admin-checkbox-field"><div><label style="font-size: 15px;">accepts_booking</label><div class="sub-label">Allow customers to book</div></div><input type="checkbox" id="dynBooking" ${data.accepts_booking ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
 
                 <div class="admin-checkbox-field"><div><label style="font-size: 15px;">delivery_grab</label><div class="sub-label">Available on Grab/Foodpanda</div></div><input type="checkbox" id="dynGrab" ${data.delivery_grab ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
                 <div class="admin-checkbox-field"><div><label style="font-size: 15px;">delivery_inhouse</label><div class="sub-label">Has in-house delivery</div></div><input type="checkbox" id="dynInHouse" ${data.delivery_inhouse ? 'checked' : ''} style="width: 20px; height: 20px;"></div>
-                <div class="admin-field"><label>delivery_radius</label><div class="sub-label">Delivery distance in km (e.g. 5)</div><input type="number" id="dynRadius" value="${escapeHtml(data.delivery_radius || '')}" style="font-size: 15px; padding: 12px;"/></div>
+                <div class="admin-field"><label>Delivery Radius (km)</label><div class="sub-label">Delivery distance in km (e.g. 5)</div><input type="number" id="dynRadius" value="${escapeHtml(data.delivery_radius || '')}" style="font-size: 15px; padding: 12px;"/></div>
             `;
         }
         else if (type === 'buzz_posts') {
@@ -1810,8 +1791,8 @@ panelTitle.textContent = "Edit Establishment";
             if (!data) return;
             panelTitle.textContent = "Edit BuzzPost";
             formHtml += `
-                <div class="admin-field"><label>content</label><div class="sub-label">Post content / text</div><textarea id="dynBody" rows="4" style="font-size: 15px; padding: 12px;">${escapeHtml(data.body || data.title || '')}</textarea></div>
-                <div class="admin-field"><label>post_type</label><div class="sub-label">Type of post</div>
+                <div class="admin-field"><label>Content</label><div class="sub-label">Post content / text</div><textarea id="dynBody" rows="4" style="font-size: 15px; padding: 12px;">${escapeHtml(data.body || data.title || '')}</textarea></div>
+                <div class="admin-field"><label>Post type</label><div class="sub-label">Type of post</div>
                     <select id="dynType" style="font-size: 15px; padding: 12px;">
                         <option value="promo" ${data.type === 'promo' ? 'selected' : ''}>promo</option>
                         <option value="event" ${data.type === 'event' ? 'selected' : ''}>event</option>
@@ -1820,8 +1801,8 @@ panelTitle.textContent = "Edit Establishment";
                         <option value="general" ${(data.type === 'general' || !data.type) ? 'selected' : ''}>general</option>
                     </select>
                 </div>
-                <div class="admin-field"><label>barangay</label><div class="sub-label">Barangay/area this post belongs to</div><input type="text" id="dynBrgy" value="${escapeHtml(data.barangay || '')}" style="font-size: 15px; padding: 12px;"></div>
-                <div class="admin-field"><label>author_name</label><div class="sub-label">Display name of poster</div><input type="text" id="dynAuthor" value="${escapeHtml(data.authorName || '')}" style="font-size: 15px; padding: 12px;"></div>
+                <div class="admin-field"><label>Barangay</label><div class="sub-label">Barangay/area this post belongs to</div><input type="text" id="dynBrgy" value="${escapeHtml(data.barangay || '')}" style="font-size: 15px; padding: 12px;"></div>
+                <div class="admin-field"><label>Author</label><div class="sub-label">Display name of poster</div><input type="text" id="dynAuthor" value="${escapeHtml(data.authorName || '')}" style="font-size: 15px; padding: 12px;"></div>
             `;
         }
         else if (type === 'bookings') {
@@ -1829,8 +1810,8 @@ panelTitle.textContent = "Edit Establishment";
             if (!data) return;
             panelTitle.textContent = "Edit Booking";
             formHtml += `
-                <div class="admin-field"><label>customer_name</label><input type="text" id="dynCustomer" value="${escapeHtml(data.userName || '')}" style="font-size: 15px; padding: 12px;"></div>
-                <div class="admin-field"><label>booking_details</label><div class="sub-label">Date, time, and service notes</div><textarea id="dynDetails" rows="5" style="font-size: 15px; padding: 12px;">${escapeHtml(data.details || '')}</textarea></div>
+                <div class="admin-field"><label>Customer</label><input type="text" id="dynCustomer" value="${escapeHtml(data.userName || '')}" style="font-size: 15px; padding: 12px;"></div>
+                <div class="admin-field"><label>Request details</label><div class="sub-label">Date, time, and service notes</div><textarea id="dynDetails" rows="5" style="font-size: 15px; padding: 12px;">${escapeHtml(data.details || '')}</textarea></div>
                 <div class="admin-field"><label>status</label>
                     <select id="dynStatus" style="font-size: 15px; padding: 12px;">
                         <option value="pending" ${data.status === 'pending' ? 'selected' : ''}>pending</option>
@@ -1845,9 +1826,9 @@ panelTitle.textContent = "Edit Establishment";
             if (!data) return;
             panelTitle.textContent = "Edit Message Thread";
             formHtml += `
-                <div class="admin-field"><label>sender_name</label><div class="sub-label">Display name of the sender</div><input type="text" id="dynSender" value="${escapeHtml(data.userName || '')}" style="font-size: 15px; padding: 12px;"></div>
-                <div class="admin-field"><label>content</label><div class="sub-label">Message text from customer</div><textarea id="dynText" rows="4" style="font-size: 15px; padding: 12px;">${escapeHtml(data.text || '')}</textarea></div>
-                <div class="admin-field"><label>owner_reply</label><div class="sub-label">Reply from the business owner</div><textarea id="dynReply" rows="4" style="font-size: 15px; padding: 12px;">${escapeHtml(data.reply || '')}</textarea></div>
+                <div class="admin-field"><label>Sender</label><div class="sub-label">Display name of the sender</div><input type="text" id="dynSender" value="${escapeHtml(data.userName || '')}" style="font-size: 15px; padding: 12px;"></div>
+                <div class="admin-field"><label>Content</label><div class="sub-label">Message text from customer</div><textarea id="dynText" rows="4" style="font-size: 15px; padding: 12px;">${escapeHtml(data.text || '')}</textarea></div>
+                <div class="admin-field"><label>Reply from the business owner</label><div class="sub-label">Reply from the business owner</div><textarea id="dynReply" rows="4" style="font-size: 15px; padding: 12px;">${escapeHtml(data.reply || '')}</textarea></div>
             `;
         }
 
@@ -1919,8 +1900,6 @@ if (description.length < 10) {
         brgy: barangay,
 
         is_verified: document.getElementById("dynVerified").checked,
-        is_premium: document.getElementById("dynPremium").checked,
-        is_featured: document.getElementById("dynFeatured").checked,
         accepts_booking: document.getElementById("dynBooking").checked,
         approval_status: document.getElementById("dynApproval").value,
 
@@ -1932,7 +1911,7 @@ if (description.length < 10) {
     };
 
     const ownerEmailInput = document.getElementById("dynEmail").value.trim();
-    updateData.owner_email = ownerEmailInput || null;
+    updateData.owner_email = firebase.firestore.FieldValue.delete();
 
     if (ownerEmailInput) {
         try {
@@ -1979,7 +1958,16 @@ if (description.length < 10) {
         }
 
         try {
-            await window.db.collection(type).doc(id).update(updateData);
+            if (type === 'places') {
+                const batch = window.db.batch();
+                batch.update(window.db.collection(type).doc(id), updateData);
+                batch.set(window.db.collection('private_places').doc(id), {
+                    owner_email:document.getElementById('dynEmail').value.trim() || null,
+                    owner_uid:updateData.owner_uid || adminData.places.find(p=>p.id===id)?.owner_uid || null
+                }, {merge:true});
+                await batch.commit();
+            } else if(type==='messages') await window.ContentPolicy.updateMessage(window.db,window.db.collection(type).doc(id),updateData);
+            else await window.db.collection(type).doc(id).update(updateData);
             alert("Record successfully updated!");
             closeSidePanel();
 
@@ -2018,7 +2006,7 @@ if (description.length < 10) {
             enabled: !!place.suki_enabled,
             template: place.suki_template || "custom",
             colorMode: place.suki_color_mode === "gradient" ? "gradient" : "solid",
-            color: place.suki_color || cat.color || "#f59e0b",
+            color: /^#[0-9a-f]{6}$/i.test(place.suki_color || '') ? place.suki_color : '#237e72',
             gradId: place.suki_gradient || "sunset",
             gradFrom: place.suki_gradient_from || "",
             gradTo: place.suki_gradient_to || "",
@@ -2037,7 +2025,7 @@ if (description.length < 10) {
         const tplWrap = document.getElementById("sukiTemplateChips");
         if (tplWrap) {
             tplWrap.innerHTML = Object.entries(D.TEMPLATES).map(([id, t]) =>
-                `<button type="button" class="suki-chip" data-suki-template="${id}">${escapeHtml(t.label)}</button>`).join("");
+                `<button type="button" class="suki-chip suki-template-option" data-suki-template="${id}"><span class="suki-template-swatch" style="background:${t.colorMode==='gradient'?`linear-gradient(135deg,${t.gradFrom},${t.gradTo})`:t.color}"><span></span><span></span><span></span><span></span></span><strong>${escapeHtml(t.label)}</strong></button>`).join("");
             tplWrap.querySelectorAll("[data-suki-template]").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const t = D.TEMPLATES[btn.dataset.sukiTemplate];
@@ -2112,7 +2100,13 @@ if (description.length < 10) {
         if (!d) return;
         document.getElementById("sukiEnabled").checked = d.enabled;
         const body = document.getElementById("sukiStudioBody");
-        if (body) body.style.display = d.enabled ? "" : "none";
+        // The editor must stay accessible even before the owner enables the card.
+        // Previously, turning the card off hid every editing field.
+        if (body) body.style.display = "";
+        const enabledHelp = document.getElementById("sukiEnabledHelp");
+        if (enabledHelp) enabledHelp.textContent = d.enabled
+            ? "The card is enabled for customers. Customize it and save your changes."
+            : "The card is currently off for customers. You can still edit and save its design.";
         document.querySelectorAll("#sukiTemplateChips [data-suki-template]").forEach(b => b.classList.toggle("active", b.dataset.sukiTemplate === d.template));
         document.getElementById("sukiColorModeSolid").classList.toggle("active", d.colorMode === "solid");
         document.getElementById("sukiColorModeGradient").classList.toggle("active", d.colorMode === "gradient");
@@ -2125,6 +2119,7 @@ if (description.length < 10) {
         document.getElementById("sukiGradTo").value = d.gradTo || (preset ? preset.to : "#ef4444");
         document.querySelectorAll("#sukiPatternChips [data-suki-pattern]").forEach(b => b.classList.toggle("active", b.dataset.sukiPattern === d.pattern));
         document.querySelectorAll("#sukiIconChips [data-suki-icon]").forEach(b => b.classList.toggle("active", b.dataset.sukiIcon === d.icon));
+        document.querySelectorAll('#sukiStudioBody .suki-chip').forEach(button=>button.setAttribute('aria-pressed',String(button.classList.contains('active'))));
         document.getElementById("sukiStampCount").value = d.stampCount;
         document.getElementById("sukiReward").value = d.reward;
         window.debouncedIcons?.();
@@ -2211,13 +2206,17 @@ if (description.length < 10) {
     }
 
     // =====================================
-    function openPremiumBizPortal(id) {
+    function openBusinessPortal(id) {
         const place = currentAdminPlaces.find(p => p.id === id);
         if (!place) return;
         document.getElementById("bizPortalId").value = place.id;
         document.getElementById("bizPortalName").value = place.name || "";
         document.getElementById("bizPortalCat").value = place.category || place.cat || "restaurant";
         document.getElementById("bizPortalDesc").value = place.description || place.desc || "";
+        window.PlaceFeatures?.renderForm(document.getElementById("bizPortalFeatures"), place.place_features || {});
+        document.getElementById('bizAutoReplies').checked=place.auto_reply_enabled===true;
+        for(const [topic,suffix] of Object.entries({menu:'Menu',hours:'Hours',delivery:'Delivery',booking:'Booking'}))
+            document.getElementById('bizAuto'+suffix).value=place.auto_reply_answers?.[topic] || '';
         document.getElementById("bizPortalAddress").value = place.address || place.addr || "";
         document.getElementById("bizPortalPhone").value = place.contact_phone || place.phone || "";
         document.getElementById("bizPortalEmail").value = place.contact_email || "";
@@ -2227,7 +2226,7 @@ if (description.length < 10) {
         const bizPriceEl = document.getElementById("bizPortalPriceRange");
         if (bizPriceEl) bizPriceEl.value = place.priceRange || "";
 
-        // Sa loob ng openPremiumBizPortal function:
+        // Sa loob ng openBusinessPortal function:
         document.getElementById("bizGrab").checked = place.delivery_grab || false;
         document.getElementById("bizInHouse").checked = place.delivery_inhouse || false;
         document.getElementById("bizRadius").value = place.delivery_radius || "";
@@ -2316,55 +2315,102 @@ if (description.length < 10) {
     }
 
     // 🔥 SUKI CARD STUDIO — sariling page, hiwalay sa Edit Establishment 🔥
-    function openSukiStudio(id) {
-        const place = currentAdminPlaces.find(p => p.id === id);
-        if (!place) return;
+    async function openSukiStudio(id) {
+        let place = currentAdminPlaces.find(p => p.id === id);
+        // The public establishment page can open before the Business Hub
+        // has loaded currentAdminPlaces. Resolve the place by ID instead of
+        // silently ignoring the Edit Suki Card button.
+        if (!place) {
+            try {
+                const snap = await window.db.collection('places').doc(id).get();
+                if (!snap.exists) throw new Error('Establishment not found.');
+                place = { ...snap.data(), id: snap.id };
+                if (!canManagePlaceData(place)) throw new Error('Only the owner or an admin can edit this Suki Card.');
+                currentAdminPlaces.push(place);
+            } catch (error) {
+                window.showToast?.(error.message || 'Could not open Suki Card Studio.', 'error');
+                return;
+            }
+        } else if (!canManagePlaceData(place)) {
+            window.showToast?.('Only the owner or an admin can edit this Suki Card.', 'error');
+            return;
+        }
         document.getElementById("sukiStudioPlaceId").value = place.id;
         document.getElementById("sukiStudioPlaceName").textContent = place.name || "";
+        const status = document.getElementById("sukiStudioSaveStatus");
+        if (status) { status.textContent = ""; status.dataset.state = "idle"; status.hidden = true; }
         sukiStudioInit(place);
         window.debouncedIcons?.();
         showPage("page-suki-studio");
     }
 
-    async function saveSukiStudio() {
-        const id = document.getElementById("sukiStudioPlaceId").value;
-        const btn = document.getElementById("saveSukiStudioBtn");
-        if (!id) { alert("No establishment selected."); return; }
-        const allowed = await canManagePlaceId(id);
-        if (!allowed) {
-            alert("Only the owner or an admin can edit the Suki Card.");
-            return;
-        }
-        btn.textContent = "Saving..."; btn.disabled = true;
-        const sd = sukiReadStudioToDraft();
-        const updateData = {
-            suki_enabled: sd.enabled,
-            suki_stamp_count: sd.stampCount,
-            suki_reward: sd.reward,
-            suki_icon: sd.icon,
-            suki_template: sd.template,
-            suki_color_mode: sd.colorMode,
-            suki_color: sd.color,
-            suki_gradient: sd.gradId,
-            suki_gradient_from: sd.gradFrom,
-            suki_gradient_to: sd.gradTo,
-            suki_pattern: sd.pattern,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        try {
-            await window.db.collection("places").doc(id).update(updateData);
-            const idx = currentAdminPlaces.findIndex(p => p.id === id);
-            if (idx >= 0) currentAdminPlaces[idx] = { ...currentAdminPlaces[idx], ...updateData };
-            alert("Suki Card saved!");
-            showPage("page-dashboard");
-            render();
-            window.MapPage?.refresh?.();
-        }
-        catch (error) { window.handleFirestoreError(error); alert("Error saving: " + error.message); }
-        finally { btn.innerHTML = `<i data-lucide="save" style="width: 16px; height: 16px;"></i> Save`; window.debouncedIcons?.(); btn.disabled = false; }
+    let sukiSaving = false;
+    function setSukiSaving(value) {
+        sukiSaving = value;
+        ["saveSukiStudioBtn"].forEach(id => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.disabled = value;
+            btn.setAttribute("aria-busy", String(value));
+            btn.innerHTML = value
+                ? '<i data-lucide="loader-circle"></i> Saving...'
+                : '<i data-lucide="save"></i> Save Changes';
+        });
+        window.debouncedIcons?.();
     }
 
-    async function savePremiumBizPortal() {
+    async function saveSukiStudio() {
+        if (sukiSaving) return;
+        const id = document.getElementById("sukiStudioPlaceId")?.value;
+        const status = document.getElementById("sukiStudioSaveStatus");
+        if (!id || !sukiDraft) {
+            if (status) { status.hidden = false; status.textContent = "Choose an establishment first."; status.dataset.state = "error"; }
+            window.showToast?.("No establishment selected.", "error");
+            return;
+        }
+        // Save the exact field names already used by Firebase; no schema or DB migration.
+        setSukiSaving(true);
+        if (status) { status.hidden = false; status.textContent = "Saving to Firebase..."; status.dataset.state = "saving"; }
+        try {
+            if (!(await canManagePlaceId(id))) {
+                throw new Error("Only the owner or an admin can edit the Suki Card.");
+            }
+            const sd = sukiReadStudioToDraft();
+            const updateData = {
+                suki_enabled: sd.enabled,
+                suki_stamp_count: sd.stampCount,
+                suki_reward: sd.reward,
+                suki_icon: sd.icon,
+                suki_template: sd.template,
+                suki_color_mode: sd.colorMode,
+                suki_color: sd.color,
+                suki_gradient: sd.gradId,
+                suki_gradient_from: sd.gradFrom,
+                suki_gradient_to: sd.gradTo,
+                suki_pattern: sd.pattern,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            await window.db.collection("places").doc(id).update(updateData);
+            // Public place listings cache the old suki_enabled/configuration.
+            // Invalidate immediately so returning to the map uses the saved card.
+            window.invalidatePlacesCache?.();
+            const idx = currentAdminPlaces.findIndex(p => p.id === id);
+            if (idx >= 0) currentAdminPlaces[idx] = { ...currentAdminPlaces[idx], ...updateData };
+            if (sukiStudioPlace?.id === id) sukiStudioPlace = { ...sukiStudioPlace, ...updateData };
+            if (status) { status.textContent = "Saved successfully! Your Suki Card changes are now in Firebase."; status.dataset.state = "success"; }
+            window.showToast?.("Suki Card saved!", "success");
+            // Stay in the editor so the owner can verify or edit the card again.
+            // The dashboard refreshes on return via showPage('page-dashboard').
+        } catch (error) {
+            if (status) { status.textContent = "Save failed: " + (error?.message || "Please try again."); status.dataset.state = "error"; }
+            window.handleFirestoreError?.(error, "Could not save Suki Card.");
+            console.error("Suki Card save failed:", error);
+        } finally {
+            setSukiSaving(false);
+        }
+    }
+
+    async function saveBusinessPortal() {
         const id = document.getElementById("bizPortalId").value;
         const btn = document.getElementById("saveBizPortalBtn");
 
@@ -2396,11 +2442,21 @@ if (description.length < 10) {
             return;
         }
 
+        const autoAnswers={};
+        for(const [topic,suffix] of Object.entries({menu:'Menu',hours:'Hours',delivery:'Delivery',booking:'Booking'})){
+            const value=document.getElementById('bizAuto'+suffix).value.trim();
+            const error=value && window.ContentPolicy.error('post',value);
+            if(error)return window.alert(error);
+            autoAnswers[topic]=value;
+        }
         btn.textContent = "Saving..."; btn.disabled = true;
-
+        try {
 let updateData = {
+    auto_reply_enabled:document.getElementById('bizAutoReplies').checked,
+    auto_reply_answers:autoAnswers,
     name,
 
+    ...(window.PlaceFeatures && document.getElementById("bizPortalFeatures") ? { place_features: window.PlaceFeatures.readForm(document.getElementById("bizPortalFeatures")) } : {}),
     // standard fields
     category,
     description,
@@ -2454,8 +2510,9 @@ let updateData = {
             updateData.logoUrl = await window.uploadImageFileToStorage(logoInputEl.files[0], `place_logos/${id}`, { maxWidth: 512, quality: 0.85 });
         }
 
-        try {
             await window.db.collection("places").doc(id).update(updateData);
+            myPlacesCache=null;myPlacesCacheAt=0;
+            window.invalidatePlacesCache?.();
             alert("Business Profile Updated Successfully!");
             showPage("page-dashboard");
             render();
@@ -2469,11 +2526,8 @@ let updateData = {
     function openBizPosts(id) {
         const place = currentAdminPlaces.find(p => p.id === id);
         if (!place) return;
-        document.getElementById("bizPostsPlaceId").value = place.id;
-        document.getElementById("bizPostsPlaceName").textContent = place.name || "";
-        listenToBizPosts(id);
-        window.debouncedIcons?.();
-        showPage("page-biz-posts");
+        // Posts are managed in their public establishment context.
+        window.viewPlace?.(id);
     }
 
     function openAddPostFromPosts() {
@@ -2497,11 +2551,11 @@ let updateData = {
             .limit(15)
             .onSnapshot(snap => {
                 if (snap.empty) {
-                    wrap.innerHTML = `<div style="text-align:center; padding: 40px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; color: #64748b; font-size: 15px;">No posts for this establishment yet. Click "Add Post" to upload a menu or promo!</div>`;
+                    wrap.innerHTML = `<div style="text-align:center; padding: 40px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; color:var(--ui-muted); font-size: 15px;">No posts for this establishment yet. Use Add Post for announcements and promos. Manage menu separately from the Menu tab.</div>`;
                     return;
                 }
 
-               let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+               let docs = snap.docs.map(d => ({ ...d.data(), id: d.id }))
     .filter(d => {
         const del = d.deletedBy || [];
 
@@ -2520,10 +2574,10 @@ let updateData = {
                     let imgHtml = safeMediaUrl ? `<img src="${escapeHtml(safeMediaUrl)}" style="width: 120px; height: 120px; border-radius: 8px; object-fit: cover; margin-left: 16px; border: 1px solid #e2e8f0;" loading="lazy" />` : "";
 
                     html += `
-                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                    <div style="background:var(--ui-surface); border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
                         <div style="flex: 1;">
-                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 8px;">${dateStr}</div>
-                            <div style="font-size: 16px; color: #1e293b; white-space: pre-wrap; line-height: 1.5;">${escapeHtml(d.body)}</div>
+                            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color:var(--ui-muted); margin-bottom: 8px;">${dateStr}</div>
+                            <div data-no-translate style="font-size: 16px; color:var(--ui-ink); white-space: pre-wrap; line-height: 1.5;">${escapeHtml(d.body)}</div>
                         </div>
                         ${imgHtml}
                         <button onclick="window.DashboardPage.deletePlacePost('${d.id}')" style="margin-left: 20px; background: #fee2e2; color: #ef4444; border: none; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; align-self: flex-start; transition: 0.2s;" title="Delete Post">
@@ -2565,7 +2619,7 @@ let updateData = {
         const dashIcon = document.querySelector(".dash-pro-icon");
        if (dashTitle && dashSub) {
             if (getRole() === "admin") { 
-                dashTitle.textContent = "Admin Panel"; 
+                dashTitle.textContent = "Admin Hub";
                 dashSub.textContent = "Manage establishments, users, posts, claims, and reports in one place."; 
                 if (dashIcon) dashIcon.innerHTML = '<i data-lucide="database" style="color: white; width: 24px; height: 24px;"></i>'; 
             } else if (getRole() === "user") {
@@ -2584,7 +2638,7 @@ let updateData = {
 
     document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("closePanelBtn")?.addEventListener("click", closeSidePanel);
-        document.getElementById("saveBizPortalBtn")?.addEventListener("click", savePremiumBizPortal);
+        document.getElementById("saveBizPortalBtn")?.addEventListener("click", saveBusinessPortal);
 
         // Handle Popover / Overlay Clicks
         document.addEventListener("click", (e) => {
@@ -2642,7 +2696,18 @@ let updateData = {
         try { window.SettingsPage?.stopAllListeners?.(); } catch (e) {}
     }
 
+    function resetSession() {
+        stopAllListeners();
+        adminSnapCache = null; adminSnapAt = 0;
+        myPlacesCache = null; myPlacesCacheUid = null; myPlacesCacheAt = 0;
+        currentAdminPlaces = []; adminData = {places:[],buzz_posts:[],bookings:[],messages:[]};
+        bookingMap.clear(); messageMap.clear();
+        ['pendingList','myEstablishments','biz-panel-bookings','biz-panel-messages','biz-panel-suki','myBookingsList','myChatsList'].forEach(id=>{const el=document.getElementById(id);if(el)el.replaceChildren();});
+        const overlay = document.getElementById('adminSidePanelOverlay');
+        if(overlay) { overlay.classList.remove('show'); overlay.classList.add('hidden'); overlay.querySelector('.panel-body')?.replaceChildren(); }
+    }
     return {
+        resetSession,
         render,
         updateBookingStatus,
         deleteBooking,

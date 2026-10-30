@@ -1,15 +1,39 @@
-const CACHE_NAME = "vicinify-repair-20261026-1";
+const CACHE_NAME = "vicinify-ui-VICI_ef3401485f7584b3";
 const APP_SHELL = [
     "./",
     "./index.html",
-    "./css/style.css",
-    "./js/common.js",
-    "./js/data.js",
-    "./js/map.js",
-    "./js/add.js",
-    "./js/buzz.js",
-    "./js/dashboard.js",
-    "./js/settings.js",
+    "./reset-password.html",
+    "./css/password-reset.css?v=VICI_ef3401485f7584b3",
+    "./js/password-policy.js?v=VICI_ef3401485f7584b3",
+    "./js/reset-password.js?v=VICI_ef3401485f7584b3",
+    "./css/style.css?v=VICI_ef3401485f7584b3",
+    "./css/ui.css?v=VICI_ef3401485f7584b3",
+    "./css/reference.css?v=VICI_ef3401485f7584b3",
+    "./css/place-preview.css?v=VICI_ef3401485f7584b3",
+    "./css/suki-polish.css?v=VICI_ef3401485f7584b3",
+    "./css/vici-chat.css?v=VICI_ef3401485f7584b3",
+    "./css/mobile.css?v=VICI_ef3401485f7584b3",
+    "./css/components.css?v=VICI_ef3401485f7584b3",
+    "./js/ui.js?v=VICI_ef3401485f7584b3",
+    "./js/payment-policy.js?v=VICI_ef3401485f7584b3",
+    "./js/place-features.js?v=VICI_ef3401485f7584b3",
+    "./js/place-preview.js?v=VICI_ef3401485f7584b3",
+    "./js/content-policy.js?v=VICI_ef3401485f7584b3",
+    "./js/common.js?v=VICI_ef3401485f7584b3",
+    "./js/data.js?v=VICI_ef3401485f7584b3",
+    "./js/vici-request.js?v=VICI_ef3401485f7584b3",
+    "./js/vici-commerce.js?v=VICI_ef3401485f7584b3",
+    "./js/vici-chat.js?v=VICI_ef3401485f7584b3",
+    "./js/vici-launcher.js?v=VICI_ef3401485f7584b3",
+    "./js/map.js?v=VICI_ef3401485f7584b3",
+    "./js/add.js?v=VICI_ef3401485f7584b3",
+    "./js/buzz.js?v=VICI_ef3401485f7584b3",
+    "./js/dashboard.js?v=VICI_ef3401485f7584b3",
+    "./js/settings.js?v=VICI_ef3401485f7584b3",
+    "./js/account-deletion.js?v=VICI_ef3401485f7584b3",
+    "./js/ownership-transfer.js?v=VICI_ef3401485f7584b3",
+    "./js/vendor/qrcode.min.js",
+    "./js/vendor/jsQR.js",
     "./manifest.json",
     "./icons/icon-192.png",
     "./icons/icon-512.png",
@@ -28,7 +52,7 @@ self.addEventListener("activate", event => {
     event.waitUntil(
         caches.keys()
             .then(keys => Promise.all(keys
-                .filter(key => key !== CACHE_NAME)
+                .filter(key => key.startsWith("vicinify-ui-") && key !== CACHE_NAME)
                 .map(key => caches.delete(key))))
             .then(() => self.clients.claim())
     );
@@ -40,6 +64,10 @@ self.addEventListener("fetch", event => {
     const url = new URL(event.request.url);
     if (url.origin !== self.location.origin) return;
     if (url.pathname.startsWith("/.netlify/functions/")) return;
+    if (url.pathname.endsWith('/update.html')) {
+        event.respondWith(fetch(event.request, {cache:'no-store'}));
+        return;
+    }
 
     const wantsFresh =
         event.request.mode === "navigate" ||
@@ -48,7 +76,7 @@ self.addEventListener("fetch", event => {
 
     if (wantsFresh) {
         event.respondWith(
-            fetch(event.request).then(response => {
+            fetch(event.request, {cache:'no-store'}).then(response => {
                 const copy = response.clone();
                 caches.open(CACHE_NAME).then(cache => response.ok && cache.put(event.request, copy));
                 return response;

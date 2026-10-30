@@ -21,7 +21,7 @@ window.ThemeManager = (() => {
 
         document.documentElement.dataset.theme = resolvedTheme;
         document.body.dataset.theme = resolvedTheme;
-        document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolvedTheme === "dark" ? "#0f172a" : "#3b82f6");
+        document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolvedTheme === "dark" ? "#14231f" : "#237e72");
         window.dispatchEvent(new CustomEvent("vicinify:themechange", { detail: { theme, resolvedTheme } }));
     }
 
@@ -30,7 +30,7 @@ window.ThemeManager = (() => {
         applyTheme(savedTheme);
 
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-            if (localStorage.getItem('vicinify_theme') === 'system') applyTheme('system');
+            if ((localStorage.getItem('vicinify_theme') || 'system') === 'system') applyTheme('system');
         });
     }
 
@@ -52,170 +52,1653 @@ window.ThemeManager.init();
 // 🌍 GLOBAL TRANSLATION ENGINE (i18n) - BULLETPROOF
 // =========================================
 window.LangManager = (() => {
-    // Ang ating Built-in Tagalog Dictionary!
+    // Explicit application UI translations; never translate stored user content.
     const phDictionary = {
-        "Welcome to Vicinify": "Maligayang pagdating sa Vicinify",
-        "Sign in to continue": "Mag-log in para magpatuloy",
-        "Create your account": "Gumawa ng account",
-        "Full Name": "Buong Pangalan",
-        "Email": "Email Address",
-        "Password": "Password",
-        "Sign in": "Mag-log in",
-        "Sign up": "Gumawa ng Account",
-        "Map": "Mapa",
-        "Add": "Magdagdag",
-        "Buzz": "Balita",
-        "Dashboard": "Dashboard",
-        "Business Hub": "Business Hub",
-        "Settings": "Settings",
-        "Radius:": "Layo:",
-        "All": "Lahat",
-        "Add Establishment": "Magdagdag ng Tindahan",
-        "Pin location, fill details, then submit for approval.": "I-pin ang lokasyon at punan ang detalye.",
-        "Nearby Buzz": "Mga Balita Dito",
-        "News in your area": "Mga kaganapan sa paligid mo",
-        "Manage your establishments": "Pamahalaan ang iyong mga tindahan",
-        "Profile & Settings": "Profile at Settings",
-        "Manage your account and preferences": "Ayusin ang iyong account at app",
-        "User Profile": "Impormasyon Mo",
-        "Appearance & Language": "Hitsura at Wika",
-        "Theme Preference": "Tema ng App",
-        "System Default": "System Default",
-        "Light Mode": "Maliwanag (Light Mode)",
-        "Dark Mode": "Madilim (Dark Mode)",
-        "Language": "Wika / Language",
-        "My Activities": "Aking Aktibidad",
-        "My Bookings": "Mga Request Ko",
-        "My Requests": "Mga Request Ko",
-        "My Chats": "Mga Chat Ko",
-        "Favorites": "Paborito",
-        "Log Out": "Mag-log Out",
-        "Delete My Account": "Burahin ang Account",
-        "Send Request": "Magpadala ng Request",
-        "Customer Requests": "Mga Request ng Customer",
-        "Ask Vicinify": "Magtanong (hal. 'Saan may murang kape?')"
-        ,"Theme Preference": "Tema ng App"
-        ,"System Default": "System Default"
-        ,"Light Mode": "Light Mode"
-        ,"Dark Mode": "Dark Mode"
-        ,"Language": "Wika / Language"
-        ,"Transactions": "Mga Transaksyon"
-        ,"Chat History": "Kasaysayan ng Chat"
-        ,"Save Profile": "I-save ang Profile"
-        ,"Post": "Mag-post"
-        ,"View Map": "Tingnan ang Mapa"
-        ,"Add Establishment": "Magdagdag ng Establisyimento"
-        ,"System": "System"
-        ,"Light": "Maliwanag"
-        ,"Dark": "Madilim"
-        ,"English": "English"
-        ,"Tagalog": "Tagalog"
-        ,"Post Now": "Mag-post Ngayon"
-        ,"Reviews": "Mga Review"
-        ,"Feedback Insights": "Feedback Insights"
+  "Reserve your seats": "Magpareserba ng puwesto",
+  "Reserve food or items": "Magpareserba ng pagkain o paninda",
+  "Order now, pick up later": "Bumili ngayon at kunin mamaya",
+  "Delivered to your door": "Ihahatid sa iyong tirahan",
+  "Bulk, cakes, events": "Maramihang bilin, keyk, o pagdiriwang",
+  "Items / Order": "Mga pagkain o bilin",
+  "Seating": "Puwesto",
+  "Request sent. Opening your transaction chat...": "Naipadala na ang kahilingan. Binubuksan ang usapan ng iyong transaksiyon...",
+  "Review request": "Suriin ang kahilingan",
+  "Review your request": "Suriin ang iyong kahilingan",
+  "1 of 2 · Request details": "1 sa 2 · Detalye ng kahilingan",
+  "2 of 2 · Review and send": "2 sa 2 · Suriin at ipadala",
+  "Back to edit": "Bumalik at baguhin",
+  "Not sent yet": "Hindi pa naipadala",
+  "What happens next": "Ano ang susunod",
+  "The business will accept or decline your request. Follow updates in your transaction chat.": "Tatanggapin o tatanggihan ng negosyo ang iyong kahilingan. Subaybayan ang mga pagbabago sa usapan ng transaksiyon.",
+  "Send payment details only after the business accepts.": "Ipadala lamang ang detalye ng bayad matapos tanggapin ng negosyo.",
+  "Free cancellation before preparation if no payment is recorded. Paid cancellations use the saved refund rate. Refund transfers are manual and must be confirmed separately.": "Walang bayad ang pagkansela bago maghanda kung wala pang naitalang bayad. Ang kinanselang may bayad ay susunod sa nakatalang bahagdan ng ibabalik. Kailangang ipadala at kumpirmahin nang hiwalay ang ibinalik na halaga.",
+  "Refund rate on paid cancellations": "Bahagdan ng ibabalik sa kinanselang may bayad",
+  "Welcome to Vicinify": "Maligayang pagdating sa Vicinify",
+  "Sign in to continue": "Pumasok para magpatuloy",
+  "Create your account": "Gumawa ng akawnt",
+  "Full Name": "Buong Pangalan",
+  "Email": "Adres ng sulatroniko",
+  "Password": "Kontrasenyas",
+  "Sign in": "Pumasok",
+  "Sign up": "Magparehistro",
+  "Map": "Mapa",
+  "Add": "Magdagdag",
+  "Buzz": "Balita",
+  "Dashboard": "Pamahalaan",
+  "Business Hub": "Sentro ng Negosyo",
+  "Settings": "Mga Pagpipilian",
+  "Radius:": "Layo:",
+  "All": "Lahat",
+  "Add Establishment": "Magdagdag ng Establisyimento",
+  "Pin location, fill details, then submit for approval.": "I-pananda ang lokasyon at punan ang detalye.",
+  "Nearby Buzz": "Balita sa Paligid",
+  "News in your area": "Balita sa lugar mo",
+  "Manage your establishments": "Pamahalaan ang iyong mga tindahan",
+  "Profile & Settings": "Pagkakakilanlan at mga Pagpipilian",
+  "Manage your account and preferences": "Ayusin ang iyong akawnt at aplikasyon",
+  "User Profile": "Impormasyon ng Gumagamit",
+  "Appearance & Language": "Hitsura at Wika",
+  "Theme Preference": "Tema ng Aplikasyon",
+  "System Default": "Batay sa aparato",
+  "Light Mode": "Maliwanag na tema",
+  "Dark Mode": "Madilim na tema",
+  "Language": "Wika",
+  "My Activities": "Aking Aktibidad",
+  "My Bookings": "Mga Kahilingan Ko",
+  "My Requests": "Mga Kahilingan Ko",
+  "My Chats": "Mga Usapan Ko",
+  "Favorites": "Mga Paborito",
+  "Log Out": "Lumabas",
+  "Delete My Account": "Burahin ang aking akawnt",
+  "Send Request": "Ipadala ang kahilingan",
+  "Customer Requests": "Mga Kahilingan ng Mamimili",
+  "Ask Vicinify": "Magtanong sa Vicinify",
+  "Transactions": "Mga Transaksyon",
+  "Chat History": "Kasaysayan ng usapan",
+  "Save Profile": "Ilagak ang pagkakakilanlan",
+  "Post": "Magpaskil",
+  "View Map": "Tingnan ang Mapa",
+  "System": "Batay sa aparato",
+  "Light": "Maliwanag",
+  "Dark": "Madilim",
+  "English": "Ingles",
+  "Tagalog": "Tagalog",
+  "Post Now": "Magpaskil Ngayon",
+  "Reviews": "Mga pagsusuri",
+  "Feedback Insights": "Pagsusuri ng puna",
+  "New Listing": "Bagong tala",
+  "My Establishments": "Aking mga Establisyimento",
+  "Customer Inbox": "Kahon ng mensahe ng mga Mamimili",
+  "Database Management": "Pamamahala ng Imbakan ng datos",
+  "Forgot password?": "Nakalimutan ang kontrasenyas?",
+  "Password & Security": "Kontrasenyas at Seguridad",
+  "Signed in as": "Nakapasok bilang",
+  "Send Password Reset Email": "Magpadala ng Sulatroniko para Ibalik ang Kontrasenyas",
+  "We will email you a secure link so you can create a new password.": "Padadalhan ka namin ng ligtas ugnay para gumawa ng bagong kontrasenyas.",
+  "Change password now": "Palitan ang kontrasenyas ngayon",
+  "Current Password": "Kasalukuyang kontrasenyas",
+  "New Password": "Bagong kontrasenyas",
+  "Confirm New Password": "Ulitin ang bagong kontrasenyas",
+  "Update Password": "Palitan ang kontrasenyas",
+  "Reset your password": "Ibalik ang iyong kontrasenyas",
+  "Cancel": "Kanselahin",
+  "Send reset link": "Ipadala ang reset ugnay",
+  "Basic Info": "Pangunahing impormasyon",
+  "Operating Hours": "Oras ng Operasyon",
+  "Create Post": "Gumawa ng paskil",
+  "Send a Message": "Magpadala ng Mensahe",
+  "Edit Establishment": "Baguhin ang Tindahan",
+  "Account History": "Kasaysayan ng Akawnt",
+  "Appearance": "Hitsura",
+  "Restaurant": "Restawran",
+  "Café": "Kapihan",
+  "Bakery": "Panaderya",
+  "Milk Tea": "Tsaa na may gatas",
+  "Snack House": "Meryendahan",
+  "Food Stall": "Puwesto ng pagkain",
+  "Eatery": "Karinderya",
+  "Dessert Shop": "Panghimagas",
+  "Fast-Food": "Mabilisang kainan",
+  "Filters": "Mga sala",
+  "Open": "Bukas",
+  "Closed": "Sarado",
+  "Busy": "Abala",
+  "Fresh": "Bagong impormasyon",
+  "Inactive": "Hindi Aktibo",
+  "Nearby": "Malapit",
+  "No ratings yet": "Wala pang marka",
+  "Chat": "Usapan",
+  "Request": "Kahilingan",
+  "Navigate": "Mag-navigate",
+  "Message": "Mensahe",
+  "View": "Tingnan",
+  "Comment": "Komento",
+  "No comments yet. Start the conversation.": "Wala pang komento. Simulan ang usapan.",
+  "Write a comment...": "Sumulat ng komento...",
+  "Loading conversation...": "Inihahanda ng usapan...",
+  "No messages yet. Send an inquiry!": "Wala pang mensahe. Magtanong na!",
+  "No establishments found. Try adjusting the search radius or category.": "Walang nakitang tindahan. Baguhin ang layo o kategorya.",
+  "About this place": "Tungkol dito",
+  "Menu & Store Posts": "Pagkain at mga paskil ng tindahan",
+  "Rate this establishment": "Markahan ang tindahang ito",
+  "Verified Reviews": "Mga Napatunayan Pagsusuri",
+  "No menu posts yet": "Wala pang talaan ng pagkain paskil",
+  "away": "ang layo",
+  "Send": "Ipadala",
+  "Search places...": "Maghanap ng lugar...",
+  "Load more": "Mag-paghahanda pa",
+  "Claims": "Mga Pag-angkin",
+  "Reports": "Mga ulat",
+  "Audit": "Talaan ng mga aksyon",
+  "Sounds": "Mga Tunog",
+  "Navigation sounds": "Tunog sa paglipat",
+  "Subtle clicks when navigating": "Mahinang tunog habang lumilipat ng pahina",
+  "Manage your account and preferences.": "Pamahalaan ang iyong akawnt at mga kagustuhan.",
+  "Nickname (Display Name)": "Palayaw (Pangalang ipinapakita)",
+  "Date *": "Petsa *",
+  "Time *": "Oras *",
+  "Send a request": "Magpadala ng kahilingan",
+  "Choose your booking": "Piliin ang pagpapareserba",
+  "Table Reservation": "Reserbasyon ng Mesa",
+  "Food Reservation": "Reserbasyon ng Pagkain",
+  "Number of Guests *": "Bilang ng Bisita *",
+  "Additional Notes": "Karagdagang Pahayag",
+  "Payment Method": "Paraan ng Pagbabayad",
+  "Payment Method *": "Paraan ng pagbabayad *",
+  "Needs your reply": "Kailangang sagutin",
+  "Conversations": "Mga Pag-uusap",
+  "Add post / photo": "Magdagdag ng paskil / larawan",
+  "Store Suki QR": "Suki QR ng Tindahan",
+  "My Activity": "Aking Gawain",
+  "Back": "Bumalik",
+  "Save": "Ilagak",
+  "Save changes": "Ilagak ang pagbabago",
+  "View page": "Tingnan ang pahina",
+  "Manage Listing": "Ayusin ang Impormasyon",
+  "Messages": "Mga Mensahe",
+  "Suki Cards": "Mga Kard ng Suki",
+  "Open conversation": "Buksan ang pag-uusap",
+  "Hide record": "Itago ang rekord",
+  "Request details": "Detalye ng kahilingan",
+  "No posts yet": "Wala pang mga paskil",
+  "More filters": "Iba pang sala",
+  "Show less": "Ipakita ang mas kaunti",
+  "Open now": "Bukas ngayon",
+  "Verified": "Beripikado",
+  "Bookable": "Tumatanggap ng pagpapareserba",
+  "Delivery": "Paghahatid",
+  "Fresh info": "Bagong impormasyon",
+  "View menu": "Tingnan ang talaan ng pagkain",
+  "Opening hours": "Oras ng pagbubukas",
+  "Delivery options": "Mga paraan ng paghahatid",
+  "Book a table": "Magpareserba ng mesa",
+  "Quick questions": "Mga madalas itanong",
+  "Hide": "Itago",
+  "Automatic reply": "Awtomatikong sagot",
+  "Booking": "Reserbasyon",
+  "Order": "Bilin",
+  "Reserve a table or food": "Magpareserba ng mesa o pagkain",
+  "Pickup, delivery, or advance": "Pagkuha, paghahatid, o paunang bilin",
+  "Reserve seats or table": "Magpareserba ng upuan o mesa",
+  "Reserve food/item": "Magpareserba ng pagkain",
+  "Seating Preference": "Gustong Upuan",
+  "No preference": "Kahit saan",
+  "Window": "Malapit sa bintana",
+  "Quiet": "Tahimik",
+  "Outdoor": "Sa labas",
+  "Occasion": "Okasyon",
+  "None": "Wala",
+  "Food Items to Reserve *": "Mga pagkaing ipapareserba *",
+  "Order Details *": "Detalye ng bilin *",
+  "Fulfillment": "Paraan ng pagtanggap",
+  "Dine-in": "Kakain sa tindahan",
+  "Send Table Reservation": "Ipadala ang Reserbasyon",
+  "Send Food Reservation": "Ipadala ang Pagkain Reservation",
+  "Send Pickup Pre-order": "Ipadala ang Pagkuha Bilin",
+  "Send Delivery Order": "Ipadala ang Paghahatid Bilin",
+  "Submit for Approval": "Ipadala para sa Pag-apruba",
+  "Scan store QR": "I-pagbasa ng kodigo ang QR ng tindahan",
+  "Stamp request pending": "Naghihintay ng tatak approval",
+  "Cancel request": "Kanselahin ang kahilingan",
+  "Edit caption / photo": "Baguhin ang paliwanag sa larawan / larawan",
+  "Delete": "Burahin",
+  "Share to Buzz": "Ibahagi sa Balita",
+  "Search distance": "Layo ng paghahanap",
+  "Write a message...": "Sumulat ng mensahe...",
+  "Search places or ask Vici…": "Maghanap ng lugar o magtanong kay Vicinify…",
+  "Establishments": "Mga establisyimento",
+  "Total Establishments": "Kabuuang establisyimento",
+  "Pending Approvals": "Mga naghihintay ng pag-apruba",
+  "Pending Approval": "Naghihintay ng pag-apruba",
+  "Registered Owners": "Mga rehistradong may-ari",
+  "Open Now": "Bukas ngayon",
+  "Unread Updates": "Mga hindi pa nababasang pagbabago",
+  "Unread update": "Hindi pa nababasang pagbabago",
+  "Admin Panel": "Lupon ng Tagapangasiwa",
+  "Administrator tools": "Mga kagamitan ng tagapangasiwa",
+  "Review establishments, users, posts, transactions, messages, claims, and reports.": "Suriin ang mga establisyimento, gumagamit, paskil, transaksyon, mensahe, pag-angkin, at ulat.",
+  "Owner Email": "Sulatroniko ng may-ari",
+  "Approval Status": "Katayuan ng pag-apruba",
+  "Approval status": "Katayuan ng pag-apruba",
+  "Category": "Kategorya",
+  "Category *": "Kategorya *",
+  "Name": "Pangalan",
+  "Users": "Mga gumagamit",
+  "Admin": "Tagapangasiwa",
+  "Business": "Negosyo",
+  "Standard": "Karaniwang gumagamit",
+  "Customer": "Mamimili",
+  "Role": "Tungkulin",
+  "Actions": "Mga aksyon",
+  "Action": "Aksyon",
+  "Author": "May-akda",
+  "Sender": "Nagpadala",
+  "Place": "Lugar",
+  "Status": "Katayuan",
+  "Pending": "Naghihintay",
+  "Approved": "Naaprubahan",
+  "Rejected": "Tinanggihan",
+  "Accepted": "Tinanggap",
+  "Preparing": "Inihahanda",
+  "Ready": "Handa na",
+  "Fulfilled": "Natupad",
+  "Received": "Natanggap",
+  "Cancelled": "Kinansela",
+  "Delivered": "Naihatid",
+  "Out for delivery": "Papasok na sa paghahatid",
+  "Payment submitted": "Naisumite ang bayad",
+  "Payment confirmed": "Nakumpirma ang bayad",
+  "Unclaimed": "Wala pang may-ari",
+  "Approve": "Aprubahan",
+  "Reject": "Tanggihan",
+  "Assign Owner": "Magtalaga ng may-ari",
+  "Assign": "Italaga",
+  "Resolve": "Lutasin",
+  "Clear": "I-clear",
+  "Clear filter": "Alisin ang sala",
+  "Clear all": "Alisin lahat",
+  "Clear recent chats": "Burahin ang mga nakaraang usapan",
+  "No establishments yet": "Wala pang establisyimento",
+  "No transaction history yet.": "Wala pang kasaysayan ng transaksyon.",
+  "Transaction history is kept for records. Business or admin dashboard cleanup will not remove it here.": "Iniingatan ang kasaysayan ng transaksyon. Hindi ito mawawala rito kapag naglinis ng pamahalaan ang negosyo o tagapangasiwa.",
+  "Chat history is separate from official transactions.": "Hiwalay ang kasaysayan ng usapan sa mga opisyal na transaksyon.",
+  "No saved favorite establishments yet.": "Wala pang nakalagak na paboritong establisyimento.",
+  "No Suki Card requests yet.": "Wala pang kahilingan para sa Suki Kard.",
+  "No pending stamp requests.": "Walang naghihintay na tatak kahilingan.",
+  "No admin actions logged yet.": "Wala pang naitalang aksyon ng tagapangasiwa.",
+  "No business claims yet.": "Wala pang pag-angkin sa negosyo.",
+  "No claims waiting.": "Walang naghihintay na pag-angkin.",
+  "No reports yet.": "Wala pang ulat.",
+  "No requests yet.": "Wala pang kahilingan.",
+  "No requests yet, or they have been deleted.": "Wala pang kahilingan o nabura na ang mga ito.",
+  "No messages yet.": "Wala pang mensahe.",
+  "No messages yet, or they have been deleted.": "Wala pang mensahe o nabura na ang mga ito.",
+  "No additional details.": "Walang karagdagang detalye.",
+  "Loading...": "Inihahanda...",
+  "Loading dashboard...": "Inihahanda ang pamahalaan...",
+  "Loading your establishments...": "Inihahanda ang iyong mga establisyimento...",
+  "Loading transactions...": "Inihahanda ang mga transaksyon...",
+  "Loading chats...": "Inihahanda ang mga usapan...",
+  "Loading favorites...": "Inihahanda ang mga paborito...",
+  "Loading posts...": "Inihahanda ang mga paskil...",
+  "Loading Suki Cards...": "Inihahanda ang mga Suki Kard...",
+  "Loading Suki Card…": "Inihahanda ang Suki Kard…",
+  "Loading QR…": "Inihahanda ang QR…",
+  "Loading verified reviews...": "Inihahanda ang mga napatunayang pagsusuri...",
+  "Fetching users...": "Kinukuha ang mga gumagamit...",
+  "Fetching users from database...": "Kinukuha ang mga gumagamit mula sa imbakan ng datos...",
+  "Fetching buzz posts...": "Kinukuha ang mga Balita paskil...",
+  "Fetching live posts...": "Kinukuha ang mga kasalukuyang paskil...",
+  "Fetching transactions...": "Kinukuha ang mga transaksyon...",
+  "Fetching messages...": "Kinukuha ang mga mensahe...",
+  "Fetching claims...": "Kinukuha ang mga pag-angkin...",
+  "Fetching reports...": "Kinukuha ang mga ulat...",
+  "Fetching audit log...": "Kinukuha ang talaan ng mga aksyon...",
+  "Issue": "Isyu",
+  "Issue type": "Uri ng isyu",
+  "Content": "Nilalaman",
+  "Target": "Pinatutungkulan",
+  "When": "Kailan",
+  "User": "Gumagamit",
+  "New": "Bago",
+  "NEW": "BAGO",
+  "Current": "Kasalukuyan",
+  "Default": "Paunang pili",
+  "Other": "Iba pa",
+  "Details": "Mga detalye",
+  "Address": "Tirahan",
+  "Contact": "Kontak",
+  "Contact Phone": "Numero ng telepono",
+  "Contact Email": "Sulatroniko para sa pakikipag-ugnayan",
+  "Contact Number (optional)": "Numero ng kontak (opsyonal)",
+  "Description": "Paglalarawan",
+  "Description (optional)": "Paglalarawan (opsyonal)",
+  "Budget": "Badyet",
+  "Budget per person (optional)": "Badyet bawat tao (opsyonal)",
+  "Establishment": "Establisyimento",
+  "Establishment Name": "Pangalan ng establisyimento",
+  "Establishment name": "Pangalan ng establisyimento",
+  "Establishment information": "Impormasyon ng establisyimento",
+  "Establishment Posts": "Mga paskil ng establisyimento",
+  "Business Name *": "Pangalan ng negosyo *",
+  "Business name": "Pangalan ng negosyo",
+  "Business owner email": "Sulatroniko ng may-ari ng negosyo",
+  "Business workspace": "Lugar-gawaan ng negosyo",
+  "Live customer activity": "Kasalukuyang aktibidad ng mamimili",
+  "Live Store Status": "Kasalukuyang katayuan ng tindahan",
+  "Update status, edit details, and monitor activity.": "Baguhin ang katayuan, baguhin ang mga detalye, at subaybayan ang aktibidad.",
+  "Unread badges clear when checked, history remains protected.": "Nawawala ang hindi nabasa pananda kapag nabasa na; nananatiling ligtas ang kasaysayan.",
+  "Your orders, chats, Suki cards, and saved places.": "Ang iyong mga bilin, usapan, kard ng suki, at nakalagak na lugar.",
+  "Manage your daily operations, listings, and customer messages.": "Pamahalaan ang operasyon, mga listing, at mensahe ng mga mamimili.",
+  "Requests & Cancellation": "Mga kahilingan at pagkansela",
+  "Accepting Requests": "Tumatanggap ng mga kahilingan",
+  "Allow customers to book": "Payagang mag-book ang mga mamimili",
+  "Cancellation Refund (before preparation starts)": "Ibabalik na bayad sa pagkansela (bago simulan ang paghahanda)",
+  "50% refund — you keep 50% as compensation": "50% ibabalik na bayad — sa iyo ang 50% bilang kabayaran",
+  "70% refund — you keep 30% as compensation": "70% ibabalik na bayad — sa iyo ang 30% bilang kabayaran",
+  "If a customer cancels after you accept but before you tap Start Preparing, they get this much back. Once preparation starts, cancellation is closed (no refund).": "Kung magkansela ang mamimili matapos mong tanggapin ngunit bago simulan ang paghahanda, ito ang halagang ibabalik. Kapag nagsimula na ang paghahanda, bawal nang magkansela at walang ibabalik na bayad.",
+  "Automatic replies": "Mga awtomatikong sagot",
+  "Reply automatically to customer quick questions": "Awtomatikong sagutin ang mga mabilis na tanong ng mamimili",
+  "Replies are labeled automatic. Leave an answer blank to use your saved business details. Bookings and payments still need your confirmation.": "May label na awtomatiko ang mga sagot. Iwang blangko ang sagot para gamitin ang nakalagak na detalye ng negosyo. Kailangan pa rin ng kumpirmasyon mo ang mga pagpapareserba at bayad.",
+  "Menu answer": "Sagot tungkol sa talaan ng pagkain",
+  "Opening hours answer": "Sagot tungkol sa oras ng pagbubukas",
+  "Delivery answer": "Sagot tungkol sa paghahatid",
+  "Booking answer": "Sagot tungkol sa pagpapareserba",
+  "Custom answers: 3–500 characters, up to 100 words.": "Pasadyang sagot: 3–500 tanda, hanggang 100 salita.",
+  "Use the menu button and store posts by default.": "Gamitin bilang paunang pili ang talaan ng pagkain pindutan at mga paskil ng tindahan.",
+  "Use your saved opening hours by default.": "Gamitin bilang paunang pili ang nakalagak mong oras ng pagbubukas.",
+  "Use your saved delivery options by default.": "Gamitin bilang paunang pili ang nakalagak mong mga paraan ng paghahatid.",
+  "Tell customers how to request a booking.": "Sabihin sa mamimili kung paano mag-kahilingan ng pagpapareserba.",
+  "Store Cover Photo": "Pabalat larawan ng tindahan",
+  "Profile Picture / Store Logo (optional)": "Larawan sa pagkakakilanlan / sagisag ng tindahan (opsyonal)",
+  "This large photo appears when a customer taps your store on the map.": "Lalabas ang malaking larawang ito kapag pinindot ng mamimili ang iyong tindahan sa mapa.",
+  "Your logo appears beside your store name in the list view. Square images work best.": "Lalabas ang sagisag sa tabi ng pangalan ng tindahan sa listahan. Pinakamainam ang parisukat na larawan.",
+  "Remove logo": "Alisin ang sagisag",
+  "Remove image": "Alisin ang larawan",
+  "Remove selected photo": "Alisin ang napiling larawan",
+  "Add a photo": "Magdagdag ng larawan",
+  "Add Photo (Menu/Product)": "Magdagdag ng larawan (talaan ng pagkain/produkto)",
+  "After approval, edit your profile picture, logo and cover from Business Hub. Manage posts and menu photos on your establishment page.": "Pagkatapos maaprubahan, ayusin ang larawan sa pagkakakilanlan, sagisag, at pabalat sa Sentro ng Negosyo. Pamahalaan ang mga paskil at larawan ng talaan ng pagkain sa pahina ng establisyimento.",
+  "About & amenities": "Tungkol at mga pasilidad",
+  "About & Amenities": "Tungkol at mga pasilidad",
+  "optional": "opsyonal",
+  "(optional)": "(opsyonal)",
+  "Select only features available at your establishment. Unchecked items will not be shown as available.": "Piliin lang ang mga katangiang mayroon sa iyong establisyimento. Hindi ipapakitang mayroon ang mga hindi naka-check.",
+  "Select only details you can confirm for this place.": "Piliin lamang ang mga detalyeng matitiyak mo para sa lugar na ito.",
+  "Delivery & Logistics": "Paghahatid at pag-aayos ng paghahatid",
+  "In-house Delivery": "Sariling paghahatid",
+  "Has in-house delivery": "May sariling paghahatid",
+  "Available on Grab/Foodpanda": "Mayroon sa Grab/Foodpanda",
+  "Delivery Radius (km)": "Layo ng paghahatid (km)",
+  "Delivery distance in km (e.g. 5)": "Layo ng paghahatid sa km (hal. 5)",
+  "Opening Hours": "Oras ng pagbubukas",
+  "Monday": "Lunes",
+  "Tuesday": "Martes",
+  "Wednesday": "Miyerkules",
+  "Thursday": "Huwebes",
+  "Friday": "Biyernes",
+  "Saturday": "Sabado",
+  "Sunday": "Linggo",
+  "e.g. 8AM - 9PM or Closed": "Hal. 8AM - 9PM o Sarado",
+  "No price range yet": "Wala pang saklaw ng presyo",
+  "Under ₱150": "Mas mababa sa ₱150",
+  "Over ₱1,000": "Higit sa ₱1,000",
+  "Pin Location *": "I-pananda ang lokasyon *",
+  "Click/tap the mini map to move the pin.": "Pindutin ang maliit na mapa para ilipat ang pananda.",
+  "Reset pin to my location": "Ibalik ang pananda sa aking lokasyon",
+  "Reset map": "Ibalik ang mapa",
+  "Reset": "Ibalik",
+  "House number, street or subdivision *": "Numero ng bahay, kalye, o subdibisyon *",
+  "House no. / Street / Subdivision": "Numero ng bahay / kalye / subdibisyon",
+  "Barangay *": "Barangay *",
+  "City / Municipality": "Lungsod / munisipalidad",
+  "City / municipality *": "Lungsod / munisipalidad *",
+  "Short description…": "Maikling paglalarawan…",
+  "Short description": "Maikling paglalarawan",
+  "e.g., Aling Nena Sari-sari Store": "Hal. Tindahan ni Aling Nena",
+  "e.g., 123 Rizal St., Brgy. Sabang": "Hal. 123 Rizal St., Brgy. Sabang",
+  "Submit": "Isumite",
+  "Submit Changes": "Isumite ang mga pagbabago",
+  "Submit for review": "Isumite para masuri",
+  "Upload": "Maglakip",
+  "Back to Business Hub": "Bumalik sa Sentro ng Negosyo",
+  "Back to map": "Bumalik sa mapa",
+  "Save establishment": "Ilagak ang establisyimento",
+  "Remove from Favorites": "Alisin sa mga paborito",
+  "You own this establishment": "Ikaw ang may-ari ng establisyimentong ito",
+  "This will appear on your Buzz posts and comments.": "Lalabas ito sa iyong mga Balita paskil at komento.",
+  "Install Vicinify": "Idagdag ang Vicinify",
+  "Install app": "Idagdag sa aparato",
+  "Add Vicinify to your home screen for quick access.": "Idagdag ang Vicinify sa pangunahing tabing ng iyong aparato para madaling mabuksan.",
+  "Your account": "Iyong akawnt",
+  "Your preferences": "Iyong mga kagustuhan",
+  "Open profile and settings": "Buksan ang pagkakakilanlan at mga setting",
+  "Main navigation": "Pangunahing nabigasyon",
+  "Skip to content": "Lumaktaw sa nilalaman",
+  "Vicinify home": "Home ng Vicinify",
+  "WORKSPACE": "Lugar-gawaan",
+  "YOUR LOCAL COMPANION": "IYONG KASAMA SA KOMUNIDAD",
+  "Rooted in Lipa.": "Nag-ugat sa Lipa.",
+  "Connected to your community.": "Konektado sa iyong komunidad.",
+  "GO SOMEWHERE GOOD": "TUKLASIN ANG MAGAGANDANG LUGAR",
+  "Around the": "Sa ating",
+  "neighborhood.": "komunidad.",
+  "Good food. Local favorites. New discoveries.": "Masarap na pagkain. Mga paborito rito. Mga bagong tuklas.",
+  "Explore Lipa": "Tuklasin ang Lipa",
+  "Your neighborhood map": "Mapa ng iyong komunidad",
+  "Search within this distance": "Maghanap sa loob ng layong ito",
+  "Search radius in kilometers": "Layo ng paghahanap sa kilometro",
+  "30 km max": "Hanggang 30 km",
+  "Map view": "Tingnan ang mapa",
+  "List view": "Tingnan ang listahan",
+  "Menu": "Pagkain",
+  "4+ Rating": "Marka na 4 pataas",
+  "A little help from Vici": "Kaunting tulong mula kay Vicinify",
+  "Try “coffee nearby” or choose a category to start exploring.": "Subukan ang “kape sa malapit” o pumili ng kategorya para magsimulang tumuklas.",
+  "View full establishment": "Tingnan ang buong establisyimento",
+  "EXPLORE THIS PLACE": "TUKLASIN ANG LUGAR NA ITO",
+  "About this establishment": "Tungkol sa establisyimentong ito",
+  "Details not provided yet": "Wala pang ibinigay na detalye",
+  "The establishment has not added accessibility, amenities or service details.": "Wala pang idinagdag na detalye tungkol sa daling mapuntahan, pasilidad, o serbisyo ang establisyimento.",
+  "Confirm accessibility and service availability with the business before visiting.": "Kumpirmahin sa negosyo ang daling mapuntahan at mga serbisyong mayroon bago bumisita.",
+  "Ask the business": "Magtanong sa negosyo",
+  "Menu & store posts": "Pagkain at mga paskil ng tindahan",
+  "Shared by the business. Confirm current prices and availability before ordering.": "Ibinahagi ng negosyo. Kumpirmahin ang kasalukuyang presyo at pagkakaroon bago umorder.",
+  "Showing up to 30 available posts.": "Ipinapakita ang hanggang 30 mayroon na paskil.",
+  "Store post": "Paskil ng tindahan",
+  "Read post": "Basahin ang paskil",
+  "View image": "Tingnan ang larawan",
+  "All menu posts": "Lahat ng talaan ng pagkain paskil",
+  "Open full-size image": "Buksan ang buong laki ng larawan",
+  "No menu uploaded yet": "Wala pang nailakip na talaan ng pagkain",
+  "This business has not shared menu or store posts here. Ask them in chat for their current menu.": "Wala pang ibinahaging talaan ng pagkain o paskil ang negosyong ito. Magtanong sa usapan tungkol sa kasalukuyang talaan ng pagkain.",
+  "Ask about the menu": "Magtanong tungkol sa talaan ng pagkain",
+  "Checking menu and store posts...": "Tinitingnan ang talaan ng pagkain at mga paskil ng tindahan...",
+  "Could not load this section": "Hindi maihanda ang seksyong ito",
+  "This image could not be loaded. You can still read the post below. Close and reopen the preview to retry.": "Hindi maihanda ang larawan. Mababasa pa rin ang paskil sa ibaba. Isara at buksan muli ang paunang tanaw para subukan ulit.",
+  "No public reviews yet": "Wala pang pampublikong pagsusuri",
+  "Public customer feedback will appear here when shared.": "Lalabas dito ang pampublikong puna ng mamimili kapag ibinahagi.",
+  "Verified transaction": "Beripikadong transaksyon",
+  "Verified reviews": "Mga napatunayang pagsusuri",
+  "Verified feedback": "Beripikadong puna",
+  "Public Reviews": "Mga pampublikong pagsusuri",
+  "Public feedback": "Pampublikong puna",
+  "Rating": "Marka",
+  "No ratings": "Wala pang marka",
+  "New · No ratings yet": "Bago · Wala pang marka",
+  "Close": "Isara",
+  "Close establishment preview": "Isara ang paunang tanaw ng establisyimento",
+  "Close menu preview": "Isara ang paunang tanaw ng talaan ng pagkain",
+  "View menu or store post": "Tingnan ang talaan ng pagkain o paskil ng tindahan",
+  "Close reviews": "Isara ang mga pagsusuri",
+  "View full image": "Tingnan ang buong larawan",
+  "Open menu photo in full size": "Buksan ang buong laki ng larawan ng talaan ng pagkain",
+  "Navigating to destination": "Papunta sa destinasyon",
+  "Finding best route…": "Hinahanap ang pinakamainam na ruta…",
+  "Could not find a route. Check connection.": "Walang mahanap na ruta. Suriin ang koneksyon.",
+  "Steps": "Mga hakbang",
+  "Recenter": "Igitna muli",
+  "Voice": "Boses",
+  "Stop": "Itigil",
+  "Tap to hear": "Pindutin para marinig",
+  "Show whole route": "Ipakita ang buong ruta",
+  "Find my location": "Hanapin ang aking lokasyon",
+  "Current Location": "Kasalukuyang lokasyon",
+  "Use my location": "Gamitin ang aking lokasyon",
+  "Nearby places": "Mga kalapit na lugar",
+  "Use of the Platform": "Paggamit ng plataporma",
+  "Sign In": "Pumasok",
+  "Sign Up": "Magparehistro",
+  "Log in": "Pumasok",
+  "Sign in to continue to Lipa’s local guide": "Pumasok para magpatuloy sa lokal na gabay ng Lipa",
+  "Don't have an account?": "Wala ka pang akawnt?",
+  "Already have an account?": "May akawnt ka na?",
+  "Create Account": "Magparehistro",
+  "Enter your password": "Ilagay ang iyong kontrasenyas",
+  "At least 8 characters": "Hindi bababa sa 8 tanda",
+  "Repeat new password": "Ulitin ang bagong kontrasenyas",
+  "8+ characters": "8 o higit pang tanda",
+  "1 Number": "1 numero",
+  "1 Special Character (!@#$%)": "1 espesyal na tanda (!@#$%)",
+  "1 Uppercase & 1 Lowercase": "1 malaking titik at 1 maliit na titik",
+  "Password Strength": "Lakas ng kontrasenyas",
+  "Show password": "Ipakita ang kontrasenyas",
+  "Enter the email you used for Vicinify. We will send you a secure link to reset your password.": "Ilagay ang sulatroniko na ginamit mo sa Vicinify. Padadalhan ka namin ng ligtas ugnay para ibalik ang kontrasenyas.",
+  "Check your inbox and spam folder. The link expires after a short time for your security.": "Tingnan ang kahon ng mensahe at spam folder. May maikling bisa ang ugnay para sa iyong seguridad.",
+  "By clicking Create Account, you agree to the": "Sa pagpindot ng Gumawa ng akawnt, sumasang-ayon ka sa",
+  "Terms and Conditions": "Mga Tuntunin at Kondisyon",
+  "of Vicinify.": "ng Vicinify.",
+  "Your neighborhood starts here.": "Dito nagsisimula ang iyong komunidad.",
+  "Your neighborhood, discovered.": "Tuklasin ang iyong komunidad.",
+  "YOUR NEIGHBORHOOD, DISCOVERED": "TUKLASIN ANG IYONG KOMUNIDAD",
+  "A little closer to your community.": "Mas malapit sa iyong komunidad.",
+  "Discover Vicinify": "Tuklasin ang Vicinify",
+  "Discover local": "Tuklasin ang lokal",
+  "Support local": "Suportahan ang lokal",
+  "Go somewhere": "Pumunta sa",
+  "good.": "magandang lugar.",
+  "Your local food guide": "Iyong lokal na gabay sa pagkain",
+  "Find somewhere good, close to home.": "Humanap ng magandang lugar malapit sa tahanan.",
+  "Find local food spots, compare saved ratings, and discover places around Lipa.": "Maghanap ng lokal na kainan, ihambing ang mga marka, at tumuklas ng mga lugar sa Lipa.",
+  "From your morning kapeng barako to a new neighborhood find. Discover the local places that make Lipa, Lipa.": "Mula sa kapeng barako sa umaga hanggang sa bagong tuklas sa komunidad. Kilalanin ang mga lokal na lugar na nagbibigay-buhay sa Lipa.",
+  "BOOKINGS & ORDERS": "MGA Pagpapareserba AT Bilin",
+  "Booking Purpose": "Layunin ng pagpapareserba",
+  "Choose your order": "Piliin ang iyong bilin",
+  "Choose a booking or order, then add the details. The business will review your request.": "Pumili ng pagpapareserba o bilin at ilagay ang mga detalye. Susuriin ng negosyo ang iyong kahilingan.",
+  "General booking": "Karaniwang pagpapareserba",
+  "Reservation": "Reserbasyon",
+  "Advance Order": "Paunang bilin",
+  "Pickup Pre-order": "Paunang bilin para sa pagkuha",
+  "Delivery Order": "Bilin para sa paghahatid",
+  "Order Details": "Mga detalye ng bilin",
+  "Delivery Address": "Tirahan ng paghahatid",
+  "Items, quantity & special instructions": "Mga item, dami, at espesyal na tagubilin",
+  "Items, quantity and instructions *": "Mga item, dami, at tagubilin *",
+  "Example: items, quantity, special instructions": "Halimbawa: mga item, dami, at espesyal na tagubilin",
+  "Add any special request or instruction...": "Magdagdag ng espesyal na kahilingan o tagubilin...",
+  "House no., barangay, city & landmark": "Numero ng bahay, barangay, lungsod, at palatandaan",
+  "Landmark or location notes *": "Palatandaan o detalye ng lokasyon *",
+  "Date, time, and service notes": "Petsa, oras, at mga tala tungkol sa serbisyo",
+  "Or type a number": "O maglagay ng bilang",
+  "Table or food reservation": "Reserbasyon ng mesa o pagkain",
+  "Order now, pick up at the store": "Umorder ngayon at kunin sa tindahan",
+  "Future, bulk, cake, bilao, or event orders": "Mga bilin para sa hinaharap, maramihan, cake, bilao, o kaganapan",
+  "Advance orders are for future, bulk, cakes, bilao, or events. The business may require downpayment first.": "Ang mga paunang bilin ay para sa hinaharap, maramihan, cake, bilao, o kaganapan. Maaaring humingi muna ng paunang bayad ang negosyo.",
+  "Order first — after the business accepts, Vicinify will ask for your address, landmark, and payment reference.": "Umorder muna. Kapag tinanggap ng negosyo, hihingin ng Vicinify ang tirahan, palatandaan, at sanggunian ng bayad.",
+  "Address (optional)": "Tirahan (opsyonal)",
+  "Address, landmark, payment/reference after owner accepts": "Tirahan, palatandaan, at sanggunian ng bayad matapos tanggapin ng may-ari",
+  "Fill out the information the business requested.": "Punan ang impormasyong hinihingi ng negosyo.",
+  "Request Requirements": "Mga kailangang isumite",
+  "Choose what the customer needs to submit for this transaction.": "Piliin ang kailangang isumite ng mamimili para sa transaksyong ito.",
+  "Confirm Requirements": "Kumpirmahin ang mga kailangan",
+  "Submit Requirements": "Isumite ang mga kailangan",
+  "Confirm Received": "Kumpirmahing natanggap",
+  "Accept Request": "Tanggapin ang kahilingan",
+  "Start Preparing": "Simulan ang paghahanda",
+  "Mark Out for Delivery": "Markahang nasa paghahatid na",
+  "Mark Delivered": "Markahang naihatid na",
+  "Send request": "Ipadala ang kahilingan",
+  "Send Feedback": "Magpadala ng puna",
+  "Request sent": "Naipadala",
+  "Sending...": "Ipinapadala...",
+  "Saving...": "Inilalagak...",
+  "Saving to Cloud...": "Inilalagak sa imbakan sa internet...",
+  "Updating...": "Binabago...",
+  "Saved": "Nailagak",
+  "Payment Details": "Mga detalye ng bayad",
+  "Payment details": "Mga detalye ng bayad",
+  "Payment method": "Paraan ng pagbabayad",
+  "Payment Type *": "Uri ng bayad *",
+  "Accepted payment methods": "Mga tinatanggap na paraan ng pagbabayad",
+  "Other payment method": "Iba pang paraan ng pagbabayad",
+  "If Other, type mode of payment": "Kung Iba pa, ilagay ang paraan ng pagbabayad",
+  "Amount paid": "Halagang ibinayad",
+  "Amount paid (₱) *": "Halagang ibinayad (₱) *",
+  "Amount to pay": "Halagang babayaran",
+  "Amount submitted": "Halagang isinumite",
+  "Reference": "Sanggunian",
+  "Reference / transaction number *": "Sanggunian / numero ng transaksyon *",
+  "Reference number / payment notes": "Sanggunian number / tala sa bayad",
+  "Reference no. / Notes, optional for Cash/COD": "Sanggunian / tala, opsyonal para sa Salapi/COD",
+  "Receipt image": "Larawan ng resibo",
+  "Enter your reference number. A receipt image is optional.": "Ilagay ang sanggunian number. Opsyonal ang larawan ng resibo.",
+  "Enter the number from your payment receipt": "Ilagay ang numero sa iyong resibo",
+  "Add payment reference / receipt": "Magdagdag ng sanggunian ng bayad / resibo",
+  "Accept payment": "Tanggapin ang bayad",
+  "Decline payment": "Tanggihan ang bayad",
+  "Decline payment details?": "Tanggihan ang mga detalye ng bayad?",
+  "Reason for declining *": "Dahilan ng pagtanggi *",
+  "Keep reviewing": "Ipagpatuloy ang pagsusuri",
+  "Payment details submitted — please review": "Naisumite na ang detalye ng bayad — pakisuri",
+  "Payment instructions / message": "Tagubilin sa pagbabayad / mensahe",
+  "Submitting a reference number does not mark your request paid. The business checks the amount and reference against funds actually received.": "Hindi awtomatikong ituturing na bayad ang kahilingan kapag nagsumite ng sanggunian number. Susuriin ng negosyo ang halaga at sanggunian batay sa aktuwal na natanggap na pera.",
+  "No receipt image attached. Verify the submitted reference against your actual account.": "Walang kalakip na larawan ng resibo. Ihambing ang sanggunian sa aktuwal mong akawnt.",
+  "Receipt image is optional. Verify the submitted reference against your actual account.": "Opsyonal ang larawan ng resibo. Ihambing ang sanggunian sa aktuwal mong akawnt.",
+  "Explain which details the customer should provide.": "Kumpirmahin ang kabuuang halaga, paghahatid fee, tatanggap ng bayad, at detalye ng akawnt. Huwag humingi ng Pananda o Minsang kodigo.",
+  "The order stays accepted. The customer can correct and resubmit their payment details.": "Mananatiling tanggap ang bilin. Maaaring itama at muling isumite ng mamimili ang detalye ng bayad.",
+  "For example: reference not found, amount does not match, or receipt is unclear.": "Halimbawa: hindi makita ang sanggunian, hindi tugma ang halaga, o malabo ang resibo.",
+  "Explain what needs correcting. Do not ask the customer to pay again if you have already received the payment.": "Ipaliwanag ang kailangang itama. Huwag pagbayarin muli ang mamimili kung natanggap mo na ang bayad.",
+  "1. Pay business": "1. Bayaran ang negosyo",
+  "2. Submit proof": "2. Isumite ang patunay",
+  "3. Business verifies": "3. Susuriin ng negosyo",
+  "Close payment details": "Isara ang mga detalye ng bayad",
+  "Close payment review": "Isara ang pagsusuri ng bayad",
+  "Cancellation policy": "Patakaran sa pagkansela",
+  "Cancellation is closed at this stage. Contact the business if you need help.": "Hindi na maaaring magkansela sa yugtong ito. Makipag-ugnayan sa negosyo kung kailangan ng tulong.",
+  "Close cancellation": "Isara ang pagkansela",
+  "REVIEW CANCELLATION": "SURIIN ANG PAGKANSELA",
+  "If you already paid, follow the refund steps in the transaction summary. Vicinify does not automatically transfer a refund.": "Kung nakapagbayad na, sundan ang mga hakbang sa pagbabalik ng bayad sa buod ng transaksiyon. Hindi kusang nagpapadala ng ibinalik na bayad ang Vicinify.",
+  "Cancelled · If paid, contact the business to arrange your refund.": "Kinansela · Kung nakabayad na, kausapin ang negosyo tungkol sa ibabalik na bayad.",
+  "will be cancelled. This cannot be undone.": "ay kakanselahin. Hindi na ito maibabalik.",
+  "CONVERSATION": "PAG-UUSAP",
+  "Conversation": "Pag-uusap",
+  "Messages & request updates": "Mga mensahe at pagbabago sa kahilingan",
+  "Start a conversation": "Magsimula ng pag-uusap",
+  "Your conversations will appear here.": "Lalabas dito ang iyong mga pag-uusap.",
+  "Sending to": "Ipapadala kay",
+  "Business closed": "Sarado ang negosyo",
+  "Open Chat": "Buksan ang usapan",
+  "Close conversation": "Isara ang pag-uusap",
+  "Send message": "Ipadala ang mensahe",
+  "Write a message…": "Sumulat ng mensahe…",
+  "Write a comment": "Sumulat ng komento",
+  "Write something...": "Sumulat ng mensahe...",
+  "Reply": "Sumagot",
+  "Hide conversation": "Itago ang pag-uusap",
+  "Check details with the business before visiting.": "Kumpirmahin ang mga detalye sa negosyo bago bumisita.",
+  "${document.getElementById('chatModal')?.dataset.mode==='transaction'?'Send a message about the selected transaction.':'Ask about the menu, availability, or your request. Choose a quick question below to get started.'}": "Magtanong tungkol sa talaan ng pagkain, pagkakaroon, o iyong kahilingan. Pumili ng mabilis na tanong sa ibaba para magsimula.",
+  "Date": "Petsa",
+  "Time": "Oras",
+  "Guests": "Mga bisita",
+  "Notes": "Mga tala",
+  "Items": "Mga item",
+  "Payment": "Bayad",
+  "Delivery address": "Tirahan ng paghahatid",
+  "Transaction progress": "Usad ng transaksyon",
+  "Progress": "Usad",
+  "Transaction completed. Feedback can now be submitted.": "Tapos na ang transaksyon. Maaari nang magbigay ng puna.",
+  "Transaction completed. Please rate your experience and send feedback.": "Tapos na ang transaksyon. Markahan ang iyong karanasan at magbigay ng puna.",
+  "Requirements confirmed by business.": "Kinumpirma ng negosyo ang mga kailangan.",
+  "Submitted. Waiting for business confirmation.": "Naisumite na. Naghihintay ng kumpirmasyon ng negosyo.",
+  "Rate Your Experience": "Markahan ang iyong karanasan",
+  "Rate & Send Feedback": "Markahan at magpadala ng puna",
+  "Feedback / Comment": "Puna / komento",
+  "Satisfaction": "Kasiyahan",
+  "Not satisfied": "Hindi nasiyahan",
+  "Satisfied": "Nasiyahan",
+  "Very satisfied": "Lubos na nasiyahan",
+  "Neutral": "Katamtaman",
+  "Needs improvement": "Kailangan pang pagbutihin",
+  "How was your transaction? Your feedback helps improve local establishments.": "Kumusta ang iyong transaksyon? Nakatutulong ang puna mo para mapabuti ang mga lokal na establisyimento.",
+  "Write your feedback here, optional but recommended": "Isulat dito ang iyong puna, opsyonal ngunit hinihikayat",
+  "Post publicly as a Verified Review": "Ibahagi sa publiko bilang napatunayang pagsusuri",
+  "This helps the business build trust. You can uncheck this to keep the feedback inside the transaction only.": "Nakatutulong ito sa tiwala sa negosyo. Alisin ang check kung nais mong manatili lamang sa transaksyon ang puna.",
+  "Feedback already submitted. Thank you!": "Naisumite na ang puna. Salamat!",
+  "You can't rate your own place.": "Hindi mo maaaring markahan ang sarili mong establisyimento.",
+  "Positive Rate": "Bahagdan ng positibong marka",
+  "Top Feedback": "Pangunahing puna",
+  "Verified Transaction": "Beripikadong transaksyon",
+  "Post type": "Uri ng paskil",
+  "Post content / text": "Nilalaman / teksto ng paskil",
+  "Post details": "Mga detalye ng paskil",
+  "General": "Pangkalahatan",
+  "Promo": "Alok",
+  "Event": "Kaganapan",
+  "Tip": "Payo",
+  "Announcement": "Anunsyo",
+  "Publish": "Ilathala",
+  "Add Post": "Magdagdag ng paskil",
+  "Add Photo or Video": "Magdagdag ng larawan",
+  "Post as Business": "Magpaskil bilang negosyo",
+  "Business to post as": "Negosyong gagamitin sa paskil",
+  "Share an update, promo, event, or local tip…": "Magbahagi ng pagbabago, alok, kaganapan, o lokal na payo…",
+  "Select establishment...": "Pumili ng establisyimento...",
+  "Select barangay...": "Pumili ng barangay...",
+  "Select Barangay": "Pumili ng barangay",
+  "Choose a barangay (optional)": "Pumili ng barangay (opsyonal)",
+  "Barangay/area this post belongs to": "Barangay/lugar para sa paskil na ito",
+  "No posts for this establishment yet. Click \"Add Post\" to upload a menu or promo!": "Wala pang paskil para sa establisyimentong ito. Pindutin ang \"Magdagdag ng paskil\" para maglakip ng talaan ng pagkain o alok!",
+  "Menu board": "Talaan ng pagkain board",
+  "Post Menu": "Magpaskil ng talaan ng pagkain",
+  "Post Menu / Store Update": "Magpaskil ng talaan ng pagkain / pagbabago ng tindahan",
+  "Menu / Promo Details": "Mga detalye ng talaan ng pagkain / alok",
+  "Businesses can post best sellers, promos, menus, and new items here.": "Maaaring magpaskil dito ang negosyo ng pinakamahusay seller, alok, talaan ng pagkain, at mga bagong item.",
+  "Example: Bestseller milktea - P89 today, or upload your menu photo.": "Halimbawa: Bestseller na tsaa na may gatas - ₱89 ngayon, o ilakip ang larawan ng talaan ng pagkain.",
+  "Post actions": "Mga aksyon sa paskil",
+  "Share as Promo": "Ibahagi bilang alok",
+  "Share as Announcement": "Ibahagi bilang anunsyo",
+  "Post update": "Magpaskil ng pagbabago",
+  "Shared to Buzz": "Naibahagi sa Balita",
+  "Send comment": "Ipadala ang komento",
+  "Delete Post": "Burahin ang paskil",
+  "Delete Record": "Burahin ang rekord",
+  "Delete Establishment": "Burahin ang establisyimento",
+  "Delete Account": "Burahin ang akawnt",
+  "Delete Data": "Burahin ang datos",
+  "Hide Message from Admin": "Itago ang mensahe sa tagapangasiwa",
+  "Hide Request from Admin": "Itago ang kahilingan sa tagapangasiwa",
+  "Suki Card": "Kard ng Suki",
+  "Suki Card Available": "May Suki Kard",
+  "Suki Card Studio": "Disenyo ng Kard ng Suki",
+  "Enable Suki Card": "Paganahin ang Suki Kard",
+  "Your card preview": "Paunang tanaw ng iyong kard",
+  "Card details": "Mga detalye ng kard",
+  "Cardholder": "May-ari ng kard",
+  "Card ID": "Pagkakakilanlan ng kard",
+  "Number of stamps": "Bilang ng tatak",
+  "Stamp icon": "Sagisag ng tatak",
+  "Reward": "Gantimpala",
+  "Reward text": "Teksto ng gantimpala",
+  "Template": "Padron",
+  "(choose a style, then customize)": "(pumili ng estilo, saka baguhin ayon sa gusto)",
+  "Color mode": "Paraan ng pagkulay",
+  "Solid": "Solidong kulay",
+  "Solid color": "Solidong kulay",
+  "Gradient": "Unti-unting kulay",
+  "Gradient presets": "Mga preset na unti-unting kulay",
+  "Custom": "Pasadya",
+  "Custom gradient": "Pasadyang unti-unting kulay",
+  "Pattern overlay": "Disenyo sa ibabaw",
+  "Auto (category)": "Awtomatiko (kategorya)",
+  "Flip": "Baligtarin",
+  "Flip card": "Baligtarin ang kard",
+  "Flip card back": "Ibalik ang kard",
+  "Show customer QR": "Ipakita ang QR ng mamimili",
+  "Customer QR": "QR ng mamimili",
+  "Vicinify Scan": "Vicinify Pagbasa ng kodigo",
+  "Claim reward": "Kunin ang gantimpala",
+  "Mark as claimed": "Markahang nakuha na",
+  "Point the camera at the store's Suki QR. You must be at the establishment — your location will be verified.": "Itutok ang camera sa Suki QR ng tindahan. Kailangang nasa establisyimento ka dahil ibe-verify ang iyong lokasyon.",
+  "Let customers scan this code to request a stamp. Review requests before approving.": "Ipa-pagbasa ng kodigo ang kodigo sa mamimili para humiling ng tatak. Suriin ang kahilingan bago aprubahan.",
+  "This store has a Suki Card! Log in to see your card and request a stamp.": "May Suki Kard ang tindahang ito! Pumasok para makita ang iyong kard at humiling ng tatak.",
+  "You don't have a Suki Card yet.": "Wala ka pang Suki Kard.",
+  "You don't have a Suki Card yet. Visit a store and scan with Vicinify!": "Wala ka pang Suki Kard. Bumisita sa tindahan at mag-pagbasa ng kodigo gamit ang Vicinify!",
+  "Flip the card to see the reward and claim status. Show the QR or tap Scan with Vicinify on the store page to request a stamp.": "Baligtarin ang kard para makita ang gantimpala at katayuan ng pagkuha. Ipakita ang QR o pindutin ang Pagbasa ng kodigo with Vicinify sa pahina ng tindahan para humiling ng tatak.",
+  "Could not load Suki Cards right now.": "Hindi maihanda ang mga Suki Kard sa ngayon.",
+  "Could not load the Suki Card right now.": "Hindi maihanda ang Suki Kard sa ngayon.",
+  "Could not load the QR library.": "Hindi maihanda ang QR library.",
+  "Ask Vici": "Magtanong sa Vicinify",
+  "Ask Vici AI": "Magtanong sa Vicinify",
+  "Ask Vici AI...": "Magtanong kay Vicinify Katulong...",
+  "Ask about food, places, or your next coffee…": "Magtanong tungkol sa pagkain, mga lugar, o susunod mong kape…",
+  "AI conversation": "Pag-uusap sa Katulong",
+  "Recent chats": "Mga nakaraang usapan",
+  "Recent AI chats": "Mga nakaraang Katulong usapan",
+  "New chat": "Bagong usapan",
+  "On this device": "Sa aparato na ito",
+  "Show recent chats": "Ipakita ang mga nakaraang usapan",
+  "Close recent chats": "Isara ang mga nakaraang usapan",
+  "Minimize Vici AI": "Paliitin ang Vicinify Katulong",
+  "Close Vici AI": "Isara ang Vicinify Katulong",
+  "Send to Vici AI": "Ipadala kay Vicinify Katulong",
+  "No strong match yet": "Wala pang tugmang resulta",
+  "Try asking": "Subukang magtanong",
+  "Try again": "Subukan muli",
+  "Later": "Mamaya",
+  "Looking through local places": "Tinitingnan ang mga lokal na lugar",
+  "Try widening the radius or using another food/category word.": "Subukang palawakin ang layo o gumamit ng ibang pagkain/kategorya sa paghahanap.",
+  "Ranked by location, ratings, food match, freshness, and availability.": "Inayos ayon sa lokasyon, marka, tugma sa pagkain, pagiging bago ng impormasyon, at pagkakaroon.",
+  "View on Map": "Tingnan sa mapa",
+  "View on map": "Tingnan sa mapa",
+  "Hide Vici AI": "Itago ang Vicinify Katulong",
+  "Hide smart picks": "Itago ang mga napiling lugar",
+  "Vici AI is currently unavailable. Please try again later.": "Hindi magamit ngayon ang katulong ng Vicinify. Pakisubukan muli mamaya.",
+  "AI timed out. Please try again.": "Naubos ang oras ng Katulong. Pakisubukan muli.",
+  "Search": "Maghanap",
+  "Search Vicinify": "Maghanap sa Vicinify",
+  "Open store": "Buksan ang tindahan",
+  "Title": "Pamagat",
+  "Enter title": "Ilagay ang pamagat",
+  "Type": "Uri",
+  "Report Info": "Iulat ang impormasyon",
+  "Wrong hours": "Maling oras",
+  "Wrong location": "Maling lokasyon",
+  "Wrong contact": "Maling kontak",
+  "Report submitted": "Naisumite ang ulat",
+  "Add details so admin can verify quickly": "Magdagdag ng detalye para masuri agad ng tagapangasiwa",
+  "Permanent admin — role is locked": "Permanenteng tagapangasiwa — hindi mababago ang tungkulin",
+  "Verified by admin": "Beripikado ng tagapangasiwa",
+  "Accepted MOP:": "Tinatanggap na paraan ng pagbabayad:",
+  "Is verified": "Beripikado",
+  "Accepts booking": "Tumatanggap ng pagpapareserba",
+  "No changes": "Walang pagbabago",
+  "Dismiss": "Alisin",
+  "Remove": "Alisin",
+  "Attach My Current Location": "Ilakip ang aking lokasyon",
+  "Customer attaches their current location": "Ilalakip ng mamimili ang kasalukuyan niyang lokasyon",
+  "Location not attached yet.": "Wala pang kalakip na lokasyon.",
+  "Amount, mode of payment & reference": "Halaga, paraan ng pagbabayad, at sanggunian",
+  "Date:": "Petsa:",
+  "Time:": "Oras:",
+  "Items / Order:": "Mga item / bilin:",
+  "Payment Method:": "Paraan ng pagbabayad:",
+  "Notes:": "Mga tala:",
+  "Delivery Address:": "Tirahan ng paghahatid:",
+  "Feedback:": "Puna:",
+  "Rating:": "Marka:",
+  "Satisfaction:": "Kasiyahan:",
+  "Business note:": "Tala ng negosyo:",
+  "Address:": "Tirahan:",
+  "Barangay:": "Barangay:",
+  "City:": "Lungsod:",
+  "Reference:": "Sanggunian:",
+  "Amount:": "Halaga:",
+  "Method:": "Paraan:",
+  "Mode of Payment:": "Paraan ng pagbabayad:",
+  "Payment details submitted": "Naisumite na ang detalye ng bayad",
+  "Waiting for online payment proof. Verify the received payment before preparation.": "Naghihintay ng patunay ng sa internet na bayad. Patunayan ang natanggap na bayad bago maghanda.",
+  "Please log in to view.": "Pumasok para makita.",
+  "Please select at least one requirement above.": "Pumili ng kahit isang kailangan sa itaas.",
+  "You’re offline. Some features need an internet connection.": "Walang koneksiyon ka. Nangangailangan ng internet ang ilang gamit.",
+  "Accessibility": "Daling mapuntahan",
+  "Service options": "Mga paraan ng serbisyo",
+  "Amenities": "Mga pasilidad",
+  "Highlights": "Mga tampok",
+  "Dining options": "Mga paraan ng pagkain",
+  "Offerings": "Mga iniaalok",
+  "Payments": "Mga paraan ng pagbabayad",
+  "Parking": "Paradahan",
+  "Wheelchair-accessible entrance": "Pasukang naa-pahintulot ng wheelchair",
+  "Wheelchair-accessible parking": "Paradahang naa-pahintulot ng wheelchair",
+  "Wheelchair-accessible restroom": "Palikurang naa-pahintulot ng wheelchair",
+  "Wheelchair-accessible seating": "Upuang naa-pahintulot ng wheelchair",
+  "Takeout": "Pag-uuwi ng pagkain",
+  "Outdoor seating": "Upuan sa labas",
+  "Wi-Fi": "Wi-Fi",
+  "Restroom": "Palikuran",
+  "Air conditioning": "Pagpapalamig ng hangin",
+  "Coffee specialty": "Espesyalidad sa kape",
+  "Fresh pastries": "Mga bagong tinapay",
+  "Live music": "Agad na musika",
+  "Live sports": "Agad na palakasan",
+  "Breakfast": "Almusal",
+  "Lunch": "Tanghalian",
+  "Dinner": "Hapunan",
+  "Groups": "Mga grupo",
+  "Solo dining": "Kainan para sa mag-isa",
+  "Coffee": "Kape",
+  "Tea": "Tsaa",
+  "Desserts": "Mga panghimagas",
+  "Vegetarian options": "Mga pagkaing walang karne",
+  "Cash": "Salapi",
+  "Bank transfer": "Paglilipat sa bangko",
+  "Credit cards": "Mga kredito kard",
+  "Debit cards": "Mga debito kard",
+  "Free parking": "Libreng paradahan",
+  "Paid parking": "May bayad na paradahan",
+  "Street parking": "Paradahan sa kalye",
+  "Admin Hub": "Sentro ng Tagapangasiwa",
+  "Admin workspace": "Sentro ng Tagapangasiwa",
+  "Your workspace": "Iyong lugar-gawaan",
+  "Community Buzz": "Balita ng komunidad",
+  "Add a place": "Magdagdag ng lugar",
+  "Place details": "Mga detalye ng lugar",
+  "Edit establishment": "Baguhin ang establisyimento",
+  "Business posts": "Mga paskil ng negosyo",
+  "Welcome": "Maligayang pagdating",
+  "Local explorer": "Lokal na tagatuklas",
+  "Your neighborhood": "Iyong komunidad",
+  "Manage establishments, users, posts, claims, and reports in one place.": "Pamahalaan sa iisang lugar ang mga establisyimento, gumagamit, paskil, pag-angkin, at ulat.",
+  "Manage your listings, daily operations, and customer messages.": "Pamahalaan ang mga listing, araw-araw na operasyon, at mensahe ng mamimili.",
+  "Buzz Posts": "Mga Balita paskil",
+  "Additional Details": "Karagdagang detalye",
+  "Amount Requested:": "Hinihinging halaga:",
+  "Assigning owner for:": "Itinatakda ang may-ari para sa:",
+  "Authentication": "Pagpapatunay ng pagkakakilanlan",
+  "Barangay location": "Lokasyon sa barangay",
+  "Business requested:": "Hiniling ng negosyo:",
+  "Choose category": "Pumili ng kategorya",
+  "Claimant": "Naghahabol ng pagmamay-ari",
+  "Click to manually assign owner": "Pindutin para magtalaga ng may-ari",
+  "Click to view on map": "Pindutin para makita sa mapa",
+  "Consultation, inquiry, appointment...": "Konsultasyon, pagtatanong, appointment...",
+  "Could not load. Please try again later.": "Hindi maihanda. Pakisubukan muli mamaya.",
+  "Design your store's loyalty stamp card. The preview is live — drag to rotate, tap": "Idisenyo ang loyalty tatak kard ng tindahan. Agad ang paunang tanaw — i-hilahin para paikutin, pindutin",
+  "(drag to rotate, tap": "(i-hilahin para paikutin, pindutin",
+  "Display name of poster": "Pangalang ipapakita ng nagpaskil",
+  "Display name of the sender": "Pangalang ipapakita ng nagpadala",
+  "Enter user's email...": "Ilagay ang sulatroniko ng gumagamit...",
+  "Enter user's registered email address:": "Ilagay ang rehistradong sulatroniko ng gumagamit:",
+  "Filipino (Tagalog)": "Filipino (Tagalog)",
+  "Food finder for Vicinify": "Tagahanap ng pagkain sa Vicinify",
+  "Hi, I can help you find food places, compare ratings, check distance, and suggest what fits your location.": "Kumusta! Matutulungan kitang maghanap ng kainan, maghambing ng marka, tumingin ng layo, at pumili ng bagay sa lokasyon mo.",
+  "House/Street:": "Bahay/kalye:",
+  "Landmark / Notes:": "Palatandaan / mga tala:",
+  "Landmark / Location notes e.g., tabi ng red na bahay, malapit sa kanto, blue gate": "Palatandaan / tala sa lokasyon, hal. katabi ng pulang bahay, malapit sa kanto, asul na gate",
+  "Message text from customer": "Teksto ng mensahe ng mamimili",
+  "No public reviews yet. Completed transactions will appear here as verified reviews when customers choose public posting.": "Wala pang pampublikong pagsusuri. Lalabas dito ang mga pagsusuri mula sa natapos na transaksyon kapag piniling ibahagi ng mamimili sa publiko.",
+  "Paid directly to": "Direktang binayaran kay",
+  "Places from this search": "Mga lugar mula sa paghahanap na ito",
+  "Public feedback signal": "Palatandaan ng pampublikong puna",
+  "Recommended": "Inirerekomenda",
+  "Reference / Notes:": "Sanggunian / mga tala:",
+  "Reply from the business owner": "Sagot mula sa may-ari ng negosyo",
+  "Status:": "Katayuan:",
+  "Street address in Lipa City": "Tirahan ng kalye sa Lipa City",
+  "Type of establishment": "Uri ng establisyimento",
+  "Type of post": "Uri ng paskil",
+  "Unable to load reviews.": "Hindi maihanda ang mga pagsusuri.",
+  "What are you craving?": "Ano ang gusto mong kainin?",
+  "Your request with": "Ang kahilingan mo sa",
+  "accepted / confirmed": "tinanggap / kinumpirma",
+  "e.g. Free coffee": "Hal. libreng kape",
+  "e.g. GCash, Maya, Cash, Bank Transfer": "Hal. GCash, Maya, salapi, paglilipat sa bangko",
+  "e.g., 5": "Hal. 5",
+  "to flip)": "para baligtarin)",
+  "to flip. Works even without internet or quota.": "para baligtarin. Gumagana kahit walang internet o natitirang hangganan ng paggamit.",
+  "✅ Requirements Submitted": "✅ Naisumite ang mga kailangan",
+  "✓ Verified Transaction": "✓ Beripikadong transaksyon",
+  "⭐ Rate & Feedback": "⭐ Marka at puna",
+  "⭐ 1 - Bad Experience": "⭐ 1 - Hindi magandang karanasan",
+  "⭐⭐ 2 - Not Satisfied": "⭐⭐ 2 - Hindi nasiyahan",
+  "⭐⭐⭐ 3 - Okay": "⭐⭐⭐ 3 - Katamtaman",
+  "⭐⭐⭐⭐ 4 - Satisfied": "⭐⭐⭐⭐ 4 - Nasiyahan",
+  "⭐⭐⭐⭐⭐ 5 - Very Satisfied": "⭐⭐⭐⭐⭐ 5 - Lubos na nasiyahan",
+  "🌟 Customer Feedback": "🌟 Puna ng mamimili",
+  "🏠 Delivery Address": "🏠 Tirahan ng paghahatid",
+  "💳 Payment Details": "💳 Mga detalye ng bayad",
+  "💳 Payment Summary": "💳 Buod ng bayad",
+  "📍 Delivery Card": "📍 Kard ng paghahatid",
+  "📍 Shared Location": "📍 Ibinahaging lokasyon",
+  "📝 Order Details": "📝 Mga detalye ng bilin",
+  "🧾 Order Summary": "🧾 Buod ng bilin",
+  "1. What would you like to do?": "1. Ano ang nais mong gawin?",
+  "1. Use of the Platform": "1. Paggamit ng plataporma",
+  "2. Account Responsibilities": "2. Mga pananagutan sa akawnt",
+  "3. System Limitations": "3. Mga limitasyon ng sistema",
+  "4. Data Accuracy": "4. Katumpakan ng datos",
+  "5. General User Obligations": "5. Mga pangkalahatang tungkulin ng gumagamit",
+  "6. Terms of Participating Food Establishments": "6. Mga tuntunin para sa mga kalahok na kainan",
+  "Welcome to Vicinify: An AI-Assisted Food Establishment Locator and Recommendation System in Lipa City. By creating an account and using Vicinify, you agree to the following terms. Please read them carefully.": "Maligayang pagdating sa Vicinify, isang sistema na may tulong ng Katulong para maghanap at magrekomenda ng mga kainan sa Lipa City. Sa paggawa ng akawnt at paggamit ng Vicinify, sumasang-ayon ka sa mga sumusunod na tuntunin. Pakibasa nang mabuti.",
+  "Vicinify may update these terms from time to time. Continued use of the platform after an update means the user accepts the updated terms.": "Maaaring baguhin ng Vicinify ang mga tuntuning ito paminsan-minsan. Ang patuloy na paggamit matapos ang pagbabago ay nangangahulugang tinatanggap ng gumagamit ang nabago na mga tuntunin.",
+  "You may cancel for free while your request is still pending. Once the establishment accepts it, cancelling refunds the establishment's stated rate (shown on your order card). Once preparation starts, cancellation is no longer available.": "Maaari kang magkansela nang libre habang naghihintay pa ang kahilingan. Kapag tinanggap na ng establisyimento, ang ibabalik na bayad ay ayon sa nakasaad nitong rate sa iyong bilin kard. Hindi na maaaring magkansela kapag nagsimula ang paghahanda.",
+  "Success": "Tagumpay",
+  "Something went wrong": "May nagkaproblema",
+  "Heads up": "Paalala",
+  "Info": "Impormasyon",
+  "Confirm": "Kumpirmahin",
+  "Accept this payment?": "Tanggapin ang bayad na ito?",
+  "Account Not Verified": "Hindi pa napatunayan ang akawnt",
+  "Account created successfully! A verification link has been sent to your email. Please verify to access all features.": "Nagawa na ang akawnt! Naipadala sa sulatroniko mo ang pagpapatunay ugnay. Magpa-verify para magamit ang lahat ng gamit.",
+  "Admin access is required for this action.": "Kailangan ang pahintulot ng tagapangasiwa para sa aksyong ito.",
+  "Business Profile Updated Successfully!": "Nabago na ang pagkakakilanlan ng negosyo!",
+  "Business info confirmed. Freshness status updated.": "Nakumpirma ang detalye ng negosyo. Nabago ang katayuan ng impormasyon.",
+  "Business name must be at least 3 characters.": "Kailangang may hindi bababa sa 3 tanda ang pangalan ng negosyo.",
+  "Business name must be at most 120 characters.": "Hanggang 120 tanda lamang ang pangalan ng negosyo.",
+  "Cancellation is no longer available at this stage.": "Hindi na maaaring magkansela sa yugtong ito.",
+  "Change Role": "Palitan ang tungkulin",
+  "Claim Business": "I-pag-angkin ang negosyo",
+  "Claim approved. The claimant is now the establishment owner.": "Naaprubahan ang pag-angkin. Ang nag-pag-angkin na ang may-ari ng establisyimento.",
+  "Claim not found.": "Hindi makita ang pag-angkin.",
+  "Claim request sent! Show the card to the owner.": "Naipadala ang pag-angkin kahilingan! Ipakita ang kard sa may-ari.",
+  "Claim request submitted for admin review.": "Naisumite ang pag-angkin kahilingan para suriin ng tagapangasiwa.",
+  "Clear recent AI chats?": "Burahin ang mga nakaraang Katulong usapan?",
+  "Confirm Completed": "Kumpirmahing tapos na",
+  "Could not load payment details. Try again.": "Hindi maihanda ang detalye ng bayad. Subukan muli.",
+  "Could not load the scanner. Please check your connection and try again.": "Hindi maihanda ang pambasa ng kodigo. Suriin ang koneksyon at subukan muli.",
+  "Could not open post. Please try again.": "Hindi mabuksan ang paskil. Pakisubukan muli.",
+  "Could not open the camera. Please allow camera access and try again.": "Hindi mabuksan ang camera. Payagan ang pahintulot sa camera at subukan muli.",
+  "Could not open this conversation. Please try again.": "Hindi mabuksan ang pag-uusap. Pakisubukan muli.",
+  "Could not update status. Please try again.": "Hindi mabago ang katayuan. Pakisubukan muli.",
+  "Current password is incorrect.": "Mali ang kasalukuyang kontrasenyas.",
+  "Delete Update": "Burahin ang pagbabago",
+  "Delivery request accepted. Delivery details card is now ready for the customer.": "Tinanggap ang kahilingan sa paghahatid. Handa na ang kard ng detalye para sa mamimili.",
+  "Delivery status updated.": "Nabago ang katayuan ng paghahatid.",
+  "Description must be at least 10 characters.": "Kailangang may hindi bababa sa 10 tanda ang paglalarawan.",
+  "Description must be at most 1000 characters.": "Hanggang 1000 tanda lamang ang paglalarawan.",
+  "Enter a valid amount greater than zero, with up to two decimal places.": "Maglagay ng wastong halagang higit sa zero, hanggang dalawang decimal place.",
+  "Error updating favorites. Please try again later.": "Hindi mabago ang mga paborito. Pakisubukan muli mamaya.",
+  "Error: No user found with that email. Make sure they registered in the app first.": "Walang gumagamit na may sulatroniko na iyon. Tiyaking nakarehistro muna siya sa aplikasyon.",
+  "Establishment Submitted to Cloud! (Pending Admin Approval)": "Naisumite na ang establisyimento sa imbakan sa internet! Naghihintay ng pag-apruba ng tagapangasiwa.",
+  "Establishment approved and published!": "Naaprubahan at nailathala ang establisyimento!",
+  "Establishment name must be at least 3 characters.": "Kailangang may hindi bababa sa 3 tanda ang pangalan ng establisyimento.",
+  "Free database quota is exhausted for today. Please try again later.": "Naubos na ang libreng imbakan ng datos hangganan ng paggamit ngayong araw. Pakisubukan muli mamaya.",
+  "Getting your location...": "Kinukuha ang iyong lokasyon...",
+  "Give Feedback": "Magbigay ng puna",
+  "Hide Chat": "Itago ang usapan",
+  "Hide Conversation": "Itago ang pag-uusap",
+  "Hide Record": "Itago ang rekord",
+  "Location is not supported on this device.": "Hindi suportado ng aparato na ito ang lokasyon.",
+  "Location sharing is not supported on this device.": "Hindi suportado ng aparato na ito ang pagbabahagi ng lokasyon.",
+  "Log in to comment!": "Pumasok para magkomento!",
+  "Map reset to defaults.": "Naibalik ang paunang pili na ayos ng mapa.",
+  "Marked as claimed. 🎁": "Namarkahang nakuha na. 🎁",
+  "Maximum 5 photos only": "Hanggang 5 larawan lamang",
+  "Menu/store post published.": "Nailathala na ang talaan ng pagkain/paskil ng tindahan.",
+  "Mini map not ready.": "Hindi pa handa ang maliit na mapa.",
+  "Mini map not ready. Paki-refresh ang page.": "Hindi pa handa ang maliit na mapa. Paki-muling buksan ang pahina.",
+  "Missing establishment details.": "Kulang ang detalye ng establisyimento.",
+  "Navigation is still loading. Check your connection.": "Inihahanda pa ang paglalakbay. Suriin ang koneksyon.",
+  "Navigation stopped.": "Itinigil ang paglalakbay.",
+  "New password and confirmation do not match.": "Hindi magkatugma ang bagong kontrasenyas at kumpirmasyon.",
+  "New password must be at least 8 characters with uppercase, lowercase, a number, and a special character (!@#$%).": "Kailangang may hindi bababa sa 8 tanda ang bagong kontrasenyas, na may malaking titik, maliit na titik, numero, at espesyal na tanda (!@#$%).",
+  "No active delivery/details request yet. Wait for the business to accept or request details.": "Wala pang aktibong kahilingan sa paghahatid/detalye. Hintaying tanggapin ito ng negosyo o humingi sila ng detalye.",
+  "No establishment selected.": "Walang napiling establisyimento.",
+  "Only the approved business owner can post as this establishment.": "Ang naaprubahang may-ari lamang ang maaaring magpaskil bilang establisyimentong ito.",
+  "Only the approved owner or an admin can share this post.": "Ang naaprubahang may-ari o tagapangasiwa lamang ang maaaring magbahagi ng paskil na ito.",
+  "Only the business owner can request requirements from a customer.": "Ang may-ari lamang ng negosyo ang maaaring humingi ng mga kailangan mula sa mamimili.",
+  "Only the owner or an admin can delete this update.": "Ang may-ari o tagapangasiwa lamang ang maaaring magbura ng pagbabago na ito.",
+  "Only the owner or an admin can edit the Suki Card.": "Ang may-ari o tagapangasiwa lamang ang maaaring magbago ng Suki Kard.",
+  "Only the owner or an admin can edit this business profile.": "Ang may-ari o tagapangasiwa lamang ang maaaring magbago ng pagkakakilanlan ng negosyo.",
+  "Only the owner or an admin can edit this post.": "Ang may-ari o tagapangasiwa lamang ang maaaring magbago ng paskil na ito.",
+  "Only the owner or an admin can post updates for this establishment.": "Ang may-ari o tagapangasiwa lamang ang maaaring magpaskil ng pagbabago para sa establisyimentong ito.",
+  "Open a customer conversation from Business Hub → Messages.": "Buksan ang pag-uusap ng mamimili sa Sentro ng Negosyo → Mga Mensahe.",
+  "Open the Map page once to load the post modal.": "Buksan muna ang Mapa para maihanda ang paskil pormularyo.",
+  "Password cannot be empty.": "Hindi maaaring walang laman ang kontrasenyas.",
+  "Password reset email sent! Please check your inbox or spam folder.": "Naipadala ang sulatroniko para sa pagbabalik ng kontrasenyas! Tingnan ang kahon ng mensahe o spam folder.",
+  "Password updated successfully!": "Napalitan na ang kontrasenyas!",
+  "Payment details submitted. Waiting for business verification.": "Naisumite ang detalye ng bayad. Naghihintay ng pagpapatunay ng negosyo.",
+  "Photos only. Please choose an image.": "Mga larawan lamang. Pumili ng larawan.",
+  "Pin moved to your location.": "Nailipat ang pananda sa iyong lokasyon.",
+  "Please add a caption or upload a photo!": "Maglagay ng paliwanag sa larawan o maglakip ng larawan!",
+  "Please add a short detail for admin.": "Maglagay ng maikling detalye para sa tagapangasiwa.",
+  "Please agree to the Terms and Conditions to create your account.": "Sumang-ayon muna sa Mga Tuntunin at Kondisyon para gumawa ng akawnt.",
+  "Please attach your current location.": "Ilakip ang iyong kasalukuyang lokasyon.",
+  "Please choose today or a future date and time.": "Piliin ang kasalukuyan o darating na petsa at oras.",
+  "Please complete the delivery address, city, and landmark/location notes.": "Kumpletuhin ang tirahan ng paghahatid, lungsod, at palatandaan/tala ng lokasyon.",
+  "Please create a Strong Password based on the requirements below.": "Gumawa ng malakas na kontrasenyas ayon sa mga kailangan sa ibaba.",
+  "Please enter additional details.": "Ilagay ang karagdagang detalye.",
+  "Please enter the amount paid.": "Ilagay ang halagang ibinayad.",
+  "Please enter the delivery address.": "Ilagay ang tirahan ng paghahatid.",
+  "Please enter the number of guests.": "Ilagay ang bilang ng mga bisita.",
+  "Please enter the order/items details.": "Ilagay ang detalye ng bilin/mga item.",
+  "Please enter your email and password.": "Ilagay ang iyong sulatroniko at kontrasenyas.",
+  "Please enter your full name.": "Ilagay ang iyong buong pangalan.",
+  "Please enter your online payment reference number so the business can verify it.": "Ilagay ang sanggunian number ng sa internet na bayad para ma-verify ito ng negosyo.",
+  "Please fill Business Name, Category, Address, Barangay, and Description.": "Punan ang pangalan ng negosyo, kategorya, tirahan, barangay, at paglalarawan.",
+  "Please fill Business Name, Category, Description, and Address.": "Punan ang pangalan ng negosyo, kategorya, paglalarawan, at tirahan.",
+  "Please fill Name, Category, Description, Address, and Barangay.": "Punan ang pangalan, kategorya, paglalarawan, tirahan, at barangay.",
+  "Please fill in current, new, and confirm password fields.": "Punan ang kasalukuyang kontrasenyas, bagong kontrasenyas, at kumpirmasyon ng kontrasenyas.",
+  "Please log in first to access the chat.": "Pumasok muna para magamit ang usapan.",
+  "Please log in first.": "Pumasok muna.",
+  "Please log in to like!": "Pumasok para mag-like!",
+  "Please log in to save favorites.": "Pumasok para mag-save ng mga paborito.",
+  "Please open the Map page at least once to load the Modal system.": "Buksan muna ang Mapa para maihanda ang mga kahon ng usapan.",
+  "Please select a Date and Time.": "Pumili ng petsa at oras.",
+  "Please select a payment method.": "Pumili ng paraan ng pagbabayad.",
+  "Please select a valid rating.": "Pumili ng wastong marka.",
+  "Please select an establishment!": "Pumili ng establisyimento!",
+  "Please select at least one requirement.": "Pumili ng kahit isang kailangan.",
+  "Please verify your email address first.": "Patunayan muna ang iyong sulatroniko tirahan.",
+  "Post content is empty!": "Walang laman ang paskil!",
+  "Post deleted successfully.": "Nabura na ang paskil.",
+  "Post no longer exists.": "Wala na ang paskil.",
+  "Post published.": "Nailathala na ang paskil.",
+  "Profile saved successfully to Cloud!": "Nailagak na sa imbakan sa internet ang iyong pagkakakilanlan!",
+  "Question sent. Automatic reply is unavailable right now; the business can still respond.": "Naipadala ang tanong. Hindi mayroon ngayon ang awtomatikong sagot; maaari pa ring sumagot ang negosyo.",
+  "Rating saved.": "Nailagak na ang marka.",
+  "Record successfully updated!": "Nabago na ang rekord!",
+  "Remove Favorite": "Alisin sa mga paborito",
+  "Removed from favorites.": "Naalis sa mga paborito.",
+  "Report submitted. Admin can review it.": "Naisumite na ang ulat. Maaari na itong suriin ng tagapangasiwa.",
+  "Request cancelled. Any refund must be arranged with the business.": "Kinansela ang kahilingan. Kausapin ang negosyo tungkol sa anumang ibabalik na bayad.",
+  "Requirement request no longer exists.": "Wala na ang kahilingan para sa mga kailangan.",
+  "Requirement request sent.": "Naipadala ang kahilingan para sa mga kailangan.",
+  "Requirement response no longer exists.": "Wala na ang sagot sa mga kailangan.",
+  "Requirements confirmed. Verify online payment proof before starting preparation.": "Nakumpirma ang mga kailangan. Patunayan ang patunay ng sa internet na bayad bago maghanda.",
+  "Requirements submitted.": "Naisumite ang mga kailangan.",
+  "Reset Password": "Ibalik ang kontrasenyas",
+  "Role updated successfully!": "Nabago na ang tungkulin!",
+  "Send this request?": "Ipadala ang kahilingan na ito?",
+  "Showing a limited catalog. Some establishments may not appear.": "Limitadong katalogo ang ipinapakita. Maaaring may mga establisyimentong hindi kasama.",
+  "Something went wrong. Check console.": "May nagkaproblema. Tingnan ang console.",
+  "Stamp approved! 🎉": "Naaprubahan ang tatak! 🎉",
+  "Stamp request cancelled.": "Kinansela ang tatak kahilingan.",
+  "Stamp request rejected.": "Tinanggihan ang tatak kahilingan.",
+  "Store not found.": "Hindi makita ang tindahan.",
+  "Success! Establishment Submitted for Admin Approval.": "Tagumpay! Naisumite ang establisyimento para sa pag-apruba ng tagapangasiwa.",
+  "Success! Establishment approved and published.": "Tagumpay! Naaprubahan at nailathala ang establisyimento.",
+  "Successfully added to favorites!": "Naidagdag sa mga paborito!",
+  "Suki Card saved!": "Nailagak na ang Suki Kard!",
+  "Thank you! Your rating and feedback were submitted.": "Salamat! Naisumite ang iyong marka at puna.",
+  "That password is too weak.": "Masyadong mahina ang kontrasenyas.",
+  "This establishment has no valid map location.": "Walang wastong lokasyon sa mapa ang establisyimentong ito.",
+  "This establishment is unavailable.": "Hindi mayroon ang establisyimentong ito.",
+  "This is the permanent admin account. Its role can never be changed.": "Ito ang permanenteng tagapangasiwa akawnt. Hindi mababago ang tungkulin nito.",
+  "This is your own establishment. You cannot send a request to yourself.": "Sarili mong establisyimento ito. Hindi ka maaaring magpadala ng kahilingan sa sarili mo.",
+  "This menu/store post no longer exists.": "Wala na ang talaan ng pagkain/paskil ng tindahang ito.",
+  "This place is no longer available on the map.": "Hindi na mayroon sa mapa ang lugar na ito.",
+  "This request is not awaiting online payment details.": "Hindi naghihintay ng detalye ng sa internet na bayad ang kahilingan na ito.",
+  "This store has no Suki Card.": "Walang Suki Kard ang tindahang ito.",
+  "This update cannot be deleted because its record ID is missing.": "Hindi mabura ang pagbabago dahil walang tala Pagkakakilanlan.",
+  "This update was already deleted.": "Nabura na ang pagbabago na ito.",
+  "Too many failed attempts. Please try again later.": "Masyadong maraming bigong pagsubok. Pakisubukan muli mamaya.",
+  "Too many failed attempts. Please wait a few minutes.": "Masyadong maraming bigong pagsubok. Maghintay ng ilang minuto.",
+  "Transaction completed. Please leave a rating and feedback.": "Tapos na ang transaksyon. Magbigay ng marka at puna.",
+  "Transaction confirmed. Please leave a rating and feedback.": "Nakumpirma ang transaksyon. Magbigay ng marka at puna.",
+  "Transaction history is kept for records and cannot be deleted.": "Iniingatan ang kasaysayan ng transaksyon at hindi ito maaaring burahin.",
+  "Unable to get location. Please allow location permission.": "Hindi makuha ang lokasyon. Payagan ang pahintulot sa lokasyon.",
+  "Unable to get your location. Please allow location permission.": "Hindi makuha ang iyong lokasyon. Payagan ang pahintulot sa lokasyon.",
+  "Unable to load this establishment.": "Hindi maihanda ang establisyimentong ito.",
+  "Unable to verify the establishment for this post.": "Hindi ma-verify ang establisyimento para sa paskil na ito.",
+  "Verification email sent! Please check your inbox or spam folder.": "Naipadala na ang pagpapatunay sulatroniko! Tingnan ang kahon ng mensahe o spam folder.",
+  "We need your location to start navigation.": "Kailangan ang iyong lokasyon para simulan ang paglalakbay.",
+  "You already have a pending claim for this establishment.": "May naghihintay ka nang pag-angkin para sa establisyimentong ito.",
+  "You already submitted feedback for this transaction.": "Nakapagbigay ka na ng puna para sa transaksyong ito.",
+  "You cannot favorite your own establishment.": "Hindi mo maaaring gawing paborito ang sarili mong establisyimento.",
+  "You cannot open another customer’s conversation.": "Hindi mo maaaring buksan ang pag-uusap ng ibang mamimili.",
+  "You must be logged in to add an establishment.": "Kailangang nakapasok para magdagdag ng establisyimento.",
+  "You must be logged in to change your password.": "Kailangang nakapasok para palitan ang kontrasenyas.",
+  "You must be logged in to reset your password.": "Kailangang nakapasok para ibalik ang kontrasenyas.",
+  "You must be logged in to save your profile.": "Kailangang nakapasok para i-save ang pagkakakilanlan.",
+  "You need to log in to post!": "Kailangan mong pumasok para magpaskil!",
+  "Your account has been removed from the system. You will be logged out.": "Inalis na ang iyong akawnt sa sistema. Ilalabas ka.",
+  "Your account is already verified or you are not logged in.": "Beripikado na ang akawnt mo o hindi ka nakapasok.",
+  "Your account is unverified. Please check your email to verify your account.": "Hindi pa napatunayan ang akawnt mo. Tingnan ang sulatroniko para patunayan ito.",
+  "Your sign-in account and profile were deleted. Related history records may remain for business and transaction records.": "Nabura na ang iyong sign-in akawnt at pagkakakilanlan. Maaaring manatili ang kaugnay na kasaysayan para sa mga rekord ng negosyo at transaksyon.",
+  "❌ INCORRECT PASSWORD! Account deletion failed.": "❌ MALI ANG Kontrasenyas! Hindi nabura ang akawnt.",
+  "Error:": "Suliranin:",
+  "Error saving:": "Hindi nailagak:",
+  "Error sending request:": "Hindi naipadala ang kahilingan:",
+  "Error sending message:": "Hindi naipadala ang mensahe:",
+  "Error sending email:": "Hindi naipadala ang sulatroniko:",
+  "Error saving profile:": "Hindi nailagak ang pagkakakilanlan:",
+  "Error deleting post:": "Hindi nabura ang paskil:",
+  "Error deleting conversation:": "Hindi nabura ang pag-uusap:",
+  "Error logging out:": "Hindi makapag-talaan out:",
+  "Error loading more:": "Hindi maihanda ang karagdagan:",
+  "Error adding establishment:": "Hindi naidagdag ang establisyimento:",
+  "Error confirming completed:": "Hindi nakumpirma ang pagkumpleto:",
+  "Error confirming received:": "Hindi nakumpirma ang pagtanggap:",
+  "Error confirming requirements:": "Hindi nakumpirma ang mga kailangan:",
+  "Error updating delivery status:": "Hindi nabago ang katayuan ng paghahatid:",
+  "Error updating record:": "Hindi nabago ang rekord:",
+  "Error updating request:": "Hindi nabago ang kahilingan:",
+  "Error submitting feedback:": "Hindi naisumite ang puna:",
+  "Error submitting requirements:": "Hindi naisumite ang mga kailangan:",
+  "Error opening requirement form:": "Hindi mabuksan ang pormularyo ng mga kailangan:",
+  "Unable to confirm info:": "Hindi makumpirma ang impormasyon:",
+  "Unable to share to Buzz:": "Hindi maibahagi sa Balita:",
+  "Unable to submit claim:": "Hindi maisumite ang pag-angkin:",
+  "Unable to submit report:": "Hindi maisumite ang ulat:",
+  "Could not cancel this request.": "Hindi makansela ang kahilingan na ito.",
+  "Payment review was not saved.": "Hindi nailagak ang pagsusuri ng bayad.",
+  "Vegan options": "Mga pagkaing mula lamang sa halaman",
+  "Late-night food": "Pagkain sa gabi",
+  "Updated today": "Nabago ngayong araw",
+  "Needs confirmation": "Kailangang kumpirmahin",
+  "Unconfirmed": "Hindi pa nakumpirma",
+  "List": "Listahan",
+  "View full-size image": "Tingnan ang buong laki ng larawan",
+  "No written feedback.": "Walang nakasulat na puna.",
+  "Just now": "Ngayon lang",
+  "Sent": "Naipadala",
+  "Seen": "Nabasa",
+  "Expired": "Nag-expire",
+  "Payment Submitted": "Naisumite ang bayad",
+  "Payment Confirmed": "Nakumpirma ang bayad",
+  "Out for Delivery": "Papasok na sa paghahatid",
+  "Unverified": "Hindi napatunayan",
+  "Stamp request sent! Please wait for the owner's approval.": "Naipadala ang tatak kahilingan! Hintaying aprubahan ng may-ari.",
+  "You already have a pending stamp request — waiting for the owner's approval.": "May naghihintay ka nang tatak kahilingan — hinihintay ang pag-apruba ng may-ari.",
+  "This is your own store — you can't request a stamp from yourself.": "Sarili mong tindahan ito — hindi ka maaaring humiling ng tatak sa sarili mo.",
+  "stamps": "mga tatak",
+  "All Barangays": "Lahat ng barangay",
+  "No establishments found.": "Walang nakitang establisyimento.",
+  "Your local companion": "Iyong kasama sa komunidad",
+  "Vicinify helps users discover, locate, and learn about food establishments in Lipa City through an interactive map, a list view, AI-assisted recommendations (Vici AI), reservations and order requests, real-time chat, the Buzz community feed, and the Suki Card loyalty feature. The platform may be used only for lawful, personal, and non-commercial purposes related to these features.": "Tinutulungan ng Vicinify ang mga gumagamit na tumuklas at makilala ang mga kainan sa Lipa City sa pamamagitan ng mapa, listahan, mga rekomendasyon ng Vicinify Katulong, reserbasyon at bilin kahilingan, agad usapan, Balita, at Suki Kard. Gamitin lamang ang plataporma para sa legal, personal, at di-komersyal na layuning kaugnay ng mga gamit na ito.",
+  "Users must provide true and accurate information when registering and are responsible for keeping their password confidential and for all activities performed under their account. A verified email address is required before an account can post content, send requests, or perform other write actions in the system. Users must immediately stop using an account that is not theirs.": "Dapat magbigay ang gumagamit ng totoo at tamang impormasyon sa pagpaparehistro. Pananagutan niya ang pagiging lihim ng kontrasenyas at lahat ng aktibidad sa akawnt. Kailangan ang napatunayang sulatroniko bago makapagpapaskil, makapagpadala ng kahilingan, o makapagsulat ng datos sa sistema. Itigil agad ang paggamit sa akawnt na hindi sa iyo.",
+  "Vicinify is a locator and recommendation platform. Distances and locations depend on the accuracy of the device's GPS and on available map data, and recommendations given by Vici AI are suggestions based on listed information, not guarantees of quality, price, or availability. Vicinify does not process payments inside the application and does not operate delivery services; some features may also be unavailable during maintenance or connectivity problems.": "Ang Vicinify ay plataporma para sa paghahanap at rekomendasyon. Nakadepende ang layo at lokasyon sa GPS ng aparato at mayroon na mapa. Ang rekomendasyon ng Vicinify Katulong ay batay sa nakalistang impormasyon at hindi garantiya ng kalidad, presyo, o pagkakaroon. Hindi nagpoproseso ng bayad o nagpapatakbo ng paghahatid ang Vicinify. Maaaring hindi mayroon ang ilang gamit habang may maintenance o problema sa koneksyon.",
+  "Establishment information such as addresses, operating hours, menus, prices, and availability is provided and maintained by the establishments and contributing users, and may change without notice. Users are encouraged to verify important details with the establishment and to report incorrect information through the Report feature so it can be reviewed by the administrators.": "Ang tirahan, oras, talaan ng pagkain, presyo, at pagkakaroon ay inilalagay at pinananatili ng mga establisyimento at nag-aambag na gumagamit. Maaaring magbago ang mga ito nang walang abiso. Kumpirmahin ang mahahalagang detalye sa establisyimento at gamitin ang pag-uulat para maitama ng tagapangasiwa ang maling impormasyon.",
+  "Users must not submit false establishments, false reviews, spam, or abusive content in any part of the platform, including Buzz posts and chat messages. Reviews may be submitted only after a completed transaction with the establishment. Administrators may remove content or restrict accounts that violate these terms.": "Bawal ang pekeng establisyimento, pekeng pagsusuri, spam, o mapang-abusong nilalaman, kabilang ang Balita at usapan. Maaari lamang mag-pagsusuri matapos ang natapos na transaksyon sa establisyimento. Maaaring alisin ng tagapangasiwa ang nilalaman o limitahan ang akawnt na lumalabag sa mga tuntunin.",
+  "Participating food establishments may set their own terms regarding reservations, bookings, pre-orders, cancellations and refund percentages, pickup arrangements, and delivery arrangements, which are shown in the request process, including the cancellation policy notice. Payment is arranged directly between the user and the establishment. Users are responsible for reviewing and following the applicable establishment terms before proceeding with any request.": "Maaaring magtakda ang kalahok na kainan ng sariling tuntunin para sa reserbasyon, pagpapareserba, paunang bilin, pagkansela, ibabalik na bayad, pagkuha, at paghahatid. Ipinapakita ang mga ito sa pag-kahilingan, kasama ang patakaran sa pagkansela. Direktang inaayos ng gumagamit at establisyimento ang bayad. Pananagutan ng gumagamit na basahin at sundin ang naaangkop na tuntunin bago mag-kahilingan.",
+  "Location is approximate. Enable precise location for better nearby results.": "Tinatayang lokasyon pa ito. Paganahin ang eksaktong lokasyon para mas tumpak ang mga kalapit na resulta.",
+  "Try location": "Hanapin muli",
+  "Enable location": "Paganahin ang lokasyon",
+  "Locating…": "Kinukuha ang lokasyon…",
+  "Finding your location. Allow access when your browser asks.": "Hinahanap ang iyong lokasyon. Payagan ang pahintulot kapag hiniling ng pantingin sa internet.",
+  "Location ready": "Nakuha na ang lokasyon",
+  "Location is not supported in this browser. Use Safari, Chrome or Edge.": "Hindi suportado ng pantingin sa internet na ito ang lokasyon. Gumamit ng Safari, Chrome, o Edge.",
+  "Location requires a secure HTTPS connection.": "Kailangan ng ligtas na HTTPS connection para sa lokasyon.",
+  "Could not get a valid location. Please try again.": "Hindi makakuha ng wastong lokasyon. Pakisubukan muli.",
+  "Location blocked. Open browser site settings and allow Location. On iPhone, also enable Location Services and Precise Location.": "Naka-block ang lokasyon. Payagan ang Lokasyon sa mga setting ng site sa pantingin sa internet. Sa iPhone, paganahin rin ang Lokasyon Services at Precise Lokasyon.",
+  "Location unavailable. Turn on device Location Services and try again.": "Hindi mayroon ang lokasyon. Paganahin ang Lokasyon Services ng aparato at subukan muli.",
+  "Location timed out. Check GPS or move near a window, then retry.": "Naubos ang oras sa pagkuha ng lokasyon. Suriin ang GPS o lumapit sa bintana at subukan muli.",
+  "Could not find your location. Please retry.": "Hindi makita ang iyong lokasyon. Pakisubukan muli.",
+  "cafe": "Kapihan",
+  "restaurant": "Restawran",
+  "bakery": "Panaderya",
+  "milktea": "Tsaa na may gatas",
+  "snackhouse": "Meryendahan",
+  "foodstall": "Puwesto ng pagkain",
+  "eatery": "Karinderya",
+  "dessert": "Panghimagas",
+  "fastfood": "Mabilisang kainan",
+  "Error": "Suliranin",
+  "No details provided.": "Walang ibinigay na detalye.",
+  "Freshness": "Pagiging bago ng impormasyon",
+  "Vici AI": "Katulong ng Vicinify",
+  "Choose photo": "Pumili ng larawan",
+  "Choose photos": "Pumili ng mga larawan",
+  "No photo selected": "Walang napiling larawan",
+  "Cheap coffee nearby": "Murang kape sa malapit",
+  "Milk tea open now": "Tsaa na may gatas na bukas ngayon",
+  "Best food near me": "Masarap na pagkain sa malapit",
+  "Delivery nearby": "Paghahatid sa malapit",
+  "Could not get an answer": "Hindi makakuha ng sagot",
+  "Vici AI is unavailable. Please try again.": "Hindi magamit ngayon ang katulong ng Vicinify. Pakisubukan muli.",
+  "Vici AI could not connect. Please try again.": "Hindi makakonekta ang katulong ng Vicinify. Pakisubukan muli.",
+  "Overview": "Pangkalahatang tanaw",
+  "Feedback": "Puna",
+  "Review": "Pagsusuri",
+  "Choose File": "Pumili ng larawan",
+  "No file chosen": "Walang napiling larawan",
+  "true": "Oo",
+  "false": "Hindi",
+  "Forest": "Kagubatan",
+  "Mint Linen": "Telang lunti",
+  "Kraft": "Kayumangging papel",
+  "Minimal White": "Payak na puti",
+  "Midnight": "Hatinggabi",
+  "Sorbetes Pastel": "Mapusyaw na sorbetes",
+  "Sunset": "Takipsilim",
+  "Ocean": "Karagatan",
+  "Matcha": "Luntiang tsaa",
+  "Berry": "Munting bungang-kahoy",
+  "No file selected": "Walang napiling larawan",
+  "Current transaction": "Kasalukuyang transaksiyon",
+  "Choose transaction": "Pumili ng transaksiyon",
+  "Accept or decline this request.": "Tanggapin o tanggihan ang kahilingang ito.",
+  "Wait for the business to accept your request.": "Hintaying tanggapin ng negosyo ang iyong kahilingan.",
+  "Waiting for the customer to submit payment details.": "Hinihintay ang detalye ng bayad mula sa mamimili.",
+  "Pay the agreed amount once, then submit your reference.": "Bayaran nang isang beses ang napagkasunduang halaga, saka isumite ang sanggunian ng bayad.",
+  "The business must set the amount and payment instructions first.": "Kailangang ilagay muna ng negosyo ang halaga at paraan ng pagbabayad.",
+  "Edit payment instructions": "Baguhin ang tagubilin sa pagbabayad",
+  "Set payment instructions": "Ilagay ang tagubilin sa pagbabayad",
+  "Correct payment details": "Iwasto ang detalye ng bayad",
+  "Submit payment reference": "Isumite ang sanggunian ng bayad",
+  "Use earlier payment details": "Gamitin ang naunang detalye ng bayad",
+  "Check the reference and money received before verifying payment.": "Suriin ang sanggunian at perang natanggap bago kumpirmahin ang bayad.",
+  "Payment is under review. Do not pay again.": "Sinusuri ang bayad. Huwag magbayad muli.",
+  "Verify payment": "Kumpirmahin ang bayad",
+  "Request correction": "Humiling ng pagwawasto",
+  "Payment and preparation are separate steps.": "Magkahiwalay ang pagkumpirma ng bayad at paghahanda.",
+  "The business is preparing your request.": "Inihahanda ng negosyo ang iyong kahilingan.",
+  "Your request is ready.": "Handa na ang iyong kahilingan.",
+  "Your order is on the way.": "Papunta na ang iyong bilin.",
+  "Confirm only after you receive the order or service.": "Kumpirmahin lamang kapag natanggap na ang bilin o serbisyo.",
+  "Verify the actual payment received before calculating the refund.": "Tiyakin muna ang perang natanggap bago kwentahin ang ibabalik.",
+  "Verify received payment": "Tiyakin ang perang natanggap",
+  "Payment not found": "Hindi makita ang bayad",
+  "Refund due. The business must transfer it manually.": "May halagang dapat ibalik. Kailangang ipadala ito ng negosyo.",
+  "Record refund transfer": "Itala ang pagpapadala ng ibinalik na bayad",
+  "The business recorded a refund transfer. Confirm after checking your account.": "Naitala ng negosyo na naipadala na ang ibinalik na bayad. Kumpirmahin matapos suriin ang iyong kuwenta.",
+  "Confirm refund received": "Kumpirmahing natanggap ang ibinalik na bayad",
+  "The customer confirmed the refund was received.": "Kinumpirma ng mamimili na natanggap ang ibinalik na bayad.",
+  "The business could not find this payment. Check the reference before requesting a recheck.": "Hindi nakita ng negosyo ang bayad. Suriin ang sanggunian bago humiling ng muling pagsusuri.",
+  "Request payment recheck": "Ipasuri muli ang bayad",
+  "Cancelled. No refund is due.": "Kinansela. Walang halagang kailangang ibalik.",
+  "Cancelled. Ask the business to review any earlier payment.": "Kinansela. Ipasuri sa negosyo ang anumang naunang bayad.",
+  "This request is closed.": "Sarado na ang kahilingang ito.",
+  "Amount due": "Halagang dapat bayaran",
+  "Submitted payment": "Isinumiteng bayad",
+  "Refund amount": "Halagang ibabalik",
+  "Payment and request details": "Detalye ng bayad at kahilingan",
+  "Refund reference": "Sanggunian ng ibinalik na bayad",
+  "Business note": "Paalala ng negosyo",
+  "Vicinify records manual payments and refunds. It does not transfer money.": "Itinatala ng Vicinify ang mga direktang bayad at ibinalik na halaga. Hindi ito nagpapadala ng pera.",
+  "Amount due now (₱)": "Halagang dapat bayaran ngayon (₱)",
+  "Payment recipient and instructions": "Tatanggap ng bayad at mga tagubilin",
+  "Include the recipient name, account number and agreed amount. This does not confirm a payment.": "Ilagay ang pangalan ng tatanggap, bilang ng kuwenta at napagkasunduang halaga. Hindi nito kinukumpirma na may natanggap na bayad.",
+  "Amount actually received (₱)": "Halagang talagang natanggap (₱)",
+  "Check your account first. The refund will be calculated using the saved cancellation rate.": "Suriin muna ang iyong kuwenta. Gagamitin sa pagkukuwenta ang nakatalang bahagdan ng ibabalik.",
+  "Explain what needs checking": "Ipaliwanag ang kailangang suriin",
+  "The customer can ask you to recheck. This does not mark a refund received.": "Maaaring humiling ang mamimili ng muling pagsusuri. Hindi nito minamarkahang natanggap na ang ibinalik na bayad.",
+  "Refund transfer reference": "Sanggunian ng pagpapadala ng ibinalik na bayad",
+  "Transfer the displayed refund amount yourself first. Recording a reference does not move money.": "Ipadala muna ang nakasaad na halagang ibabalik. Ang pagtatala ng sanggunian ay hindi nagpapadala ng pera.",
+  "Record transfer": "Itala ang pagpapadala",
+  "Check your account and confirm you received the displayed refund amount.": "Suriin ang iyong kuwenta at kumpirmahing natanggap mo ang nakasaad na halagang ibinalik.",
+  "Use earlier payment details?": "Gamitin ang naunang detalye ng bayad?",
+  "Check this reference belongs to the selected request. It will still require payment verification.": "Tiyaking para sa napiling kahilingan ang sangguniang ito. Kailangan pa ring kumpirmahin ang bayad.",
+  "Transaction updated.": "Nabago na ang transaksiyon.",
+  "Transaction summary could not load. Please try reopening the conversation.": "Hindi maipakita ang buod ng transaksiyon. Suriin ang talatuntunan ng talaan at buksan muli ang usapan.",
+  "Use the current transaction summary to submit payment details.": "Gamitin ang buod ng kasalukuyang transaksiyon sa pagsusumite ng detalye ng bayad.",
+  "Accept a transaction first, then set payment instructions in its summary.": "Tanggapin muna ang transaksiyon, saka ilagay ang tagubilin sa pagbabayad sa buod nito.",
+  "Payment instructions saved in the transaction summary.": "Naitala na sa buod ng transaksiyon ang tagubilin sa pagbabayad.",
+  "Delivery accepted. Submit your address, landmark and location here. Payment is handled separately in the current transaction summary.": "Tinanggap ang paghahatid. Isumite rito ang iyong tirahan, palatandaan at lokasyon. Hiwalay ang pagbabayad sa buod ng kasalukuyang transaksiyon.",
+  "Customer submitted the requested transaction details.": "Isinumite ng mamimili ang hinihinging detalye ng transaksiyon.",
+  "Earlier payment details": "Naunang detalye ng bayad",
+  "Payment verification is shown in the current transaction summary. Confirming these details does not verify a payment.": "Makikita sa buod ng kasalukuyang transaksiyon ang pagkumpirma ng bayad. Ang pagtanggap sa mga detalyeng ito ay hindi pagkumpirma ng bayad.",
+  "Details confirmed — payment is separate": "Tinanggap na ang mga detalye — hiwalay ang bayad",
+  "Details submitted for review": "Isinumite na ang mga detalye para masuri",
+  "No payment is recorded. No refund transfer is needed.": "Walang naitalang bayad. Walang halagang kailangang ibalik.",
+  "The business must verify money received before a refund is calculated. Follow the refund status in the transaction summary.": "Kailangang tiyakin muna ng negosyo ang perang natanggap bago kwentahin ang ibabalik. Subaybayan ang kalagayan nito sa buod ng transaksiyon.",
+  "Wait for the business to set the amount and payment instructions.": "Hintaying ilagay ng negosyo ang halaga at tagubilin sa pagbabayad.",
+  "The submitted amount does not match the agreed amount due. Ask the business to correct the amount if needed; do not pay twice.": "Hindi tugma ang isinumiteng halaga sa napagkasunduang bayad. Ipaayos sa negosyo ang halaga kung kailangan; huwag magbayad nang dalawang beses.",
+  "Enter the payment recipient and instructions (8–1000 characters).": "Ilagay ang tatanggap ng bayad at mga tagubilin (8–1000 tanda).",
+  "Enter the refund transfer reference.": "Ilagay ang sanggunian ng ibinalik na bayad.",
+  "Only the business can set payment instructions before payment review.": "Ang negosyo lamang ang maaaring magtakda ng tagubilin bago suriin ang bayad.",
+  "Verify the received payment and refundable amount first.": "Tiyakin muna ang perang natanggap at halagang ibabalik.",
+  "This refund action is not available for your account or the current stage.": "Hindi maaari ang pagkilos na ito para sa iyong kuwenta o kasalukuyang hakbang.",
+  "No refund due": "Walang halagang ibabalik",
+  "Refund status": "Kalagayan ng ibinalik na bayad",
+  "needs verification": "Kailangang tiyakin",
+  "payment not found": "Hindi makita ang bayad",
+  "not required": "Hindi kailangan",
+  "Mark fulfilled": "Markahang natupad",
+  "Mark ready": "Markahang handa",
+  "Transaction completed.": "Natapos na ang transaksiyon.",
+  "Set payment instructions first.": "Ilagay muna ang tagubilin sa pagbabayad.",
+  "Check the agreed amount before using this payment.": "Suriin ang napagkasunduang halaga bago gamitin ang bayad na ito.",
+  "Refund calculation": "Pagkukuwenta ng ibabalik",
+  "Follow the refund status in the current transaction summary.": "Subaybayan ang pagbabalik ng bayad sa buod ng kasalukuyang transaksiyon.",
+  "Waiting for payment instructions": "Hinihintay ang tagubilin sa pagbabayad",
+  "Add the delivery address before the final amount is set.": "Ilagay muna ang tirahan ng paghahatiran bago itakda ang huling halaga.",
+  "Add delivery address": "Ilagay ang paghahatiran",
+  "House number, street or subdivision": "Bilang ng bahay, kalye o pamayanan",
+  "The business uses this address to confirm the total and delivery fee.": "Gagamitin ng negosyo ang tirahang ito upang tiyakin ang kabuuang halaga at bayad sa paghahatid.",
+  "Wait for the delivery address before setting the final amount.": "Hintayin ang paghahatiran bago itakda ang huling halaga.",
+  "Delivery details can only be submitted by the customer after acceptance.": "Ang mamimili lamang ang maaaring magsumite ng paghahatiran matapos tanggapin ang kahilingan.",
+  "Complete the delivery address and landmark.": "Kumpletuhin ang tirahan ng paghahatiran at palatandaan.",
+  "The delivery address is required before preparation.": "Kailangan muna ang paghahatiran bago maghanda.",
+  "Set the agreed amount and payment instructions before preparation.": "Ilagay muna ang napagkasunduang halaga at tagubilin sa pagbabayad bago maghanda.",
+  "Start preparing?": "Simulan na ang paghahanda?",
+  "Starting preparation closes customer cancellation. Verify payment and delivery details first.": "Hindi na maaaring magkansela ang mamimili kapag nagsimula na ang paghahanda. Tiyakin muna ang bayad at detalye ng paghahatid.",
+  "Request progress": "Takbo ng kahilingan",
+  "Requirements": "Mga hinihingi",
+  "Payment setup": "Kasunduan sa bayad",
+  "Preparation": "Paghahanda",
+  "Completed": "Natapos",
+  "Needed": "Kulang pa",
+  "Submitted": "Naipasa",
+  "Confirmed": "Kinumpirma",
+  "Review the submitted details before continuing.": "Suriin muna ang naipasang detalye bago magpatuloy.",
+  "Your details were submitted. Wait for business review.": "Naipasa na ang iyong detalye. Hintaying suriin ito ng negosyo.",
+  "Waiting for the requested customer details.": "Hinihintay ang hinihinging detalye mula sa mamimili.",
+  "Complete the requested details to continue.": "Kumpletuhin ang hinihinging detalye upang makapagpatuloy.",
+  "Submit requirements": "Ipasa ang mga hinihingi",
+  "Confirm details": "Kumpirmahin ang mga detalye",
+  "Skip requested details": "Hindi na kailangan ang mga detalye",
+  "Waive these requirements?": "Huwag nang hingin ang mga ito?",
+  "Continue without the requested details? This does not confirm payment.": "Magpatuloy nang hindi na hinihingi ang mga detalye? Hindi nito kinukumpirma ang bayad.",
+  "Instructions (optional)": "Mga tagubilin (maaaring laktawan)",
+  "Explain which details the customer should provide.": "Ipaliwanag kung anong detalye ang kailangang ibigay ng mamimili.",
+  "Details confirmed. Payment verification is separate.": "Kinumpirma na ang mga detalye. Hiwalay ang pagkumpirma ng bayad.",
+  "Review or waive the requested details before preparation.": "Suriin muna o huwag nang hingin ang mga detalye bago maghanda.",
+  "Requirements can only be changed after acceptance and before payment review or preparation.": "Maaari lamang baguhin ang mga hinihingi matapos tanggapin ang kahilingan at bago suriin ang bayad o maghanda.",
+  "Only the business can request details.": "Ang negosyo lamang ang maaaring humingi ng detalye.",
+  "Review or waive the current requirements before creating another request.": "Suriin o huwag nang hingin ang kasalukuyang detalye bago gumawa ng panibagong kahilingan.",
+  "Choose at least one requirement.": "Pumili ng kahit isang kailangang detalye.",
+  "Requirement notes are too long.": "Masyadong mahaba ang tagubilin sa mga hinihingi.",
+  "No requirements are attached to this transaction.": "Walang dagdag na detalye na hinihingi sa transaksiyong ito.",
+  "These requirements were replaced. Open the current transaction summary.": "Napalitan na ang mga hinihingi. Buksan ang kasalukuyang buod ng transaksiyon.",
+  "Only the customer can submit the requested details.": "Ang mamimili lamang ang maaaring magpasa ng hinihinging detalye.",
+  "These details have already been submitted.": "Naipasa na ang mga detalyeng ito.",
+  "Complete all requested details.": "Kumpletuhin ang lahat ng hinihinging detalye.",
+  "Attach a valid current location.": "Ilagay ang wastong kasalukuyang lokasyon.",
+  "Only the business can review requirements.": "Ang negosyo lamang ang maaaring magsuri ng mga hinihingi.",
+  "The customer must submit the current requirements first.": "Kailangang maipasa muna ng mamimili ang kasalukuyang hinihingi.",
+  "These requirements are already closed.": "Sarado na ang paghiling sa mga detalyeng ito.",
+  "Choose a valid requirements action.": "Pumili ng wastong pagkilos sa mga hinihingi.",
+  "Review the requested details before setting the amount.": "Suriin muna ang hinihinging detalye bago itakda ang halaga.",
+  "Complete and confirm the requested details before payment.": "Kumpletuhin at kumpirmahin muna ang mga hinihinging detalye bago magbayad.",
+  "Requirements do not belong to this transaction.": "Hindi para sa transaksiyong ito ang mga hinihingi.",
+  "Business requested transaction details.": "Humingi ang negosyo ng mga detalye ng transaksiyon.",
+  "Manage my establishments": "Pamahalaan ang aking mga negosyo",
+  "Hide owner tools": "Itago ang mga gamit ng may-ari",
+  "No status": "Walang nakatalang kalagayan",
+  "Requirements requested": "Humingi ng mga detalye",
+  "Requirements submitted": "Naipasa ang mga hinihingi",
+  "Completion request": "Paghingi ng pagkumpirma sa pagtatapos",
+  "Feedback request": "Paghingi ng puna",
+  "Feedback submitted": "Naipasa ang puna",
+  "Transaction update": "Pagbabago sa transaksiyon",
+  "No additional details needed": "Wala nang kailangang detalye",
+  "Request the details you need, or confirm that no additional details are required.": "Hingin ang kailangan mong detalye o kumpirmahing wala nang kailangan.",
+  "The business is checking the requirements before payment.": "Sinusuri muna ng negosyo ang mga kailangan bago ang bayad.",
+  "Confirm that the request already contains everything needed. Payment instructions come next.": "Kumpirmahing kumpleto na ang kahilingan. Susunod ang tagubilin sa pagbabayad.",
+  "Confirm the requirements or choose no additional details first.": "Kumpirmahin muna ang mga kailangan o piliing wala nang kailangan.",
+  "Estimated menu subtotal": "Tinatayang subtotal ng menu",
+  "Request reference": "Sanggunian ng kahilingan",
+  "Requirements waived": "Hindi na hinihingi ang mga detalye",
+  "Waived": "Hindi na kailangan",
+  "Acceptance": "Pagtanggap",
+  "Completion": "Pagtatapos",
+  "No requests to show.": "Walang kahilingang maipapakita.",
+  "Record deleted": "Binurang tala",
+  "Record hidden": "Itinagong tala",
+  "Role changed": "Binagong tungkulin",
+  "Owner assigned": "Itinalagang may-ari",
+  "Claim approved": "Inaprubahang pag-angkin",
+  "Claim rejected": "Tinanggihang pag-angkin",
+  "Report resolved": "Naaksyunang ulat",
+  "Report dismissed": "Isinantabing ulat",
+  "New role": "Bagong tungkulin",
+  "Vici AI cannot accept requests from this site address. Please contact the site administrator.": "Hindi makatanggap ang katulong ng Vicinify ng kahilingan mula sa adres ng pahinang ito. Makipag-ugnayan sa tagapangasiwa.",
+  "Vici AI server setup is incomplete. Please contact the site administrator.": "Hindi pa kumpleto ang pagsasaayos ng katulong ng Vicinify. Makipag-ugnayan sa tagapangasiwa.",
+  "Too many AI requests. Please wait before trying again.": "Masyadong maraming kahilingan sa katulong. Maghintay bago muling subukan.",
+  "Please sign in again with a verified email to use Vici AI.": "Mag-sign in muli gamit ang napatunayang adres ng elektronikong liham upang magamit ang katulong ng Vicinify.",
+  "How to install": "Paano idagdag",
+  "App installed": "Naidagdag na ang aplikasyon",
+  "Resume Vici AI": "Buksan muli ang katulong ng Vicinify",
+  "Delete chat": "Burahin ang usapan",
+  "Request recorded": "Naitala ang kahilingan",
+  "Customer submitted transaction details.": "Isinumite ng mamimili ang mga detalye ng transaksiyon.",
+  "Transaction progress updated.": "Na-update ang pag-usad ng transaksiyon.",
+  "Open messages": "Buksan ang mga mensahe",
+  "Open transactions": "Buksan ang mga transaksiyon",
+  "Open transaction": "Buksan ang transaksiyon",
+  "Payment verified. The business can now prepare your request.": "Natiyak na ang bayad. Maaari nang ihanda ng negosyo ang iyong kahilingan.",
+  "Refund rate before preparation": "Bahagi ng bayad na ibabalik bago magsimula ang paghahanda",
+  "Cancellation closes when preparation starts.": "Hindi na maaaring magkansela kapag nagsimula na ang paghahanda.",
+  "Open inquiries": "Buksan ang mga tanong",
+  "Inquiries": "Mga tanong",
+  "Transaction": "Transaksiyon",
+  "Request, payment and progress": "Kahilingan, bayad, at pag-usad",
+  "Questions and messages": "Mga tanong at mensahe",
+  "Additional reservation details": "Karagdagang detalye ng pagpapareserba",
+  "Only ask for information missing from the reservation.": "Hingin lamang ang detalyeng kulang sa pagpapareserba.",
+  "Skip requested details?": "Hindi na kailangan ang mga detalye?",
+  "These details will no longer be required. Payment must still be verified before preparation.": "Hindi na hihingin ang mga detalyeng ito. Kailangang tiyakin pa rin ang bayad bago maghanda.",
+  "Delete account": "Burahin ang account",
+  "Check your obligations before permanently removing your account.": "Suriin ang mga pananagutan bago tuluyang burahin ang iyong account.",
+  "Confirm your password": "Kumpirmahin ang iyong kontrasenyas",
+  "Check account": "Suriin ang account",
+  "Checking account obligations…": "Sinusuri ang mga pananagutan ng account…",
+  "Resume cleanup": "Ipagpatuloy ang paglilinis",
+  "Cleanup progress": "Pag-usad ng paglilinis",
+  "Removing account data. Keep this window open; you can resume if interrupted.": "Binubura ang datos ng account. Panatilihing bukas ang pahina; maaaring ituloy kapag naputol.",
+  "Account cleanup was started. Resume to finish.": "Nagsimula na ang paglilinis ng account. Ipagpatuloy upang matapos.",
+  "Account cleanup was started. Confirm your password to resume.": "Nagsimula na ang paglilinis ng account. Kumpirmahin ang kontrasenyas upang magpatuloy.",
+  "Your account was deleted.": "Nabura na ang iyong account.",
+  "Your account was deleted. Shared transaction records retain only essential history without your profile details.": "Nabura na ang iyong account. Mahahalagang tala lamang ng pinagsaluhang transaksiyon ang nananatili, nang wala ang mga detalye ng iyong pagkakakilanlan.",
+  "Transfer administrator responsibilities before deleting this account.": "Ilipat muna ang mga tungkulin ng tagapangasiwa bago burahin ang account.",
+  "Complete or properly cancel active transactions first.": "Tapusin o wastong kanselahin muna ang mga kasalukuyang transaksiyon.",
+  "Resolve refunds and obtain receipt confirmation first.": "Ayusin muna ang pagsasauli ng bayad at kumpirmahin ang pagtanggap nito.",
+  "Resolve or withdraw pending business claims first.": "Ayusin o bawiin muna ang nakabinbing pag-angkin ng negosyo.",
+  "Accept or cancel pending ownership transfers first.": "Tanggapin o kanselahin muna ang nakabinbing paglilipat ng pagmamay-ari.",
+  "Contact support to process this account.": "Makipag-ugnayan sa tagapangasiwa upang maproseso ang account.",
+  "Deletion is blocked. Nothing has been deleted.": "Hindi pa maaaring burahin ang account. Wala pang nabura.",
+  "Close my establishments permanently instead of transferring them.": "Tuluyang isara ang aking mga establisimyento sa halip na ilipat ang pagmamay-ari.",
+  "Your login, profiles and personal data will be removed. Essential shared transaction history and anonymous ratings remain. This cannot be undone.": "Buburahin ang iyong pagpasok sa account, pagkakakilanlan, at personal na datos. Mananatili ang mahahalagang tala ng transaksiyon at mga markang walang pagkakakilanlan. Hindi na ito maibabalik.",
+  "Account checks passed. Confirm only when you are ready.": "Pumasa ang pagsusuri sa account. Kumpirmahin lamang kapag handa ka na.",
+  "Permanently delete account": "Tuluyang burahin ang account",
+  "Transfer ownership": "Ilipat ang pagmamay-ari",
+  "Message about this transaction...": "Mensahe tungkol sa transaksiyong ito...",
+  "This transaction conversation is archived. You can read it in history.": "Naka-archive na ang usapang ito. Mababasa mo ito sa kasaysayan.",
+  "Transaction conversation archived. The record remains in history.": "Naka-archive na ang usapan. Nananatili ang tala sa kasaysayan.",
+  "The business must review and approve the calculated refund.": "Kailangang suriin at aprubahan ng negosyo ang halagang ibabalik.",
+  "Review refund": "Suriin ang ibabalik na bayad",
+  "Approve refund": "Aprubahan ang ibabalik na bayad",
+  "Refund approved. Transfer the displayed amount, then record the reference.": "Aprubado na ang refund. Ipadala ang nakasaad na halaga, saka itala ang sanggunian.",
+  "The customer reported the refund was not received. Check the transfer before recording a correction.": "Iniulat ng customer na hindi natanggap ang refund. Suriin muna ang padala bago magtala ng pagwawasto.",
+  "Refund not received": "Hindi natanggap ang refund",
+  "What needs checking?": "Ano ang kailangang suriin?",
+  "Check your account first. The refund will stay open for the business to review.": "Suriin muna ang iyong account. Mananatiling bukas ang refund para masuri ng negosyo.",
+  "Confirm refund transfer": "Kumpirmahin ang pagpapadala ng refund",
+  "Confirm transferred": "Kumpirmahing naipadala na",
+  "Star ratings do not require a transaction. Written reviews require a completed transaction.": "Hindi kailangan ng transaksiyon para sa mga bituin. Kailangan ng nakumpletong transaksiyon para sa nakasulat na pagsusuri.",
+  "Ratings": "Mga marka",
+  "Open Vici AI": "Buksan ang Vici AI",
+  "Search places": "Maghanap ng lugar",
+  "Hide floating AI": "Itago ang lumulutang na AI",
+  "Restore floating AI": "Ibalik ang lumulutang na AI",
+  "Move floating AI": "Ilipat ang lumulutang na AI",
+  "Ownership transfers": "Mga paglilipat ng pagmamay-ari",
+  "Ownership transfer": "Paglilipat ng pagmamay-ari",
+  "Enter the email of a verified business account. Your password confirms this request. Ownership changes only after the recipient accepts.": "Ilagay ang adres ng elektronikong liham ng isang napatunayang account ng negosyo. Kumpirmahin gamit ang iyong kontrasenyas. Magbabago lamang ang may-ari kapag tinanggap ng tatanggap.",
+  "New owner email": "Adres ng elektronikong liham ng bagong may-ari",
+  "Your current password": "Iyong kasalukuyang kontrasenyas",
+  "Confirm and request transfer": "Kumpirmahin at hilingin ang paglilipat",
+  "Transfer requested. The new owner must accept before ownership changes.": "Naipadala ang kahilingan. Kailangang tanggapin ito ng bagong may-ari bago magbago ang pagmamay-ari.",
+  "Loading transfers…": "Inihahanda ang mga paglilipat…",
+  "Choose a pending transfer to review.": "Pumili ng nakabinbing paglilipat na susuriin.",
+  "No ownership transfers.": "Walang paglilipat ng pagmamay-ari.",
+  "From": "Mula kay",
+  "To": "Para kay",
+  "Accept ownership": "Tanggapin ang pagmamay-ari",
+  "Decline transfer": "Tanggihan ang paglilipat",
+  "Cancel transfer": "Kanselahin ang paglilipat",
+  "Accept this establishment and become its owner?": "Tanggapin ang establisimyentong ito at maging may-ari nito?",
+  "Decline this ownership transfer?": "Tanggihan ang paglilipat ng pagmamay-ari?",
+  "Cancel this ownership transfer?": "Kanselahin ang paglilipat ng pagmamay-ari?",
+  "This QR expired. Scan the current QR on the store screen.": "Paso na ang kodigong ito. Basahin ang kasalukuyang kodigo sa pahina ng tindahan.",
+  "This QR belongs to another establishment.": "Para sa ibang establisimyento ang kodigong ito.",
+  "This is not a Vicinify Suki QR.": "Hindi ito kodigo ng Suki Kard ng Vicinify.",
+  "Transaction record retained after account deletion.": "Pinanatili ang tala ng transaksiyon matapos burahin ang account.",
+  "Deleted account": "Naburang account",
+  "Closed establishment": "Nagsarang establisimyento",
+  "Confirm your current password before requesting an ownership transfer.": "Kumpirmahin ang kasalukuyang kontrasenyas bago humiling ng paglilipat ng pagmamay-ari.",
+  "Choose another verified business account.": "Pumili ng ibang napatunayang account ng negosyo.",
+  "Complete transactions and refunds before transferring this establishment.": "Tapusin muna ang mga transaksiyon at pagsasauli ng bayad bago ilipat ang pagmamay-ari.",
+  "Transfer ownership first, or explicitly choose to close your establishments.": "Ilipat muna ang pagmamay-ari o piliing isara ang iyong mga establisimyento.",
+  "Enter your password.": "Ilagay ang iyong kontrasenyas.",
+  "QR changes every 30s · 1s left": "Nagbabago ang kodigo tuwing 30 segundo · 1 segundo ang natitira",
+  "QR changes every 30s · 2s left": "Nagbabago ang kodigo tuwing 30 segundo · 2 segundo ang natitira",
+  "QR changes every 30s · 3s left": "Nagbabago ang kodigo tuwing 30 segundo · 3 segundo ang natitira",
+  "QR changes every 30s · 4s left": "Nagbabago ang kodigo tuwing 30 segundo · 4 segundo ang natitira",
+  "QR changes every 30s · 5s left": "Nagbabago ang kodigo tuwing 30 segundo · 5 segundo ang natitira",
+  "QR changes every 30s · 6s left": "Nagbabago ang kodigo tuwing 30 segundo · 6 segundo ang natitira",
+  "QR changes every 30s · 7s left": "Nagbabago ang kodigo tuwing 30 segundo · 7 segundo ang natitira",
+  "QR changes every 30s · 8s left": "Nagbabago ang kodigo tuwing 30 segundo · 8 segundo ang natitira",
+  "QR changes every 30s · 9s left": "Nagbabago ang kodigo tuwing 30 segundo · 9 segundo ang natitira",
+  "QR changes every 30s · 10s left": "Nagbabago ang kodigo tuwing 30 segundo · 10 segundo ang natitira",
+  "QR changes every 30s · 11s left": "Nagbabago ang kodigo tuwing 30 segundo · 11 segundo ang natitira",
+  "QR changes every 30s · 12s left": "Nagbabago ang kodigo tuwing 30 segundo · 12 segundo ang natitira",
+  "QR changes every 30s · 13s left": "Nagbabago ang kodigo tuwing 30 segundo · 13 segundo ang natitira",
+  "QR changes every 30s · 14s left": "Nagbabago ang kodigo tuwing 30 segundo · 14 segundo ang natitira",
+  "QR changes every 30s · 15s left": "Nagbabago ang kodigo tuwing 30 segundo · 15 segundo ang natitira",
+  "QR changes every 30s · 16s left": "Nagbabago ang kodigo tuwing 30 segundo · 16 segundo ang natitira",
+  "QR changes every 30s · 17s left": "Nagbabago ang kodigo tuwing 30 segundo · 17 segundo ang natitira",
+  "QR changes every 30s · 18s left": "Nagbabago ang kodigo tuwing 30 segundo · 18 segundo ang natitira",
+  "QR changes every 30s · 19s left": "Nagbabago ang kodigo tuwing 30 segundo · 19 segundo ang natitira",
+  "QR changes every 30s · 20s left": "Nagbabago ang kodigo tuwing 30 segundo · 20 segundo ang natitira",
+  "QR changes every 30s · 21s left": "Nagbabago ang kodigo tuwing 30 segundo · 21 segundo ang natitira",
+  "QR changes every 30s · 22s left": "Nagbabago ang kodigo tuwing 30 segundo · 22 segundo ang natitira",
+  "QR changes every 30s · 23s left": "Nagbabago ang kodigo tuwing 30 segundo · 23 segundo ang natitira",
+  "QR changes every 30s · 24s left": "Nagbabago ang kodigo tuwing 30 segundo · 24 segundo ang natitira",
+  "QR changes every 30s · 25s left": "Nagbabago ang kodigo tuwing 30 segundo · 25 segundo ang natitira",
+  "QR changes every 30s · 26s left": "Nagbabago ang kodigo tuwing 30 segundo · 26 segundo ang natitira",
+  "QR changes every 30s · 27s left": "Nagbabago ang kodigo tuwing 30 segundo · 27 segundo ang natitira",
+  "QR changes every 30s · 28s left": "Nagbabago ang kodigo tuwing 30 segundo · 28 segundo ang natitira",
+  "QR changes every 30s · 29s left": "Nagbabago ang kodigo tuwing 30 segundo · 29 segundo ang natitira",
+  "QR changes every 30s · 30s left": "Nagbabago ang kodigo tuwing 30 segundo · 30 segundo ang natitira",
+  "Your login, profiles and personal data will be removed. Essential shared transaction history and anonymous ratings remain. Other participants retain their own transaction records. This cannot be undone.": "Buburahin ang iyong pagpasok sa account, pagkakakilanlan, at personal na datos. Mananatili ang mahahalagang tala ng transaksiyon at mga markang walang pagkakakilanlan. Mananatili rin ang sariling tala ng ibang kalahok. Hindi na ito maibabalik.",
+  "Could not verify your password. Please try again.": "Hindi makumpirma ang iyong kontrasenyas. Pakisubukan muli.",
+  "This protected administrator account cannot be deleted through self-service.": "Hindi maaaring burahin sa sariling pamamaraan ang protektadong account ng tagapangasiwang ito.",
+  "This establishment is closed. Open your transaction history instead.": "Sarado na ang establisimyentong ito. Buksan ang iyong tala ng transaksiyon.",
+  "Camera scanning requires a supported browser with HTTPS.": "Kailangan ng angkop na pang-browse na may HTTPS upang magamit ang kamera.",
+  "Enter the new owner email.": "Ilagay ang adres ng elektronikong liham ng bagong may-ari.",
+  "Only the current owner can transfer this establishment.": "Ang kasalukuyang may-ari lamang ang maaaring maglipat ng pagmamay-ari.",
+  "The recipient must have a registered, verified business account.": "Kailangang may nakarehistro at napatunayang account ng negosyo ang tatanggap.",
+  "Ownership or account status changed.": "Nagbago ang pagmamay-ari o kalagayan ng account.",
+  "A transfer is already pending. Cancel it before choosing another recipient.": "May nakabinbin nang paglilipat. Kanselahin ito bago pumili ng ibang tatanggap.",
+  "This transfer action is unavailable.": "Hindi magagamit ang hakbang na ito sa paglilipat.",
+  "Wait for the current transfer attempt to finish before cancelling.": "Hintaying matapos ang kasalukuyang pagtatangkang maglipat bago magkansela.",
+  "A business account is required.": "Kailangan ng account ng negosyo.",
+  "This transfer is unavailable.": "Hindi magagamit ang paglilipat na ito.",
+  "The transfer is still processing. Wait a minute before retrying.": "Pinoproseso pa ang paglilipat. Maghintay ng isang minuto bago muling subukan.",
+  "Transfer status changed. Retry or contact support.": "Nagbago ang kalagayan ng paglilipat. Subukan muli o makipag-ugnayan sa tagapangasiwa.",
+  "Transfer paused. The recipient can retry accepting it.": "Nahinto ang paglilipat. Maaaring subukang tanggapin itong muli ng tatanggap.",
+  "Cleanup is still running. Wait a minute, then resume.": "Tumatakbo pa ang paglilinis. Maghintay ng isang minuto bago magpatuloy.",
+  "Invalid deletion session.": "Hindi wasto ang pahintulot sa pagbura.",
+  "Sign in again before deleting your account.": "Pumasok muli sa account bago ito burahin.",
+  "Sign in again before resuming deletion.": "Pumasok muli sa account bago ipagpatuloy ang pagbura.",
+  "Deletion already started. Resume the cleanup.": "Nagsimula na ang pagbura. Ipagpatuloy ang paglilinis.",
+  "Resolve account obligations before deletion.": "Ayusin muna ang mga pananagutan ng account bago ito burahin.",
+  "An obligation changed. Resolve it before deleting.": "May nagbagong pananagutan. Ayusin muna ito bago magbura.",
+  "Account cleanup paused. Your deletion session is saved. Try resuming.": "Nahinto ang paglilinis ng account. Naka-save ang pahintulot sa pagbura. Subukang magpatuloy.",
+  "Sign in before deleting your account.": "Pumasok muna sa account bago ito burahin.",
+  "Deletion session is missing. Sign in again to resume.": "Nawawala ang pahintulot sa pagbura. Pumasok muli sa account upang magpatuloy.",
+  "Too many requests. Please wait a minute and try again.": "Masyadong maraming kahilingan. Maghintay ng isang minuto at subukan muli."
+};
 
-        ,"Business Hub": "Sentro ng Negosyo"
-        ,"New Listing": "Bagong Listing"
-        ,"My Establishments": "Aking mga Establisyimento"
-        ,"Customer Inbox": "Inbox ng Customer"
-        ,"Database Management": "Pamamahala ng Database"
-        ,"Nearby Buzz": "Buzz sa Paligid"
-        ,"News in your area": "Balita sa lugar mo"
-        ,"Forgot password?": "Nakalimutan ang password?"
-        ,"Password & Security": "Password at Seguridad"
-        ,"Signed in as": "Naka-sign in bilang"
-        ,"Send Password Reset Email": "Magpadala ng Email para I-reset ang Password"
-        ,"We will email you a secure link so you can create a new password.": "Padadalhan ka namin ng secure link para gumawa ng bagong password."
-        ,"Change password now": "Palitan ang password ngayon"
-        ,"Current Password": "Kasalukuyang Password"
-        ,"New Password": "Bagong Password"
-        ,"Confirm New Password": "Kumpirmahin ang Bagong Password"
-        ,"Update Password": "I-update ang Password"
-        ,"Reset your password": "I-reset ang iyong password"
-        ,"Cancel": "Kanselahin"
-        ,"Send reset link": "Ipadala ang reset link"
-        ,"Basic Info": "Pangunahing Impormasyon"
-        ,"Operating Hours": "Oras ng Operasyon"
-        ,"Create Post": "Gumawa ng Post"
-        ,"Send Request": "Magpadala ng Request"
-        ,"Send a Message": "Magpadala ng Mensahe"
-        ,"Edit Establishment": "I-edit ang Establisyimento"
-        ,"Account History": "Kasaysayan ng Account"
-        ,"Appearance": "Hitsura"
-        ,"Restaurant": "Restaurant"
-        ,"Café": "Kapehan"
-        ,"Bakery": "Panaderya"
-        ,"Milk Tea": "Milk Tea"
-        ,"Snack House": "Snack House"
-        ,"Food Stall": "Food Stall"
-        ,"Eatery": "Karinderya"
-        ,"Dessert Shop": "Dessert Shop"
-        ,"Fast-Food": "Fast-Food"
-        ,"Filters": "Mga Filter"
-        ,"Open": "Bukas"
-        ,"Closed": "Sarado"
-        ,"Busy": "Abala"
-        ,"Fresh": "Aktibo"
-        ,"Inactive": "Hindi Aktibo"
-        ,"Nearby": "Malapit"
-        ,"No ratings yet": "Wala pang rating"
-        ,"Chat": "Chat"
-        ,"Request": "Request"
-        ,"Navigate": "Mag-navigate"
-        ,"Message": "Mensahe"
-        ,"View": "Tingnan"
-        ,"Comment": "Komento"
-        ,"No comments yet. Start the conversation.": "Wala pang komento. Simulan ang usapan."
-        ,"Write a comment...": "Magkomento..."
-        ,"Loading conversation...": "Naglo-load ng usapan..."
-        ,"No messages yet. Send an inquiry!": "Wala pang mensahe. Magtanong na!"
-        ,"No establishments found. Try adjusting the search radius or category.": "Walang nakitang tindahan. Baguhin ang layo o kategorya."
-        ,"About this place": "Tungkol dito"
-        ,"Menu & Store Posts": "Menu at Mga Post"
-        ,"Rate this establishment": "I-rate ang tindahang ito"
-        ,"Verified Reviews": "Mga Verified Review"
-        ,"No menu posts yet": "Wala pang menu post"
-        ,"away": "ang layo"
-        ,"Reviews": "Mga Review"
-        ,"Send": "Ipadala"
-        ,"Search places...": "Maghanap ng lugar..."
-        ,"Load more": "Mag-load pa"
-        ,"Claims": "Mga Claim"
-        ,"Reports": "Mga Report"
-        ,"Audit": "Audit Log"
-    };
+    let languageFallback='en';
+    function readLanguage(){try{return localStorage.getItem('vicinify_lang')||languageFallback;}catch{return languageFallback;}}
+    function saveLanguage(value){languageFallback=value==='ph'||value==='tl'?'ph':'en';try{localStorage.setItem('vicinify_lang',languageFallback);}catch{}return languageFallback;}
+    const textSources=new WeakMap(), attributeSources=new WeakMap();
+    const protectedContent='script,style,code,pre,textarea,[contenteditable=true],[translate=no],[data-no-translate],.notranslate,#accountName,#accountInitials,#settingsAccountEmail,.buzz-feed-body,.buzz-feed-name,.buzz-comment-text,.buzz-comment-name,.chat-message-text,.chat-message-sender,.chat-sender-avatar,#listPreviewTitle,.list-preview-description,.list-preview-summary dd,.list-menu-post-caption p,.list-menu-detail p,.list-preview-review p,.list-preview-review-person strong,.place-list-address,.place-list-card h3,.place-list-card h4,.ticket-who h4,.ticket-place,.ticket-detail-list dd,.place-description-text,.place-menu-body,.place-review-comment,.place-menu-author strong,.suki-name,#bookingStoreChip,#chatTitle,#chatModalTitle,#chatModalAvatar,.business-chat-place';
+    const normalizeText=value=>String(value??'').replace(/\s+/g,' ').trim();
+    const caseKeys=new Map(Object.keys(phDictionary).map(key=>[key.toLowerCase(),key]));
+    const translatedPrefixes=Object.keys(phDictionary).filter(key=>key.endsWith(':'));
+    function tagalogText(value){
+        const key=normalizeText(value),exact=Object.hasOwn(phDictionary,key)?key:caseKeys.get(key.toLowerCase());
+        if(exact){const result=phDictionary[exact];return key===key.toUpperCase()&&/[A-Z]/.test(key)?result.toUpperCase():result;}
+        let match;
+        if((match=key.match(/^Updated (\d+) days? ago$/i)))return `Nabago ${match[1]} araw ang nakalipas`;
+        if((match=key.match(/^(\d+) (minute|hour|day|week|month)s? ago$/i)))return `${match[1]} ${({minute:'minuto',hour:'oras',day:'araw',week:'linggo',month:'buwan'})[match[2].toLowerCase()]} ang nakalipas`;
+        if((match=key.match(/^(\d+) (post|review|stamp|filter)s?( applied)?$/i)))return `${match[1]} ${({post:'paskil',review:'pagsusuri',stamp:'tatak',filter:'sala'})[match[2].toLowerCase()]}${match[3]?' ang ginagamit':''}`;
+        if((match=key.match(/^(Navigating to|Searching for|Sending to) (.+)$/)))return `${({'Navigating to':'Papunta sa','Searching for':'Hinahanap ang','Sending to':'Ipapadala kay'})[match[1]]} ${match[2]}`;
+        if((match=key.match(/^(\d+(?:\.\d+)? km)\s*[·•]\s*about (.+)$/)))return `${match[1]} · humigit-kumulang ${match[2].replace(/\bmin\b/g,'minuto').replace(/\bhr\b/g,'oras')}`;
+        if((match=key.match(/^Showing (\d+) of (\d+)(.*)$/)))return `Ipinapakita ang ${match[1]} sa ${match[2]}${match[3]}`;
+        if((match=key.match(/^Address detected: (.+)$/)))return `Nahanap na tirahan: ${match[1]}`;
+        if(key==='You have arrived at your destination.')return 'Nakarating ka na sa iyong destinasyon.';
+        if(key==='Voice guidance on.')return 'Bukas na ang gabay na pasalita.';
+        if((match=key.match(/^Starting navigation\. First, (.+)\.$/i)))return `Sinisimulan ang paglalakbay. Una, ${tagalogText(match[1])}.`;
+        if((match=key.match(/^In (\d+(?:\.\d+)?) (meters?|kilometers?), (.+)$/i)))return `Sa ${match[1]} ${match[2].toLowerCase().startsWith('kilo')?'kilometro':'metro'}, ${tagalogText(match[3])}`;
+        if((match=key.match(/^(.+) now[.]?$/i)))return `${tagalogText(match[1])} ngayon`;
+        if((match=key.match(/^(Turn|Keep|Bear) (left|right)(?: (?:onto|on|towards) (.+))?[.]?$/i)))return `${match[1].toLowerCase()==='turn'?'Lumiko':'Manatili'} sa ${match[2].toLowerCase()==='left'?'kaliwa':'kanan'}${match[3]?' patungo sa '+match[3]:''}`;
+        if((match=key.match(/^Continue(?: straight)?(?: (?:onto|on) (.+))?[.]?$/i)))return `Magpatuloy nang diretso${match[1]?' sa '+match[1]:''}`;
+        if((match=key.match(/^Head (north|south|east|west|northeast|northwest|southeast|southwest)(?: on (.+))?[.]?$/i)))return `Tumungo sa ${{north:'hilaga',south:'timog',east:'silangan',west:'kanluran',northeast:'hilagang-silangan',northwest:'hilagang-kanluran',southeast:'timog-silangan',southwest:'timog-kanluran'}[match[1].toLowerCase()]}${match[2]?' sa '+match[2]:''}`;
 
-    function translateDOM(lang = localStorage.getItem('vicinify_lang') || 'en') {
-        // Papalitan nito yung mga text na may data-i18n tag
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            el.textContent = lang === 'ph' ? (phDictionary[key] || key) : key;
-        });
-        
-        // Papalitan nito yung mga placeholder text sa inputs
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-            const key = el.getAttribute('data-i18n-placeholder');
-            el.placeholder = lang === 'ph' ? (phDictionary[key] || key) : key;
-        });
-
-        document.documentElement.lang = lang === "ph" ? "tl" : "en";
+        for(const prefix of translatedPrefixes){
+            if(key.startsWith(prefix+' '))return phDictionary[prefix]+' '+key.slice(prefix.length).trim();
+        }
+        return value;
+    }
+    function translateDOM(lang = readLanguage(), scope = document.body) {
+        if(!scope)return;
+        const elements=[];
+        if(scope.nodeType===1)elements.push(scope);
+        if(scope.querySelectorAll)elements.push(...scope.querySelectorAll('[placeholder],[title],[aria-label],[data-i18n-placeholder]'));
+        for(const el of elements){
+            if(el.closest?.(protectedContent)&&!el.matches('textarea'))continue;
+            const saved=attributeSources.get(el)||{};
+            for(const attr of ['placeholder','title','aria-label']){
+                if(!el.hasAttribute(attr))continue;
+                const current=el.getAttribute(attr),record=saved[attr];
+                const source=attr==='placeholder'&&el.hasAttribute('data-i18n-placeholder')?el.getAttribute('data-i18n-placeholder'):record&&current===record.output?record.source:current;
+                const output=lang==='ph'?tagalogText(source):source;
+                saved[attr]={source,output};if(output!==current)el.setAttribute(attr,output);
+            }
+            attributeSources.set(el,saved);
+        }
+        function translateNode(node){
+            const parent=node.parentElement;
+            if(!parent||!node.textContent.trim()||(parent.closest(protectedContent)&&!parent.hasAttribute('data-i18n')))return;
+            const current=node.textContent,record=textSources.get(node);
+            const explicit=parent.children.length===0?parent.getAttribute('data-i18n'):null;
+            const source=explicit||(record&&current===record.output?record.source:current);
+            let translated=lang==='ph'?tagalogText(source):source;
+            if(lang==='ph'&&parent.matches('.navText'))translated=({'Admin Hub':'Tagapangasiwa','Business Hub':'Negosyo','My Activity':'Mga gawain','Settings':'Pagpipilian'})[source.trim()]||translated;
+            const output=translated===source?source:source.match(/^\s*/)[0]+translated.trim()+source.match(/\s*$/)[0];
+            textSources.set(node,{source,output});if(current!==output)node.textContent=output;
+        }
+        if(scope.nodeType===3)translateNode(scope);
+        else{const walker=document.createTreeWalker(scope,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode()))translateNode(node);}
+        document.documentElement.lang = lang === 'ph' ? 'tl' : 'en';
         document.body.dataset.lang = lang;
     }
 
     function setup() {
-        const currentLang = localStorage.getItem('vicinify_lang') || 'en';
+        const currentLang = readLanguage();
         const selector = document.getElementById('langSelector');
         
         if (selector) {
             selector.value = currentLang;
             selector.addEventListener('change', (e) => {
-                localStorage.setItem('vicinify_lang', e.target.value);
+                saveLanguage(e.target.value);
                 translateDOM(e.target.value);
                 window.dispatchEvent(new CustomEvent("vicinify:languagechange", { detail: { lang: e.target.value } }));
             });
         }
 
         translateDOM(currentLang);
+        let pending=false;const dirty=new Set();
+        const options={childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label','data-i18n','data-i18n-placeholder']};
+        const observer=new MutationObserver(records=>{
+            for(const record of records){
+                if(record.type==='childList')record.addedNodes.forEach(node=>dirty.add(node));
+                else dirty.add(record.target);
+            }
+            if(pending||!dirty.size)return;pending=true;
+            setTimeout(()=>{
+                observer.disconnect();
+                try{for(const node of dirty){if(node.isConnected)translateDOM(undefined,node);}}
+                finally{dirty.clear();pending=false;observer.observe(document.body,options);}
+            },50);
+        });
+        observer.observe(document.body,options);
     }
 
     function init() {
@@ -228,7 +1711,7 @@ window.LangManager = (() => {
     }
 
     function setLanguage(lang) {
-        localStorage.setItem('vicinify_lang', lang);
+        lang=saveLanguage(lang);
         const selector = document.getElementById('langSelector');
         if (selector) selector.value = lang;
         translateDOM(lang);
@@ -236,10 +1719,10 @@ window.LangManager = (() => {
     }
 
     function getLanguage() {
-        return localStorage.getItem('vicinify_lang') || 'en';
+        return readLanguage();
     }
 
-    function translateKey(key){ const lang = localStorage.getItem('vicinify_lang') || 'en'; return lang === 'ph' ? (phDictionary[key] || key) : key; }
+    function translateKey(key){ return getLanguage()==='ph'?tagalogText(key):key; }
     return { init, translateDOM, setLanguage, getLanguage, translateKey };
 })();
 
@@ -260,7 +1743,7 @@ window.__nativeAlert = window.__nativeAlert || window.alert.bind(window);
 function vicinifyCleanMessage(msg) {
     const msgStr = String(msg ?? "");
     const low = msgStr.toLowerCase();
-    let clean = msgStr.replace('Firebase Error: Firebase: ', '').replace('Firebase: ', '').replace(/\(auth\/.*\)\./g, '').trim();
+    let clean = msgStr.replace('Firebase Error: Firebase: ', '').replace('Firebase: ', '').replace(/\(auth\/.*\)\./g, '').replace(/[🎉🎊🥳]/gu,'').trim();
     if (low.includes('email-already-in-use') || low.includes('already in use')) clean = "This email is already in use. Please try another one.";
     else if (low.includes('wrong-password') || low.includes('invalid-credential')) clean = "Invalid email or password. Please try again.";
     else if (low.includes('user-not-found')) clean = "No account registered with this email address.";
@@ -272,7 +1755,7 @@ function vicinifyDetectType(msg, forced) {
     if (forced && ['success','error','warning','info'].includes(forced)) return forced;
     const low = String(msg ?? "").toLowerCase();
     if (/(error|failed|unable|invalid|denied|wrong|not allowed|does not exist|no longer exists|missing)/.test(low)) return 'error';
-    if (/(please (enter|select|fill|choose|log|check|add)|required|at least|must )/.test(low)) return 'warning';
+    if (/(please (enter|select|fill|choose|log|check|add)|required|at least|must |wait |limit reached|maximum|characters|words|verify|offline)/.test(low)) return 'warning';
     if (/(success|sent|saved|created|updated|removed|deleted|approved|confirmed|submitted|done|thank)/.test(low)) return 'success';
     return 'info';
 }
@@ -288,10 +1771,13 @@ window.vicinifyToast = function(msg, type) {
     if (!stack) {
         stack = document.createElement('div');
         stack.id = 'v-toast-stack';
-        stack.setAttribute('aria-live', 'polite');
+        stack.setAttribute('role','region'); stack.setAttribute('aria-label','Notifications');
         document.body.appendChild(stack);
     }
-    while (stack.children.length >= 3) stack.firstChild.remove();
+    const toastKey=kind+':'+text;
+    const existing=[...stack.children].find(item=>item.dataset.toastKey===toastKey&&!item.classList.contains('out'));
+    if(existing)return existing;
+    while (stack.children.length >= 2) stack.firstChild.remove();
     const icons = {
         success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5L19.5 6.5"/></svg>',
         error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>',
@@ -301,7 +1787,8 @@ window.vicinifyToast = function(msg, type) {
     const titles = { success: 'Success', error: 'Something went wrong', warning: 'Heads up', info: 'Info' };
     const el = document.createElement('div');
     el.className = 'v-toast v-toast-' + kind;
-    el.setAttribute('role', 'status');
+    el.dataset.toastKey=toastKey;
+    el.setAttribute('role',kind==='error'?'alert':'status');
     const icon = document.createElement('span'); icon.className = 'v-toast-icon'; icon.innerHTML = icons[kind] || icons.info;
     const body = document.createElement('span'); body.className = 'v-toast-body';
     const titleEl = document.createElement('b'); titleEl.className = 'v-toast-title'; titleEl.textContent = titles[kind] || 'Info';
@@ -312,13 +1799,14 @@ window.vicinifyToast = function(msg, type) {
     const bar = document.createElement('span'); bar.className = 'v-toast-bar';
     el.append(icon, body, close, bar);
     stack.appendChild(el);
+    window.LangManager?.translateDOM?.(undefined,el);
     const duration = Math.min(8500, Math.max(3600, 2200 + text.length * 45));
     bar.style.animationDuration = duration + 'ms';
-    let gone = false;
-    const dismiss = () => { if (gone) return; gone = true; el.classList.add('out'); setTimeout(() => el.remove(), 260); };
+    let gone = false, timer;
+    const dismiss = () => { if (gone) return; gone = true; clearTimeout(timer); el.classList.add('out'); setTimeout(() => el.remove(), 260); };
     close.onclick = dismiss;
     el.onclick = (e) => { if (e.target === el || e.target === body) dismiss(); };
-    setTimeout(dismiss, duration);
+    timer=setTimeout(dismiss, duration);
     return el;
 };
 window.showToast = function(msg, type) { return window.vicinifyToast(msg, type || 'info'); };
@@ -353,19 +1841,20 @@ window.handleFirestoreError = function(err, fallbackMsg) {
 
 window.vConfirm = function(title, message, confirmBtnText = "Confirm", isDanger = false) {
     return new Promise((resolve) => {
-        const modalId = "vConfirmModal_" + Date.now();
+        const modalId = "vConfirm_" + Date.now() + '_' + (window.__vConfirmSequence = (window.__vConfirmSequence || 0) + 1);
+        const previousFocus=document.activeElement;
         window.lockBodyScroll(true);
         const btnClass = isDanger ? "danger" : "primary";
         const btnStyle = isDanger ? "background: #ef4444; color: white; border: none; padding: 12px 18px; border-radius: 10px; font-weight: 600; cursor: pointer;" : "background: #0f172a; color: white; border: none; padding: 12px 18px; border-radius: 10px; font-weight: 600; cursor: pointer;";
         
         const modalHtml = `
-            <div id="${modalId}" style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 99999;">
+            <div id="${modalId}" role="alertdialog" aria-modal="true" aria-labelledby="${modalId}_title" aria-describedby="${modalId}_body" style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 99999;">
                 <div class="modalBackdrop" style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
-                <div class="modalBox" style="position: relative; width: 90%; max-width: 400px; background: #fff; border-radius: 18px; padding: 24px; z-index: 1; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
-                    <h3 data-vconfirm-title style="margin-top: 0; font-size: 18px; color: #0f172a; margin-bottom: 12px;"></h3>
-                    <p data-vconfirm-message style="font-size: 14px; color: #475569; margin-bottom: 24px; line-height: 1.5; white-space: pre-line;"></p>
+                <div class="modalBox" style="position: relative; width: 90%; max-width: 400px; background:var(--ui-surface); border-radius: 18px; padding: 24px; z-index: 1; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+                    <h3 id="${modalId}_title" data-vconfirm-title style="margin-top: 0; font-size: 18px; color:var(--ui-ink); margin-bottom: 12px;"></h3>
+                    <p id="${modalId}_body" data-vconfirm-message style="font-size: 14px; color:var(--ui-muted); margin-bottom: 24px; line-height: 1.5; white-space: pre-line;"></p>
                     <div style="display: flex; gap: 12px;">
-                        <button id="cancelBtn_${modalId}" style="flex: 1; background: #f1f5f9; color: #475569; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer;">Cancel</button>
+                        <button id="cancelBtn_${modalId}" style="flex: 1; background: #f1f5f9; color:var(--ui-muted); border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer;">Cancel</button>
                         <button id="confirmBtn_${modalId}" style="flex: 1; ${btnStyle}"></button>
                     </div>
                 </div>
@@ -378,12 +1867,28 @@ window.vConfirm = function(title, message, confirmBtnText = "Confirm", isDanger 
         modalEl.querySelector("[data-vconfirm-title]").textContent = String(title || "Confirm");
         modalEl.querySelector("[data-vconfirm-message]").textContent = String(message || "");
         document.getElementById(`confirmBtn_${modalId}`).textContent = String(confirmBtnText || "Confirm");
+        document.getElementById(`confirmBtn_${modalId}`).dataset.danger = String(isDanger);
         
+        let finished=false;
         const cleanup = (result) => {
+            if(finished)return;finished=true;
+            document.removeEventListener('keydown',onKey,true);
             window.lockBodyScroll(false);
             modalEl.remove();
+            if(previousFocus?.isConnected)previousFocus.focus?.();
             resolve(result);
         };
+        const onKey=event=>{
+            if([...document.querySelectorAll('[id^="vConfirm_"][role="alertdialog"]')].at(-1)!==modalEl)return;
+            if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();cleanup(false);}
+            if(event.key==='Tab'){
+                const buttons=[...modalEl.querySelectorAll('button')];
+                if(event.shiftKey&&document.activeElement===buttons[0]){event.preventDefault();buttons.at(-1).focus();}
+                else if(!event.shiftKey&&document.activeElement===buttons.at(-1)){event.preventDefault();buttons[0].focus();}
+            }
+        };
+        document.addEventListener('keydown',onKey,true);
+        document.getElementById(`cancelBtn_${modalId}`).focus();
 
         document.getElementById(`cancelBtn_${modalId}`).onclick = () => cleanup(false);
         document.getElementById(`confirmBtn_${modalId}`).onclick = () => cleanup(true);
@@ -800,7 +2305,13 @@ function showPage(pageId) {
 
     document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
     const page = document.getElementById(pageId);
-    if (page) page.classList.add("active");
+    if (page) {
+        page.classList.add("active");
+        window._viciNavigationAnimation?.cancel();
+        if (AppState.activePage !== pageId && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches && typeof page.animate === 'function') {
+            window._viciNavigationAnimation = page.animate([{opacity:.35},{opacity:1}], {duration:160,easing:'ease-out'});
+        }
+    }
 
     applyViciPageScrollState(pageId);
     resetViciPageScroll(pageId);
@@ -833,11 +2344,10 @@ function showPage(pageId) {
     }
 
     if (pageId === "page-map") {
-        // Navigating to Map/Home always resets List View -> Map View (user report 2026-10-03).
-        // Covers: bottom-nav Map tap, back from Place, and re-entering Map from other pages.
-        // toggleView('map') itself calls MapPage.refresh after showing the map.
+        // Return to the user's selected discovery view, including after Place details.
+        const discoveryView = document.getElementById('page-map')?.dataset.view === 'list' ? 'list' : 'map';
         if (typeof window.toggleView === "function") {
-            try { window.toggleView("map"); } catch (e) { setTimeout(() => window.MapPage?.refresh?.(), 200); }
+            try { window.toggleView(discoveryView); } catch (e) { setTimeout(() => window.MapPage?.refresh?.(), 200); }
         } else {
             setTimeout(() => window.MapPage?.refresh?.(), 200);
         }
@@ -858,10 +2368,13 @@ function showPage(pageId) {
 
 function initNav() {
     document.querySelectorAll(".nav-item, [data-goto]").forEach(btn => {
-        btn.addEventListener("click", async () => {
+        if(btn.dataset.viciNavBound)return;
+        btn.dataset.viciNavBound="true";
+        btn.addEventListener("click", async event => {
+            event.preventDefault();
             const target = btn.dataset.goto;
             if (!target) return;
-            try { window.NavSound?.nav(); } catch (e) {}
+            if(AppState.activePage!==target)try { window.NavSound?.nav(); } catch (e) {}
             
             if (!AppState.user && target !== "page-login") {
                 showPage("page-login");
@@ -967,15 +2480,19 @@ function initLogin() {
 
     if (togglePassBtn && passInput && eyeIcon) {
         togglePassBtn.addEventListener("click", () => {
+            const eyeIcon = document.getElementById("eyeIcon");
             if (passInput.type === "password") {
                 passInput.type = "text";
                 eyeIcon.setAttribute("data-lucide", "eye-off");
-                togglePassBtn.style.color = "#3b82f6";
+                togglePassBtn.style.color = "var(--ui-accent)";
             } else {
                 passInput.type = "password";
                 eyeIcon.setAttribute("data-lucide", "eye");
                 togglePassBtn.style.color = "#94a3b8";
             }
+            const visible = passInput.type === "text";
+            togglePassBtn.setAttribute("aria-label", visible ? "Hide password" : "Show password");
+            togglePassBtn.setAttribute("aria-pressed", String(visible));
             window.debouncedIcons?.();
         });
     }
@@ -1035,10 +2552,11 @@ function initLogin() {
             const val = e.target.value;
             let score = 0;
 
-            const hasLength = val.length >= 8;
-            const hasUpperLower = /[a-z]/.test(val) && /[A-Z]/.test(val);
-            const hasNum = /\d/.test(val);
-            const hasSpec = /[!@#$%^&*(),.?":{}|<>]/.test(val);
+            const checks = window.PasswordPolicy.check(val);
+            const hasLength = checks.length;
+            const hasUpperLower = checks.case;
+            const hasNum = checks.number;
+            const hasSpec = checks.special;
 
             if (reqLength) { reqLength.style.color = hasLength ? "#10b981" : "#64748b"; reqLength.classList.toggle("met", hasLength); }
             if (reqUpper) { reqUpper.style.color = hasUpperLower ? "#10b981" : "#64748b"; reqUpper.classList.toggle("met", hasUpperLower); }
@@ -1129,11 +2647,16 @@ function initLogin() {
         });
     }
     const openTermsLink = document.getElementById("openTermsLink");
+    window.closeTermsModal=()=>{const modal=document.getElementById('termsModal');modal?.classList.add('hidden');modal?.setAttribute('aria-hidden','true');openTermsLink?.focus();};
     if (openTermsLink) {
         openTermsLink.addEventListener("click", () => {
-            document.getElementById("termsModal")?.classList.remove("hidden");
+            const modal=document.getElementById('termsModal');modal?.classList.remove('hidden');modal?.setAttribute('aria-hidden','false');modal?.querySelector('.modalClose')?.focus();
         });
     }
+    document.getElementById('termsModal')?.addEventListener('keydown',event=>{
+        if(event.key==='Escape'){event.preventDefault();window.closeTermsModal();}
+        if(event.key==='Tab'){const buttons=[...event.currentTarget.querySelectorAll('button')];if(event.shiftKey&&document.activeElement===buttons[0]){event.preventDefault();buttons.at(-1)?.focus();}else if(!event.shiftKey&&document.activeElement===buttons.at(-1)){event.preventDefault();buttons[0]?.focus();}}
+    });
 
     if (loginBtn) {
         loginBtn.addEventListener("click", async () => {
@@ -1148,12 +2671,14 @@ function initLogin() {
                 return window.alert("Please enter your email and password.");
             }
 
+            const nameProblem = !isLoginMode && window.ContentPolicy?.error('name',fullName);
+            if(nameProblem) return window.alert(nameProblem);
             if (!isLoginMode && fullName.length < 2) {
                 return window.alert("Please enter your full name.");
             }
 
             // 💥 BAGO: I-block kung hindi pa strong ang password sa Sign Up 💥
-            if (!isLoginMode && !isPasswordStrong) {
+            if (!isLoginMode && !window.PasswordPolicy.isStrong(passInput.value)) {
                 return window.alert("Please create a Strong Password based on the requirements below.");
             }
 
@@ -1216,6 +2741,19 @@ window.resendVerificationEmail = async function() {
 let currentUserDocUnsub = null;
 
 // ---------- FIREBASE AUTH STATE LISTENER ----------
+window.clearAccountCredentials = function() {
+    for(const id of ['loginEmail','loginPass','regName','forgotEmail','settingsCurrentPass','settingsNewPass','settingsConfirmPass']){
+        const input=document.getElementById(id);if(input){input.value='';input.defaultValue='';if(id==='loginPass')input.type='password';}
+    }
+    document.querySelectorAll('#ownershipTransferModal input[type=password],#accountDeletionModal input[type=password]').forEach(input=>{input.value='';});
+    document.getElementById('ownershipTransferModal')?.remove();
+    if(!window.isSelfDeleting)document.getElementById('accountDeletionModal')?.remove();
+    const toggle=document.getElementById('togglePassBtn');if(toggle){toggle.setAttribute('aria-pressed','false');toggle.setAttribute('aria-label','Show password');toggle.style.color='';}
+    document.getElementById('eyeIcon')?.setAttribute('data-lucide','eye');
+    window.debouncedIcons?.();
+};
+window.addEventListener('pageshow',event=>{if(event.persisted&&!window.auth?.currentUser)window.clearAccountCredentials();});
+
 window.auth.onAuthStateChanged(async (user) => {
     const loginBtn = document.getElementById("loginBtn");
     const dashNavBtn = document.querySelector('.nav-item[data-goto="page-dashboard"]');
@@ -1227,8 +2765,10 @@ window.auth.onAuthStateChanged(async (user) => {
 
     if (user) {
         await user.reload();
+        if(await window.AccountDeletion?.resumeIfPending(user))return;
 
         AppState.user = window.auth.currentUser;
+        window.clearAccountCredentials();
 
         // Single user-doc read: the live snapshot below doubles as the
         // profile loader (previously a separate .get() duplicated this read).
@@ -1241,9 +2781,10 @@ window.auth.onAuthStateChanged(async (user) => {
                 dashNavBtn.style.display = "flex";
                 const navText = dashNavBtn.querySelector(".navText");
                 if (navText) {
-                    const isUser = AppState.userProfile?.role === "user";
-                    navText.textContent = isUser ? "My Activity" : "Business Hub";
-                    navText.setAttribute("data-i18n", isUser ? "My Activity" : "Business Hub");
+                    const role=AppState.userProfile?.role;
+                    const hubLabel=role=== "admin" ? "Admin Hub" : role=== "user" ? "My Activity" : "Business Hub";
+                    navText.textContent = hubLabel;
+                    navText.setAttribute("data-i18n", hubLabel);
                 }
             }
             if (profileApplied) return;
@@ -1298,6 +2839,7 @@ window.auth.onAuthStateChanged(async (user) => {
             applyProfileToUI();
         });
     } else {
+        window.clearAccountCredentials();
         AppState.user = null;
         AppState.userProfile = null;
         if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = "Sign in"; }
@@ -1317,6 +2859,10 @@ window.auth.onAuthStateChanged(async (user) => {
         // previous user's conversation (privacy on shared devices).
         try { window.MapPage && window.MapPage.resetViciAI && window.MapPage.resetViciAI(); } catch (e) {}
 
+        window.DashboardPage?.resetSession?.();
+        window.closeChatModal?.();
+        document.getElementById('chatMessageList')?.replaceChildren();
+        currentChatDocsCache = [];
         window.ViciData?.stop();
         showPage("page-login");
     }
@@ -1327,7 +2873,6 @@ document.addEventListener("DOMContentLoaded", () => {
 document.body.classList.add("on-login");
 loadSettings();
 initNav();
-initAsk();
 initLogin();
 
 setupChatActionButtons();
@@ -1363,12 +2908,20 @@ if (!chatInput || !chatInput.parentElement) return;
     if (oldBtn) oldBtn.remove();
 });
 
+let actionBar = document.getElementById("chatQuickActions");
+if (!actionBar) {
+    actionBar = document.createElement("div");
+    actionBar.id = "chatQuickActions";
+    actionBar.hidden = true;
+    chatInput.parentElement.insertBefore(actionBar, chatInput);
+}
 const makeActionBtn = (id, label, title, bg, color) => {
     const btn = document.createElement("button");
     btn.id = id;
     btn.type = "button";
     btn.innerHTML = label;
     btn.title = title;
+    btn.setAttribute("aria-label", title);
     btn.style.cssText = `
         width:38px;
         height:38px;
@@ -1391,26 +2944,26 @@ const makeActionBtn = (id, label, title, bg, color) => {
             window.alert("No active delivery/details request yet. Wait for the business to accept or request details.");
         }
     };
-    chatInput.parentElement.insertBefore(btn, chatInput);
+    actionBar.appendChild(btn);
     return btn;
 };
 
-makeActionBtn("chatAddressBtn", "🏠", "Submit delivery address", "#fff7ed", "#c2410c");
-makeActionBtn("chatShareLocationBtn", "📍", "Submit current location", "#ecfdf5", "#047857");
-makeActionBtn("chatPaymentBtn", "💳", "Submit payment details", "#eff6ff", "#1d4ed8");
-makeActionBtn("chatOrderBtn", "📝", "Submit order details", "#f8fafc", "#0f172a");
+makeActionBtn("chatAddressBtn", '<i data-lucide="home"></i>', "Submit delivery address", "#fff7ed", "#c2410c");
+makeActionBtn("chatShareLocationBtn", '<i data-lucide="map-pin"></i>', "Submit current location", "#ecfdf5", "#047857");
+makeActionBtn("chatOrderBtn", '<i data-lucide="clipboard-pen"></i>', "Submit order details", "#f8fafc", "#0f172a");
 
 const reqBtn = document.createElement("button");
 reqBtn.id = "chatRequirementBtn";
 reqBtn.type = "button";
-reqBtn.innerHTML = "📋";
+reqBtn.innerHTML = '<i data-lucide="clipboard-list"></i>';
 reqBtn.title = "Request transaction requirements";
+reqBtn.setAttribute("aria-label", reqBtn.title);
 reqBtn.style.cssText = `
     width:40px;
     height:40px;
     border-radius:50%;
     border:1px solid #cbd5e1;
-    background:white;
+    background:var(--ui-surface);
     cursor:pointer;
     font-size:18px;
     display:none;
@@ -1421,7 +2974,7 @@ reqBtn.style.cssText = `
 `;
 
 reqBtn.onclick = () => window.openRequirementRequestModal();
-chatInput.parentElement.insertBefore(reqBtn, chatInput);
+actionBar.appendChild(reqBtn);
 
 }
 
@@ -1440,7 +2993,6 @@ const showCustomerQuick = !isOwner && !!pendingRequirement && (pendingRequiremen
 const buttonMap = {
     chatAddressBtn: !!req.address,
     chatShareLocationBtn: !!req.location,
-    chatPaymentBtn: !!req.payment,
     chatOrderBtn: !!req.orderDetails
 };
 
@@ -1448,6 +3000,89 @@ Object.entries(buttonMap).forEach(([id, shouldShow]) => {
     const btn = document.getElementById(id);
     if (btn) btn.style.display = showCustomerQuick && shouldShow ? "inline-flex" : "none";
 });
+const actionBar = document.getElementById("chatQuickActions");
+if (actionBar) actionBar.hidden = !isOwner && !(showCustomerQuick && Object.values(buttonMap).some(Boolean));
+}
+
+function setupChatSuggestions(isOwnerView) {
+    const input = document.getElementById("chatMessageInput");
+    if (!input?.parentElement) return;
+    let group = document.getElementById("chatSuggestions");
+    if (!group) {
+        group = document.createElement("div");
+        group.id = "chatSuggestions";
+        group.className = "chat-suggestions";
+        group.setAttribute("role", "group");
+        group.setAttribute("aria-label", "Suggested questions");
+        const label = document.createElement("span");
+        label.className = "chat-suggestions-label";
+        label.textContent = "Quick questions";
+        const heading = document.createElement("div");
+        heading.className = "chat-suggestions-heading";
+        heading.appendChild(label);
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "chat-suggestions-toggle";
+        toggle.textContent = "Hide";
+        toggle.setAttribute("aria-expanded", "true");
+        toggle.setAttribute("aria-controls", "chatSuggestionChoices");
+        heading.appendChild(toggle);
+        group.appendChild(heading);
+        const choices = document.createElement("div");
+        choices.id = "chatSuggestionChoices";
+        choices.className = "chat-suggestion-choices";
+        toggle.addEventListener("click", () => {
+            choices.hidden = !choices.hidden;
+            toggle.textContent = choices.hidden ? "Show" : "Hide";
+            toggle.setAttribute("aria-expanded", String(!choices.hidden));
+        });
+        group.appendChild(choices);
+        const questions = window.ContentPolicy?.quickQuestions ? Object.values(window.ContentPolicy.quickQuestions).map(q=>[q.label,q.text]) : [
+            ["View menu", "Hi! Can I see your menu, please?"],
+            ["Opening hours", "Hi! What are your opening hours?"],
+            ["Delivery options", "Hi! Do you offer delivery, and which areas do you cover?"],
+            ["Book a table", "Hi! Can I reserve a table? What details do you need?"]
+        ];
+        questions.forEach(([title, message]) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = title;
+            button.className = "chat-suggestion";
+            button.setAttribute("aria-label", "Send question: " + message);
+            button.addEventListener("click", () => {
+                if (group.dataset.customer !== "true" || window.__chatSending) return;
+                // Send only this selected question; never append or send a draft.
+                window.sendChatMessage?.({text:message});
+            });
+            choices.appendChild(button);
+        });
+        input.parentElement.insertBefore(group, input);
+        input.addEventListener("input", () => {
+            group.hidden = group.dataset.customer !== "true" || !!input.value.trim();
+        });
+    }
+    group.dataset.customer = String(!isOwnerView);
+    group.hidden = isOwnerView || !!input.value.trim();
+}
+
+function setupChatComposer() {
+    const input = document.getElementById("chatMessageInput");
+    if (!input) return;
+    const resize = () => {
+        input.style.height = "auto";
+        input.style.height = Math.max(44, Math.min(input.scrollHeight, 112)) + "px";
+    };
+    if (!input.dataset.composerReady) {
+        input.dataset.composerReady = "true";
+        input.addEventListener("input", resize);
+        input.addEventListener("keydown", event => {
+            if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+                event.preventDefault();
+                window.sendChatMessage();
+            }
+        });
+    }
+    resize();
 }
 
 function splitPaymentMethods(raw) {
@@ -1535,8 +3170,8 @@ const map = {
         label: "Rejected by Business"
     },
     fulfilled: {
-        bg: "#dbeafe",
-        color: "#1d4ed8",
+        bg: "var(--ui-success-bg)",
+        color: "var(--ui-success-ink)",
         label: "Marked Fulfilled by Business"
     },
     received: {
@@ -1590,13 +3225,13 @@ const map = {
         label: "Delivered by Business"
     },
     fulfilled_waiting_customer: {
-        bg: "#dbeafe",
-        color: "#1d4ed8",
+        bg: "var(--ui-success-bg)",
+        color: "var(--ui-success-ink)",
         label: "Waiting for Customer Confirmation"
     },
     feedback_waiting: {
-        bg: "#fef3c7",
-        color: "#92400e",
+        bg: "var(--ui-success-bg,#e7f3ed)",
+        color: "var(--ui-success-ink,#28634b)",
         label: "Waiting for Customer Feedback"
     },
     feedback_submitted: {
@@ -1634,9 +3269,9 @@ const map = {
         icon: "📅",
         title: "General Booking Request",
         shortLabel: "Booking",
-        color: "#2563eb",
-        light: "#dbeafe",
-        dark: "#1d4ed8",
+        color: "var(--ui-accent)",
+        light: "var(--ui-success-bg)",
+        dark: "var(--ui-success-ink)",
         fulfillLabel: "Mark as Fulfilled",
         confirmLabel: "Confirm Completed"
     },
@@ -1746,53 +3381,48 @@ return map[key] || map.table_reservation;
 }
 
 function renderRequestDetailRows(d) {
-const rows = [];
-
-if (d.bookingDate) rows.push(["Date", d.bookingDate]);
-if (d.bookingTime) rows.push(["Time", d.bookingTime]);
-if (d.guestCount) rows.push(["Guests", d.guestCount]);
-if (d.seatingPreference) rows.push(["Seating", d.seatingPreference]);
-if (d.occasion) rows.push(["Occasion", d.occasion]);
-if (d.fulfillmentType) rows.push(["Fulfillment", d.fulfillmentType]);
-if (d.paymentType) rows.push(["Payment Type", d.paymentType]);
-if (d.paymentMethod) rows.push(["Payment", d.paymentMethod]);
-if (d.purpose) rows.push(["Purpose", d.purpose]);
-
-let html = rows.map(([label, value]) => `
-    <div><b>${escapeHtml(label)}:</b> ${escapeHtml(value)}</div>
-`).join("");
-
-if (d.orderItems) {
-    html += `
-        <div style="margin-top:8px;">
-            <b>Items / Order:</b>
-            <div style="white-space:pre-wrap; margin-top:4px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:9px;">${escapeHtml(d.orderItems)}</div>
-        </div>
-    `;
-}
-
-if (d.deliveryAddress) {
-    html += `
-        <div style="margin-top:8px;">
-            <b>Delivery Address:</b>
-            <div style="white-space:pre-wrap; margin-top:4px; background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:9px;">${escapeHtml(d.deliveryAddress)}</div>
-        </div>
-    `;
-}
-
-if (d.bookingDetails && d.bookingDetails !== "None") {
-    html += `
-        <div style="margin-top:8px;">
-            <b>Notes:</b>
-            <div style="white-space:pre-wrap; margin-top:4px;">${escapeHtml(d.bookingDetails)}</div>
-        </div>
-    `;
-} else if (!html && d.details) {
-    html += `<div style="white-space:pre-wrap;">${escapeHtml(d.details)}</div>`;
-}
-
-return html || `<div style="color:#64748b;">No additional details.</div>`;
-
+    const legacy = {}; let current = '';
+    String(d.details || '').split(/\r?\n/).forEach(line => {
+        const match = line.match(/^(Date|Time|Guests|Seating(?: Preference)?|Occasion|Items(?: \/ Order)?|Order|Fulfillment|Payment(?: Method| Type)?|Delivery Address|Address|Purpose|Notes):\s*(.*)$/i);
+        if (match) { current = match[1].toLowerCase(); legacy[current] = match[2]; }
+        else if (current) legacy[current] += (legacy[current] ? '\n' : '') + line;
+    });
+    const take = (field,...keys) => d[field] != null && String(d[field]).trim() ? String(d[field]) : keys.map(k=>legacy[k]).find(v=>v && v.trim()) || '';
+    const visible = value => value && !/^(none|no preference|n\/a)$/i.test(value.trim());
+    const t = value => window.LangManager?.translateKey?.(value) || value;
+    let date = take('bookingDate','date'), time = take('bookingTime','time');
+    const rawDate = date, rawTime = time;
+    const locale = window.LangManager?.getLanguage?.() === 'ph' ? 'fil-PH' : 'en-PH';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        const stamp = new Date(date+'T12:00:00+08:00');
+        if(Number.isFinite(stamp.getTime())) date = new Intl.DateTimeFormat(locale,{timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric'}).format(stamp);
+    }
+    if (/^\d{2}:\d{2}$/.test(time)) {
+        const stamp = new Date('2026-01-01T'+time+':00+08:00');
+        if(Number.isFinite(stamp.getTime())) time = new Intl.DateTimeFormat(locale,{timeZone:'Asia/Manila',hour:'numeric',minute:'2-digit'}).format(stamp);
+    }
+    const items = take('orderItems','items / order','items','order');
+    const purpose = take('purpose','purpose');
+    let notes = take('bookingDetails','notes');
+    if (notes.trim() === items.trim() || notes.trim() === purpose.trim()) notes = '';
+    const rows = [
+        ['Date',date,true,'date',rawDate],['Time',time,true,'time',rawTime],
+        ['Guests',take('guestCount','guests'),true,'guests'],
+        ['Items / Order',items,true,'items'],
+        ['Estimated menu subtotal',Number.isInteger(d.estimatedSubtotalCents)?'₱'+(d.estimatedSubtotalCents/100).toFixed(2):'',true,'estimatedSubtotal'],['Request reference',d.reference||'',true,'requestReference'],
+        ['Fulfillment',take('fulfillmentType','fulfillment'),false,'fulfillment'],
+        ['Payment Type',take('paymentType','payment type'),false,'paymentType'],
+        ['Payment',take('paymentMethod','payment method','payment'),false,'payment'],
+        ['Delivery Address',take('deliveryAddress','delivery address','address'),true,'address'],
+        ['Seating',take('seatingPreference','seating preference','seating'),false,'seating'],
+        ['Occasion',take('occasion','occasion'),false,'occasion'],
+        ['Purpose',purpose,true,'purpose'],['Notes',notes,true,'notes'],
+        ['Refund status',d.refundStatus ? d.refundStatus.replace(/_/g,' ') : '',false,'refundStatus'],['Refund amount',d.refundAmount!=null?'₱'+d.refundAmount:'',true,'refundAmount'],['Refund reference',d.refundReference||'',true,'refundReference']
+    ].filter(([,value])=>visible(value));
+    if (!rows.length) return d.details
+        ? `<p class="request-output-fallback" data-no-translate>${escapeHtml(d.details)}</p>`
+        : `<p class="request-output-fallback">${escapeHtml(t('No additional details.'))}</p>`;
+    return `<dl class="request-output-grid">${rows.map(([label,value,personal,field,raw])=>`<div class="request-output-field" data-request-field="${field}"><dt data-i18n="${escapeHtml(label)}">${escapeHtml(t(label))}</dt><dd${personal?' data-no-translate':` data-i18n="${escapeHtml(value)}"`}>${raw?`<time datetime="${escapeHtml(raw)}">${escapeHtml(value)}</time>`:escapeHtml(personal?value:t(value))}</dd></div>`).join('')}</dl>`;
 }
 
 function getCardSide(d, currentUid, isOwnerView, fallbackSenderRole = "customer") {
@@ -1822,37 +3452,37 @@ return isOwnerView ? "flex-start" : "flex-end";
 
 }
 
-function injectPremiumChatStyles() {
-    if (document.getElementById("vicinifyPremiumChatStyles")) return;
+function injectChatStyles() {
+    if (document.getElementById("vicinifyChatStyles")) return;
 
     const style = document.createElement("style");
-    style.id = "vicinifyPremiumChatStyles";
+    style.id = "vicinifyChatStyles";
     style.innerHTML = `
         #chatModal { z-index: 9998 !important; }
         #chatModal .modalBackdrop { z-index: 9998 !important; }
         #chatModal .modalBox { z-index: 9999 !important; }
-        .vtx-command { position: relative; top: auto; z-index: 1; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 12px; margin: 10px auto 14px; width: calc(100% - 16px); box-shadow: 0 6px 18px rgba(15,23,42,0.08); box-sizing: border-box; }
+        .vtx-command { position: relative; top: auto; z-index: 1; background:var(--ui-surface); border: 1px solid #e2e8f0; border-radius: 18px; padding: 12px; margin: 10px auto 14px; width: calc(100% - 16px); box-shadow: 0 6px 18px rgba(15,23,42,0.08); box-sizing: border-box; }
         .vtx-command-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
         .vtx-title { display:flex; align-items:center; gap:10px; min-width:0; }
         .vtx-icon { width:40px; height:40px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:white; font-size:20px; box-shadow:0 8px 18px rgba(15,23,42,0.16); }
-        .vtx-name { font-size:13px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:210px; }
-        .vtx-sub { font-size:11px; color:#64748b; font-weight:700; margin-top:2px; }
+        .vtx-name { font-size:13px; font-weight:900; color:var(--ui-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:210px; }
+        .vtx-sub { font-size:11px; color:var(--ui-muted); font-weight:700; margin-top:2px; }
         .vtx-pill { font-size:10px; font-weight:900; border-radius:999px; padding:6px 9px; white-space:nowrap; }
         .vtx-progress { width:100%; height:8px; border-radius:999px; background:#e2e8f0; overflow:hidden; margin:10px 0 12px; }
         .vtx-progress-fill { height:100%; border-radius:999px; transition:width .35s ease; }
         .vtx-grid { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:7px; margin-top:10px; }
-        .vtx-mini { background:white; border:1px solid #e2e8f0; border-radius:14px; padding:9px; min-height:58px; }
-        .vtx-mini-label { font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:.03em; }
-        .vtx-mini-value { font-size:12px; color:#0f172a; font-weight:900; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .vtx-mini { background:var(--ui-surface); border:1px solid #e2e8f0; border-radius:14px; padding:9px; min-height:58px; }
+        .vtx-mini-label { font-size:10px; color:var(--ui-muted); font-weight:800; text-transform:uppercase; letter-spacing:.03em; }
+        .vtx-mini-value { font-size:12px; color:var(--ui-ink); font-weight:900; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .vtx-timeline { display:grid; gap:8px; margin-top:11px; }
         .vtx-step { display:flex; align-items:flex-start; gap:9px; }
         .vtx-dot { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; font-weight:900; }
-        .vtx-step-title { font-size:12px; color:#0f172a; font-weight:900; }
-        .vtx-step-sub { font-size:11px; color:#64748b; margin-top:1px; line-height:1.3; }
+        .vtx-step-title { font-size:12px; color:var(--ui-ink); font-weight:900; }
+        .vtx-step-sub { font-size:11px; color:var(--ui-muted); margin-top:1px; line-height:1.3; }
         .vtx-panel { display:grid; gap:8px; margin-top:10px; }
-        .vtx-panel-card { background:white; border:1px solid #e2e8f0; border-radius:14px; padding:10px; font-size:12px; color:#334155; }
+        .vtx-panel-card { background:var(--ui-surface); border:1px solid #e2e8f0; border-radius:14px; padding:10px; font-size:12px; color:var(--ui-ink); }
         .vtx-system { display:flex; align-items:center; justify-content:center; margin:14px 0; }
-        .vtx-system span { background:#f8fafc; border:1px solid #e2e8f0; color:#64748b; padding:6px 12px; border-radius:999px; font-size:11px; font-weight:800; box-shadow:0 4px 12px rgba(15,23,42,0.06); }
+        .vtx-system span { background:#f8fafc; border:1px solid #e2e8f0; color:var(--ui-muted); padding:6px 12px; border-radius:999px; font-size:11px; font-weight:800; box-shadow:0 4px 12px rgba(15,23,42,0.06); }
         @media (max-width: 520px) { .vtx-grid { grid-template-columns: repeat(3, minmax(0,1fr)); gap:6px; } .vtx-mini { padding:8px; min-height:54px; } .vtx-name { max-width: 170px; } .vtx-command { border-radius:16px; width: calc(100% - 10px); } }
     `;
     document.head.appendChild(style);
@@ -1933,7 +3563,7 @@ function isDone(status, values) {
     return values.includes(normalizeStatusText(status));
 }
 
-function renderTimelineStep(done, active, icon, title, sub, color = "#3b82f6") {
+function renderTimelineStep(done, active, icon, title, sub, color = "var(--ui-primary,#237e72)") {
     const bg = done ? "#dcfce7" : active ? "#fff7ed" : "#f1f5f9";
     const c = done ? "#166534" : active ? "#ea580c" : "#94a3b8";
     const symbol = done ? "✓" : active ? "…" : icon;
@@ -1961,26 +3591,27 @@ function getTransactionState(docs) {
     const requestType = booking?.requestType || req?.requestType || resp?.requestType || "booking";
     const meta = getRequestMeta(requestType);
     const bookingStatus = booking?.bookingStatus || booking?.status || "pending";
-    const txStatus = completion?.transactionStatus || "";
+    const txStatus = ["preparing", "out_for_delivery", "delivered", "received"].includes(bookingStatus) ? bookingStatus : completion?.transactionStatus || "";
 
-    const accepted = isDone(bookingStatus, ["accepted", "fulfilled", "received"]) || !!req || !!resp || !!completion || !!feedbackReq || !!feedbackResp;
+    const accepted = isDone(bookingStatus, ["accepted", "payment_submitted", "payment_confirmed", "preparing", "ready", "out_for_delivery", "delivered", "fulfilled", "received"]) || !!req || !!resp || !!completion || !!feedbackReq || !!feedbackResp;
     const rejected = normalizeStatusText(bookingStatus) === "rejected";
     const detailsSubmitted = !!resp;
-    const paymentConfirmed = normalizeStatusText(resp?.paymentStatus) === "confirmed" || normalizeStatusText(resp?.requirementStatus) === "confirmed";
+    const paymentConfirmed = booking ? window.PaymentPolicy.flow(booking).verified : false;
+    const onlinePayment = booking ? window.PaymentPolicy.isOnline(booking) : false;
     const preparing = normalizeStatusText(txStatus) === "preparing";
     const outForDelivery = normalizeStatusText(txStatus) === "out_for_delivery";
-    const delivered = isDone(txStatus, ["delivered", "received"]) || isDone(bookingStatus, ["fulfilled", "received"]);
+    const delivered = isDone(txStatus, ["delivered", "received"]) || isDone(bookingStatus, ["delivered", "fulfilled", "received"]);
     const received = normalizeStatusText(txStatus) === "received" || normalizeStatusText(bookingStatus) === "received" || !!feedbackReq || !!feedbackResp;
     const feedbackDone = !!feedbackResp || normalizeStatusText(feedbackReq?.feedbackStatus) === "feedback_submitted";
 
-    return { booking, req, resp, completion, feedbackReq, feedbackResp, requestType, meta, bookingStatus, txStatus, accepted, rejected, detailsSubmitted, paymentConfirmed, preparing, outForDelivery, delivered, received, feedbackDone };
+    return { booking, req, resp, completion, feedbackReq, feedbackResp, requestType, meta, bookingStatus, txStatus, accepted, rejected, detailsSubmitted, paymentConfirmed, onlinePayment, preparing, outForDelivery, delivered, received, feedbackDone };
 }
 
 function progressPercent(state) {
     if (state.rejected) return 100;
     const isDelivery = state.meta.key === "delivery_order";
     const items = isDelivery
-        ? [!!state.booking, state.accepted, state.detailsSubmitted, state.paymentConfirmed, state.delivered || state.outForDelivery || state.received, state.feedbackDone]
+        ? [!!state.booking, state.accepted, state.detailsSubmitted, !state.onlinePayment || state.paymentConfirmed, state.delivered || state.outForDelivery || state.received, state.feedbackDone]
         : [!!state.booking, state.accepted, state.delivered || state.received, state.feedbackDone];
     const done = items.filter(Boolean).length;
     return Math.max(10, Math.round((done / items.length) * 100));
@@ -1998,7 +3629,7 @@ function renderOrderSummaryMini(state) {
     if (order && state.meta.key !== "table_reservation") {
         html += `
             <div class="vtx-panel-card">
-                <div style="font-weight:900; color:#0f172a; margin-bottom:6px;">🧾 Order Summary</div>
+                <div style="font-weight:900; color:var(--ui-ink); margin-bottom:6px;">🧾 Order Summary</div>
                 <div style="white-space:pre-wrap; line-height:1.45;">${escapeHtml(order)}</div>
             </div>
         `;
@@ -2007,20 +3638,20 @@ function renderOrderSummaryMini(state) {
     if (state.meta.key === "delivery_order" && address) {
         html += `
             <div class="vtx-panel-card">
-                <div style="font-weight:900; color:#0f172a; margin-bottom:6px;">📍 Delivery Card</div>
-                <div>${escapeHtml(address)}</div>
+                <div style="font-weight:900; color:var(--ui-ink); margin-bottom:6px;">📍 Delivery Card</div>
+                <div data-no-translate>${escapeHtml(address)}</div>
                 ${source.lat && source.lng ? `<button onclick="window.viewSharedLocation(${Number(source.lat)}, ${Number(source.lng)})" style="margin-top:8px; border:none; background:#dcfce7; color:#166534; padding:7px 10px; border-radius:9px; font-weight:800; cursor:pointer;">View Map</button>` : ""}
             </div>
         `;
     }
 
-    const paymentRelevantTypes = ["pickup_preorder", "advance_order", "delivery_order"];
+    const paymentRelevantTypes = ["pickup_order", "advance_order", "delivery_order"];
     const hasRealPaymentInfo = paymentRelevantTypes.includes(state.meta.key) && (pay || amount || source.paymentReference || state.paymentConfirmed || source.paymentStatus);
 
     if (hasRealPaymentInfo) {
         html += `
             <div class="vtx-panel-card">
-                <div style="font-weight:900; color:#0f172a; margin-bottom:6px;">💳 Payment Summary</div>
+                <div style="font-weight:900; color:var(--ui-ink); margin-bottom:6px;">💳 Payment Summary</div>
                 ${pay ? `<div><b>Method:</b> ${escapeHtml(pay)}</div>` : ""}
                 ${amount ? `<div><b>Amount:</b> ₱${escapeHtml(amount)}</div>` : ""}
                 ${source.paymentReference ? `<div><b>Reference:</b> ${escapeHtml(source.paymentReference)}</div>` : ""}
@@ -2059,12 +3690,13 @@ function buildVisibleTransactionSteps(state) {
 
         steps.push(renderTimelineStep(true, false, "📍", "Delivery Details", "Customer submitted delivery information", meta.color));
 
-        if (!state.paymentConfirmed) {
+        if (state.onlinePayment && !state.paymentConfirmed) {
             steps.push(renderTimelineStep(false, true, "💳", "Payment Verification", "Waiting for business to confirm payment/reference", meta.color));
             return steps.join("");
         }
 
-        steps.push(renderTimelineStep(true, false, "💳", "Payment Verified", "Business confirmed payment/details", meta.color));
+        if (state.onlinePayment) steps.push(renderTimelineStep(true, false, "💳", "Payment Verified", "Business verified the received payment", meta.color));
+        else steps.push(renderTimelineStep(true, false, "💵", "Cash / COD", "Pay the business at pickup or delivery", meta.color));
 
         if (!state.preparing && !state.outForDelivery && !state.delivered && !state.received) {
             steps.push(renderTimelineStep(false, true, "🍳", "Preparing", "Waiting for business to prepare the order", meta.color));
@@ -2092,7 +3724,7 @@ function buildVisibleTransactionSteps(state) {
             return steps.join("");
         }
     } else if (meta.key === "pickup_order") {
-        if (!state.paymentConfirmed && state.detailsSubmitted) {
+        if (state.onlinePayment && !state.paymentConfirmed) {
             steps.push(renderTimelineStep(false, true, "💳", "Payment / Order Check", "Waiting for business confirmation", meta.color));
             return steps.join("");
         }
@@ -2108,7 +3740,7 @@ function buildVisibleTransactionSteps(state) {
 
         steps.push(renderTimelineStep(true, false, "🛍️", "Picked Up / Completed", "Customer pickup completed", meta.color));
     } else if (meta.key === "advance_order") {
-        if (!state.paymentConfirmed && state.detailsSubmitted) {
+        if (state.onlinePayment && !state.paymentConfirmed) {
             steps.push(renderTimelineStep(false, true, "💳", "Payment Required", "Waiting for business to verify payment/reference", meta.color));
             return steps.join("");
         }
@@ -2158,11 +3790,43 @@ function getTransactionCurrentLabel(state) {
     return "Pending";
 }
 
+function renderPaymentFlowCard(order, isOwner) {
+    const flow = window.PaymentPolicy.flow(order);
+    const status = order.bookingStatus || order.status || "pending";
+    let title = "Confirm payment details in chat";
+    let copy = "Agree on the final amount, delivery fee and payment method with the business before paying.";
+    if (flow.closed) { title = "Payment flow closed"; copy = order.refundStatus ? "Follow the refund status in the current transaction summary." : "If you already paid, contact the business to arrange any applicable refund."; }
+    else if (flow.online && status === "accepted" && !flow.termsReady) { title = "Waiting for payment instructions"; copy = "The business must set the amount and payment instructions first."; }
+    else if (status === "pending") { title = "Wait for acceptance"; copy = "The business needs to accept your request and confirm the final total before you pay."; }
+    else if (order.paymentReviewDecision === "declined" && status === "accepted") { title = "Payment details declined · Correction needed"; copy = "Your order is still accepted. Check the business note below and resubmit corrected details. Do not pay again unless you have agreed it is necessary."; }
+    else if (flow.verified) { title = "Payment accepted by business"; copy = "The business manually checked your payment. Preparation and fulfillment are tracked separately."; }
+    else if (flow.reviewing) { title = isOwner ? "Check payment before confirming" : "Payment details · Under review"; copy = isOwner ? "Match the amount and reference against money received in your account. A screenshot alone is not confirmation." : "The business will verify the payment against its account. Do not pay again while it is under review."; }
+    else if (flow.online && ["preparing", "ready", "out_for_delivery", "delivered", "fulfilled", "received"].includes(status)) { title = "Check the recorded payment"; copy = "Confirm the payment status with the business. Do not make a second payment unless you have agreed it is needed."; }
+    else if (flow.online) { title = "Pay directly to the business"; copy = "Confirm the total and recipient account in chat, pay using the agreed method, then upload your receipt. Vicinify does not collect the payment."; }
+    else if (order.paymentMethod) { title = "Cash / pay on pickup or delivery"; copy = "Pay the agreed amount directly to the business at pickup or delivery. No online payment proof is needed."; }
+    return `<section class="payment-flow-card"><span class="payment-flow-eyebrow">PAYMENT · ${order.paymentType ? escapeHtml(order.paymentType) + " · " : ""}${escapeHtml(order.paymentMethod || "Not yet agreed")}</span><h4>${title}</h4><p>${copy}</p>
+        ${!isOwner && flow.awaitingProof ? `<button type="button" class="payment-proof-upload" onclick="window.uploadPaymentProof('${order.bookingId}', '${order.id}')"><i data-lucide="receipt"></i> Add payment reference / receipt</button>` : ""}
+        ${order.paymentReviewDecision === "declined" && order.paymentReviewNote ? `<p class="payment-review-reason"><strong>Business note:</strong> ${escapeHtml(order.paymentReviewNote)}</p>` : ""}
+        ${order.paymentReference ? `<dl class="payment-reference-summary"><div><dt>Reference</dt><dd>${escapeHtml(order.paymentReference)}</dd></div><div><dt>Amount submitted</dt><dd>₱${escapeHtml(order.paymentAmount || "—")}</dd></div></dl>` : ""}
+        ${order.paymentType === "Downpayment" && !flow.closed ? `<p class="payment-balance-note">This is a downpayment. Agree on any remaining balance with the business; it is not marked paid in full.</p>` : ""}
+        ${flow.online && !flow.closed ? `<div class="payment-flow-steps"><span>1. Pay business</span><span>2. Submit proof</span><span>3. Business verifies</span></div>` : ""}
+    </section>`;
+}
+function renderBookingNextAction(order) {
+    const status = order.bookingStatus || order.status || "pending";
+    const delivery = ["delivery_order", "delivery"].includes(order.requestType);
+    const next = window.PaymentPolicy.flow(order).canPrepare ? ["preparing", "Start preparing"]
+        : status === "preparing" ? (delivery ? ["out_for_delivery", "Mark out for delivery"] : ["ready", "Mark ready"])
+        : status === "ready" ? ["fulfilled", "Mark fulfilled"]
+        : status === "out_for_delivery" ? ["delivered", "Mark delivered"] : null;
+    return next ? `<button type="button" class="payment-stage-action" onclick="window.updateBookingFromChat('${order.bookingId}', '${order.id}', '${next[0]}')">${next[1]}</button>` : "";
+}
+
 function renderInlineTransactionProgress(docs) {
     const state = getTransactionState(docs);
     if (!state.booking && !state.req && !state.resp && !state.completion) return "";
 
-    injectPremiumChatStyles();
+    injectChatStyles();
 
     const meta = state.meta;
     const pct = progressPercent(state);
@@ -2228,13 +3892,13 @@ async function addSystemUpdate(placeId, placeName, userId, userName, text, stage
         if (transactionId) payload.transactionId = transactionId;
         if (bookingId) payload.bookingId = bookingId;
 
-        await window.db.collection("messages").add(payload);
+        await window.ContentPolicy.create(window.db, 'messages', payload);
     } catch (e) {
         console.warn("System update skipped:", e);
     }
 }
 
-window.openChatModal = async function(placeId, placeName, customerUid = null) {
+window.openChatModal = async function(placeId, placeName, customerUid = null, mode = "messages", bookingId = null) {
 const user = window.auth?.currentUser;
 
 if (!user) {
@@ -2255,14 +3919,44 @@ if (!user.emailVerified) {
     return;
 }
 
-// Open FIRST with the name the caller already passed; the place fetch
-// (real name + self-chat check) and the customer-name fetch now resolve
-// in the background and update the header in place. They used to block
-// the modal + listener behind two sequential round trips, which made
-// the conversation (and its booking cards) feel hung on open.
+// Resolve this establishment's actual ownership before enabling customer prompts
+// or subscribing to a thread. An account role alone does not identify the chat side.
+const opening = window.__chatOpenGeneration = (window.__chatOpenGeneration || 0) + 1;
+let placeData;
+try {
+    const placeDoc = await window.db.collection('places').doc(placeId).get();
+    if(opening !== window.__chatOpenGeneration || window.auth?.currentUser?.uid !== user.uid)return;
+    if(!placeDoc.exists) return window.showToast('This establishment is unavailable.','error');
+    placeData = placeDoc.data();
+} catch(error) {
+    if(opening !== window.__chatOpenGeneration)return;
+    console.error('Chat ownership lookup failed:',error);
+    return window.showToast('Could not open this conversation. Please try again.','error');
+}
+const ownsPlace = placeData.owner_uid === user.uid;
+const admin = AppState.userProfile?.role === 'admin' || user.uid === 'Z45NZhQTgsTUX79WJ5ksCH8N3c02';
 const targetUid = customerUid || user.uid;
-const isOwnerView = !!customerUid;
+if(ownsPlace && targetUid === user.uid) {
+    setupChatSuggestions(true);
+    window.closeChatModal?.();
+    window.showToast('Open a customer conversation from Business Hub → Messages.','info');
+    showPage('page-dashboard');
+    return;
+}
+const isOwnerView = targetUid !== user.uid;
+if(isOwnerView && !ownsPlace && !admin)
+    return window.showToast('You cannot open another customer’s conversation.','error');
+if(placeData.accountDeleted&&mode!=='transaction')return window.showToast('This establishment is closed. Open your transaction history instead.','info');
+placeName = placeData.name || placeName || 'Establishment';
+document.getElementById('chatModal').dataset.autoReply=String(!isOwnerView && placeData.auto_reply_enabled===true);
 
+document.getElementById('chatModal').dataset.mode=mode==='transaction'?'transaction':'messages';
+const composer=document.getElementById('chatMessageInput');if(composer){const placeholder=mode==='transaction'?'Message about this transaction...':'Write a message...';composer.dataset.i18nPlaceholder=placeholder;composer.placeholder=window.LangManager?.translateKey?.(placeholder)||placeholder;}
+let switcher=document.getElementById('chatModeSwitch');
+if(!switcher){switcher=document.createElement('button');switcher.id='chatModeSwitch';switcher.type='button';switcher.className='chat-mode-switch';document.querySelector('#chatModal .chat-header-copy')?.append(switcher);}
+if(switcher){switcher.textContent=window.LangManager?.translateKey?.(mode==='transaction'?'Open inquiries':'Open transactions')||(mode==='transaction'?'Open inquiries':'Open transactions');switcher.onclick=()=>window.openChatModal(placeId,placeName,targetUid,mode==='transaction'?'messages':'transaction',bookingId);}
+const headerCopy=document.querySelector('#chatModal .chat-header-copy');
+for(const [node,label] of [[headerCopy?.querySelector('.chat-header-eyebrow'),mode==='transaction'?'Transaction':'Inquiries'],[headerCopy?.querySelector('p'),mode==='transaction'?'Request, payment and progress':'Questions and messages']])if(node){node.dataset.i18n=label;node.textContent=window.LangManager?.translateKey?.(label)||label;}
 document.getElementById("chatPlaceId").value = placeId;
 document.getElementById("chatPlaceName").value = placeName || "Establishment";
 document.getElementById("chatCustomerUid").value = targetUid;
@@ -2273,54 +3967,38 @@ document.getElementById("chatModalAvatar").innerText = getInitial(provisionalTit
 
 const chatInput = document.getElementById("chatMessageInput");
 if (chatInput) chatInput.value = "";
+setupChatSuggestions(isOwnerView);
+setupChatComposer();
 
 const reqBtn = document.getElementById("chatRequirementBtn");
 if (reqBtn) {
     reqBtn.style.display = isOwnerView ? "inline-flex" : "none";
 }
 
-injectPremiumChatStyles();
+injectChatStyles();
 updateChatQuickActions(isOwnerView, null);
 document.getElementById("chatModal").classList.remove("hidden");
+document.getElementById("chatModal").setAttribute("aria-hidden", "false");
 if (!window.__chatScrollLocked) { window.__chatScrollLocked = true; window.lockBodyScroll?.(true); }
-listenToChatRoom(placeId, targetUid);
+listenToChatRoom(placeId, targetUid, mode==='transaction'?bookingId:null);
 
-// Background header resolution. Guarded by the hidden fields so a
-// late result can never overwrite a different chat opened meanwhile.
-(async () => {
-    const stillThisChat = () =>
-        document.getElementById("chatPlaceId")?.value === placeId &&
-        document.getElementById("chatCustomerUid")?.value === targetUid;
+// Resolve only the customer's display name in the background. The business name
+// always comes from the place document, including when opened by its business.
+if(isOwnerView) (async()=>{
     try {
-        if (!isOwnerView) {
-            const placeDoc = await window.db.collection("places").doc(placeId).get();
-            if (!placeDoc.exists || !stillThisChat()) return;
-            const placeData = placeDoc.data();
-            if (placeData.owner_uid === user.uid) {
-                window.closeChatModal();
-                window.alert("This is your own establishment. You cannot message yourself here.");
-                return;
-            }
-            if (placeData.name) {
-                document.getElementById("chatPlaceName").value = placeData.name;
-                document.getElementById("chatModalTitle").innerText = placeData.name;
-                document.getElementById("chatModalAvatar").innerText = getInitial(placeData.name);
-            }
-        } else {
-            const name = await getCustomerDisplayName(customerUid);
-            if (!stillThisChat()) return;
-            document.getElementById("chatModalTitle").innerText = name;
-            document.getElementById("chatModalAvatar").innerText = getInitial(name);
-        }
-    } catch (e) {
-        console.error("Chat header resolution failed:", e);
-    }
+        const name=await getCustomerDisplayName(targetUid);
+        if(opening !== window.__chatOpenGeneration || document.getElementById('chatPlaceId')?.value!==placeId || document.getElementById('chatCustomerUid')?.value!==targetUid)return;
+        document.getElementById('chatModalTitle').innerText=name;
+        document.getElementById('chatModalAvatar').innerText=getInitial(name);
+    }catch(error){console.error('Chat customer-name lookup failed:',error);}
 })();
 
 };
 
 window.closeChatModal = function() {
+window.__chatOpenGeneration = (window.__chatOpenGeneration || 0) + 1;
 document.getElementById("chatModal").classList.add("hidden");
+document.getElementById("chatModal").setAttribute("aria-hidden", "true");
 if (window.__chatScrollLocked) { window.__chatScrollLocked = false; window.lockBodyScroll?.(false); }
 
 if (currentChatUnsub) {
@@ -2330,7 +4008,8 @@ if (currentChatUnsub) {
 
 };
 
-window.sendChatMessage = async function() {
+window.sendChatMessage = async function(options = {}) {
+if(window.__chatSending)return;
 const user = window.auth?.currentUser;
 if (!user) return;
 
@@ -2338,13 +4017,23 @@ const placeId = document.getElementById("chatPlaceId").value;
 const placeName = document.getElementById("chatPlaceName").value;
 const customerUid = document.getElementById("chatCustomerUid").value;
 const input = document.getElementById("chatMessageInput");
-const text = input.value.trim();
+const transactionMode=document.getElementById('chatModal')?.dataset.mode==='transaction';
+const linkedBooking=transactionMode?document.getElementById('chatTransactionSummary')?.dataset.bookingId:null;
+if(transactionMode&&window.PaymentPolicy?.conversationClosed?.(deskOrder(linkedBooking)||{}))return window.showToast?.('This transaction conversation is archived. You can read it in history.','info');
+if(transactionMode&&!linkedBooking)return window.showToast?.('Choose a transaction before sending a message.','info');
+const quickSend = typeof options.text === 'string';
+const text = quickSend ? options.text.trim() : input.value.trim();
 
 if (!text) return;
+const contentError = window.ContentPolicy?.error('chat',text);
+if (contentError) return window.alert(contentError);
 
-// Clear right away (chat-style); the text is restored below if the send fails.
-input.value = "";
+// Quick questions preserve the current draft; typed sends clear immediately.
+if(!quickSend){input.value = "";input.dispatchEvent(new Event("input", { bubbles: true }));}
+window.__chatSending=true;
+document.querySelectorAll('#chatSuggestions .chat-suggestion').forEach(button=>button.disabled=true);
 
+try {
 const isOwner = user.uid !== customerUid;
 const customerName = isOwner
     ? await getCustomerDisplayName(customerUid)
@@ -2354,14 +4043,16 @@ const senderName = isOwner
     ? placeName
     : (AppState.userProfile?.fullName || user.displayName || "Customer");
 
-try {
-    await window.db.collection("messages").add({
+const quickQuestion = !isOwner && !transactionMode ? window.ContentPolicy?.topicFor(text) : null;
+    const messagePayload = {
         placeId,
         placeName,
         userId: customerUid,
         userName: customerName,
         type: "text",
         text,
+        ...(quickQuestion ? {quickQuestion} : {}),
+        ...(linkedBooking ? {bookingId:linkedBooking,transactionId:linkedBooking} : {}),
         status: "sent",
         deliveredAt: null,
         seenAt: null,
@@ -2371,110 +4062,214 @@ try {
         createdBy: user.uid,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         reply: null
-    });
+    };
+    // Verification can change while an old ID token is still cached. Retry only
+    // a rejected write, which Firestore commits atomically with its rate bucket.
+    let messageRef;
+    try { messageRef=await window.ContentPolicy.create(window.db,'messages',messagePayload); }
+    catch(error) {
+        if(!['permission-denied','firestore/permission-denied'].includes(error.code)||!user.emailVerified)throw error;
+        await user.getIdToken(true);
+        messageRef=await window.ContentPolicy.create(window.db,'messages',messagePayload);
+    }
+    if(quickQuestion && document.getElementById('chatModal').dataset.autoReply==='true') {
+        window.ViciData.command('autoReply',{messageId:messageRef.id,topic:quickQuestion})
+            .catch(error=>{
+                console.warn('Automatic reply unavailable:',error.message);
+                if(window.auth?.currentUser?.uid===user.uid && document.getElementById('chatPlaceId').value===placeId && !document.getElementById('chatModal').classList.contains('hidden'))
+                    window.showToast('Question sent. Automatic reply is unavailable right now; the business can still respond.','info');
+            });
+    }
 } catch (error) {
     console.error("sendChatMessage failed:", error);
-    input.value = text;
-    if (window.vicinifyToast) window.vicinifyToast("Message not sent: " + error.message, "error");
+    if(!quickSend && !input.value.trim()){input.value = text;input.dispatchEvent(new Event("input", { bubbles: true }));}
+    if (window.vicinifyToast) window.vicinifyToast(['permission-denied','firestore/permission-denied'].includes(error.code)
+        ? 'Message not sent. Check that your email is verified and the latest Firestore rules are deployed.'
+        : "Message not sent: " + error.message, "error");
     else window.alert("Error sending message: " + error.message);
+} finally {
+    window.__chatSending=false;
+    document.querySelectorAll('#chatSuggestions .chat-suggestion').forEach(button=>button.disabled=false);
 }
 
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-document.getElementById("chatMessageInput")?.addEventListener("keypress", function(event) {
-if (event.key === "Enter") {
-event.preventDefault();
-window.sendChatMessage();
-}
-});
-});
+document.addEventListener("DOMContentLoaded", setupChatComposer);
 
-// v53Y — Customer uploads GCash/Maya/Bank payment proof for an accepted order.
-// No Firebase Storage needed (new projects require Blaze billing for Storage).
-// The image is compressed client-side and saved as a data URL on the booking.
-// Fine for capstone scale; move to Cloudinary/Storage on Blaze for production.
-window.uploadPaymentProof = async function (bookingId, messageId) {
+// Receipt images are optional; reference and amount are always reviewed manually.
+async function compressPaymentReceipt(file) {
+    if (!file.type.startsWith("image/") || file.size > 8 * 1024 * 1024) throw new Error("Choose an image under 8 MB.");
+    return new Promise((resolve, reject) => {
+        const img = new Image(), objectUrl = URL.createObjectURL(file);
+        img.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            const scale = Math.min(1, 900 / Math.max(img.width, img.height));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(img.width * scale));
+            canvas.height = Math.max(1, Math.round(img.height * scale));
+            canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+            const data = canvas.toDataURL("image/jpeg", .72);
+            if (data.length > 900 * 1024) reject(new Error("Receipt is too large. Try a smaller screenshot."));
+            else resolve(data);
+        };
+        img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error("Could not read the receipt image.")); };
+        img.src = objectUrl;
+    });
+}
+window.uploadPaymentProof = async function(bookingId, messageId) {
     const user = window.auth?.currentUser;
     if (!user) return window.showToast?.("Please log in first.", "error");
-
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = async () => {
-        const file = input.files && input.files[0];
-        if (!file) return;
-        if (!file.type.startsWith("image/")) {
-            window.showToast?.("Please choose an image file.", "error");
-            return;
-        }
-        window.showToast?.("Processing proof...", "info");
+    const existing = document.getElementById("paymentProofModal");
+    if (existing) return existing.querySelector("input")?.focus();
+    let order = deskOrder(bookingId);
+    if (!order) {
         try {
-            // Compress: max 900px, JPEG 0.72 — keeps each proof ~80-180KB,
-            // well under the 1MB Firestore document limit.
-            const dataUrl = await new Promise((resolve, reject) => {
-                const img = new Image();
-                const objUrl = URL.createObjectURL(file);
-                img.onload = () => {
-                    URL.revokeObjectURL(objUrl);
-                    const maxDim = 900;
-                    let w = img.width, h = img.height;
-                    if (Math.max(w, h) > maxDim) {
-                        const k = maxDim / Math.max(w, h);
-                        w = Math.round(w * k); h = Math.round(h * k);
-                    }
-                    const c = document.createElement("canvas");
-                    c.width = w; c.height = h;
-                    c.getContext("2d").drawImage(img, 0, 0, w, h);
-                    resolve(c.toDataURL("image/jpeg", 0.72));
-                };
-                img.onerror = () => { URL.revokeObjectURL(objUrl); reject(new Error("Could not read image.")); };
-                img.src = objUrl;
-            });
-            // ~1.37x overhead for base64; guard the 1MB doc limit.
-            if (dataUrl.length > 900 * 1024) {
-                window.showToast?.("Image is still too large after compression. Try a smaller screenshot.", "error");
-                return;
-            }
-
-            await window.ViciData.command("proof", { bookingId, image: dataUrl });
-            window.showToast?.("Payment proof uploaded. Waiting for business confirmation.", "success");
-        } catch (e) {
-            console.error("[uploadPaymentProof]", e);
-            window.showToast?.("Upload failed: " + (e.message || "unknown error"), "error");
+            const doc = await window.db.collection("bookings").doc(bookingId).get();
+            if (doc.exists) order = doc.data();
+        } catch (error) { return window.showToast?.("Could not load payment details. Try again.", "error"); }
+    }
+    if (!order || !window.PaymentPolicy.flow(order).awaitingProof && !window.PaymentPolicy.flow(order).reviewing)
+        return window.showToast?.("This request is not awaiting online payment details.", "info");
+    if (document.getElementById("paymentProofModal")) return;
+    const modal = document.createElement("div");
+    modal.id = "paymentProofModal";
+    modal.className = "req-modal manual-payment-modal";
+    modal.innerHTML = `<div class="modalBackdrop req-backdrop"></div>
+        <form class="req-sheet" role="dialog" aria-modal="true" aria-labelledby="manualPaymentTitle">
+            <header class="req-head"><span class="req-head-icon"><i data-lucide="receipt"></i></span><div class="req-head-text"><h3 id="manualPaymentTitle">Payment details</h3><p>Enter your reference number. A receipt image is optional.</p></div><button type="button" class="req-close" aria-label="Close payment details"><i data-lucide="x"></i></button></header>
+            <div class="req-body">
+                <div class="req-note"><span>Paid directly to <strong data-no-translate>${escapeHtml(order.placeName || "the business")}</strong> via ${escapeHtml(order.paymentMethod)}. Submit only after you have made the payment.</span></div>
+                ${order.paymentInstructions ? `<div class="manual-payment-instructions"><b>Amount due: ₱${escapeHtml(order.paymentAmountDue || '')}</b><p data-no-translate>${escapeHtml(order.paymentInstructions)}</p></div>` : ''}
+                <div class="manual-payment-fields">
+                    <label class="req-field"><span>Reference / transaction number *</span><input class="req-input" name="reference" required minlength="3" maxlength="80" autocomplete="off" placeholder="Enter the number from your payment receipt" value="${escapeHtml(order.paymentReference || "")}"></label>
+                    <label class="req-field"><span>Amount paid (₱) *</span><input class="req-input" name="amount" required inputmode="decimal" autocomplete="off" placeholder="e.g. 588.00" value="${escapeHtml(order.paymentAmount || order.paymentAmountDue || "")}"></label>
+                    <label class="req-field"><span>Receipt image <em>optional</em></span><input class="req-input payment-receipt-file" name="receipt" type="file" accept="image/*"><small class="manual-payment-help">JPEG, PNG or WebP · up to 8 MB</small></label>
+                    <div class="manual-receipt-preview" hidden><img alt="Your selected payment receipt"><button type="button" class="remove-payment-receipt">Remove image</button></div>
+                </div>
+                <p class="manual-payment-help">Submitting a reference number does not mark your request paid. The business checks the amount and reference against funds actually received.</p>
+                <p class="manual-payment-error" role="alert" hidden></p>
+            </div>
+            <footer class="req-footer"><button type="button" class="req-btn ghost payment-details-cancel">Cancel</button><button type="submit" class="req-btn primary">Submit for review</button></footer>
+        </form>`;
+    const previousFocus = document.activeElement;
+    let busy = false, previewUrl = null;
+    const form = modal.querySelector("form"), error = modal.querySelector(".manual-payment-error");
+    const close = () => {
+        if (busy) return;
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        document.removeEventListener("keydown", onKey); modal.remove();
+        const chat = document.getElementById("chatModal");
+        if (!chat || chat.classList.contains("hidden")) window.lockBodyScroll?.(false);
+        previousFocus?.focus?.();
+    };
+    const onKey = event => {
+        if (event.key === "Escape") close();
+        if (event.key === "Tab") {
+            const items = [...form.querySelectorAll("button,input")].filter(el => !el.disabled && el.getClientRects().length);
+            if (event.shiftKey && document.activeElement === items[0]) { event.preventDefault(); items.at(-1)?.focus(); }
+            else if (!event.shiftKey && document.activeElement === items.at(-1)) { event.preventDefault(); items[0]?.focus(); }
         }
     };
-    input.click();
+    modal.querySelector(".req-close").onclick = close;
+    modal.querySelector(".payment-details-cancel").onclick = close;
+    modal.querySelector(".modalBackdrop").onclick = close;
+    const receipt = form.elements.receipt, preview = modal.querySelector(".manual-receipt-preview");
+    receipt.onchange = () => {
+        if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+        preview.hidden = true; error.hidden = true;
+        const file = receipt.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/") || file.size > 8 * 1024 * 1024) {
+            receipt.value = ""; error.textContent = "Choose an image under 8 MB."; error.hidden = false; return;
+        }
+        previewUrl = URL.createObjectURL(file); preview.querySelector("img").src = previewUrl; preview.hidden = false;
+    };
+    modal.querySelector(".remove-payment-receipt").onclick = () => { receipt.value = ""; receipt.onchange(); };
+    form.onsubmit = async event => {
+        event.preventDefault();
+        if (busy || !form.reportValidity()) return;
+        error.hidden = true;
+        let payment;
+        try { payment = window.PaymentPolicy.details(form.elements.reference.value, form.elements.amount.value); }
+        catch (err) { error.textContent = err.message; error.hidden = false; return; }
+        busy = true;
+        const submit = form.querySelector('[type="submit"]'); submit.disabled = true; submit.textContent = "Submitting…";
+        try {
+            const payload = { bookingId, reference: payment.paymentReference, amount: payment.paymentAmount };
+            if (receipt.files[0]) payload.image = await compressPaymentReceipt(receipt.files[0]);
+            await window.ViciData.command("proof", payload);
+            busy = false; close();
+            window.showToast?.("Payment details submitted. Waiting for business verification.", "success");
+        } catch (err) {
+            error.textContent = "Could not submit payment details. " + err.message; error.hidden = false;
+        } finally { busy = false; submit.disabled = false; submit.textContent = "Submit for review"; }
+    };
+    document.body.appendChild(modal); window.lockBodyScroll?.(true); document.addEventListener("keydown", onKey);
+    window.debouncedIcons?.(); form.elements.reference.focus();
 };
 
-// v53X — Owner confirms or asks to resubmit a payment proof.
-// messageId is optional; when omitted the booking_card message is found via bookingId.
-window.reviewPaymentProof = async function (bookingId, messageId, action) {
-    const user = window.auth?.currentUser;
-    if (!user) return window.showToast?.("Please log in first.", "error");
+function requestPaymentCorrectionNote() {
+    if (document.getElementById("paymentCorrectionModal")) return Promise.resolve(null);
+    return new Promise(resolve => {
+        const modal = document.createElement("div");
+        modal.id = "paymentCorrectionModal"; modal.className = "req-modal";
+        modal.innerHTML = `<div class="modalBackdrop req-backdrop"></div><form class="req-sheet" role="dialog" aria-modal="true" aria-labelledby="paymentCorrectionTitle">
+            <header class="req-head"><span class="req-head-icon"><i data-lucide="receipt-text"></i></span><div class="req-head-text"><h3 id="paymentCorrectionTitle">Decline payment details?</h3><p>The order stays accepted. The customer can correct and resubmit their payment details.</p></div><button type="button" class="req-close" aria-label="Close payment review"><i data-lucide="x"></i></button></header>
+            <div class="req-body"><label class="req-field"><span>Reason for declining *</span><textarea class="req-input req-textarea" name="reason" required minlength="5" maxlength="500" placeholder="For example: reference not found, amount does not match, or receipt is unclear."></textarea></label><p class="manual-payment-help">Explain what needs correcting. Do not ask the customer to pay again if you have already received the payment.</p></div>
+            <footer class="req-footer"><button type="button" class="req-btn ghost">Keep reviewing</button><button type="submit" class="req-btn payment-review-decline">Decline payment</button></footer></form>`;
+        const previousFocus = document.activeElement;
+        const finish = value => {
+            document.removeEventListener("keydown", onKey); modal.remove();
+            const chat = document.getElementById("chatModal");
+            if (!chat || chat.classList.contains("hidden")) window.lockBodyScroll?.(false);
+            previousFocus?.focus?.(); resolve(value);
+        };
+        const form = modal.querySelector("form");
+        const onKey = event => {
+            if (event.key === "Escape") finish(null);
+            if (event.key === "Tab") {
+                const inputs = [...form.querySelectorAll("button,textarea")];
+                if (event.shiftKey && document.activeElement === inputs[0]) { event.preventDefault(); inputs.at(-1).focus(); }
+                else if (!event.shiftKey && document.activeElement === inputs.at(-1)) { event.preventDefault(); inputs[0].focus(); }
+            }
+        };
+        modal.querySelector(".req-close").onclick = () => finish(null);
+        modal.querySelector(".ghost").onclick = () => finish(null);
+        modal.querySelector(".modalBackdrop").onclick = () => finish(null);
+        form.onsubmit = event => { event.preventDefault(); if (!form.reportValidity()) return; const note = form.elements.reason.value.trim(); if (note.length < 5) { form.elements.reason.setCustomValidity("Explain the issue in at least 5 characters."); form.elements.reason.reportValidity(); return; } finish(note); };
+        form.elements.reason.oninput = () => form.elements.reason.setCustomValidity("");
+        document.body.appendChild(modal); window.lockBodyScroll?.(true); document.addEventListener("keydown", onKey); window.debouncedIcons?.(); form.elements.reason.focus();
+    });
+}
+const paymentReviewsInFlight = new Set();
+window.reviewPaymentProof = async function(bookingId, messageId, action) {
+    if (!window.auth?.currentUser) return window.showToast?.("Please log in first.", "error");
+    if (!["confirm", "resubmit"].includes(action) || paymentReviewsInFlight.has(bookingId)) return;
+    paymentReviewsInFlight.add(bookingId);
     try {
-        const ts = firebase.firestore.FieldValue.serverTimestamp();
-        const nextStatus = action === "confirm" ? "payment_confirmed" : "accepted";
-        const patch = { status: nextStatus, updatedAt: ts };
-        if (action === "resubmit") patch.paymentProofUrl = firebase.firestore.FieldValue.delete();
-
-        await window.ViciData.command("booking", { bookingId: bookingId, patch: patch });
-
-        window.showToast?.(action === "confirm" ? "Payment confirmed." : "Customer asked to resubmit proof.", "success");
-    } catch (e) {
-        console.error("[reviewPaymentProof]", e);
-        window.showToast?.("Could not update: " + (e.message || "unknown error"), "error");
-    }
+        let note = null;
+        if (action === "confirm") {
+            if (!await window.vConfirm("Accept this payment?", "Check the actual money received, amount and reference in your account. Accepting confirms the payment only; preparation is a separate step.", "Accept payment")) return;
+        } else {
+            note = await requestPaymentCorrectionNote();
+            if (!note) return;
+        }
+        const patch = { status: action === "confirm" ? "payment_confirmed" : "accepted" };
+        if (note) patch.paymentReviewNote = note;
+        await window.ViciData.command("booking", { bookingId, patch });
+        window.showToast?.(action === "confirm" ? "Payment accepted. You can now start preparation." : "Payment declined. The customer can see your reason and resubmit.", "success");
+    } catch (error) { window.showToast?.("Payment review was not saved. " + error.message, "error"); }
+    finally { paymentReviewsInFlight.delete(bookingId); }
 };
 
 window.updateBookingFromChat = async function(bookingId, messageId, status) {
     const user = window.auth?.currentUser;
 
     try {
-        const msgRef = window.db.collection("messages").doc(messageId);
+        const msgRef = messageId ? window.db.collection("messages").doc(messageId) : window.db.collection("bookings").doc(bookingId);
         // The open thread already rendered this card — reuse its data
         // (requestType/payment/address fields are set at send time).
-        const cachedMsg = currentChatDocsCache.find(d => d.id === messageId);
+        const cachedMsg = currentChatDocsCache.find(d => d.id === messageId) || deskOrder(bookingId);
         let msgData;
         if (cachedMsg) {
             msgData = cachedMsg;
@@ -2495,7 +4290,7 @@ window.updateBookingFromChat = async function(bookingId, messageId, status) {
         // 🛵 DELIVERY SMART FLOW:
         // Kapag Delivery Order ang in-accept ng business, automatic lalabas yung delivery-ready card.
         // Customer can submit/confirm address, location, payment, and order details without owner manually clicking Request Requirements.
-        if (status === "accepted" && requestType === "delivery_order") {
+        if (status === "accepted" && requestType === "delivery_order" && msgData.paymentFlowVersion !== 2) {
             const existingDeliveryReq = await window.db.collection("messages").where("placeId", "==", msgData.placeId)
                 .where("type", "==", "requirement_request")
                 .where("bookingId", "==", bookingId)
@@ -2510,10 +4305,11 @@ window.updateBookingFromChat = async function(bookingId, messageId, status) {
                     "GCash",
                     "Maya",
                     "Bank Transfer",
+                    "Others",
                     "Cash on Delivery if allowed"
                 ].filter(Boolean)));
 
-                await window.db.collection("messages").add({
+                await window.ContentPolicy.create(window.db, 'messages', {
                     placeId: msgData.placeId,
                     placeName: msgData.placeName,
                     userId: msgData.userId,
@@ -2527,7 +4323,8 @@ window.updateBookingFromChat = async function(bookingId, messageId, status) {
                     requirements: {
                         address: true,
                         location: true,
-                        payment: true,
+                        // Payment proof has its own canonical, owner-reviewed booking action.
+                        payment: false,
                         orderDetails: true
                     },
                     prefillAddress: msgData.deliveryAddress || "",
@@ -2535,7 +4332,7 @@ window.updateBookingFromChat = async function(bookingId, messageId, status) {
                     prefillPaymentMethod: preferredPayment,
                     amount: "",
                     acceptedPaymentMethods: paymentOptions,
-                    notes: "Delivery accepted. Please submit your complete address, barangay, city, landmark/location notes, current location, payment method, and reference number if you paid online. Online payment is recommended to avoid fake orders.",
+                    notes: "Delivery accepted. Submit your address, landmark and location here. Payment is handled separately in the current transaction summary.",
                     requirementStatus: "waiting_customer",
                     text: "Delivery order accepted. Customer can now submit delivery details.",
                     senderUid: user?.uid || "business",
@@ -2603,7 +4400,7 @@ try {
     if (existingFeedback.empty) {
         const placeName = await getPlaceDisplayName(placeId, "Establishment");
 
-        await window.db.collection("messages").add({
+        await window.ContentPolicy.create(window.db, 'messages', {
             placeId,
             placeName,
             userId: user.uid,
@@ -2659,6 +4456,7 @@ const html = `
                 <button type="button" id="closeX_${modalId}" class="req-close" aria-label="Close"><i data-lucide="x"></i></button>
             </div>
 
+            <div class="req-body">
             <div class="req-options">
                 <label class="req-option">
                     <input id="reqAddress_${modalId}" type="checkbox" checked>
@@ -2669,13 +4467,7 @@ const html = `
                 <label class="req-option">
                     <input id="reqLocation_${modalId}" type="checkbox">
                     <span class="req-opt-icon green"><i data-lucide="map-pin"></i></span>
-                    <span class="req-opt-text"><b>Current Location</b><small>Customer attaches their live location</small></span>
-                    <span class="req-opt-check"><i data-lucide="check"></i></span>
-                </label>
-                <label class="req-option">
-                    <input id="reqPayment_${modalId}" type="checkbox">
-                    <span class="req-opt-icon blue"><i data-lucide="credit-card"></i></span>
-                    <span class="req-opt-text"><b>Payment Details</b><small>Amount, mode of payment &amp; reference</small></span>
+                    <span class="req-opt-text"><b>Current Location</b><small>Customer attaches their current location</small></span>
                     <span class="req-opt-check"><i data-lucide="check"></i></span>
                 </label>
                 <label class="req-option">
@@ -2689,17 +4481,12 @@ const html = `
             <p id="reqHint_${modalId}" class="req-hint" hidden>Please select at least one requirement above.</p>
 
             <div class="req-fields">
-                <label class="req-field"><span>Amount to pay <em>optional</em></span>
-                    <div class="req-amount-wrap"><span>₱</span><input id="reqAmount_${modalId}" inputmode="decimal" placeholder="e.g. 588"></div>
-                </label>
-                <label class="req-field"><span>Accepted payment methods <em>optional</em></span>
-                    <input id="reqMops_${modalId}" class="req-input" placeholder="e.g. GCash, Maya, Cash, Bank Transfer">
-                </label>
-                <label class="req-field"><span>Message to customer <em>optional</em></span>
-                    <textarea id="reqNotes_${modalId}" class="req-input req-textarea" placeholder="Anything the customer should know…"></textarea>
+                <label class="req-field"><span>Instructions <em>optional</em></span>
+                    <textarea id="reqNotes_${modalId}" class="req-input req-textarea" placeholder="Explain which details the customer should provide."></textarea>
                 </label>
             </div>
 
+            </div>
             <div class="req-footer">
                 <button type="button" id="cancel_${modalId}" class="req-btn ghost">Cancel</button>
                 <button type="button" id="send_${modalId}" class="req-btn primary"><i data-lucide="send"></i> Send Request</button>
@@ -2711,18 +4498,30 @@ const html = `
 document.body.insertAdjacentHTML("beforeend", html);
 
 const modal = document.getElementById(modalId);
-const close = () => { window.lockBodyScroll(false); modal.remove(); };
+window.LangManager?.translateDOM?.(undefined,modal);
+const close = () => { if(modal.dataset.submitting==='true'||!modal.isConnected)return;window.lockBodyScroll(false); modal.remove(); };
 
 document.getElementById(`cancel_${modalId}`).onclick = close;
 const _closeX = document.getElementById(`closeX_${modalId}`); if (_closeX) _closeX.onclick = close;
 modal.querySelector(".modalBackdrop").onclick = close;
+const contextOrder=deskOrder(chatDeskSelected);
+if(contextOrder&&contextOrder.placeId===placeId&&contextOrder.userId===customerUid){
+    modal.classList.add('requirements-only');
+    if(contextOrder.requestType==='table_reservation'){
+        for(const key of ['reqAddress','reqLocation']){const field=document.getElementById(`${key}_${modalId}`);if(field){field.checked=false;field.disabled=true;field.closest('label').hidden=true;}}
+        const field=document.getElementById(`reqOrder_${modalId}`);if(field){field.closest('label').querySelector('b').textContent='Additional reservation details';field.closest('label').querySelector('small').textContent='Only ask for information missing from the reservation.';}
+    }
+    const notes=document.getElementById(`reqNotes_${modalId}`);notes.closest('label').querySelector('span').textContent='Instructions (optional)';notes.placeholder='Explain which details the customer should provide.';
+}
+window.LangManager?.translateDOM?.(undefined,modal);
 window.debouncedIcons?.();
 
 document.getElementById(`send_${modalId}`).onclick = async () => {
+    if(modal.dataset.submitting==='true')return;
     const requirements = {
         address: document.getElementById(`reqAddress_${modalId}`).checked,
         location: document.getElementById(`reqLocation_${modalId}`).checked,
-        payment: document.getElementById(`reqPayment_${modalId}`).checked,
+        payment: false,
         orderDetails: document.getElementById(`reqOrder_${modalId}`).checked
     };
 
@@ -2731,12 +4530,19 @@ document.getElementById(`send_${modalId}`).onclick = async () => {
         return window.alert("Please select at least one requirement.");
     }
 
-    const amount = document.getElementById(`reqAmount_${modalId}`).value.trim();
-    const mops = document.getElementById(`reqMops_${modalId}`).value.trim();
+    const amount = '', mops = '';
     const notes = document.getElementById(`reqNotes_${modalId}`).value.trim();
 
+    const linkedOrder=deskOrder(chatDeskSelected) || chatDeskOrders.find(d=>d.placeId===placeId&&d.userId===customerUid);
+    modal.dataset.submitting='true';document.getElementById(`send_${modalId}`).disabled=true;
     try {
-        await window.db.collection("messages").add({
+        if(linkedOrder&&linkedOrder.placeId===placeId&&linkedOrder.userId===customerUid){
+            await window.ViciData.command('booking',{bookingId:linkedOrder.bookingId||linkedOrder.id,patch:{requirements:{action:'request',required:requirements,notes}}});
+            modal.dataset.submitting='false';close();return window.alert('Requirement request sent.');
+        }
+        await window.ContentPolicy.create(window.db, 'messages', {
+            bookingId:linkedOrder?.bookingId || linkedOrder?.id || null,
+            transactionId:linkedOrder?.bookingId || linkedOrder?.id || null,
             placeId,
             placeName,
             userId: customerUid,
@@ -2757,11 +4563,11 @@ document.getElementById(`send_${modalId}`).onclick = async () => {
             reply: null
         });
 
-        close();
+        modal.dataset.submitting="false";close();
         window.alert("Requirement request sent.");
     } catch (error) {
         window.alert("Error sending request: " + error.message);
-    }
+    } finally {modal.dataset.submitting='false';const button=document.getElementById(`send_${modalId}`);if(button)button.disabled=false;}
 };
 
 };
@@ -2775,7 +4581,16 @@ try {
     if (!requestDoc.exists) return window.alert("Requirement request no longer exists.");
 
     const req = requestDoc.data();
-    const requirements = req.requirements || {};
+    const requirements = {...(req.requirements || {})};
+    if(requirements.payment){
+        // Payments use the booking endpoint, never a second independent requirements status.
+        requirements.payment=false;
+        if(!requirements.address&&!requirements.location&&!requirements.orderDetails){
+            const linked=req.bookingId || req.transactionId;
+            if(linked&&deskOrder(linked))return window.uploadPaymentProof(linked,'');
+            return window.alert("Use the current transaction summary to submit payment details.");
+        }
+    }
     const modalId = "reqResponseModal_" + Date.now();
 window.lockBodyScroll(true);
 
@@ -2805,24 +4620,25 @@ window.lockBodyScroll(true);
                     <button type="button" id="closeX_${modalId}" class="req-close" aria-label="Close"><i data-lucide="x"></i></button>
                 </div>
 
+                <div class="req-body">
                 ${req.notes ? `
-                    <div class="req-note"><i data-lucide="message-square-text"></i><span>${escapeHtml(req.notes)}</span></div>
+                    <div class="req-note"><i data-lucide="message-square-text"></i><span ${req.autoGeneratedDelivery ? "" : "data-no-translate"}>${escapeHtml(req.notes)}</span></div>
                 ` : ""}
 
                 ${requirements.address ? `
                     <div class="req-section">
                         <div class="req-section-head"><span class="req-opt-icon orange"><i data-lucide="home"></i></span><b>Delivery Address</b></div>
-                        <input id="resHouse_${modalId}" value="${escapeHtml(req.prefillAddress || "")}" placeholder="House no. / Street / Subdivision" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:10px;">
-                        <input id="resBarangay_${modalId}" placeholder="Barangay" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;">
-                        <input id="resCity_${modalId}" placeholder="City / Municipality" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;">
-                        <input id="resLandmark_${modalId}" placeholder="Landmark / Location notes e.g., tabi ng red na bahay, malapit sa kanto, blue gate" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;">
+                        <label class="req-field"><span>House number, street or subdivision *</span><input id="resHouse_${modalId}" value="${escapeHtml(req.prefillAddress || "")}" placeholder="House no. / Street / Subdivision" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:10px;"></label>
+                        <label class="req-field"><span>Barangay *</span><input id="resBarangay_${modalId}" placeholder="Barangay" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;"></label>
+                        <label class="req-field"><span>City / municipality *</span><input id="resCity_${modalId}" placeholder="City / Municipality" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;"></label>
+                        <label class="req-field"><span>Landmark or location notes *</span><input id="resLandmark_${modalId}" placeholder="Landmark / Location notes e.g., tabi ng red na bahay, malapit sa kanto, blue gate" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;"></label>
                     </div>
                 ` : ""}
 
                 ${requirements.location ? `
                     <div class="req-section">
                         <div class="req-section-head"><span class="req-opt-icon green"><i data-lucide="map-pin"></i></span><b>Current Location</b></div>
-                        <p id="locStatus_${modalId}" style="font-size:12px; color:#64748b;">Location not attached yet.</p>
+                        <p id="locStatus_${modalId}" style="font-size:12px; color:var(--ui-muted);">Location not attached yet.</p>
                         <input id="resLat_${modalId}" type="hidden">
                         <input id="resLng_${modalId}" type="hidden">
                         <button type="button" id="getLoc_${modalId}" class="req-loc-btn"><i data-lucide="locate-fixed"></i> Attach My Current Location</button>
@@ -2835,23 +4651,24 @@ window.lockBodyScroll(true);
 
                         ${req.amount ? `<div style="margin-top:8px; font-size:13px;"><b>Amount Requested:</b> ₱${escapeHtml(req.amount)}</div>` : ""}
 
-                        <select id="resPaymentMethod_${modalId}" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:10px;">
+                        <label class="req-field"><span>Payment method</span><select id="resPaymentMethod_${modalId}" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:10px;">
                             ${methodOptions}
-                        </select>
+                        </select></label>
 
-                        <input id="resCustomMop_${modalId}" placeholder="If Other, type mode of payment" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;">
-                        <input id="resAmount_${modalId}" placeholder="Amount paid" value="${escapeHtml(req.amount || "")}" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;">
-                        <input id="resRef_${modalId}" placeholder="Reference no. / Notes, optional for Cash/COD" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;">
+                        <label class="req-field" id="customMopField_${modalId}" hidden><span>Other payment method</span><input id="resCustomMop_${modalId}" placeholder="If Other, type mode of payment" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;"></label>
+                        <label class="req-field"><span>Amount paid</span><input id="resAmount_${modalId}" inputmode="decimal" placeholder="Amount paid" value="${escapeHtml(req.amount || "")}" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;"></label>
+                        <label class="req-field"><span>Reference number / payment notes</span><input id="resRef_${modalId}" placeholder="Reference no. / Notes, optional for Cash/COD" class="req-input" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #cbd5e1; border-radius:10px; margin-top:8px;"></label>
                     </div>
                 ` : ""}
 
                 ${requirements.orderDetails ? `
                     <div class="req-section">
                         <div class="req-section-head"><span class="req-opt-icon purple"><i data-lucide="clipboard-pen"></i></span><b>Additional Details</b></div>
-                        <textarea id="resOrder_${modalId}" placeholder="Example: items, quantity, special instructions" class="req-input req-textarea" style="width:100%; box-sizing:border-box; min-height:80px; padding:10px; border:1px solid #cbd5e1; border-radius:10px; resize:none; margin-top:10px;">${escapeHtml(req.prefillOrderItems || "")}</textarea>
+                        <label class="req-field"><span>Items, quantity and instructions *</span><textarea id="resOrder_${modalId}" placeholder="Example: items, quantity, special instructions" class="req-input req-textarea" style="width:100%; box-sizing:border-box; min-height:80px; padding:10px; border:1px solid #cbd5e1; border-radius:10px; resize:none; margin-top:10px;">${escapeHtml(req.prefillOrderItems || "")}</textarea></label>
                     </div>
                 ` : ""}
 
+                </div>
                 <div class="req-footer">
                     <button type="button" id="cancel_${modalId}" class="req-btn ghost">Cancel</button>
                     <button type="button" id="submit_${modalId}" class="req-btn primary"><i data-lucide="check"></i> Submit</button>
@@ -2863,12 +4680,20 @@ window.lockBodyScroll(true);
     document.body.insertAdjacentHTML("beforeend", html);
 
     const modal = document.getElementById(modalId);
-    const close = () => { window.lockBodyScroll(false); modal.remove(); };
+    const close = () => { if(modal.dataset.submitting==='true'||!modal.isConnected)return;window.lockBodyScroll(false); modal.remove(); };
 
     document.getElementById(`cancel_${modalId}`).onclick = close;
     const _closeX2 = document.getElementById(`closeX_${modalId}`); if (_closeX2) _closeX2.onclick = close;
     modal.querySelector(".modalBackdrop").onclick = close;
     window.debouncedIcons?.();
+
+    if (requirements.payment) {
+        const method = document.getElementById(`resPaymentMethod_${modalId}`);
+        const customField = document.getElementById(`customMopField_${modalId}`);
+        const syncMethod = () => { customField.hidden = method.value !== "Other"; };
+        method.addEventListener("change", syncMethod);
+        syncMethod();
+    }
 
     if (requirements.location) {
         document.getElementById(`getLoc_${modalId}`).onclick = () => {
@@ -2961,7 +4786,7 @@ window.lockBodyScroll(true);
             const selectedMethod = document.getElementById(`resPaymentMethod_${modalId}`).value;
             const customMop = document.getElementById(`resCustomMop_${modalId}`).value.trim();
 
-            payload.paymentMethod = customMop || selectedMethod;
+            payload.paymentMethod = selectedMethod === "Other" ? customMop : selectedMethod;
             payload.paymentAmount = document.getElementById(`resAmount_${modalId}`).value.trim();
             payload.paymentReference = document.getElementById(`resRef_${modalId}`).value.trim();
             payload.paymentStatus = "pending_confirmation";
@@ -2974,7 +4799,7 @@ window.lockBodyScroll(true);
                 return window.alert("Please enter the amount paid.");
             }
 
-            const onlinePayment = !String(payload.paymentMethod).toLowerCase().includes("cash") && !String(payload.paymentMethod).toLowerCase().includes("pay at store");
+            const onlinePayment = window.PaymentPolicy.isOnline({ paymentMethod: payload.paymentMethod });
             if (onlinePayment && !payload.paymentReference) {
                 return window.alert("Please enter your online payment reference number so the business can verify it.");
             }
@@ -2988,21 +4813,27 @@ window.lockBodyScroll(true);
             }
         }
 
+        if(modal.dataset.submitting==='true')return;
+        modal.dataset.submitting='true';document.getElementById(`submit_${modalId}`).disabled=true;
         try {
-            await window.db.collection("messages").add(payload);
+            if(req.canonicalRequirements&&req.bookingId){
+                await window.ViciData.command('booking',{bookingId:req.bookingId,patch:{requirements:{action:'submit',requestId:requestMessageId,data:payload}}});
+                modal.dataset.submitting='false';close();return window.alert('Requirements submitted.');
+            }
+            await window.ContentPolicy.create(window.db, 'messages', payload);
 
             await window.db.collection("messages").doc(requestMessageId).update({
                 requirementStatus: "submitted",
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            await addSystemUpdate(req.placeId, req.placeName, user.uid, AppState.userProfile?.fullName || user.displayName || "Customer", "Customer submitted address, location, payment, and order details.", "submitted", "📍", req.transactionId || req.bookingId || requestMessageId, req.bookingId || null);
+            await addSystemUpdate(req.placeId, req.placeName, user.uid, AppState.userProfile?.fullName || user.displayName || "Customer", "Customer submitted the requested transaction details.", "submitted", "📍", req.transactionId || req.bookingId || requestMessageId, req.bookingId || null);
 
-            close();
+            modal.dataset.submitting="false";close();
             window.alert("Requirements submitted.");
         } catch (error) {
             window.alert("Error submitting requirements: " + error.message);
-        }
+        } finally {modal.dataset.submitting="false";const button=document.getElementById(`submit_${modalId}`);if(button)button.disabled=false;}
     };
 } catch (error) {
     window.alert("Error opening requirement form: " + error.message);
@@ -3016,7 +4847,7 @@ window.confirmRequirementResponse = async function(responseMessageId) {
 
     const ans = await window.vConfirm(
         "Confirm Requirements",
-        "Confirm that the submitted transaction requirements are valid and the transaction is ready to be fulfilled?",
+        "Confirm that the submitted details are correct? This does not confirm payment or mark the order as fulfilled.",
         "Confirm",
         false
     );
@@ -3031,47 +4862,19 @@ window.confirmRequirementResponse = async function(responseMessageId) {
         }
 
         const responseData = responseDoc.data();
-        if (responseData.bookingId) await window.ViciData.command("booking", { bookingId: responseData.bookingId, patch: { status: String(responseData.requestType || "").toLowerCase() === "delivery_order" ? "preparing" : "fulfilled" } });
         const transactionId = responseData.transactionId || responseData.bookingId || responseMessageId;
-
+        if(responseData.canonicalRequirements&&responseData.bookingId){
+            await window.ViciData.command('booking',{bookingId:responseData.bookingId,patch:{requirements:{action:'confirm',requestId:responseData.requestMessageId,responseId:responseMessageId}}});
+            return window.alert('Details confirmed. Payment verification is separate.');
+        }
         await window.db.collection("messages").doc(responseMessageId).update({
             requirementStatus: "confirmed",
-            paymentStatus: "confirmed",
             confirmedAt: firebase.firestore.FieldValue.serverTimestamp(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-
-        const existingCompletion = await window.db.collection("messages").where("placeId", "==", responseData.placeId)
-            .where("type", "==", "completion_request")
-            .where("linkedRequirementId", "==", responseMessageId)
-            .limit(1)
-            .get();
-
-        if (existingCompletion.empty) {
-            await window.db.collection("messages").add({
-                placeId: responseData.placeId,
-                placeName: responseData.placeName,
-                userId: responseData.userId,
-                userName: responseData.userName || "Customer",
-                type: "completion_request",
-                transactionId,
-                linkedRequirementId: responseMessageId,
-                bookingId: responseData.bookingId || null,
-                requestType: responseData.requestType || "booking",
-                transactionStatus: String(responseData.requestType || "").toLowerCase() === "delivery_order" ? "preparing" : "fulfilled_waiting_customer",
-                text: String(responseData.requestType || "").toLowerCase() === "delivery_order" ? "Business confirmed the delivery details. Preparing the order." : "Business marked this transaction as fulfilled. Waiting for customer confirmation.",
-                senderUid: user.uid,
-                senderRole: "owner",
-                senderName: responseData.placeName || "Business",
-                createdBy: user.uid,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                reply: null
-            });
-        }
-
-        await addSystemUpdate(responseData.placeId, responseData.placeName, responseData.userId, responseData.userName, String(responseData.requestType || "").toLowerCase() === "delivery_order" ? "Payment/details confirmed. Business is preparing the delivery." : "Requirements confirmed by business.", "confirmed", "💳", transactionId, responseData.bookingId || null);
-
-        window.alert(String(responseData.requestType || "").toLowerCase() === "delivery_order" ? "Requirements confirmed. Delivery is now in Preparing stage." : "Requirements confirmed. Customer can now confirm received.");
+        await addSystemUpdate(responseData.placeId, responseData.placeName, responseData.userId, responseData.userName,
+            "Requirements confirmed. Payment verification and order preparation are separate steps.", "confirmed", "📋", transactionId, responseData.bookingId || null);
+        window.alert("Requirements confirmed. Verify online payment proof before starting preparation.");
     } catch (error) {
         window.alert("Error confirming requirements: " + error.message);
     }
@@ -3101,17 +4904,9 @@ window.updateTransactionStage = async function(completionMessageId, nextStatus) 
         const doc = await ref.get();
         const data = doc.exists ? doc.data() : {};
 
-        await ref.update({
-            transactionStatus: nextStatus,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        if (nextStatus === "delivered" && data.bookingId) {
-            await window.ViciData.command("booking", { bookingId: data.bookingId, patch: {
-                status: "fulfilled",
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            } });
-        }
+        if (!data.bookingId) throw new Error("No linked booking was found. Open the booking transaction instead.");
+        await window.ViciData.command("booking", { bookingId: data.bookingId, patch: { status: nextStatus } });
+        await ref.update({ transactionStatus: nextStatus, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
 
         const text = nextStatus === "out_for_delivery"
             ? "Order is now out for delivery."
@@ -3227,20 +5022,26 @@ if (feedbackMessageId) {
     }
 }
 
+if(bookingId && !['null','undefined','manual'].includes(bookingId)) {
+    try { const booking=await window.db.collection('bookings').doc(bookingId).get();
+        if(booking.data()?.feedbackSubmittedAt || booking.data()?.feedbackStatus==='feedback_submitted')return window.alert('You already submitted feedback for this transaction.');
+    } catch(error) { console.warn('Feedback completion lookup skipped:',error); }
+}
+if(document.querySelector('.feedback-modal'))return;
 const modalId = "feedbackModal_" + Date.now();
 window.lockBodyScroll(true);
 
 const html = `
-    <div id="${modalId}" style="position:fixed; inset:0; z-index:999999; display:flex; align-items:center; justify-content:center;">
+    <div id="${modalId}" class="feedback-modal" style="position:fixed; inset:0; z-index:999999; display:flex; align-items:center; justify-content:center;">
         <div class="modalBackdrop" style="position:absolute; inset:0; background:rgba(15,23,42,0.55);"></div>
 
-        <div style="position:relative; background:white; width:92%; max-width:440px; border-radius:22px; padding:22px; box-shadow:0 24px 60px rgba(15,23,42,0.25);">
-            <h3 style="margin:0 0 6px; font-size:20px; color:#0f172a;">Rate Your Experience</h3>
-            <p style="margin:0 0 16px; color:#64748b; font-size:13px; line-height:1.5;">
+        <div class="feedback-sheet" role="dialog" aria-modal="true" aria-labelledby="title_${modalId}" style="position:relative; background:var(--ui-surface,#fff); width:92%; max-width:440px; border-radius:22px; padding:22px; box-shadow:0 24px 60px rgba(15,23,42,0.25);">
+            <h3 id="title_${modalId}" style="margin:0 0 6px; font-size:20px; color:var(--ui-text,#193a34);">Rate Your Experience</h3>
+            <p style="margin:0 0 16px; color:var(--ui-muted,#58716a); font-size:13px; line-height:1.5;">
                 How was your transaction? Your feedback helps improve local establishments.
             </p>
 
-            <label style="font-size:13px; font-weight:800; color:#334155;">Rating</label>
+            <label style="font-size:13px; font-weight:800; color:var(--ui-text,#193a34);">Rating</label>
             <select id="fbRating_${modalId}" style="width:100%; box-sizing:border-box; padding:11px; border:1px solid #cbd5e1; border-radius:12px; margin:8px 0 12px;">
                 <option value="5">⭐⭐⭐⭐⭐ 5 - Very Satisfied</option>
                 <option value="4">⭐⭐⭐⭐ 4 - Satisfied</option>
@@ -3249,7 +5050,7 @@ const html = `
                 <option value="1">⭐ 1 - Bad Experience</option>
             </select>
 
-            <label style="font-size:13px; font-weight:800; color:#334155;">Satisfaction</label>
+            <label style="font-size:13px; font-weight:800; color:var(--ui-text,#193a34);">Satisfaction</label>
             <select id="fbSatisfaction_${modalId}" style="width:100%; box-sizing:border-box; padding:11px; border:1px solid #cbd5e1; border-radius:12px; margin:8px 0 12px;">
                 <option value="Very satisfied">Very satisfied</option>
                 <option value="Satisfied">Satisfied</option>
@@ -3258,18 +5059,18 @@ const html = `
                 <option value="Needs improvement">Needs improvement</option>
             </select>
 
-            <label style="font-size:13px; font-weight:800; color:#334155;">Feedback / Comment</label>
+            <label style="font-size:13px; font-weight:800; color:var(--ui-text,#193a34);">Feedback / Comment</label>
             <textarea id="fbComment_${modalId}" placeholder="Write your feedback here, optional but recommended"
                 style="width:100%; box-sizing:border-box; min-height:95px; padding:11px; border:1px solid #cbd5e1; border-radius:12px; resize:none; margin-top:8px;"></textarea>
 
-            <label style="display:flex; gap:10px; align-items:flex-start; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px; margin-top:12px; font-size:12px; color:#334155; line-height:1.35; cursor:pointer;">
+            <label style="display:flex; gap:10px; align-items:flex-start; background:var(--ui-soft,#eef5f2); border:1px solid #e2e8f0; border-radius:12px; padding:10px; margin-top:12px; font-size:12px; color:var(--ui-text,#193a34); line-height:1.35; cursor:pointer;">
                 <input type="checkbox" id="fbPublic_${modalId}" checked style="margin-top:2px;" />
-                <span><b>Post publicly as a Verified Review</b><br><span style="color:#64748b;">This helps the business build trust. You can uncheck this to keep the feedback inside the transaction only.</span></span>
+                <span><b>Post publicly as a Verified Review</b><br><span style="color:var(--ui-muted,#58716a);">This helps the business build trust. You can uncheck this to keep the feedback inside the transaction only.</span></span>
             </label>
 
             <div style="display:flex; gap:10px; margin-top:16px;">
-                <button id="cancel_${modalId}" style="flex:1; padding:12px; border:none; border-radius:12px; background:#f1f5f9; color:#475569; font-weight:800; cursor:pointer;">Later</button>
-                <button id="submit_${modalId}" style="flex:1; padding:12px; border:none; border-radius:12px; background:#facc15; color:#713f12; font-weight:900; cursor:pointer;">Send Feedback</button>
+                <button id="cancel_${modalId}" style="flex:1; padding:12px; border:none; border-radius:12px; background:var(--ui-soft,#eef5f2); color:var(--ui-text,#193a34); font-weight:800; cursor:pointer;">Later</button>
+                <button id="submit_${modalId}" style="flex:1; padding:12px; border:none; border-radius:12px; background:var(--ui-primary,#237e72); color:#fff; font-weight:900; cursor:pointer;">Send Feedback</button>
             </div>
         </div>
     </div>
@@ -3278,12 +5079,16 @@ const html = `
 document.body.insertAdjacentHTML("beforeend", html);
 
 const modal = document.getElementById(modalId);
+window.LangManager?.translateDOM?.(undefined,modal);
 const close = () => { window.lockBodyScroll(false); modal.remove(); };
 
 document.getElementById(`cancel_${modalId}`).onclick = close;
 modal.querySelector(".modalBackdrop").onclick = close;
 
-document.getElementById(`submit_${modalId}`).onclick = async () => {
+let submitting = false;
+const submitButton = document.getElementById(`submit_${modalId}`);
+submitButton.onclick = async () => {
+    if (submitting) return;
     const rating = Number(document.getElementById(`fbRating_${modalId}`).value);
     const satisfaction = document.getElementById(`fbSatisfaction_${modalId}`).value;
     const comment = document.getElementById(`fbComment_${modalId}`).value.trim();
@@ -3293,16 +5098,13 @@ document.getElementById(`submit_${modalId}`).onclick = async () => {
         return window.alert("Please select a valid rating.");
     }
 
+    submitting = true;
+    submitButton.disabled = true;
+    let reviewSaved = false;
     try {
         const safeTransactionId = bookingId || feedbackMessageId || "manual";
-        const reviewId = `${user.uid}_${placeId}_${safeTransactionId}`;
-
-        const existingReview = await window.db.collection("reviews").doc(reviewId).get();
-
-        if (existingReview.exists) {
-            window.alert("You already submitted feedback for this transaction.");
-            return;
-        }
+        // A missing review cannot be read under the private-review rules.
+        // The authenticated server validates completion and checks duplicates atomically.
 
         let txRequestType = null;
         let txRequestLabel = null;
@@ -3322,22 +5124,17 @@ document.getElementById(`submit_${modalId}`).onclick = async () => {
 
         const txMeta = getRequestMeta(txRequestType || "table_reservation");
 
-        await window.ViciData.command("review", { placeId, bookingId: bookingId || undefined, rating, satisfaction, feedback: comment, isPublic: postPublic });
+        await window.ViciData.command("review", { placeId, bookingId: bookingId || undefined, rating, satisfaction, feedback: comment, isPublic: postPublic, createOnly: true, feedbackMessageId: feedbackMessageId && !["null","undefined"].includes(feedbackMessageId) ? feedbackMessageId : undefined });
+        reviewSaved = true;
         window.invalidatePlacesCache?.();
 
-        if (feedbackMessageId && feedbackMessageId !== "null" && feedbackMessageId !== "undefined") {
-            await window.db.collection("messages").doc(feedbackMessageId).update({
-                feedbackStatus: "feedback_submitted",
-                rating,
-                satisfaction,
-                feedback: comment,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
+        // The server commits review, booking marker and request status atomically.
+        for(const item of typeof chatDeskOrders!=='undefined'?chatDeskOrders:[])if(item.id===bookingId)item.feedbackStatus='feedback_submitted';
+        for(const item of typeof currentChatDocsCache!=='undefined'?currentChatDocsCache:[])if(item.id===feedbackMessageId)item.feedbackStatus='feedback_submitted';
 
         const placeName = await getPlaceDisplayName(placeId, "Establishment");
 
-        await window.db.collection("messages").add({
+        await window.ContentPolicy.create(window.db, 'messages', {
             placeId,
             placeName,
             userId: user.uid,
@@ -3371,7 +5168,18 @@ document.getElementById(`submit_${modalId}`).onclick = async () => {
             setTimeout(() => window.viewPlace(placeId), 600);
         }
     } catch (error) {
-        window.alert("Error submitting feedback: " + error.message);
+        if (reviewSaved) {
+            // The review is already committed. A secondary chat update must not
+            // report a failed submission or encourage another review write.
+            console.warn("Review saved; conversation update failed:", error);
+            close();
+            window.alert("Thank you! Your rating and feedback were submitted.");
+        } else {
+            window.alert("Error submitting feedback: " + error.message);
+        }
+    } finally {
+        submitting = false;
+        submitButton.disabled = false;
     }
 };
 
@@ -3426,19 +5234,6 @@ if (d.requirements?.location) {
     `;
 }
 
-if (d.requirements?.payment) {
-    const pStatus = d.paymentStatus || "pending_confirmation";
-
-    html += `
-        <div style="background:#eff6ff; border:1px solid #dbeafe; border-radius:12px; padding:10px; margin-top:10px;">
-            <b style="color:#1d4ed8;">💳 Payment Details</b>
-            <div style="margin-top:6px;"><b>Mode of Payment:</b> ${escapeHtml(d.paymentMethod || "N/A")}</div>
-            <div><b>Amount:</b> ₱${escapeHtml(d.paymentAmount || "0")}</div>
-            <div><b>Reference / Notes:</b> ${escapeHtml(d.paymentReference || "N/A")}</div>
-            <div style="margin-top:6px;"><b>Status:</b> ${makeBadge(pStatus === "confirmed" ? "payment_confirmed" : "pending_confirmation")}</div>
-        </div>
-    `;
-}
 
 if (d.requirements?.orderDetails) {
     html += `
@@ -3449,7 +5244,7 @@ if (d.requirements?.orderDetails) {
     `;
 }
 
-if (isOwner && d.requirementStatus !== "confirmed") {
+if (isOwner && !["confirmed","waived"].includes(d.requirementStatus) && (!d.canonicalRequirements || !deskOrder(d.bookingId) || deskOrder(d.bookingId).status === "accepted")) {
     html += `
         <button onclick="window.confirmRequirementResponse('${d.id}')"
             style="margin-top:12px; width:100%; border:none; background:#dcfce7; color:#166534; padding:10px; border-radius:10px; font-weight:800; cursor:pointer;">
@@ -3458,7 +5253,7 @@ if (isOwner && d.requirementStatus !== "confirmed") {
     `;
 }
 
-html += `<div style="font-size:10px; color:#94a3b8; margin-top:10px;">${dateStr}</div>`;
+html += `<div style="font-size:10px; color:var(--ui-muted); margin-top:10px;">${dateStr}</div>`;
 
 return html;
 
@@ -3536,73 +5331,268 @@ async function markIncomingSeen(docs, uid) {
 window.markIncomingDelivered = markIncomingDelivered;
 window.markIncomingSeen = markIncomingSeen;
 
-function renderTextBubble(d, currentUid, dateStr) {
-const isMine = d.senderUid === currentUid;
-
-const justify = isMine ? "flex-end" : "flex-start";
-const bg = isMine ? "#3b82f6" : "#ffffff";
-const color = isMine ? "white" : "#0f172a";
-const border = isMine ? "none" : "1px solid #e2e8f0";
-const timeColor = isMine ? "#bfdbfe" : "#94a3b8";
-const radius = isMine ? "18px 18px 4px 18px" : "18px 18px 18px 4px";
-
-return `
-    <div style="display:flex; justify-content:${justify}; width:100%;">
-        <div class="chat-bubble ${isMine ? "me" : "other"}"
-            style="background:${bg}; color:${color}; border:${border}; padding:10px 14px; border-radius:${radius}; max-width:80%; font-size:14px; margin-bottom:12px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
-            ${escapeHtml(d.text)}
-            <div style="font-size:10px; color:${timeColor}; margin-top:4px; text-align:${isMine ? "right" : "left"};">
-                ${isMine ? receiptHtml(d, currentUid, { time: dateStr }) : dateStr}
-            </div>
+function renderTextBubble(d, currentUid, dateStr, options = {}) {
+    const isMine = d.senderUid === currentUid;
+    return `<div class="chat-message-row ${isMine ? "is-mine" : "is-other"}${options.grouped ? " is-grouped" : ""}">
+        ${!isMine ? `<span data-no-translate class="chat-sender-avatar" aria-hidden="true">${escapeHtml(String(d.senderName || "B").charAt(0).toUpperCase())}</span>` : ""}
+        <div class="chat-bubble ${isMine ? "me" : "other"}">
+            ${!isMine && !options.grouped && d.senderName ? `<span data-no-translate class="chat-message-sender">${escapeHtml(d.senderName)}</span>` : ""}
+            ${d.isAutoReply ? '<span class="chat-auto-reply-label">Automatic reply</span>' : ''}
+            <div class="chat-message-text">${escapeHtml(d.text || "")}</div>
+            ${d.isAutoReply && d.autoReplyTopic==='menu' ? `<button type="button" class="chat-auto-menu" data-auto-menu="${escapeHtml(d.placeId)}">View menu</button>` : ''}
+            <div class="chat-message-meta">${isMine ? receiptHtml(d, currentUid, { time: dateStr }) : escapeHtml(dateStr)}</div>
         </div>
-    </div>
-`;
-
+    </div>`;
 }
 
 function renderLegacyMessage(d, isOwner, dateStr, replyDateStr) {
-let html = "";
-
-if (d.text) {
-    const customerSide = isOwner ? "flex-start" : "flex-end";
-    const customerBg = isOwner ? "#ffffff" : "#3b82f6";
-    const customerColor = isOwner ? "#0f172a" : "white";
-    const customerBorder = isOwner ? "1px solid #e2e8f0" : "none";
-    const customerTime = isOwner ? "#94a3b8" : "#bfdbfe";
-
-    html += `
-        <div style="display:flex; justify-content:${customerSide}; width:100%;">
-            <div style="background:${customerBg}; color:${customerColor}; border:${customerBorder}; padding:10px 14px; border-radius:18px; max-width:80%; font-size:14px; margin-bottom:12px;">
-                ${escapeHtml(d.text)}
-                <div style="font-size:10px; color:${customerTime}; margin-top:4px;">${dateStr}</div>
-            </div>
-        </div>
-    `;
+    let html = "";
+    // Legacy customer text and owner reply use the same presentation, without
+    // inventing delivery/seen receipts that are absent on these older records.
+    const bubble = (text, mine, time) => `<div class="chat-message-row ${mine ? "is-mine" : "is-other"}"><div class="chat-bubble ${mine ? "me" : "other"}"><div class="chat-message-text">${escapeHtml(text)}</div><div class="chat-message-meta">${escapeHtml(time)}</div></div></div>`;
+    if (d.text) html += bubble(d.text, !isOwner, dateStr);
+    if (d.reply) html += bubble(d.reply, isOwner, replyDateStr);
+    return html;
 }
 
-if (d.reply) {
-    const ownerSide = isOwner ? "flex-end" : "flex-start";
-    const ownerBg = isOwner ? "#3b82f6" : "#ffffff";
-    const ownerColor = isOwner ? "white" : "#0f172a";
-    const ownerBorder = isOwner ? "none" : "1px solid #e2e8f0";
-    const ownerTime = isOwner ? "#bfdbfe" : "#94a3b8";
-
-    html += `
-        <div style="display:flex; justify-content:${ownerSide}; width:100%;">
-            <div style="background:${ownerBg}; color:${ownerColor}; border:${ownerBorder}; padding:10px 14px; border-radius:18px; max-width:80%; font-size:14px; margin-bottom:12px;">
-                ${escapeHtml(d.reply)}
-                <div style="font-size:10px; color:${ownerTime}; margin-top:4px;">${replyDateStr}</div>
-            </div>
-        </div>
-    `;
+function isSelectedTransactionMessage(message,bookingId) {
+    if(isConversationMessage(message))return false;
+    const links=[message.bookingId,message.transactionId,message.type==='booking_card'?message.id:null].filter(Boolean);
+    return !!bookingId && (links.includes(bookingId)||(!links.length&&message.type!=='text'));
+}
+function isConversationMessage(message) { return (!message.type || message.type==='text') && !message.bookingId && !message.transactionId; }
+window.isConversationMessage=isConversationMessage;
+function renderPinnedTransactionHistory(message, time, orders) {
+    const kinds={booking_card:'Request recorded',requirement_request:'Business requested transaction details.',requirement_response:'Customer submitted transaction details.',completion_request:'Transaction progress updated.'};
+    if(!kinds[message.type] || !orders.some(order=>[order.id,order.bookingId].filter(Boolean).some(id=>[message.bookingId,message.transactionId,message.type==='booking_card'?message.id:null].filter(Boolean).includes(id))))return null;
+    const translate=text=>window.LangManager?.translateKey?.(text)||text;
+    return `<div class="transaction-history-update"><i data-lucide="clipboard-check" aria-hidden="true"></i><span>${escapeHtml(translate(kinds[message.type]))}</span><time>${escapeHtml(time)}</time></div>`;
 }
 
-return html;
-
+function chatDayInfo(message, now = new Date()) {
+    const stamp = message.createdAt?.toDate?.();
+    const date = stamp instanceof Date && Number.isFinite(stamp.getTime()) ? stamp : now;
+    const key = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate();
+    const midnight = value => new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
+    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const label = midnight(date) === midnight(now) ? "Today" : midnight(date) === midnight(yesterday) ? "Yesterday"
+        : date.toLocaleDateString([], { month: "short", day: "numeric", ...(date.getFullYear() !== now.getFullYear() ? { year: "numeric" } : {}) });
+    return { key, label };
 }
 
-function listenToChatRoom(placeId, targetUid) {
+let chatDeskOrders = [], chatDeskSelected = null;
+const transactionDeskBusy = new Set();
+function transactionChoiceLabel(order) {
+    const t=s=>window.LangManager?.translateKey?.(s)||s;
+    const locale=window.LangManager?.getLanguage?.()==='ph'?'fil-PH':'en-PH';
+    const legacy=String(order.details||'');
+    const date=order.bookingDate||legacy.match(/^Date:\s*(.+)$/mi)?.[1]||'';
+    const time=order.bookingTime||legacy.match(/^Time:\s*(.+)$/mi)?.[1]||'';
+    let when=[date,time].filter(Boolean).join(' ');
+    if(/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        const stamp=new Date(date+'T'+(/^\d{2}:\d{2}$/.test(time)?time:'12:00')+':00+08:00');
+        if(Number.isFinite(stamp.getTime()))when=new Intl.DateTimeFormat(locale,{timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric',...(time?{hour:'numeric',minute:'2-digit'}:{})}).format(stamp);
+    }
+    if(!when){const stamp=order.createdAt?.toDate?.();if(stamp instanceof Date&&Number.isFinite(stamp.getTime()))when=new Intl.DateTimeFormat(locale,{timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}).format(stamp);}
+    const status=order.status||order.bookingStatus||'pending';
+    const labels={pending:'Pending',accepted:'Accepted',received:'Completed',cancelled:'Cancelled',rejected:'Rejected',fulfilled:'Ready',delivered:'Delivered'};
+    return [t(order.requestLabel||'Request'),when,t(labels[status]||status.replace(/_/g,' ')),'#'+String(order.id||order.bookingId||'').slice(-6)].filter(Boolean).join(' · ');
+}
+function deskOrder(id) { return chatDeskOrders.find(d=>d.id===id) || currentChatDocsCache.find(d=>d.type==='booking_card'&&d.bookingId===id); }
+function deskRequirements(order,docs=currentChatDocsCache) {
+    if(order.requirementsState)return {...order.requirementsState,canonical:true};
+    const id=order.bookingId||order.id;
+    const requests=docs.filter(d=>d.type==='requirement_request'&&[d.bookingId,d.transactionId].includes(id));
+    requests.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+    const req=requests[0];if(!req)return null;
+    const required={address:!!req.requirements?.address,location:!!req.requirements?.location,orderDetails:!!req.requirements?.orderDetails};
+    if(!Object.values(required).some(Boolean))return null;
+    const responses=docs.filter(d=>d.type==='requirement_response'&&d.requestMessageId===req.id);
+    responses.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+    const response=responses[0];
+    return {requestId:req.id,responseId:response?.id,status:response?.requirementStatus||req.requirementStatus||'waiting_customer',required,notes:req.notes||'',data:response||{},canonical:false};
+}
+function renderRequestProcess(order,requirements) {
+    const t=s=>window.LangManager?.translateKey?.(s)||s,status=order.status||order.bookingStatus||'pending',flow=window.PaymentPolicy.flow(order);
+    const active=!['cancelled','rejected'].includes(status);
+    if(!active)return '';
+    const requirementDone=requirements?['confirmed','waived'].includes(requirements.status):!!order.paymentTermsVersion||!['pending','accepted'].includes(status);
+    const steps=[['Request sent',true],['Acceptance',status!=='pending'],['Requirements',requirementDone&&flow.addressReady],['Payment',flow.verified],['Preparation',['delivered','fulfilled','received'].includes(status)],['Completion',status==='received']];
+    let current=active?steps.findIndex(([,done])=>!done):-1;
+    const currentLabel=current>=0?steps[current][0]:status==='received'?'Completed':status;
+    return `<details class="transaction-process-details"><summary>${escapeHtml(t('Request progress'))} · ${escapeHtml(t(currentLabel))}</summary><ol class="transaction-process" aria-label="${escapeHtml(t('Request progress'))}">${steps.map(([label,done],index)=>`<li class="${(current===-1||index<current)?'is-done':index===current?'is-current':'is-pending'}"${index===current?' aria-current="step"':''}><span aria-hidden="true">${(current===-1||index<current)?'✓':index+1}</span>${escapeHtml(t(label))}</li>`).join('')}</ol></details>`;
+}
+function renderDeskRequirements(state) {
+    const t=s=>window.LangManager?.translateKey?.(s)||s;
+    if(!state)return '';
+    const labels={address:'Delivery Address',location:'Current Location',orderDetails:'Order Details'};
+    const status=['confirmed','waived'].includes(state.status)?state.status:state.status==='submitted'?'submitted':'waiting_customer';
+    const label={confirmed:'Confirmed',waived:'Not required',submitted:'Submitted',waiting_customer:'Needed'}[status];
+    const keys=Object.keys(labels).filter(key=>state.required?.[key]);
+    const data=state.data||{};
+    const value=key=>key==='address'?[data.houseStreet,data.barangay,data.city,data.landmark].filter(Boolean).join(', '):key==='location'?(data.lat!=null&&data.lng!=null?`${data.lat}, ${data.lng}`:''):data.orderDetails||'';
+    return `<details class="transaction-requirements"><summary><b>${escapeHtml(t('Requirements'))}</b><span>${keys.length?`${status==='waiting_customer'?'0':keys.length}/${keys.length} `:''}${escapeHtml(t(label))}</span><small>${keys.map(key=>escapeHtml(t(labels[key]))).join(' · ')}</small></summary>${state.notes?`<p data-no-translate>${escapeHtml(state.notes)}</p>`:''}<ul>${keys.map(key=>`<li><div><b>${escapeHtml(t(labels[key]))}</b><small class="requirement-state state-${status}">${escapeHtml(t(label))}</small></div>${value(key)?`<p data-no-translate>${escapeHtml(value(key))}</p>`:''}</li>`).join('')}</ul></details>`;
+}
+function renderTransactionDesk(order,isOwner,orders=[]) {
+    if(!order)return '';
+    const t=s=>window.LangManager?.translateKey?.(s)||s, esc=escapeHtml;
+    const id=order.bookingId||order.id,status=order.status||order.bookingStatus||'pending',flow=window.PaymentPolicy.flow(order);
+    const requirements=deskRequirements(order);
+    const detailsReady=!requirements||['confirmed','waived'].includes(requirements.status);
+    const action=(key,label)=>`<button type="button" data-tx-action="${key}" data-booking-id="${esc(id)}">${esc(t(label))}</button>`;
+    let next='',buttons='';
+    if(status==='pending'){next=isOwner?'Accept or decline this request.':'Wait for the business to accept your request.';if(isOwner)buttons=action('accept','Accept Request')+action('reject','Reject');}
+    else if(status==='accepted'&&!requirements&&!order.paymentTermsVersion){next=isOwner?'Request the details you need, or confirm that no additional details are required.':'The business is checking the requirements before payment.';if(isOwner)buttons=action('requirements-none','No additional details needed');}
+    else if(status==='accepted'&&requirements&&['waiting_customer','submitted'].includes(requirements.status)){
+        next=requirements.status==='submitted'?(isOwner?'Review the submitted details before continuing.':'Your details were submitted. Wait for business review.'):(isOwner?'Waiting for the requested customer details.':'Complete the requested details to continue.');
+        if(!isOwner&&requirements.status==='waiting_customer')buttons=action('requirements-submit','Submit requirements');
+        if(isOwner&&requirements.status==='submitted'&&requirements.responseId)buttons=action('requirements-confirm','Confirm details');
+        if(isOwner&&requirements.canonical)buttons+=action('requirements-waive','Skip requested details');
+    }
+    else if(status==='accepted'&&!flow.addressReady){next='Add the delivery address before the final amount is set.';if(!isOwner)buttons=action('delivery-details','Add delivery address');}
+    else if(status==='accepted'&&(!flow.termsReady||!flow.online||!order.paymentMethod)){next='The business must set the amount and payment instructions first.';if(isOwner)buttons=action('terms','Set payment instructions');}
+    else if(status==='accepted'&&flow.online){
+        const terms=order.paymentAmountDue&&order.paymentInstructions;
+        next=terms?(isOwner?'Waiting for the customer to submit payment details.':'Pay the agreed amount once, then submit your reference.'): 'The business must set the amount and payment instructions first.';
+        if(isOwner)buttons=action('terms',terms?'Edit payment instructions':'Set payment instructions');
+        else if(terms||order.paymentFlowVersion!==2)buttons=action('proof',order.paymentReviewDecision==='declined'?'Correct payment details':'Submit payment reference');
+    } else if(status==='payment_submitted'){next=isOwner?'Check the reference and money received before verifying payment.':'Payment is under review. Do not pay again.';if(isOwner)buttons=action('verify','Verify payment')+action('decline','Request correction');}
+    else if(flow.canPrepare){next='Payment verified. The business can now prepare your request.';if(isOwner)buttons=action('prepare','Start preparing');}
+    else if(status==='preparing'){next='The business is preparing your request.';if(isOwner)buttons=action(['delivery','delivery_order'].includes(order.requestType)?'dispatch':'ready',['delivery','delivery_order'].includes(order.requestType)?'Mark out for delivery':'Mark ready');}
+    else if(status==='ready'){next='Your request is ready.';if(isOwner)buttons=action('fulfill','Mark fulfilled');}
+    else if(status==='out_for_delivery'){next='Your order is on the way.';if(isOwner)buttons=action('deliver','Mark delivered');}
+    else if(['fulfilled','delivered'].includes(status)){next='Confirm only after you receive the order or service.';if(!isOwner)buttons=action('receive','Confirm Received');}
+    else if(status==='received'){next=order.feedbackStatus==='feedback_waiting'&&!order.feedbackSubmittedAt?'Transaction completed. Please rate your experience and send feedback.':'Transaction completed.';if(!isOwner&&order.feedbackStatus==='feedback_waiting'&&!order.feedbackSubmittedAt)buttons=action('feedback','Rate & Send Feedback');}
+    else if(status==='cancelled'){
+        const refund=order.refundStatus;
+        if(refund==='needs_verification'){next='Verify the actual payment received before calculating the refund.';if(isOwner)buttons=action('refund-check','Verify received payment')+action('refund-missing','Payment not found');}
+        else if(refund==='pending'){next='The business must review and approve the calculated refund.';if(isOwner)buttons=action('refund-approve','Review refund');}
+        else if(['approved','disputed'].includes(refund)){next=refund==='disputed'?'The customer reported the refund was not received. Check the transfer before recording a correction.':'Refund approved. Transfer the displayed amount, then record the reference.';if(isOwner)buttons=action('refund-send','Record refund transfer');}
+        else if(refund==='sent'){next='The business recorded a refund transfer. Confirm after checking your account.';if(!isOwner)buttons=action('refund-receive','Confirm refund received')+action('refund-dispute','Refund not received');}
+        else if(refund==='received')next='The customer confirmed the refund was received.';
+        else if(refund==='payment_not_found'){next='The business could not find this payment. Check the reference before requesting a recheck.';if(!isOwner)buttons=action('refund-recheck','Request payment recheck');}
+        else next=refund==='not_required'?'Cancelled. No refund is due.':'Cancelled. Ask the business to review any earlier payment.';
+    }else next='This request is closed.';
+    if(isOwner&&status==='accepted'&&(!requirements||['confirmed','waived'].includes(requirements.status)))buttons+=action('requirements-request','Request details');
+    if(isOwner&&!['received','cancelled','rejected'].includes(status))buttons+=action('owner-cancel','Cancel request');
+    if(!isOwner&&window.PaymentPolicy.cancellation(order).allowed)buttons+=action('cancel','Cancel request');
+    const value=(label,value,personal=false)=>value?`<div><dt>${esc(t(label))}</dt><dd${personal?' data-no-translate':''}>${esc(String(value))}</dd></div>`:'';
+    return `<div class="transaction-desk-top"><b>${esc(t('Current transaction'))}</b><span>${esc(t(status.replace(/_/g,' ')))}</span></div>${renderRequestProcess(order,requirements)}<p class="transaction-desk-next">${esc(t(next))}</p>${!['cancelled','rejected'].includes(status)?renderDeskRequirements(requirements):''}${status==='accepted'&&flow.online&&flow.termsReady&&detailsReady&&order.paymentInstructions?`<p class="transaction-desk-payto" data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl class="transaction-desk-money">${value('Amount due',flow.termsReady&&detailsReady&&order.paymentAmountDue?'₱'+order.paymentAmountDue:'')}${value('Submitted payment',order.paymentAmount?'₱'+order.paymentAmount:'')}${value('Reference',order.paymentReference,true)}${value('Refund amount',order.refundAmount!=null?'₱'+order.refundAmount:'')}${value('Refund calculation',order.refundBaseAmount&&order.refundAmount!=null?'₱'+order.refundBaseAmount+' × '+order.refundPercent+'%':'')}${value('Refund reference',order.refundReference,true)}</dl><details class="transaction-desk-details"><summary>${esc(t('Payment and request details'))}</summary><p class="transaction-desk-next">${esc(t('Refund rate before preparation'))}: ${esc(String(order.refundPercent ?? 50))}% · ${esc(t('Cancellation closes when preparation starts.'))}</p><p class="transaction-desk-id" data-no-translate>TX-${esc(String(id).slice(-8))}</p>${flow.termsReady&&detailsReady&&order.paymentInstructions?`<p data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl>${value('Reference',order.paymentReference,true)}${value('Refund reference',order.refundReference,true)}${value('Business note',order.paymentReviewNote||order.refundNote,true)}</dl>${order.paymentProofPath?`<div class="transaction-desk-proof" data-tx-proof="${esc(order.paymentProofPath)}" data-booking-id="${esc(id)}"></div>`:''}${renderRequestDetailRows(order)}<p>${esc(t('Vicinify records manual payments and refunds. It does not transfer money.'))}</p></details><div class="transaction-desk-actions">${buttons}</div>`;
+}
+function refreshTransactionDesk(isOwner) {
+    if(document.getElementById('chatModal')?.dataset.mode==='messages'){document.getElementById('chatTransactionSummary')?.classList.add('hidden');return;}
+
+    const wrap=document.getElementById('chatTransactionSummary');if(!wrap)return;
+    const fallback=currentChatDocsCache.filter(d=>d.type==='booking_card').map(d=>({...d,id:d.bookingId}));
+    const orders=chatDeskOrders.length?chatDeskOrders:fallback;
+    if(!chatDeskSelected || !orders.some(d=>d.id===chatDeskSelected) && !document.getElementById('chatModal')?.dataset.transactionId)chatDeskSelected=orders[0]?.id;
+    const order=orders.find(d=>d.id===chatDeskSelected);
+    const closed=order&&window.PaymentPolicy.conversationClosed(order);
+    const modal=document.getElementById('chatModal');if(modal)modal.dataset.archived=closed?'true':'false';
+    const suggestions=document.getElementById('chatSuggestions');
+    if(suggestions){const active=order&&!['received','rejected'].includes(order.status)&&!(order.status==='cancelled'&&['received','not_required'].includes(order.refundStatus));suggestions.hidden=isOwner||!!active;}
+    const markup=renderTransactionDesk(order,isOwner,orders);
+    wrap.classList.toggle('hidden',!order);
+    if(wrap.__transactionMarkup===markup)return;
+    const same=wrap.dataset.bookingId===(order?.bookingId||order?.id||'');
+    const openRequirements=same&&!!wrap.querySelector('.transaction-requirements')?.open,openDetails=same&&!!wrap.querySelector('.transaction-desk-details')?.open;
+    const openProcess=same&&!!wrap.querySelector('.transaction-process-details')?.open;
+    const oldScroll=same?wrap.scrollTop:0,focused=document.activeElement;
+    const focusAction=wrap.contains(focused)?focused?.dataset?.txAction:null;
+    wrap.__transactionMarkup=markup;wrap.dataset.bookingId=order?.bookingId||order?.id||'';wrap.innerHTML=markup;
+    if(openProcess&&wrap.querySelector('.transaction-process-details'))wrap.querySelector('.transaction-process-details').open=true;
+    if(openRequirements&&wrap.querySelector('.transaction-requirements'))wrap.querySelector('.transaction-requirements').open=true;
+    if(openDetails&&wrap.querySelector('.transaction-desk-details'))wrap.querySelector('.transaction-desk-details').open=true;
+    wrap.scrollTop=oldScroll;
+    if(focusAction){[...wrap.querySelectorAll('[data-tx-action]')].find(button=>button.dataset.txAction===focusAction)?.focus({preventScroll:true});}
+
+    const progress=wrap.querySelector('.transaction-process'),currentStep=progress?.querySelector('[aria-current=step]');
+    if(currentStep)progress.scrollLeft=Math.max(0,currentStep.offsetLeft-progress.offsetLeft-(progress.clientWidth-currentStep.offsetWidth)/2);
+    const detail=wrap.querySelector('.transaction-desk-details');
+    if(detail)detail.ontoggle=()=>{const proof=detail.querySelector('[data-tx-proof]');if(detail.open&&proof&&!proof.firstChild){const img=document.createElement('img');img.alt=window.LangManager?.translateKey?.('Payment proof')||'Payment proof';img.dataset.proofBooking=proof.dataset.bookingId;img.dataset.proofVersion=proof.dataset.txProof;proof.append(img);}};
+    wrap.onclick=e=>{const button=e.target.closest('[data-tx-action]');if(button)window.transactionDeskAction(button.dataset.txAction,button.dataset.bookingId,button.dataset.messageId)};
+    window.LangManager?.translateDOM?.(undefined,wrap);window.debouncedIcons?.();
+}
+function transactionInputDialog(title,fields,note,submitLabel='Save') {
+    if(document.getElementById('transactionActionModal'))return Promise.resolve(null);
+    return new Promise(resolve=>{
+        const modal=document.createElement('div');modal.id='transactionActionModal';modal.className='req-modal';
+        modal.innerHTML=`<div class="modalBackdrop"></div><form class="req-sheet" role="dialog" aria-modal="true" aria-labelledby="transactionActionTitle"><header class="req-head"><div class="req-head-text"><h3 id="transactionActionTitle">${escapeHtml(title)}</h3><p>${escapeHtml(note)}</p></div></header><div class="req-body">${fields.map(f=>`<label class="req-field"><span>${escapeHtml(f.label)}</span>${f.area?`<textarea class="req-input" name="${f.name}" required minlength="${f.min||3}" maxlength="1000">${escapeHtml(f.value||'')}</textarea>`:`<input class="req-input" name="${f.name}" required ${f.readOnly?'readonly':''} ${f.money?'inputmode="decimal"':'minlength="3" maxlength="200"'} value="${escapeHtml(f.value||'')}">`}</label>`).join('')}</div><footer class="req-footer"><button type="button" class="req-btn ghost">Cancel</button><button type="submit" class="req-btn primary">${escapeHtml(submitLabel)}</button></footer></form>`;
+        const prior=document.activeElement,finish=value=>{document.removeEventListener('keydown',key);modal.remove();prior?.focus?.();resolve(value)};
+        const key=e=>{if(e.key==='Escape')finish(null);if(e.key==='Tab'){const all=[...modal.querySelectorAll('input,textarea,button')];if(e.shiftKey&&document.activeElement===all[0]){e.preventDefault();all.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===all.at(-1)){e.preventDefault();all[0].focus()}}};
+        modal.querySelector('.modalBackdrop').onclick=()=>finish(null);modal.querySelector('[type=button]').onclick=()=>finish(null);
+        modal.querySelector('form').onsubmit=e=>{e.preventDefault();
+            for(const field of fields.filter(f=>f.money)){const input=e.target.elements[field.name];input.setCustomValidity('');try{window.PaymentPolicy.money(input.value)}catch(error){input.setCustomValidity(window.LangManager?.translateKey?.(error.message)||error.message);input.reportValidity();return;}}
+            if(e.target.reportValidity())finish(Object.fromEntries(new FormData(e.target)))};
+        modal.querySelectorAll('input,textarea').forEach(input=>input.oninput=()=>input.setCustomValidity(''));
+        document.body.append(modal);document.addEventListener('keydown',key);window.LangManager?.translateDOM?.(undefined,modal);modal.querySelector('input,textarea').focus();
+    });
+}
+window.transactionDeskAction=async function(action,id,messageId){
+    if(transactionDeskBusy.has(id))return;const order=deskOrder(id);if(!order)return;
+    transactionDeskBusy.add(id);
+    try{
+        let patch;
+        if(action==='requirements-none'){
+            if(!await window.vConfirm('No additional details needed','Confirm that the request already contains everything needed. Payment instructions come next.','Confirm'))return;
+            patch={requirements:{action:'not_required'}};
+        }
+        if(action==='feedback')return await window.openFeedbackModal(order.placeId,id,currentChatDocsCache.find(d=>d.type==='feedback_request'&&d.bookingId===id)?.id);
+        if(action==='requirements-request')return window.openRequirementRequestModal();
+        if(action==='requirements-submit'){const req=deskRequirements(order);if(req)return await window.openRequirementResponseModal(req.requestId);return;}
+        if(action==='requirements-confirm'){const req=deskRequirements(order);if(req?.responseId)return await window.confirmRequirementResponse(req.responseId);return;}
+        if(action==='requirements-waive'){
+            const req=deskRequirements(order);if(!req)return;
+            if(!await window.vConfirm('Skip requested details?','These details will no longer be required. Payment must still be verified before preparation.','Continue'))return;
+            patch={requirements:{action:'waive',requestId:req.requestId}};
+        }else if(action==='proof')return await window.uploadPaymentProof(id,'');
+        if(['verify','decline'].includes(action))return await window.reviewPaymentProof(id,'',action==='verify'?'confirm':'resubmit');
+        if(['requirements-waive','requirements-none'].includes(action)){ /* patch already validated above */ }else if(action==='owner-cancel'){
+            if(!await window.vConfirm('Cancel request','Cancel this transaction? Any pending refund must still be resolved before the conversation is archived.','Confirm'))return;
+            patch={status:'cancelled'};
+        }else if(action==='cancel'){
+            if(!await window.SettingsPage.reviewCancellation(order))return;
+            patch={status:'cancelled'};
+        }else if(action==='delivery-details'){
+            const input=await transactionInputDialog('Delivery address',[{name:'houseStreet',label:'House number, street or subdivision'},{name:'barangay',label:'Barangay'},{name:'city',label:'City / Municipality'},{name:'landmark',label:'Landmark'}],'The business uses this address to confirm the total and delivery fee.');if(!input)return;patch={deliveryDetails:input};
+        }else if(action==='terms'){
+            const input=await transactionInputDialog('Set payment instructions',[{name:'paymentMethod',label:'Payment Method',value:window.PaymentPolicy.isOnline(order)?order.paymentMethod:'GCash'},{name:'amount',label:'Amount due now (₱)',money:true,value:order.paymentAmountDue},{name:'instructions',label:'Payment recipient and instructions',area:true,min:8,value:order.paymentInstructions}],'Include the recipient name, account number and agreed amount. This does not confirm a payment.');if(!input)return;patch={paymentTerms:input};
+        }else if(action==='refund-check'){
+            const input=await transactionInputDialog('Verify received payment',[{name:'receivedAmount',label:'Amount actually received (₱)',money:true,value:order.paymentAmount}],'Check your account first. The refund will be calculated using the saved cancellation rate.');if(!input)return;patch={refundStatus:'pending',...input};
+        }else if(action==='refund-missing'){
+            const input=await transactionInputDialog('Payment not found',[{name:'refundNote',label:'Explain what needs checking',area:true}],'The customer can ask you to recheck. This does not mark a refund received.');if(!input)return;patch={refundStatus:'payment_not_found',...input};
+        }else if(action==='refund-approve'){
+            if(!await window.vConfirm('Approve refund','Confirm the refund amount: ₱'+order.refundAmount+'. This approves the refund; it does not transfer money.','Approve refund'))return;patch={refundStatus:'approved',confirmRefund:true};
+        }else if(action==='refund-send'){
+            const input=await transactionInputDialog('Record refund transfer',[{name:'amount',label:'Refund amount',value:order.refundAmount,readOnly:true},{name:'refundReference',label:'Refund transfer reference'}],'Transfer the displayed refund amount yourself first. Recording a reference does not move money.','Record transfer');if(!input)return;if(!await window.vConfirm('Confirm refund transfer','I have transferred ₱'+order.refundAmount+' and checked the reference against my account.','Confirm transferred'))return;patch={refundStatus:'sent',...input,confirmTransferred:true};
+        }else if(action==='refund-receive'){
+            if(!await window.vConfirm('Confirm refund received','Check your account and confirm you received the displayed refund amount.','Confirm'))return;patch={refundStatus:'received',confirmReceived:true};
+        }else if(action==='refund-dispute'){
+            const input=await transactionInputDialog('Refund not received',[{name:'refundNote',label:'What needs checking?',area:true}],'Check your account first. The refund will stay open for the business to review.');if(!input)return;patch={refundStatus:'disputed',...input};
+        }else if(action==='refund-recheck')patch={refundStatus:'needs_verification'};
+        else if(action==='receive')return await window.confirmReceivedFromChat(id,'',order.placeId);
+        else{
+            const status={accept:'accepted',reject:'rejected',prepare:'preparing',ready:'ready',dispatch:'out_for_delivery',deliver:'delivered',fulfill:'fulfilled'}[action];
+            if(!status)return;
+            if(action==='prepare'&&!await window.vConfirm('Start preparing?','Starting preparation closes customer cancellation. Verify payment and delivery details first.','Start preparing'))return;
+            if(['accept','reject'].includes(action))return await window.updateBookingFromChat(id,currentChatDocsCache.find(d=>d.type==='booking_card'&&d.bookingId===id)?.id||'',status);
+            patch={status};
+        }
+        await window.ViciData.command('booking',{bookingId:id,patch});window.showToast?.('Transaction updated.','success');
+    }catch(error){window.showToast?.(error.message,'error')}finally{transactionDeskBusy.delete(id)}
+};
+
+
+window.addEventListener('vicinify:languagechange',()=>{
+    const modal=document.getElementById('chatModal'),user=window.auth?.currentUser,target=document.getElementById('chatCustomerUid')?.value;
+    if(modal&&!modal.classList.contains('hidden')&&user&&target)refreshTransactionDesk(user.uid!==target);
+});
+
+function listenToChatRoom(placeId, targetUid, bookingId=null) {
 if (currentChatUnsub) currentChatUnsub();
+chatDeskOrders=[];chatDeskSelected=bookingId;currentChatDocsCache=[];
+const chatModal=document.getElementById('chatModal');if(chatModal)chatModal.dataset.transactionId=bookingId||'';
+document.getElementById('chatTransactionSummary')?.classList.add('hidden');
 
 const listWrap = document.getElementById("chatMessageList");
 if (!listWrap) return;
@@ -3616,8 +5606,10 @@ listWrap.innerHTML = `<div class="muted" style="text-align:center; padding:20px;
 // echo of our own seen-marker writes) render ONCE per frame with the
 // latest data instead of rebuilding the whole thread every time.
 let _pendingChatSnap = null;
+let _lastChatSnap = null;
 let _chatRenderQueued = false;
 const queueChatRender = (snap) => {
+    _lastChatSnap = snap;
     _pendingChatSnap = snap;
     if (_chatRenderQueued) return;
     _chatRenderQueued = true;
@@ -3633,7 +5625,9 @@ const queueChatRender = (snap) => {
     });
 };
 
-currentChatUnsub = window.db.collection("messages")
+const onTransactionChange=()=>{if(_lastChatSnap)queueChatRender(_lastChatSnap);};
+document.getElementById('chatModal')?.addEventListener('transactionchange',onTransactionChange);
+const stopMessages = window.db.collection("messages")
     .where("placeId", "==", placeId)
     .where("userId", "==", targetUid)
     .orderBy("createdAt", "desc")
@@ -3641,24 +5635,41 @@ currentChatUnsub = window.db.collection("messages")
     .onSnapshot(snap => queueChatRender(snap), err => {
         console.error("Chat listener error:", err);
         if (!window.handleFirestoreError(err)) {
-            listWrap.innerHTML = `<div class="muted" style="text-align:center; padding:20px; font-size:12px;">Could not load messages: ${escapeHtml(err.message || String(err))}</div>`;
+            const missingIndex = err.code === "failed-precondition" && /index/i.test(err.message || "");
+            listWrap.innerHTML = `<div class="chat-empty" role="alert"><h4>${missingIndex ? "Chat setup needed" : "Messages could not load"}</h4><p>${missingIndex ? "The database index for this conversation is missing or still building. Please contact the site administrator." : "Check your connection and try reopening this conversation."}</p></div>`;
         }
     });
 
+
+const stopOrders=document.getElementById('chatModal')?.dataset.mode==='messages'?()=>{}:window.ViciData.listen('chat-orders:'+placeId+':'+targetUid+':'+(bookingId||'recent'),
+    (bookingId?window.db.collection('bookings').doc(bookingId):window.db.collection('bookings').where('placeId','==',placeId).where('userId','==',targetUid).orderBy('createdAt','desc').limit(5)),snap=>{
+        if(document.getElementById('chatPlaceId')?.value!==placeId||document.getElementById('chatCustomerUid')?.value!==targetUid)return;
+        const previous=chatDeskOrders.find(order=>order.id===chatDeskSelected);
+        chatDeskOrders=(bookingId?(snap.exists?[snap]:[]):snap.docs).map(d=>({...d.data(),id:d.id,bookingId:d.id})).filter(order=>!bookingId||(order.placeId===placeId&&order.userId===targetUid));
+        const current=chatDeskOrders.find(order=>order.id===chatDeskSelected);
+        if(previous&&current&&!window.PaymentPolicy.conversationClosed(previous)&&window.PaymentPolicy.conversationClosed(current)){
+            window.closeChatModal();window.showToast?.('Transaction conversation archived. The record remains in history.','info');return;
+        }
+        refreshTransactionDesk(isOwner);
+        if(_lastChatSnap)queueChatRender(_lastChatSnap);
+    },error=>{console.warn('Transaction summary unavailable:',error);window.showToast?.('Transaction summary could not load. Please try reopening the conversation.','error');});
+currentChatUnsub=()=>{document.getElementById('chatModal')?.removeEventListener('transactionchange',onTransactionChange);stopMessages();stopOrders();chatDeskOrders=[];chatDeskSelected=null;const panel=document.getElementById('chatTransactionSummary');if(panel){panel.classList.add('hidden');panel.replaceChildren();panel.__transactionMarkup=null;delete panel.dataset.bookingId;}};
+
 const renderChatSnap = (snap) => {
         if (snap.empty) {
-            listWrap.innerHTML = `<div class="muted" style="text-align:center; padding:20px; font-size:12px;" data-i18n="No messages yet. Send an inquiry!">No messages yet. Send an inquiry!</div>`;
+            listWrap.innerHTML = `<div class="chat-empty"><span class="chat-empty-icon"><i data-lucide="messages-square"></i></span><h4>Start a conversation</h4><p>${document.getElementById('chatModal')?.dataset.mode==='transaction'?'Send a message about the selected transaction.':'Ask about the menu, availability, or your request. Choose a quick question below to get started.'}</p></div>`;
+            window.debouncedIcons?.();
             return;
         }
 
-        let docs = snap.docs.map(d => ({
-            id: d.id,
-            ...d.data()
-        })).filter(d => !(d.deletedBy || []).includes(user?.uid));
+        let docs = snap.docs.map(d => ({ ...d.data(), id: d.id })).filter(d => !(d.deletedBy || []).includes(user?.uid));
         currentChatDocsCache = docs;
+        refreshTransactionDesk(isOwner);
+        docs=docs.filter(d=>document.getElementById('chatModal')?.dataset.mode==='messages'?isConversationMessage(d):isSelectedTransactionMessage(d,chatDeskSelected));
 
         if (docs.length === 0) {
-            listWrap.innerHTML = `<div class="muted" style="text-align:center; padding:20px; font-size:12px;" data-i18n="No messages yet. Send an inquiry!">No messages yet. Send an inquiry!</div>`;
+            listWrap.innerHTML = `<div class="chat-empty"><span class="chat-empty-icon"><i data-lucide="messages-square"></i></span><h4>Start a conversation</h4><p>${document.getElementById('chatModal')?.dataset.mode==='transaction'?'Send a message about the selected transaction.':'Ask about the menu, availability, or your request. Choose a quick question below to get started.'}</p></div>`;
+            window.debouncedIcons?.();
             return;
         }
 
@@ -3676,8 +5687,13 @@ const renderChatSnap = (snap) => {
         updateChatQuickActions(isOwner, pendingRequirement);
 
         let html = "";
-
-        docs.forEach(d => {
+        let previousDay = "";
+        docs.forEach((d, index) => {
+            const day = chatDayInfo(d);
+            if (day.key !== previousDay) {
+                html += `<div class="chat-date-divider"><span>${escapeHtml(day.label)}</span></div>`;
+                previousDay = day.key;
+            }
             const dateStr = d.createdAt && d.createdAt.toDate
                 ? d.createdAt.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
                 : "Just now";
@@ -3691,26 +5707,28 @@ const renderChatSnap = (snap) => {
                 return;
             }
 
+            const pinnedHistory = renderPinnedTransactionHistory(d, dateStr, chatDeskOrders);
+            if (pinnedHistory !== null) { html += pinnedHistory; return; }
+
             if (d.type === "booking_card") {
                 const status = d.bookingStatus || d.status || "pending";
                 const meta = getRequestMeta(d.requestType || "booking");
                 const side = getCardSide(d, user.uid, isOwner, "customer");
                 const isActiveBookingCard = activeTransactionDocs.some(x => x.id === d.id || x.bookingId === d.bookingId || x.transactionId === d.transactionId);
-                const inlineProgressHtml = isActiveBookingCard ? renderInlineTransactionProgress(activeTransactionDocs) : "";
+                const inlineProgressHtml = ""; // Current actions are pinned above the conversation.
 
+                const outputIcon = {table_reservation:'utensils',food_reservation:'package-check',pickup_order:'shopping-basket',delivery_order:'bike',advance_order:'calendar-days'}[meta.key] || 'calendar-days';
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div style="background:#ffffff; border:1px solid ${meta.light}; border-radius:18px; overflow:hidden; max-width:88%; min-width:285px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
-                            <div style="background:${meta.color}; color:white; padding:12px 14px; font-weight:900; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                                <span>${meta.icon} ${escapeHtml(meta.title)}</span>
-                                <span style="background:white; color:${meta.color}; border-radius:999px; padding:3px 8px; font-size:10px; white-space:nowrap;">${escapeHtml(meta.shortLabel)}</span>
+                        <div class="chat-transaction-card" style="background:var(--ui-surface); border:1px solid ${meta.light}; border-radius:18px; overflow:hidden; max-width:88%; min-width:285px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                            <div class="request-output-header">
+                                <span class="request-output-kind"><i data-lucide="${outputIcon}" aria-hidden="true"></i><span>${escapeHtml(meta.shortLabel)}</span></span>
+                                <span class="status-badge status-${escapeHtml(status)}">${escapeHtml(status.replace(/_/g, " "))}</span>
                             </div>
 
                             <div style="padding:14px;">
-                                <div style="display:grid; gap:8px; font-size:13px; color:#334155;">
-                                    ${renderRequestDetailRows(d)}
-                                    <div><b>Status:</b> ${makeBadge(status)}</div>
-                                </div>
+                                ${d.placeName ? `<p class="request-output-store" data-no-translate>${escapeHtml(d.placeName)}</p>` : ''}
+                                ${renderRequestDetailRows(d)}
 
                                 ${inlineProgressHtml}
 
@@ -3721,61 +5739,28 @@ const renderChatSnap = (snap) => {
                                     </div>
                                 ` : ""}
 
-                                ${isOwner && status === "accepted" ? `
-                                    <button onclick="window.updateBookingFromChat('${d.bookingId}', '${d.id}', 'fulfilled')" style="margin-top:14px; width:100%; border:none; background:${meta.light}; color:${meta.dark}; padding:10px; border-radius:10px; font-weight:900; cursor:pointer;">${escapeHtml(meta.fulfillLabel)}</button>
-                                ` : ""}
+                                ${isOwner ? renderBookingNextAction(d) : ""}
+
+                                ${(d.paymentMethod || d.paymentType || d.paymentStatus || d.paymentReference || d.paymentProofPath || d.paymentProofUrl || d.amount) ? renderPaymentFlowCard(d, isOwner) : ""}
 
                                 ${isOwner && status === "payment_submitted" ? `
-                                    <div style="margin-top:12px; background:#fef3c7; border:1px solid #fde68a; border-radius:12px; padding:12px;">
-                                        <div style="font-size:13px; font-weight:900; color:#92400e; margin-bottom:8px;">Payment proof submitted — please review</div>
-                                        ${(d.paymentProofPath || d.paymentProofUrl) ? `<img ${d.paymentProofPath ? `data-proof-booking="${escapeHtml(d.bookingId || "")}" data-proof-version="${escapeHtml(d.paymentProofPath || "")}"` : `src="${escapeHtml(safeImageUrl(d.paymentProofUrl))}"`} alt="Payment proof" style="width:100%; border-radius:8px; border:1px solid #fde68a; margin-bottom:10px;" loading="lazy" />` : `<div style="font-size:12px; color:#92400e;">No image attached.</div>`}
-                                        <div style="display:flex; gap:8px;">
-                                            <button onclick="window.reviewPaymentProof('${d.bookingId}', '${d.id}', 'resubmit')" style="flex:1; border:1px solid #fca5a5; background:#fff; color:#991b1b; padding:9px; border-radius:10px; font-weight:800; cursor:pointer;">Ask to Resubmit</button>
-                                            <button onclick="window.reviewPaymentProof('${d.bookingId}', '${d.id}', 'confirm')" style="flex:1; border:none; background:#16a34a; color:#fff; padding:9px; border-radius:10px; font-weight:800; cursor:pointer;">Confirm Payment</button>
+                                    <div class="payment-owner-review" style="margin-top:12px; background:var(--ui-success-bg); border:1px solid var(--ui-success-line); border-radius:12px; padding:12px;">
+                                        <div style="font-size:13px; font-weight:900; color:#92400e; margin-bottom:8px;">Payment details submitted — please review</div>
+                                        ${(d.paymentProofPath || d.paymentProofUrl) ? `<img ${d.paymentProofPath ? `data-proof-booking="${escapeHtml(d.bookingId || "")}" data-proof-version="${escapeHtml(d.paymentProofPath || "")}"` : `src="${escapeHtml(safeImageUrl(d.paymentProofUrl))}"`} alt="Payment proof" style="width:100%; border-radius:8px; border:1px solid #fde68a; margin-bottom:10px;" loading="lazy" />` : `<div style="font-size:12px; color:#92400e;">Receipt image is optional. Verify the submitted reference against your actual account.</div>`}
+                                        <div class="payment-review-actions" style="display:flex; gap:8px;">
+                                            <button onclick="window.reviewPaymentProof('${d.bookingId}', '${d.id}', 'resubmit')" style="flex:1; border:1px solid #fca5a5; background:var(--ui-surface); color:#991b1b; padding:9px; border-radius:10px; font-weight:800; cursor:pointer;">Decline payment</button>
+                                            <button onclick="window.reviewPaymentProof('${d.bookingId}', '${d.id}', 'confirm')" style="flex:1; border:none; background:#16a34a; color:#fff; padding:9px; border-radius:10px; font-weight:800; cursor:pointer;">Accept payment</button>
                                         </div>
                                     </div>
                                 ` : ""}
 
-                                ${isOwner && status === "payment_confirmed" ? `
-                                    <button onclick="window.updateBookingFromChat('${d.bookingId}', '${d.id}', 'fulfilled')" style="margin-top:14px; width:100%; border:none; background:${meta.light}; color:${meta.dark}; padding:10px; border-radius:10px; font-weight:900; cursor:pointer;">${escapeHtml(meta.fulfillLabel)}</button>
-                                ` : ""}
-
-                                ${!isOwner && status === "pending" ? `
-                                    <div style="margin-top:12px; font-size:12px; color:#64748b; font-weight:600;">Waiting for business confirmation.</div>
-                                ` : ""}
-
-                                ${!isOwner && status === "accepted" && meta.key === "delivery_order" ? `
-                                    <div style="margin-top:12px; font-size:12px; color:#0369a1; font-weight:800; background:#e0f2fe; padding:9px; border-radius:10px;">
-                                        Delivery accepted. Submit the Delivery Details card below if it appears.
-                                    </div>
-                                ` : ""}
-
-                                ${!isOwner && status === "accepted" && ["advance_order", "pickup_order", "food_reservation", "delivery_order"].includes(meta.key) && !/cash/i.test(d.paymentMethod || "") ? `
-                                    <button onclick="window.uploadPaymentProof('${d.bookingId}', '${d.id}')" style="margin-top:12px; width:100%; border:none; background:linear-gradient(135deg,#2563eb,#3b82f6); color:#fff; padding:11px; border-radius:10px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
-                                        <i data-lucide="receipt" style="width:16px; height:16px;"></i> Upload ${escapeHtml(d.paymentMethod || "GCash")} Payment Proof
-                                    </button>
-                                    <div style="margin-top:6px; font-size:11px; color:#64748b; text-align:center;">Screenshot of your ${escapeHtml(d.paymentMethod || "GCash")} payment</div>
-                                ` : ""}
-
-                                ${!isOwner && status === "payment_submitted" ? `
-                                    <div style="margin-top:12px; font-size:12px; color:#92400e; font-weight:800; background:#fef3c7; padding:9px; border-radius:10px; text-align:center;">
-                                        Payment proof submitted. Waiting for business confirmation.
-                                    </div>
-                                ` : ""}
-
-                                ${!isOwner && status === "payment_confirmed" ? `
-                                    <div style="margin-top:12px; font-size:12px; color:#166534; font-weight:800; background:#dcfce7; padding:9px; border-radius:10px; text-align:center;">
-                                        Payment confirmed by business. Your order is being prepared.
-                                    </div>
-                                ` : ""}
-
-                                ${d.paymentProofUrl ? `
+                                ${!isOwner && (d.paymentProofPath || d.paymentProofUrl) ? `
                                     <div style="margin-top:10px;">
                                         <img ${d.paymentProofPath ? `data-proof-booking="${escapeHtml(d.bookingId || "")}" data-proof-version="${escapeHtml(d.paymentProofPath || "")}"` : `src="${escapeHtml(safeImageUrl(d.paymentProofUrl))}"`} alt="Payment proof" style="width:100%; border-radius:10px; border:1px solid #e2e8f0;" loading="lazy" />
                                     </div>
                                 ` : ""}
 
-                                ${!isOwner && status === "fulfilled" ? `
+                                ${!isOwner && ["fulfilled", "delivered"].includes(status) ? `
                                     <button onclick="window.confirmReceivedFromChat('${d.bookingId}', '${d.id}', '${d.placeId}')" style="margin-top:14px; width:100%; border:none; background:#dcfce7; color:#166534; padding:10px; border-radius:10px; font-weight:900; cursor:pointer;">${escapeHtml(meta.confirmLabel)}</button>
                                 ` : ""}
 
@@ -3783,7 +5768,7 @@ const renderChatSnap = (snap) => {
                                     <div style="margin-top:12px; font-size:12px; color:#5b21b6; font-weight:800;">Transaction completed. Feedback can now be submitted.</div>
                                 ` : ""}
 
-                                <div style="font-size:10px; color:#94a3b8; margin-top:10px;">${dateStr}</div>
+                                <div style="font-size:10px; color:var(--ui-muted); margin-top:10px;">${dateStr}</div>
                             </div>
                         </div>
                     </div>
@@ -3798,10 +5783,10 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div style="background:#ffffff; border:1px solid #c7d2fe; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
-                            <div style="background:${d.requestType === 'delivery_order' ? '#0ea5e9' : '#4f46e5'}; color:white; padding:12px 14px; font-weight:800;">${d.requestType === 'delivery_order' ? '🛵 Delivery Details Ready' : '📋 Requirements Needed'}</div>
+                        <div class="chat-transaction-card" style="background:var(--ui-surface); border:1px solid var(--ui-success-line); border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                            <div style="background:${d.requestType === 'delivery_order' ? '#0ea5e9' : 'var(--ui-primary,#237e72)'}; color:white; padding:12px 14px; font-weight:800;">${d.requestType === 'delivery_order' ? '🛵 Delivery Details Ready' : '📋 Requirements Needed'}</div>
 
-                            <div style="padding:14px; font-size:13px; color:#334155;">
+                            <div style="padding:14px; font-size:13px; color:var(--ui-ink);">
                                 <div><b>Status:</b> ${makeBadge(status)}</div>
                                 <div style="margin-top:8px;"><b>Business requested:</b></div>
                                 ${renderRequirementList(d.requirements)}
@@ -3816,8 +5801,8 @@ const renderChatSnap = (snap) => {
                                     <div style="margin-top:8px; background:#f8fafc; padding:8px; border-radius:10px;">${escapeHtml(d.notes)}</div>
                                 ` : ""}
 
-                                ${!isOwner && status === "waiting_customer" ? `
-                                    <button onclick="window.openRequirementResponseModal('${d.id}')" style="margin-top:12px; width:100%; border:none; background:#e0e7ff; color:#3730a3; padding:10px; border-radius:10px; font-weight:800; cursor:pointer;">Submit Requirements</button>
+                                ${!isOwner && status === "waiting_customer" && (!d.canonicalRequirements || !deskOrder(d.bookingId) || deskOrder(d.bookingId).status === "accepted") ? `
+                                    <button onclick="window.openRequirementResponseModal('${d.id}')" style="margin-top:12px; width:100%; border:none; background:var(--ui-accent-soft); color:#3730a3; padding:10px; border-radius:10px; font-weight:800; cursor:pointer;">Submit Requirements</button>
                                 ` : ""}
 
                                 ${!isOwner && status === "submitted" ? `
@@ -3828,7 +5813,7 @@ const renderChatSnap = (snap) => {
                                     <div style="margin-top:12px; color:#5b21b6; font-size:12px; font-weight:800;">Requirements confirmed by business.</div>
                                 ` : ""}
 
-                                <div style="font-size:10px; color:#94a3b8; margin-top:10px;">${dateStr} ${receiptHtml(d, user.uid, {})}</div>
+                                <div style="font-size:10px; color:var(--ui-muted); margin-top:10px;">${dateStr} ${receiptHtml(d, user.uid, {})}</div>
                             </div>
                         </div>
                     </div>
@@ -3843,10 +5828,10 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div style="background:#ffffff; border:1px solid #bbf7d0; border-radius:18px; overflow:hidden; max-width:90%; min-width:290px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                        <div class="chat-transaction-card" style="background:var(--ui-surface); border:1px solid #bbf7d0; border-radius:18px; overflow:hidden; max-width:90%; min-width:290px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
                             <div style="background:#16a34a; color:white; padding:12px 14px; font-weight:800;">✅ Requirements Submitted</div>
-                            <div style="padding:14px; font-size:13px; color:#334155;">
-                                <div><b>Status:</b> ${makeBadge(status)}</div>
+                            <div style="padding:14px; font-size:13px; color:var(--ui-ink);">
+                                <div class="requirement-detail-status">${status === "confirmed" ? "Details confirmed — payment is separate" : status === "waived" ? "Requirements waived" : "Details submitted for review"}</div>
                                 ${renderRequirementResponseDetails(d, isOwner, dateStr)}
                             </div>
                         </div>
@@ -3866,15 +5851,15 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div style="background:#ffffff; border:1px solid #bfdbfe; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
-                            <div style="background:${isDeliveryCompletion ? "#0ea5e9" : "#2563eb"}; color:white; padding:12px 14px; font-weight:900;">
+                        <div class="chat-transaction-card" style="background:var(--ui-surface); border:1px solid var(--ui-success-line); border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                            <div style="background:${isDeliveryCompletion ? "#0ea5e9" : "var(--ui-accent)"}; color:white; padding:12px 14px; font-weight:900;">
                                 ${header}
                             </div>
 
-                            <div style="padding:14px; font-size:13px; color:#334155;">
+                            <div style="padding:14px; font-size:13px; color:var(--ui-ink);">
                                 <div><b>Status:</b> ${status === "received" ? makeBadge("received") : makeBadge(status === "delivered" ? "fulfilled" : status)}</div>
 
-                                <div style="margin-top:10px; color:#475569;">
+                                <div style="margin-top:10px; color:var(--ui-muted);">
                                     ${status === "preparing" ? "Business is preparing the delivery/order." : status === "out_for_delivery" ? "The order is on the way to the customer." : status === "delivered" ? "Business marked this as delivered. Customer can now confirm received." : status === "received" ? "Transaction confirmed received by customer." : "The business marked this transaction as fulfilled. Please confirm once received/completed."}
                                 </div>
 
@@ -3893,7 +5878,7 @@ const renderChatSnap = (snap) => {
                                     </button>
                                 ` : ""}
 
-                                <div style="font-size:10px; color:#94a3b8; margin-top:10px;">${dateStr}</div>
+                                <div style="font-size:10px; color:var(--ui-muted); margin-top:10px;">${dateStr}</div>
                             </div>
                         </div>
                     </div>
@@ -3903,15 +5888,17 @@ const renderChatSnap = (snap) => {
             }
 
             if (d.type === "feedback_request") {
-                const status = d.feedbackStatus || "feedback_waiting";
+                const completedOrder=chatDeskOrders.find(order=>order.id===d.bookingId);
+                const submitted=completedOrder?.feedbackSubmittedAt||completedOrder?.feedbackStatus==='feedback_submitted'||currentChatDocsCache.some(item=>item.type==='feedback_response'&&item.bookingId===d.bookingId);
+                const status = submitted?'feedback_submitted':d.feedbackStatus || "feedback_waiting";
                 const side = getCardSide(d, user.uid, isOwner, "system");
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div style="background:#ffffff; border:1px solid #fde68a; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
-                            <div style="background:#facc15; color:#713f12; padding:12px 14px; font-weight:900;">⭐ Rate & Feedback</div>
+                        <div class="chat-transaction-card feedback-request-card" style="background:var(--ui-surface); border:1px solid var(--ui-success-line,#bdded1); border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                            <div style="background:var(--ui-success-bg,#e7f3ed); color:var(--ui-success-ink,#28634b); padding:12px 14px; font-weight:900;">⭐ Rate & Feedback</div>
 
-                            <div style="padding:14px; font-size:13px; color:#334155;">
+                            <div style="padding:14px; font-size:13px; color:var(--ui-ink);">
                                 <div><b>Status:</b> ${makeBadge(status)}</div>
                                 <div style="margin-top:8px;">
                                     Transaction completed. Please rate your experience and send feedback.
@@ -3919,7 +5906,7 @@ const renderChatSnap = (snap) => {
 
                                 ${!isOwner && status === "feedback_waiting" ? `
                                     <button onclick="window.openFeedbackModal('${d.placeId}', '${d.bookingId}', '${d.id}')"
-                                        style="margin-top:12px; width:100%; border:none; background:#fef3c7; color:#92400e; padding:10px; border-radius:10px; font-weight:900; cursor:pointer;">
+                                        style="margin-top:12px; width:100%; border:none; background:var(--ui-primary,#237e72); color:#fff; padding:10px; border-radius:10px; font-weight:900; cursor:pointer;">
                                         Rate & Send Feedback
                                     </button>
                                 ` : ""}
@@ -3930,7 +5917,7 @@ const renderChatSnap = (snap) => {
                                     </div>
                                 ` : ""}
 
-                                <div style="font-size:10px; color:#94a3b8; margin-top:10px;">${dateStr}</div>
+                                <div style="font-size:10px; color:var(--ui-muted); margin-top:10px;">${dateStr}</div>
                             </div>
                         </div>
                     </div>
@@ -3946,14 +5933,14 @@ const renderChatSnap = (snap) => {
 
                 html += `
                     <div style="display:flex; justify-content:${side}; width:100%; margin-bottom:14px;">
-                        <div style="background:#ffffff; border:1px solid #fde68a; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
-                            <div style="background:#f59e0b; color:white; padding:12px 14px; font-weight:900;">🌟 Customer Feedback</div>
+                        <div class="chat-transaction-card" style="background:var(--ui-surface); border:1px solid #fde68a; border-radius:18px; overflow:hidden; max-width:88%; min-width:280px; box-shadow:0 6px 18px rgba(15,23,42,0.08);">
+                            <div style="background:var(--ui-success-bg); color:var(--ui-success-ink); padding:12px 14px; font-weight:900;">🌟 Customer Feedback</div>
 
-                            <div style="padding:14px; font-size:13px; color:#334155; display:grid; gap:8px;">
+                            <div style="padding:14px; font-size:13px; color:var(--ui-ink); display:grid; gap:8px;">
                                 <div><b>Rating:</b> ${escapeHtml(stars)} (${escapeHtml(String(d.rating || "N/A"))}/5)</div>
                                 <div><b>Satisfaction:</b> ${escapeHtml(d.satisfaction || "N/A")}</div>
                                 <div><b>Feedback:</b> ${escapeHtml(d.feedback || "No written feedback.")}</div>
-                                <div style="font-size:10px; color:#94a3b8; margin-top:4px;">${dateStr}</div>
+                                <div style="font-size:10px; color:var(--ui-muted); margin-top:4px;">${dateStr}</div>
                             </div>
                         </div>
                     </div>
@@ -3963,7 +5950,10 @@ const renderChatSnap = (snap) => {
             }
 
             if (d.type === "text" && d.senderUid) {
-                html += renderTextBubble(d, user.uid, dateStr);
+                const previous = docs[index - 1];
+                const grouped = previous?.type === "text" && previous.senderUid === d.senderUid
+                    && chatDayInfo(previous).key === day.key && msgMillis(d) - msgMillis(previous) < 120000;
+                html += renderTextBubble(d, user.uid, dateStr, { grouped });
                 return;
             }
 
@@ -3975,6 +5965,11 @@ const renderChatSnap = (snap) => {
         const wasAtBottom = (prevH - prevTop - listWrap.clientHeight) < 90;
 
         listWrap.innerHTML = html;
+        listWrap.querySelectorAll('[data-auto-menu]').forEach(button=>button.onclick=()=>{
+            const id=button.dataset.autoMenu,cached=window.MapPage?.getCachedPlace?.(id);
+            window.closeChatModal();
+            if(cached && window.PlacePreview)window.PlacePreview.open(cached);else window.viewPlace?.(id);
+        });
 
         if (wasAtBottom || prevH === 0) {
             listWrap.scrollTop = listWrap.scrollHeight;
@@ -4016,32 +6011,11 @@ window.playNotifSound = function () {
 // 🔔 IN-APP NOTIFICATION POPUPS (top-right) + FLOATING ORDER WINDOW
 // ==========================================
 window.vicinifyNotify = function(title, body) {
-    let host = document.getElementById("v-notify-host");
-    if (!host) {
-        host = document.createElement("div");
-        host.id = "v-notify-host";
-        document.body.appendChild(host);
-    }
-    while (host.children.length >= 3) host.firstChild.remove();
-    const el = document.createElement("div");
-    el.className = "v-notify-card";
-    const icon = document.createElement("span");
-    icon.className = "v-notify-icon";
-    icon.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
-    const text = document.createElement("span");
-    text.className = "v-notify-text";
-    const t = document.createElement("b"); t.textContent = title || "Notification";
-    const b = document.createElement("span"); b.textContent = body || "";
-    text.append(t, b);
-    const close = document.createElement("button");
-    close.className = "v-notify-close";
-    close.type = "button";
-    close.setAttribute("aria-label", "Dismiss");
-    close.textContent = "×";
-    close.onclick = () => el.remove();
-    el.append(icon, text, close);
-    host.appendChild(el);
-    setTimeout(() => { try { el.remove(); } catch (e) {} }, 5000);
+    const heading=String(title || 'Notification'),message=String(body || '');
+    const notice=window.vicinifyToast(heading+'\n'+message,'info');
+    notice.querySelector('.v-toast-title').textContent=heading;
+    const text=notice.querySelector('.v-toast-text');text.textContent=message;text.hidden=!message;
+    return notice;
 };
 
 // Reverse geocoding via OpenStreetMap Nominatim (free, no API key,
@@ -4076,7 +6050,7 @@ const FLOATING_ORDER_STATES = {
 
 const FOW_STATUS_DOTS = {
     pending: "#f97316",
-    accepted: "#2563eb",
+    accepted: "var(--ui-accent)",
     payment_submitted: "#d97706",
     payment_confirmed: "#d97706",
     preparing: "#ea580c",
@@ -4248,6 +6222,7 @@ window.GlobalNotifier = (() => {
     }
 
     function isOwnerUnreadMessage(data, uid) {
+        if(!isConversationMessage(data))return false;
         if (!uid) return false;
         if (hasReadBy(data, "ownerReadBy", uid)) return false;
         if (data.senderUid === uid || data.createdBy === uid || data.userId === uid) return false;
@@ -4265,6 +6240,7 @@ window.GlobalNotifier = (() => {
     }
 
     function isCustomerUnreadMessage(data, uid) {
+        if(!isConversationMessage(data))return false;
         if (!uid) return false;
         if (hasReadBy(data, "customerReadBy", uid)) return false;
         if (data.senderUid === uid || data.createdBy === uid) return false;
@@ -4362,7 +6338,7 @@ window.GlobalNotifier = (() => {
                 }
 
                 // In-app popups on status transitions + floating order window.
-                const docsArr = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const docsArr = snap.docs.map(d => ({ ...d.data(), id: d.id }));
                 window._custBookingDocs = docsArr;
                 docsArr.forEach(d => {
                     const prev = prevBookingStatus.get(d.id);
@@ -4415,10 +6391,7 @@ window.GlobalNotifier = (() => {
         unsubs.push(custMsgUnsub);
 
         // Suki stamp popups: toast when a card's stamp count increases.
-        const sukiUnsub = window.db.collection("loyalty_cards")
-            .where("customerUid", "==", user.uid)
-            .limit(20)
-            .onSnapshot(snap => {
+        const sukiUnsub = window.ViciData.sukiFeed(user.uid, snap => {
                 const next = new Map();
                 snap.forEach(doc => {
                     const d = doc.data();
@@ -4460,6 +6433,7 @@ window.GlobalNotifier = (() => {
                 let isBookInit = true;
                 const bookUnsub = window.db.collection("bookings")
                     .where("placeId", "in", chunk)
+                    .orderBy("createdAt", "desc")
                     .limit(10)
                     .onSnapshot(snap => {
                         let unread = 0;
@@ -4491,6 +6465,7 @@ window.GlobalNotifier = (() => {
                 let isMsgInit = true;
                 const msgUnsub = window.db.collection("messages")
                     .where("placeId", "in", chunk)
+                    .orderBy("createdAt", "desc")
                     .limit(10)
                     .onSnapshot(snap => {
                         let unread = 0;
@@ -4599,6 +6574,8 @@ window.toggleFavorite = async function (placeId, btn) {
         return;
     }
 
+    if (btn?.disabled) return;
+    if (btn) btn.disabled = true;
     const userId = user.uid;
     const favRef = window.db.collection("favorites").doc(`${userId}_${placeId}`);
 
@@ -4606,11 +6583,15 @@ window.toggleFavorite = async function (placeId, btn) {
         const doc = await favRef.get();
         if (doc.exists) {
             await favRef.delete();
-            if (btn) btn.classList.remove("active");
+            if (btn) { btn.classList.remove("active"); btn.setAttribute("aria-pressed", "false"); btn.setAttribute("aria-label", "Save establishment"); }
             window.alert("Removed from favorites.");
         } else {
             const placeSnap = await window.db.collection("places").doc(placeId).get();
 const placeData = placeSnap.exists ? placeSnap.data() : {};
+if (!placeSnap.exists || placeData.owner_uid === userId) {
+    window.showToast?.('You cannot favorite your own establishment.', 'info');
+    return;
+}
 
 await favRef.set({
     userId,
@@ -4622,12 +6603,14 @@ await favRef.set({
 
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
 });
-            if (btn) btn.classList.add("active");
+            if (btn) { btn.classList.add("active"); btn.setAttribute("aria-pressed", "true"); btn.setAttribute("aria-label", "Remove from favorites"); }
             window.alert("Successfully added to favorites!");
         }
     } catch (e) {
         console.error("Favorite Error:", e);
         window.alert("Error updating favorites. Please try again later.");
+    } finally {
+        if (btn) btn.disabled = false;
     }
 };
 
@@ -4640,7 +6623,7 @@ window.submitRating = async function (placeId, score) {
     if (isRatingProcessing) return;
     isRatingProcessing = true;
     try {
-        await window.ViciData.command("review", { placeId, rating: score, isPublic: true });
+        await window.ViciData.command("review", { action:"rate", placeId, rating: score });
         window.invalidatePlacesCache?.();
         window.showToast?.("Rating saved.", "success");
         await window.viewPlace(placeId);
@@ -4687,42 +6670,40 @@ window.renderListView = function(filteredPlaces) {
 
         let ratingHtml = place.avgRating
             ? `<div style="display: flex; align-items: center; gap: 4px; font-size: 12px; color: #d97706; font-weight: 700;">
-                <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b; color:#f59e0b;"></i> ${escapeHtml(String(place.avgRating))} <span style="color: #94a3b8; font-weight: normal;">(${escapeHtml(String(place.reviewCount || 0))})</span>
+                <i data-lucide="star" style="width: 12px; height: 12px; fill: #f59e0b; color:#f59e0b;"></i> ${escapeHtml(String(place.avgRating))} <span style="color:var(--ui-muted); font-weight: normal;">(${escapeHtml(String(place.reviewCount || 0))})</span>
                </div>`
-            : `<div style="font-size: 11px; color: #94a3b8;">No ratings yet</div>`;
+            : `<div style="font-size: 11px; color:var(--ui-muted);">No ratings yet</div>`;
 
         // FIX ONLY: never show a raw ID/number or the literal word "ADDRESS" as the address
         const rawAddr = String(place.address || place.brgy || place.barangay || "").trim();
-        const addrLooksId = /^[a-zA-Z0-9_-]{9,}$/.test(rawAddr) && !/\s/.test(rawAddr);
+        const addrLooksId = /^[a-zA-Z0-9_-]{20,}$/.test(rawAddr) && /[0-9_-]/.test(rawAddr);
         const addrText = (!rawAddr || addrLooksId || rawAddr.toLowerCase() === "address") ? "Lipa City" : rawAddr;
 
         html += `
-        <div class="est-card ${freshness.className}" style="background: white; border: 1px solid #fde047; border-radius: 12px; padding: 16px; margin: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 16px; cursor: pointer;" data-place-card="${escapeHtml(place.id)}">
-            <div style="display: flex; gap: 16px; position: relative;">
-                <div style="position: relative; width: 72px; height: 72px; flex-shrink: 0; border-radius: 8px; border: 1px solid #f1f5f9;">
+        <div class="est-card place-list-card ${freshness.className}" style="background:var(--ui-surface); border: 1px solid #fde047; border-radius: 12px; padding: 16px; margin: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 16px; cursor: pointer;" data-place-card="${escapeHtml(place.id)}">
+            <div class="place-list-summary" style="display: flex; gap: 16px; position: relative;">
+                <div class="place-list-thumbnail" style="position: relative; width: 72px; height: 72px; flex-shrink: 0; border-radius: 8px; border: 1px solid #f1f5f9;">
                     ${imgHtml}
-                    <button type="button" class="place-list-action" data-action="favorite" data-place-id="${escapeHtml(place.id)}" aria-label="Save establishment" style="position: absolute; top: -6px; right: -6px; background: #facc15; border: 2px solid white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <i data-lucide="star" style="width: 12px; height: 12px; fill: white; color: white;"></i>
-                    </button>
                 </div>
-                <div style="flex: 1; min-width: 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${escapeHtml(place.name)} ${place.is_verified ? `<i data-lucide="badge-check" style="width: 16px; height: 16px; color: #3b82f6;"></i>` : ''}
+                <div class="place-list-info" style="flex: 1; min-width: 0;">
+                    <div class="place-list-heading" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 800; color:var(--ui-ink); display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${escapeHtml(place.name)} ${place.is_verified ? `<i data-lucide="badge-check" style="width: 16px; height: 16px; color:var(--ui-accent);"></i>` : ''}
                         </h3>
                         <i data-lucide="chevron-right" style="width: 18px; height: 18px; color: #cbd5e1; flex-shrink: 0;"></i>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-                        <div style="font-size: 13px; color: #64748b; text-transform: capitalize;">${escapeHtml(place.category || place.cat || "")}</div>
+                    <div class="place-list-meta" style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                        <div style="font-size: 13px; color:var(--ui-muted); text-transform: capitalize;">${escapeHtml(place.category || place.cat || "")}</div>
                         <div style="width: 3px; height: 3px; border-radius: 50%; background: #cbd5e1;"></div>
                         ${ratingHtml}
+                        <button type="button" class="place-list-action place-list-menu-trigger" data-action="menu" data-place-id="${escapeHtml(place.id)}"><i data-lucide="book-open"></i> Menu</button>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
-                        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid ${statusBorder}; color: ${statusColor}; background: ${statusBg};">
+                    <div class="place-list-badges" style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
+                        <span class="place-list-status is-${place.status === 'open' ? 'open' : place.status === 'busy' ? 'busy' : 'closed'}" style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid ${statusBorder}; color: ${statusColor}; background: ${statusBg};">
                             <span style="width: 6px; height: 6px; border-radius: 50%; background: ${statusDot};"></span>
                             <span data-i18n="${statusText}">${statusText}</span>
                         </span>
-                        <span style="font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 4px;">
+                        <span style="font-size: 12px; color:var(--ui-muted); display: flex; align-items: center; gap: 4px;">
                             <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> ${distText}
                         </span>
                         <span class="vici-freshness-badge ${freshness.className}" title="${escapeHtml(freshness.label)}" style="background:${freshness.bg}; border-color:${freshness.border}; color:${freshness.tone};">
@@ -4730,19 +6711,19 @@ window.renderListView = function(filteredPlaces) {
                             ${escapeHtml(freshness.shortLabel)}
                         </span>
                     </div>
-                    <div style="font-size: 11px; color: #94a3b8; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+                    <div data-no-translate class="place-list-address" style="font-size: 11px; color:var(--ui-muted); margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
                         ${escapeHtml(addrText)}
                     </div>
                 </div>
             </div>
-            <div style="display: flex; gap: 8px;">
-                <button type="button" class="place-list-action" data-action="chat" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background: white; border: 1px solid #e2e8f0; color: #0f172a; font-size: 13px; font-weight: 600; cursor: pointer;">
+            <div class="place-list-actions" style="display: flex; gap: 8px;">
+                <button type="button" class="place-list-action" data-action="chat" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background:var(--ui-surface); border: 1px solid #e2e8f0; color:var(--ui-ink); font-size: 13px; font-weight: 600; cursor: pointer;">
                     <i data-lucide="message-square" style="width: 14px; height: 14px;"></i> <span data-i18n="Chat">Chat</span>
                 </button>
-                <button type="button" class="place-list-action" data-action="booking" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background: white; border: 1px solid #e2e8f0; color: #0f172a; font-size: 13px; font-weight: 600; cursor: pointer;">
+                <button type="button" class="place-list-action" data-action="booking" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background:var(--ui-surface); border: 1px solid #e2e8f0; color:var(--ui-ink); font-size: 13px; font-weight: 600; cursor: pointer;">
                     <i data-lucide="calendar" style="width: 14px; height: 14px;"></i> <span data-i18n="Request">Request</span>
                 </button>
-                <button type="button" class="place-list-action" data-action="route" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background: #2563eb; border: none; color: white; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);">
+                <button type="button" class="place-list-action" data-action="route" data-place-id="${escapeHtml(place.id)}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; background: var(--ui-primary); border: none; color: white; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(35,126,114,0.18);">
                     <i data-lucide="send" style="width: 14px; height: 14px;"></i> <span data-i18n="Navigate">Navigate</span>
                 </button>
             </div>
@@ -4751,6 +6732,7 @@ window.renderListView = function(filteredPlaces) {
     });
 
     listContainer.innerHTML = html;
+    window.PlacePreview?.syncSelection?.();
     if (!listContainer.dataset.actionsBound) {
         listContainer.dataset.actionsBound = "true";
         listContainer.addEventListener("click", (event) => {
@@ -4759,13 +6741,18 @@ window.renderListView = function(filteredPlaces) {
             const place = listContainer._places.get(button?.dataset.placeId || card?.dataset.placeCard);
             event.stopPropagation();
             if (!place) return;
-            if (!button) { window.viewPlace(place.id); return; }
+            if (!button) { if (window.PlacePreview?.open) window.PlacePreview.open(place); else window.viewPlace(place.id); return; }
+            if (button.dataset.action === "menu") window.PlacePreview?.open(place);
             if (button.dataset.action === "favorite") window.toggleFavorite(place.id, button);
             if (button.dataset.action === "chat") window.openChatModal(place.id, place.name || "Establishment");
             if (button.dataset.action === "booking") window.openBookingModal(place.id, place.name || "Establishment");
             if (button.dataset.action === "route") {
                 const latitude = Number(place.lat), longitude = Number(place.lng);
-                if (Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) window.routeToPlace(latitude, longitude, place.name || "Establishment");
+                if (Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) {
+                    window.PlacePreview?.close?.();
+                    window.toggleView?.("map");
+                    window.routeToPlace(latitude, longitude, place.name || "Establishment");
+                }
                 else window.showToast?.("This establishment has no valid map location.", "error");
             }
         });
@@ -4874,6 +6861,8 @@ window.uploadImageFileToStorage = async function(file, folderName, options = {})
    ============================================================ */
 window.SukiDesign = (() => {
     const TEMPLATES = {
+        forest: {label:"Forest",colorMode:"gradient",color:"#216d5b",gradId:"forest",gradFrom:"#1b5649",gradTo:"#328d74",pattern:"waves"},
+        linen: {label:"Mint Linen",colorMode:"solid",color:"#edf5ef",gradId:"forest",gradFrom:"#edf5ef",gradTo:"#d8ebe0",pattern:"dots"},
         kraft:    { label: "Kraft",           colorMode: "solid",    color: "#a0714f", gradId: "sunset",   gradFrom: "#a0714f", gradTo: "#c49a6c", pattern: "beans" },
         minimal:  { label: "Minimal White",   colorMode: "solid",    color: "#f8fafc", gradId: "ocean",    gradFrom: "#ffffff", gradTo: "#e2e8f0", pattern: "dots" },
         midnight: { label: "Midnight",        colorMode: "gradient", color: "#0f172a", gradId: "midnight", gradFrom: "#0f172a", gradTo: "#475569", pattern: "lines" },
@@ -4882,6 +6871,7 @@ window.SukiDesign = (() => {
         custom:   { label: "Custom",          colorMode: "solid",    color: "#f59e0b", gradId: "sunset",   gradFrom: "#f97316", gradTo: "#ef4444", pattern: "none" }
     };
     const GRADIENTS = {
+        forest: {label:"Forest",from:"#1b5649",to:"#328d74"},
         sunset:   { label: "Sunset",   from: "#f97316", to: "#ef4444" },
         ocean:    { label: "Ocean",    from: "#0ea5e9", to: "#2563eb" },
         matcha:   { label: "Matcha",   from: "#84cc16", to: "#16a34a" },
@@ -4900,7 +6890,7 @@ window.SukiDesign = (() => {
 
 window.Suki = (() => {
     const D = window.SukiDesign;
-    const TOKEN_WINDOW_MS = 10000; // ~10s rotating window (demo-grade)
+    const TOKEN_WINDOW_MS = 60000; // Give phones more time to focus; still not a server-issued challenge.
 
     function sukiEsc(str) {
         if (str == null) return "";
@@ -4921,19 +6911,20 @@ window.Suki = (() => {
     function designOf(place) {
         const p = place || {};
         const cat = catDefault(p);
-        const gradPreset = D.GRADIENTS[p.suki_gradient] || null;
+        const gradPreset = Object.hasOwn(D.GRADIENTS,p.suki_gradient) ? D.GRADIENTS[p.suki_gradient] : null;
+        const hex = (value,fallback) => /^#[0-9a-f]{6}$/i.test(String(value||'')) ? String(value) : fallback;
         return {
             enabled: !!p.suki_enabled,
             stampCount: Math.max(2, Math.min(24, parseInt(p.suki_stamp_count, 10) || 8)),
             reward: String(p.suki_reward || "Free reward").slice(0, 120),
-            icon: String(p.suki_icon || cat.icon || "star"),
+            icon: /^[a-z0-9-]{1,40}$/.test(String(p.suki_icon || cat.icon || 'star')) ? String(p.suki_icon || cat.icon || 'star') : 'star',
             template: String(p.suki_template || "custom"),
             colorMode: p.suki_color_mode === "gradient" ? "gradient" : "solid",
-            color: String(p.suki_color || cat.color || "#f59e0b"),
+            color: hex(p.suki_color,'#237e72'),
             gradId: String(p.suki_gradient || "sunset"),
-            gradFrom: String(p.suki_gradient_from || (gradPreset && gradPreset.from) || "#f97316"),
-            gradTo: String(p.suki_gradient_to || (gradPreset && gradPreset.to) || "#ef4444"),
-            pattern: String(p.suki_pattern || "none"),
+            gradFrom: hex(p.suki_gradient_from,(gradPreset && gradPreset.from)||'#1b5649'),
+            gradTo: hex(p.suki_gradient_to,(gradPreset && gradPreset.to)||'#328d74'),
+            pattern: Object.hasOwn(D.PATTERNS,p.suki_pattern) ? p.suki_pattern : 'none',
             placeName: String(p.name || "Establishment")
         };
     }
@@ -4962,16 +6953,12 @@ window.Suki = (() => {
     function renderCard(place, card, opts) {
         opts = opts || {};
         const d = designOf(place);
-        const stamps = Math.max(0, parseInt(card && card.stamps, 10) || 0);
+        const stamps = Math.min(d.stampCount,Math.max(0, parseInt(card && card.stamps, 10) || 0));
         const full = stamps >= d.stampCount;
-        const baseForTone = full ? "#d4a017" : (d.colorMode === "gradient" ? d.gradFrom : d.color);
+        const baseForTone = d.colorMode === "gradient" ? d.gradFrom : d.color;
         const tone = textTone(baseForTone);
         const toneCls = tone === "#ffffff" ? "suki-on-dark" : "suki-on-light";
-        const bg = full
-            ? "linear-gradient(135deg,#7c5a00 0%,#d4a017 22%,#ffedb0 50%,#d4a017 78%,#7c5a00 100%)"
-            : (d.colorMode === "gradient"
-                ? `linear-gradient(135deg, ${d.gradFrom} 0%, ${d.gradTo} 100%)`
-                : d.color);
+        const bg = d.colorMode === "gradient" ? `linear-gradient(135deg, ${d.gradFrom} 0%, ${d.gradTo} 100%)` : d.color;
         const cardId = (card && (card.cardId || card.id)) || "";
         const custName = (card && card.customerName) || "";
         const claimed = !!(card && card.claimed);
@@ -4981,7 +6968,7 @@ window.Suki = (() => {
         for (let i = 0; i < d.stampCount; i++) {
             slots += `<span class="suki-slot ${i < stamps ? "got" : ""}"><i data-lucide="${sukiEsc(d.icon)}"></i></span>`;
         }
-        const remaining = d.stampCount - stamps;
+        const remaining = Math.max(0,d.stampCount - stamps);
         const watermarkFront = d.pattern === "watermark"
             ? `<i data-lucide="${sukiEsc(d.icon)}" class="suki-watermark"></i>` : "";
         // The back face always carries the large faint watermark icon.
@@ -4994,7 +6981,7 @@ window.Suki = (() => {
             : "";
 
         return `
-        <div class="suki-3d" data-suki-card>
+        <div class="suki-3d${d.stampCount>12||d.reward.length>60||d.placeName.length>28?' suki-dense':''}" data-suki-card style="--suki-columns:${d.stampCount<=6?d.stampCount:d.stampCount<=8?4:d.stampCount<=10?5:d.stampCount<=18?6:8}" data-stamp-count="${d.stampCount}">
             <div class="suki-flip">
                 <div class="suki-face suki-front ${toneCls}" style="background:${sukiEsc(bg)}; color:${tone};">
                     <div class="suki-pattern suki-pattern-${sukiEsc(d.pattern)}"></div>
@@ -5003,13 +6990,13 @@ window.Suki = (() => {
                     <div class="suki-content">
                         <div class="suki-top">
                             <span class="suki-badge-icon"><i data-lucide="${sukiEsc(d.icon)}"></i></span>
-                            <span class="suki-name">${sukiEsc(d.placeName)}</span>
-                            ${full ? `<span class="suki-gold-tag">GOLD</span>` : ""}
+                            <span class="suki-name" title="${sukiEsc(d.placeName)}">${sukiEsc(d.placeName)}</span>
+                            ${full ? `<span class="suki-gold-tag">${claimed ? 'Claimed' : claimReq ? 'Claim pending' : 'Reward ready'}</span>` : ""}
                         </div>
                         <div class="suki-stamps">${slots}</div>
                         <div class="suki-progress"><b>${stamps} / ${d.stampCount}</b> stamps</div>
-                        <div class="suki-reward"><span><i data-lucide="gift"></i></span><span>${sukiEsc(d.reward)}</span></div>
-                        <div class="suki-remaining">${full ? "Card is full!" : `${remaining} more stamp${remaining === 1 ? "" : "s"} to go`}</div>
+                        <div class="suki-reward"><span><i data-lucide="gift"></i></span><span title="${sukiEsc(d.reward)}">${sukiEsc(d.reward)}</span></div>
+                        <div class="suki-remaining">${claimed ? "Reward claimed" : claimReq ? "Claim sent for review" : full ? "Your reward is ready" : `${remaining} more stamp${remaining === 1 ? "" : "s"} to go`}</div>
                     </div>
                     <button type="button" class="suki-flip-btn" data-suki-flip title="Flip" aria-label="Flip card"><i data-lucide="rotate-3d"></i></button>
                 </div>
@@ -5021,7 +7008,7 @@ window.Suki = (() => {
                         <div class="suki-back-title">Suki Card</div>
                         <div class="suki-back-row"><span>Reward</span><b><i data-lucide="gift" style="width:14px;height:14px;vertical-align:-2px;"></i> ${sukiEsc(d.reward)}</b></div>
                         <div class="suki-back-row"><span>Card ID</span><b class="suki-mono">${sukiEsc(cardId || "—")}</b></div>
-                        <div class="suki-back-row"><span>Owner</span><b>${sukiEsc(custName || "—")}</b></div>
+                        <div class="suki-back-row"><span>Cardholder</span><b>${sukiEsc(custName || "—")}</b></div>
                         <div class="suki-back-row"><span>Status</span><b>${sukiEsc(statusText)}</b></div>
                         ${claimBtn}
                     </div>
@@ -5161,7 +7148,7 @@ window.Suki = (() => {
     }
 
     /* ---------- rotating QR token (demo-grade) ---------- */
-    function tokenWindow(nowMs) { return Math.floor((nowMs || Date.now()) / TOKEN_WINDOW_MS); }
+    function tokenWindow(nowMs) { return Math.floor((nowMs ?? Date.now()) / TOKEN_WINDOW_MS); }
     // Token format: VICINIFY-SUKI|<placeId>|<windowId>
     function makeToken(placeId, nowMs) { return `VICINIFY-SUKI|${placeId}|${tokenWindow(nowMs)}`; }
     function parseToken(str) {
@@ -5169,34 +7156,33 @@ window.Suki = (() => {
         if (!m) return null;
         return { placeId: m[1], windowId: parseInt(m[2], 10) };
     }
-    // DEMO-GRADE validation: recompute the time window in JS (allows
-    // the previous window for clock skew). NOT a server-side check.
+    // DEMO-GRADE validation: permit up to one QR window of clock skew
+    // in either direction. NOT a signed token or server-side check.
     function tokenValid(parsed, nowMs) {
         if (!parsed || !parsed.placeId || !Number.isFinite(parsed.windowId)) return false;
         const cur = tokenWindow(nowMs);
-        return parsed.windowId === cur || parsed.windowId === cur - 1;
+        return Math.abs(parsed.windowId - cur) <= 1;
     }
 
+    const sukiLibraryLoads = new Map();
     function loadScriptOnce(src) {
-        return new Promise((resolve, reject) => {
-            if (document.querySelector(`script[data-suki-lib="${src}"]`)) return resolve();
-            const s = document.createElement("script");
-            s.src = src;
-            s.async = true;
-            s.setAttribute("data-suki-lib", src);
-            s.onload = () => resolve();
-            s.onerror = () => reject(new Error("Failed to load " + src));
-            document.head.appendChild(s);
-        });
+        if(src.includes('qrcode')&&window.QRCode || src.includes('jsQR')&&window.jsQR)return Promise.resolve();
+        if(sukiLibraryLoads.has(src))return sukiLibraryLoads.get(src);
+        const promise=new Promise((resolve,reject)=>{
+            const script=document.createElement('script');script.src=src;script.async=true;script.dataset.sukiLib=src;
+            script.onload=()=>resolve();script.onerror=()=>{script.remove();sukiLibraryLoads.delete(src);reject(new Error('Failed to load scanner library.'));};
+            document.head.append(script);
+        });sukiLibraryLoads.set(src,promise);return promise;
     }
-    const QR_LIB = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
-    const JSQR_LIB = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js";
+    const QR_LIB = "/js/vendor/qrcode.min.js";
+    const JSQR_LIB = "/js/vendor/jsQR.js";
 
     // Owner-side: rotating QR display. The timer is module-level, not
     // element-tracked: mountPlaceSection replaces the [data-suki-qr]
     // element via innerHTML on every visit, which orphaned the timer
     // on the destroyed element — one leaked 1s interval per visit,
     // the reported establishment-page lag. (v53 lag fix)
+    let activeSukiScannerClose = null;
     let ownerQrTimer = null;
     let ownerQrGen = 0;
     async function renderOwnerQr(el, placeId) {
@@ -5217,7 +7203,7 @@ window.Suki = (() => {
         const paint = () => {
             box.innerHTML = "";
             const token = makeToken(placeId);
-            try { new window.QRCode(box, { text: token, width: 180, height: 180, correctLevel: window.QRCode.CorrectLevel.M }); }
+            try { new window.QRCode(box, { text: token, width: 224, height: 224, colorDark: "#000000", colorLight: "#ffffff", correctLevel: window.QRCode.CorrectLevel.M }); }
             catch (e) { box.textContent = token; }
             el.querySelector(".suki-qr-token").textContent = token;
         };
@@ -5225,9 +7211,9 @@ window.Suki = (() => {
         const tick = () => {
             const w = tokenWindow();
             if (w !== lastWindow) { lastWindow = w; paint(); }
-            const left = 10 - Math.floor(Date.now() / 1000) % 10;
+            const remaining = Math.ceil((TOKEN_WINDOW_MS - (Date.now() % TOKEN_WINDOW_MS)) / 1000);
             const countEl = el.querySelector(".suki-qr-count");
-            if (countEl) countEl.textContent = `Token refreshes every 10s • ${left}s left`;
+            if (countEl) countEl.textContent = `QR refreshes every 60s · ${remaining}s left`;
         };
         if (gen !== ownerQrGen) return; // superseded: a newer mount/unmount won the race
         paint();
@@ -5243,39 +7229,55 @@ window.Suki = (() => {
        full QRCode into detached DOM every 10s. The timer is now module-scoped
        with a generation counter: re-mounting increments the generation so stale
        async mounts abort, and unmounting clears the interval outright. */
+    let sukiPlaceMountGeneration = 0;
+    let sukiPlaceLiveStops = [];
+    function stopSukiPlaceLive() {
+        sukiPlaceLiveStops.forEach(stop => { try { stop(); } catch (_) {} });
+        sukiPlaceLiveStops = [];
+        window.SukiPlaceMarkPending = null;
+        window.SukiPlaceSubmissionState = null;
+    }
     function unmountPlaceSection() {
+        stopSukiPlaceLive();
+        sukiPlaceMountGeneration++; // invalidate any pending Firestore reads for the old establishment
+        activeSukiScannerClose?.();
         ownerQrGen++;
         if (ownerQrTimer) { clearInterval(ownerQrTimer); ownerQrTimer = null; }
         if (window.SukiPlaceRefresh) window.SukiPlaceRefresh = null;
     }
 
     /* ---------- stamp request / claim flows ---------- */
-    async function createCardDocIfMissing(place) {
-        const user = window.auth?.currentUser;
-        if (!user || !place || !place.id) return;
-        const cardId = `${place.id}_${user.uid}`;
+    async function pendingSukiRequest(placeId, customerUid) {
         try {
-            // Rules let the customer create their own card doc on first
-            // request (deterministic ID). merge:true keeps it idempotent.
-            await window.db.collection("loyalty_cards").doc(cardId).set({
-                placeId: place.id,
-                customerUid: user.uid,
-                customerName: customerDisplayName(),
-                stamps: 0,
-                claimed: false,
-                claimRequested: false,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-        } catch (err) {
-            // Non-fatal: the owner approval still creates the card.
-            // Swallow permission-denied quietly: on repeat requests the doc
-            // already exists and customers may only touch claim fields.
-            if (err && err.code !== "permission-denied") window.handleFirestoreError(err);
-            else console.warn("[suki] card doc ensure skipped:", (err && err.code) || err);
+            return await window.db.collection('stamp_requests')
+                .where('placeId', '==', placeId)
+                .where('customerUid', '==', customerUid)
+                .where('status', '==', 'pending')
+                .limit(1).get();
+        } catch (error) {
+            if (error?.code !== 'failed-precondition') throw error;
+            // Older deployments sometimes lack the three-field composite
+            // index. Query only the authenticated customer (a built-in
+            // single-field index), then filter locally until the provided
+            // firestore.indexes.json has been deployed. No cross-user read.
+            console.warn('[suki] stamp_requests composite index missing; using customer-scoped fallback.');
+            const scoped = await window.db.collection('stamp_requests')
+                .where('customerUid', '==', customerUid).get();
+            const docs = scoped.docs.filter(doc => {
+                const data = doc.data();
+                return data.placeId === placeId && data.customerUid === customerUid && data.status === 'pending';
+            }).slice(0, 1);
+            return { empty: docs.length === 0, docs };
         }
     }
-
+    // A successful QR scan may reuse a recently verified GPS fix for at most
+    // eight seconds. This removes the second slow iOS GPS lookup on a quick
+    // scan, without accepting expired/failed geolocation checks. Direct
+    // requestStamp calls still perform their own fresh location verification.
+    let recentScanProof = null;
+    let stampSubmitBusy = false;
     async function requestStamp(place) {
+        if (stampSubmitBusy) return;
         const user = window.auth?.currentUser;
         if (!user) { if (typeof showPage === "function") showPage("page-login"); return; }
         if (!place || !place.id) return;
@@ -5283,17 +7285,27 @@ window.Suki = (() => {
             window.showToast?.("This is your own store — you can't request a stamp from yourself.", "error");
             return;
         }
+        if (user.emailVerified === false) { window.showToast?.('Verify your email before requesting a stamp.', 'error'); return; }
+        // Always verify here as well; direct calls to Suki.requestStamp must
+        // never skip the location gate. A browser GPS value is not tamper-proof.
+        const proof = recentScanProof;
+        recentScanProof = null; // consume immediately; never retain an unlock
+        const pin = scanPlaceCoords(place);
+        const useProof = !!(proof && proof.placeId === place.id &&
+            proof.userUid === user.uid && proof.checkedAt <= Date.now() &&
+            Date.now() - proof.checkedAt <= 8000 && pin &&
+            proof.lat === pin.lat && proof.lng === pin.lng && proof.proximity?.ok);
+        const proximity = useProof ? proof.proximity : await verifyScanLocation(place);
+        if (!proximity.ok) { window.showToast?.(proximity.msg || 'You must be near the establishment to scan.', 'error'); return; }
+        stampSubmitBusy = true;
+        window.SukiPlaceSubmissionState?.('sending');
         try {
-            const dup = await window.db.collection("stamp_requests")
-                .where("placeId", "==", place.id)
-                .where("customerUid", "==", user.uid)
-                .where("status", "==", "pending")
-                .limit(1).get();
+            const dup = await pendingSukiRequest(place.id, user.uid);
             if (!dup.empty) {
                 window.showToast?.("You already have a pending stamp request — waiting for the owner's approval.", "info");
                 return;
             }
-            await window.db.collection("stamp_requests").add({
+            const requestDoc = await window.db.collection("stamp_requests").add({
                 placeId: place.id,
                 placeName: place.name || "",
                 owner_uid: place.owner_uid || "",
@@ -5302,12 +7314,21 @@ window.Suki = (() => {
                 status: "pending",
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
-            await createCardDocIfMissing(place);
+            // Owner approval creates the card atomically (if needed). Writing a
+            // zero-stamp card *after* request submission can race an approval
+            // and reset a newly awarded stamp to zero. Do not do that here.
+            window.SukiPlaceMarkPending?.({ id: requestDoc?.id || '', status: 'pending', placeId: place.id });
             window.showToast?.("Stamp request sent! Please wait for the owner's approval.", "success");
         } catch (err) {
-            window.handleFirestoreError(err, "Could not send the stamp request.");
+            if (err?.code === 'failed-precondition') {
+                window.showToast?.('Suki request could not be checked. The Firestore stamp_requests index may still need deployment.', 'error');
+            } else if (err?.code === 'permission-denied') {
+                window.showToast?.('Stamp request denied. Check that your account email is verified and that this store is enabled.', 'error');
+            } else window.handleFirestoreError?.(err, 'Could not send the stamp request.');
+        } finally {
+            stampSubmitBusy = false;
+            window.SukiPlaceSubmissionState?.('idle');
         }
-        if (typeof window.SukiPlaceRefresh === "function") window.SukiPlaceRefresh();
     }
 
     async function cancelRequest(requestId) {
@@ -5404,147 +7425,306 @@ window.Suki = (() => {
         } catch (err) { window.handleFirestoreError(err, "Could not mark the claim."); }
     }
 
-    /* ---------- Vicinify Scan: live-camera QR + location verification ---------- */
-    // Anti-fraud: stamps are requested ONLY through this built-in live-camera
-    // scanner. There is no image-upload / screenshot option and no scan-less
-    // request button. After a valid rotating token, the customer's location
-    // is verified against the establishment's coordinates (200 m radius).
-    // The owner-tap [Approve]/[Reject] inbox stays as the final gate.
-    const SUKI_SCAN_RADIUS_M = 200;
+    /* ---------- Vicinify Scan: live-camera QR + strict proximity verification ---------- */
+    // A browser cannot prove a GPS reading has not been spoofed. This gate
+    // rejects distant/unknown locations in the normal UI; the owner still
+    // must approve each stamp. Do not treat it as server-enforced geofencing.
+    const SUKI_SCAN_RADIUS_M = 150;
+    const SUKI_MAX_GPS_ACCURACY_M = 100;
 
     function haversineM(lat1, lon1, lat2, lon2) {
         const R = 6371000;
-        const toRad = d => d * Math.PI / 180;
-        const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-            + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2))
-            * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        return 2 * R * Math.asin(Math.sqrt(a));
+        const rad = d => d * Math.PI / 180;
+        const dLat = rad(lat2 - lat1), dLng = rad(lon2 - lon1);
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return 2 * R * Math.asin(Math.min(1, Math.sqrt(Math.max(0, a))));
     }
 
-    // Device-side only (zero Firestore cost). Resolves {ok:true} or
-    // {ok:false, msg}. Skips the check when the place has no coordinates.
+    function scanPlaceCoords(place) {
+        // No fallback to a map viewport, customer GPS, or (0,0): only the
+        // actual saved establishment pin qualifies for a stamp.
+        const lat = Number(place?.lat), lng = Number(place?.lng);
+        if (place?.lat == null || place?.lng == null ||
+            String(place.lat).trim() === '' || String(place.lng).trim() === '' ||
+            !Number.isFinite(lat) || !Number.isFinite(lng) ||
+            Math.abs(lat) > 90 || Math.abs(lng) > 180 || (lat === 0 && lng === 0)) return null;
+        return { lat, lng };
+    }
+
+    function checkScanDistance(place, position) {
+        const pin = scanPlaceCoords(place);
+        if (!pin) return { ok: false, reason: 'missing-pin', msg: "This store has no valid map pin. Ask the business owner to correct the establishment's location before scanning." };
+        const coords = position?.coords;
+        const lat = Number(coords?.latitude), lng = Number(coords?.longitude);
+        const accuracy = Number(coords?.accuracy);
+        if (!coords || !Number.isFinite(lat) || !Number.isFinite(lng) ||
+            Math.abs(lat) > 90 || Math.abs(lng) > 180 || !Number.isFinite(accuracy) || accuracy < 0) {
+            return { ok: false, reason: 'gps-unavailable', msg: 'Could not verify your current location. Turn on precise location and try again.' };
+        }
+        if (accuracy > SUKI_MAX_GPS_ACCURACY_M) {
+            return { ok: false, reason: 'gps-inaccurate', accuracy, msg: `Your GPS is only accurate to about ${Math.round(accuracy)} m. Enable Precise Location or move to an open area, then retry.` };
+        }
+        const distance = haversineM(lat, lng, pin.lat, pin.lng);
+        // Account for GPS uncertainty so someone apparently beyond the
+        // radius is not accepted just because the device reports a wide fix.
+        if (distance + accuracy > SUKI_SCAN_RADIUS_M) {
+            return { ok: false, reason: 'too-far', distance, accuracy, msg: `You must be within ${SUKI_SCAN_RADIUS_M} m of this store to scan. Your reported distance is about ${Math.round(distance)} m (±${Math.round(accuracy)} m).` };
+        }
+        return { ok: true, distance, accuracy };
+    }
+
+    // Always get a fresh, accurate position. Missing pin, denied permissions,
+    // expired fixes, and browser geolocation errors must NOT bypass scanning.
     function verifyScanLocation(place) {
-        const plat = parseFloat(place && place.lat);
-        const plng = parseFloat(place && place.lng);
-        if (!isFinite(plat) || !isFinite(plng)) return Promise.resolve({ ok: true, skipped: true });
-        if (!navigator.geolocation) {
-            return Promise.resolve({ ok: false, msg: "Location is not available on this device. Please scan from a device with location services." });
+        const pin = scanPlaceCoords(place);
+        if (!pin) return Promise.resolve(checkScanDistance(place));
+        if (!navigator.geolocation?.getCurrentPosition) {
+            return Promise.resolve({ ok: false, reason: 'gps-unavailable', msg: 'Location services are unavailable. Use a phone with GPS and enable location permission to scan.' });
         }
         return new Promise(resolve => {
             navigator.geolocation.getCurrentPosition(
-                pos => {
-                    const d = haversineM(pos.coords.latitude, pos.coords.longitude, plat, plng);
-                    if (d <= SUKI_SCAN_RADIUS_M) resolve({ ok: true });
-                    else resolve({ ok: false, msg: "You must be at the establishment to scan for a stamp." });
+                position => resolve({ ...checkScanDistance(place, position), verifiedAt: Date.now() }),
+                error => {
+                    const denied = error?.code === 1;
+                    const timedOut = error?.code === 3;
+                    resolve({ ok: false, reason: denied ? 'gps-denied' : 'gps-unavailable', msg: denied
+                        ? 'Location permission is blocked. Allow Precise Location for Vicinify in your browser settings and try again.'
+                        : timedOut ? 'Getting your GPS location took too long. Turn on Location and try again outside or near a window.'
+                            : 'Could not get your GPS location. Enable location services and try again.' });
                 },
-                err => {
-                    const denied = err && err.code === 1;
-                    resolve({
-                        ok: false,
-                        msg: denied
-                            ? "Location access was denied. Please enable location permissions for this site and try again."
-                            : "Could not determine your location. Please enable location services and try again."
-                    });
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
             );
         });
     }
+
+    function scannerErrorMessage(error) {
+        if (error?.name === 'NotAllowedError' || error?.name === 'PermissionDeniedError') return 'Camera permission was denied. Allow camera access for this website in your browser settings.';
+        if (error?.name === 'NotFoundError' || error?.name === 'DevicesNotFoundError') return 'No camera was found. Open Vicinify on a phone with a camera.';
+        if (error?.name === 'NotReadableError' || error?.name === 'TrackStartError') return 'Camera is in use by another app. Close the other app and try again.';
+        if (error?.name === 'OverconstrainedError') return 'Could not start the rear camera. Try again with the device camera enabled.';
+        return 'Could not start the camera. Check browser camera permissions and try again.';
+    }
+
     async function openScanner(expectedPlace) {
-        const overlay = document.createElement("div");
-        overlay.className = "suki-scan-overlay";
+        activeSukiScannerClose?.();
+        if (!window.auth?.currentUser) { window.showToast?.('Log in to scan a Suki Card.', 'error'); return; }
+        if (window.auth.currentUser.emailVerified === false) { window.showToast?.('Verify your email address before requesting a stamp.', 'error'); return; }
+        if (!navigator.mediaDevices?.getUserMedia) { window.showToast?.('Camera scanning requires HTTPS and a supported browser. Try Chrome or Safari on your phone.', 'error'); return; }
+        if (!window.isSecureContext && window.location?.hostname !== 'localhost') { window.showToast?.('Camera and GPS permissions require a secure HTTPS website.', 'error'); return; }
+
+        const overlay = document.createElement('div');
+        overlay.className = 'suki-scan-overlay';
+        overlay.setAttribute('role','dialog');
+        overlay.setAttribute('aria-label','Vicinify Suki QR scanner');
         overlay.innerHTML = `
             <div class="suki-scan-box">
-                <div style="padding:14px 16px; display:flex; align-items:center; justify-content:space-between;">
-                    <b style="color:#fff; font-size:15px;">Vicinify Scan</b>
-                    <button type="button" class="suki-scan-close" style="background:rgba(255,255,255,.12); color:#fff; border:none; border-radius:8px; padding:8px 12px; font-weight:700; cursor:pointer;">Close</button>
+                <div class="suki-scan-title">
+                    <b>Vicinify Scan</b>
+                    <button type="button" class="suki-scan-close">Close</button>
                 </div>
-                <video playsinline muted style="width:100%; display:block; background:#000;"></video>
-                <canvas style="display:none;"></canvas>
-                <div class="suki-scan-hint">Point the camera at the store's Suki QR. You must be at the establishment — your location will be verified.</div>
+                <div class="suki-scan-camera"><video playsinline muted autoplay></video><canvas hidden></canvas></div>
+                <div class="suki-scan-hint" role="status" aria-live="polite">Checking that you're within ${SUKI_SCAN_RADIUS_M} m of this establishment…</div>
             </div>`;
         document.body.appendChild(overlay);
-        try { await loadScriptOnce(JSQR_LIB); }
-        catch (e) {
-            overlay.remove();
-            window.showToast?.("Could not load the scanner. Please check your connection and try again.", "error");
-            return;
-        }
-        const video = overlay.querySelector("video");
-        const canvas = overlay.querySelector("canvas");
-        const ctx = canvas.getContext("2d", { willReadFrequently: true });
-        let stream = null, raf = 0, done = false;
+        const hint = overlay.querySelector('.suki-scan-hint');
+        const video = overlay.querySelector('video');
+        const canvas = overlay.querySelector('canvas');
+        let done = false, stream = null, raf = 0, decodeBusy = false, lastDecode = 0;
+        let geoWatchId = null, latestGeo = null;
         const close = () => {
+            if (done) return;
             done = true;
             cancelAnimationFrame(raf);
-            if (stream) stream.getTracks().forEach(t => t.stop());
-            overlay.remove();
-        };
-        overlay.querySelector(".suki-scan-close").onclick = close;
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-        } catch (e) {
-            close();
-            window.showToast?.("Could not open the camera. Please allow camera access and try again.", "error");
-            return;
-        }
-        video.srcObject = stream;
-        try { await video.play(); } catch (e) { close(); return; }
-        const loop = () => {
-            if (done) return;
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0);
-                try {
-                    const code = window.jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
-                    if (code && code.data) {
-                        const parsed = parseToken(String(code.data).trim());
-                        if (parsed && tokenValid(parsed) && (!expectedPlace || parsed.placeId === expectedPlace.id)) {
-                            close();
-                            requestStampForPlaceId(parsed.placeId);
-                            return;
-                        }
-                    }
-                } catch (e) { /* keep scanning */ }
+            if (geoWatchId !== null) {
+                try { navigator.geolocation?.clearWatch?.(geoWatchId); } catch (_) {}
+                geoWatchId = null;
             }
-            raf = requestAnimationFrame(loop);
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            video.srcObject = null;
+            overlay.remove();
+            if (activeSukiScannerClose === close) activeSukiScannerClose = null;
         };
-        loop();
+        activeSukiScannerClose = close;
+        overlay.querySelector('.suki-scan-close').onclick = close;
+
+        try {
+            // Verify before ever opening the camera; use the current saved
+            // Firebase place coordinates rather than potentially stale UI data.
+            if (!expectedPlace?.id) throw new Error('Store not identified. Open the establishment and try again.');
+            const storeSnap = await window.db.collection('places').doc(expectedPlace.id).get();
+            if (done) return;
+            if (!storeSnap.exists) throw new Error('This store was not found.');
+            const store = { ...storeSnap.data(), id: storeSnap.id };
+            if (!store.suki_enabled) throw new Error('This store does not currently offer Suki Card stamps.');
+            const near = await verifyScanLocation(store);
+            if (done) return;
+            if (!near.ok) throw new Error(near.msg);
+            latestGeo = near;
+            hint.textContent = `Location verified. You are about ${Math.round(near.distance)} m away. Point your camera at the store's current Suki QR.`;
+            // Keep the GPS fix fresh while the QR camera is running. On most
+            // phones this avoids a blocking second GPS lookup even if the
+            // customer needs several seconds to focus on the QR.
+            if (typeof navigator.geolocation?.watchPosition === 'function') {
+                try {
+                    geoWatchId = navigator.geolocation.watchPosition(position => {
+                        if (done) return;
+                        latestGeo = { ...checkScanDistance(store, position), verifiedAt: Date.now() };
+                        if (!latestGeo.ok) hint.textContent = latestGeo.msg;
+                    }, () => {}, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
+                } catch (_) { geoWatchId = null; }
+            }
+            await loadScriptOnce(JSQR_LIB);
+            if (done) return;
+            if (typeof window.jsQR !== 'function') throw new Error('Scanner library unavailable. Please refresh Vicinify and retry.');
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+            } catch (cameraError) {
+                // Some browsers reject ideal video constraints. Try a simpler
+                // request, and retain a useful error if permissions are denied.
+                if (cameraError?.name === 'OverconstrainedError') {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                } else throw new Error(scannerErrorMessage(cameraError));
+            }
+            if (done) { stream.getTracks().forEach(t => t.stop()); return; }
+            video.srcObject = stream;
+            await video.play();
+            if (done) return;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            if (!ctx) throw new Error('This browser could not initialize the camera scanner.');
+
+            // Use native QR detection on supported devices, with bundled
+            // jsQR as a cross-browser fallback. No photo uploads or manual
+            // entry are permitted for customer stamp requests.
+            let nativeDetector = null;
+            if (typeof window.BarcodeDetector === 'function') {
+                try { nativeDetector = new window.BarcodeDetector({ formats: ['qr_code'] }); } catch (_) {}
+            }
+            const decode = async () => {
+                if (done || decodeBusy) return;
+                const now = performance.now();
+                if (now - lastDecode < 130) return;
+                if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) return;
+                lastDecode = now;
+                decodeBusy = true;
+                try {
+                    let content = null;
+                    if (nativeDetector) {
+                        try {
+                            const codes = await nativeDetector.detect(video);
+                            content = codes?.find(q => q?.rawValue)?.rawValue || null;
+                        } catch (_) { nativeDetector = null; }
+                    }
+                    if (!content && !done) {
+                        const scale = Math.min(1, 960 / video.videoWidth);
+                        const width = Math.max(1, Math.round(video.videoWidth * scale));
+                        const height = Math.max(1, Math.round(video.videoHeight * scale));
+                        if (canvas.width !== width) canvas.width = width;
+                        if (canvas.height !== height) canvas.height = height;
+                        ctx.drawImage(video, 0, 0, width, height);
+                        const result = window.jsQR(ctx.getImageData(0, 0, width, height).data, width, height, { inversionAttempts: 'attemptBoth' });
+                        content = result?.data || null;
+                    }
+                    if (done || !content) return;
+                    const parsed = parseToken(String(content).trim());
+                    if (!parsed) { hint.textContent = 'This is not a Vicinify Suki QR. Scan the QR shown by the establishment.'; return; }
+                    if (parsed.placeId !== store.id) { hint.textContent = 'This QR belongs to a different establishment.'; return; }
+                    if (!tokenValid(parsed)) { hint.textContent = 'This QR expired. Ask the store to display its current QR and try again.'; return; }
+                    if (!latestGeo?.ok) { hint.textContent = latestGeo?.msg || 'Your location could not be verified. Try again.'; return; }
+                    const finalGeo = latestGeo;
+                    close();
+                    const pin = scanPlaceCoords(store);
+                    recentScanProof = pin ? { placeId: store.id, userUid: window.auth?.currentUser?.uid,
+                        checkedAt: finalGeo.verifiedAt || 0, proximity: finalGeo, lat: pin.lat, lng: pin.lng } : null;
+                    // The current store was just verified from Firebase.
+                    // Do not fetch it again on the successful QR path.
+                    await requestStamp(store);
+                } catch (error) {
+                    if (!done) { console.warn('[suki] scanner decode:', error); hint.textContent = 'Could not read QR. Hold the camera steady in good lighting and try again.'; }
+                } finally { decodeBusy = false; }
+            };
+            const loop = () => { if (done) return; raf = requestAnimationFrame(loop); void decode(); };
+            loop();
+        } catch (error) {
+            const message = error?.message || scannerErrorMessage(error);
+            close();
+            window.showToast?.(message, 'error');
+            console.warn('[suki] scanner:', message);
+        }
     }
 
     async function requestStampForPlaceId(placeId) {
         if (!placeId) return;
         try {
-            const snap = await window.db.collection("places").doc(placeId).get();
-            if (!snap.exists) { window.showToast?.("Store not found.", "error"); return; }
-            const place = { id: snap.id, ...snap.data() };
-            if (!place.suki_enabled) { window.showToast?.("This store has no Suki Card.", "info"); return; }
-            // Anti-fraud location gate (device-side, zero Firestore cost).
-            const loc = await verifyScanLocation(place);
-            if (!loc.ok) { window.showToast?.(loc.msg, "error"); return; }
+            const snap = await window.db.collection('places').doc(placeId).get();
+            if (!snap.exists) { window.showToast?.('Store not found.', 'error'); return; }
+            const place = { ...snap.data(), id: snap.id };
+            if (!place.suki_enabled) { window.showToast?.('This store has no active Suki Card.', 'error'); return; }
             await requestStamp(place);
-        } catch (err) { window.handleFirestoreError(err, "Could not load the store."); }
+        } catch (error) { window.handleFirestoreError?.(error, 'Could not verify this Suki stamp.'); }
     }
 
     /* ---------- place-page mount ---------- */
     async function mountPlaceSection(place, isOwner) {
         const el = document.getElementById("placeSukiSection");
-        if (!el) return;
-        const d = designOf(place);
-        if (!d.enabled) { el.remove(); return; }
-        const user = window.auth?.currentUser;
+        if (!el || !place?.id) return;
+        // The public map intentionally caches places for five minutes. A saved
+        // Suki configuration must NOT depend on that cached copy: always read
+        // the current establishment document before deciding whether to show it.
+        stopSukiPlaceLive();
+        const generation = ++sukiPlaceMountGeneration;
+        const stillHere = () => generation === sukiPlaceMountGeneration &&
+            document.getElementById('placeSukiSection') === el;
+        el.innerHTML = '<div class="suki-place-block"><p class="suki-note" role="status">Checking Suki Card availability…</p></div>';
+        let livePlace;
+        try {
+            const snap = await window.db.collection('places').doc(place.id).get();
+            if (!stillHere()) return;
+            if (!snap.exists) throw new Error('This establishment could not be found.');
+            livePlace = { ...snap.data(), id: snap.id };
+        } catch (error) {
+            if (!stillHere()) return;
+            console.warn('[suki] could not load fresh establishment details:', error);
+            el.innerHTML = `<div class="suki-place-block">
+                <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card</h3></div>
+                <p class="suki-note" role="alert">Couldn't verify this establishment's current Suki Card status. Check your connection and try again.</p>
+                <button type="button" class="suki-req-btn" data-suki-retry>Retry</button>
+            </div>`;
+            el.querySelector('[data-suki-retry]')?.addEventListener('click', () => mountPlaceSection(place, isOwner));
+            window.debouncedIcons?.();
+            return;
+        }
+        if (!designOf(livePlace).enabled) {
+            // Keep the mount point in the DOM: removing the div made a
+            // subsequently enabled Suki Card impossible to mount in this view.
+            if (isOwner) {
+                el.innerHTML = `<div class="suki-place-block">
+                    <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card is off</h3></div>
+                    <p class="suki-note">Enable and save your card in Suki Card Studio to show it to customers.</p>
+                    <button type="button" class="suki-req-btn" data-suki-edit>Edit Suki Card</button>
+                </div>`;
+                el.querySelector('[data-suki-edit]')?.addEventListener('click', () => window.DashboardPage?.openSukiStudio?.(livePlace.id));
+                window.debouncedIcons?.();
+            } else el.replaceChildren();
+            return;
+        }
 
+        const user = window.auth?.currentUser;
+        // Store owners need to see the actual public-facing card design, not
+        // just the QR. The preview is *not* a real customer's loyalty card.
         if (isOwner) {
             el.innerHTML = `
                 <div class="suki-place-block">
-                    <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card — Owner view</h3></div>
-                    <p class="suki-note">Show this QR to the customer so they can scan it and request a stamp. The token changes every 10 seconds.</p>
+                    <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Store Suki Card</h3></div>
+                    <p class="suki-note">This is the card design your customers will see.</p>
+                    <div class="suki-place-preview">${renderCard(livePlace, { stamps: 0, customerName: 'Preview' }, { hideActions: true })}</div>
+                    <div class="suki-place-actions"><button type="button" class="suki-req-btn" data-suki-edit><i data-lucide="pencil"></i> Edit Suki Card</button></div>
+                    <div class="suki-place-head" style="margin-top:22px"><i data-lucide="qr-code"></i><h3>Store Suki QR</h3></div>
+                    <p class="suki-note">Customers must be near your saved map pin (within 150 m, allowing for GPS accuracy) to scan. You approve or reject each request.</p>
                     <div data-suki-qr></div>
                 </div>`;
-            window.debouncedIcons?.();
-            renderOwnerQr(el.querySelector("[data-suki-qr]"), place.id);
+            attachInteraction(el);
+            el.querySelector('[data-suki-edit]')?.addEventListener('click', () => window.DashboardPage?.openSukiStudio?.(livePlace.id));
+            renderOwnerQr(el.querySelector('[data-suki-qr]'), livePlace.id);
             return;
         }
 
@@ -5552,56 +7732,172 @@ window.Suki = (() => {
             el.innerHTML = `
                 <div class="suki-place-block">
                     <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card</h3></div>
-                    <p class="suki-note">This store has a Suki Card! Log in to see your card and request a stamp.</p>
-                    <button type="button" class="suki-req-btn" onclick="showPage('page-login')"><i data-lucide="log-in"></i> Log in</button>
+                    <p class="suki-note">This establishment offers Suki Card rewards. Sign in to see your stamps.</p>
+                    <div class="suki-place-preview">${renderCard(livePlace, { stamps: 0, customerName: 'Preview' }, { hideActions: true })}</div>
+                    <div class="suki-place-actions"><button type="button" class="suki-req-btn" data-suki-login><i data-lucide="log-in"></i> Log in to collect stamps</button></div>
                 </div>`;
-            window.debouncedIcons?.();
+            attachInteraction(el);
+            el.querySelector('[data-suki-login]')?.addEventListener('click', () => showPage('page-login'));
             return;
         }
 
-        el.innerHTML = `<div class="suki-place-block"><div class="muted" style="text-align:center; padding:16px;">Loading Suki Card…</div></div>`;
-        const cardId = `${place.id}_${user.uid}`;
-        try {
-            const [cardSnap, reqSnap] = await Promise.all([
-                window.db.collection("loyalty_cards").doc(cardId).get(),
-                window.db.collection("stamp_requests")
-                    .where("placeId", "==", place.id)
-                    .where("customerUid", "==", user.uid)
-                    .where("status", "==", "pending")
-                    .limit(1).get()
-            ]);
-            const card = cardSnap.exists
-                ? { cardId, id: cardSnap.id, ...cardSnap.data() }
-                : { cardId, stamps: 0, claimed: false, claimRequested: false, customerName: customerDisplayName() };
-            const pendingReq = reqSnap.empty ? null : { id: reqSnap.docs[0].id, ...reqSnap.docs[0].data() };
-
-            el.innerHTML = `
-                <div class="suki-place-block">
-                    <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card</h3></div>
-                    ${renderCard(place, card)}
-                    <div class="suki-place-actions">
-                        ${pendingReq ? `
-                            <button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="clock"></i> Waiting for the owner's approval…</button>
-                            <button type="button" class="suki-plain-btn" data-suki-cancel-req="${sukiEsc(pendingReq.id)}">Cancel request</button>
-                        ` : `
-                            <button type="button" class="suki-req-btn" data-suki-scan><i data-lucide="qr-code"></i> Scan with Vicinify</button>
-                        `}
-                    </div>
-                </div>`;
-            attachInteraction(el);
-            el.querySelector("[data-suki-scan]")?.addEventListener("click", () => openScanner(place));
-            window.SukiPlaceRefresh = () => mountPlaceSection(place, false);
-        } catch (err) {
-            el.innerHTML = `<div class="suki-place-block"><div class="muted" style="text-align:center; padding:16px;">Could not load the Suki Card right now.</div></div>`;
-            window.handleFirestoreError(err);
+        el.innerHTML = '<div class="suki-place-block"><p class="suki-note" role="status">Loading your Suki Card…</p></div>';
+        const cardId = `${livePlace.id}_${user.uid}`;
+        // A missing index or an unavailable stamp_requests query must not
+        // hide the entire card. Show the card but disable new scan requests
+        // until the pending-request status can be verified.
+        const [cardResult, requestResult] = await Promise.allSettled([
+            window.db.collection('loyalty_cards').doc(cardId).get(),
+            pendingSukiRequest(livePlace.id, user.uid)
+        ]);
+        if (!stillHere()) return;
+        const cardError = cardResult.status === 'rejected';
+        const reqError = requestResult.status === 'rejected';
+        if (cardError) console.warn('[suki] could not load customer card:', cardResult.reason);
+        if (reqError) console.warn('[suki] could not load pending stamp request:', requestResult.reason);
+        if (cardError) {
+            el.innerHTML = `<div class="suki-place-block">
+                <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card</h3></div>
+                <p class="suki-note" role="alert">Your stamps could not be loaded. No changes were made. Please retry.</p>
+                <div class="suki-place-actions"><button type="button" class="suki-req-btn" data-suki-retry>Retry</button></div>
+            </div>`;
+            el.querySelector('[data-suki-retry]')?.addEventListener('click', () => mountPlaceSection(livePlace, isOwner));
+            window.debouncedIcons?.();
+            return;
         }
+        const cardSnap = cardResult.value;
+        const card = cardSnap.exists
+            ? { cardId, id: cardSnap.id, ...cardSnap.data() }
+            : { cardId, stamps: 0, claimed: false, claimRequested: false, customerName: customerDisplayName() };
+        const reqSnap = reqError ? null : requestResult.value;
+        const pendingReq = reqSnap && !reqSnap.empty ? { id: reqSnap.docs[0].id, ...reqSnap.docs[0].data() } : null;
+        el.innerHTML = `
+            <div class="suki-place-block">
+                <div class="suki-place-head"><i data-lucide="stamp"></i><h3>Suki Card</h3></div>
+                <div class="suki-place-preview">${renderCard(livePlace, card)}</div>
+                <p class="suki-note">Scanning requires camera, Precise Location, and being within 150 m of the store's saved map pin. Stamps still require store approval.</p>
+                <div class="suki-place-actions">
+                    ${reqError ? `
+                        <p class="suki-note" role="alert">Could not check pending requests. Scan is temporarily unavailable to prevent duplicate requests.</p>
+                        <button type="button" class="suki-req-btn" data-suki-retry>Retry request status</button>
+                    ` : pendingReq ? `
+                        <button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="clock"></i> Stamp request pending</button>
+                        <button type="button" class="suki-plain-btn" data-suki-cancel-req="${sukiEsc(pendingReq.id)}">Cancel request</button>
+                    ` : `
+                        <button type="button" class="suki-req-btn" data-suki-scan><i data-lucide="qr-code"></i> Scan store QR</button>
+                    `}
+                </div>
+            </div>`;
+        attachInteraction(el);
+        el.querySelector('[data-suki-scan]')?.addEventListener('click', () => openScanner(livePlace));
+        el.querySelector('[data-suki-retry]')?.addEventListener('click', () => mountPlaceSection(livePlace, isOwner));
+        // Keep the mounted card alive while the owner approves. onSnapshot
+        // pushes approved stamps without a reload and avoids repeated reads of
+        // the entire establishment and its GPS/QR panel.
+        const previewEl = el.querySelector('.suki-place-preview');
+        const actionsEl = el.querySelector('.suki-place-actions');
+        const uid = user.uid;
+        let latestPending = pendingReq;
+        let requestError = reqError;
+        let submitting = false;
+        let lastCardVersion = JSON.stringify([card.stamps, card.claimed, card.claimRequested, card.customerName]);
+        const stillWatching = () => stillHere() && window.auth?.currentUser?.uid === uid;
+        const displayRequestActions = () => {
+            if (!stillWatching() || !actionsEl) return;
+            actionsEl.innerHTML = requestError ? `
+                <p class="suki-note" role="alert">Could not check pending requests. Scan is temporarily unavailable to prevent duplicates.</p>
+                <button type="button" class="suki-req-btn" data-suki-retry>Retry request status</button>`
+                : latestPending ? `
+                <button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="clock"></i> Stamp request pending</button>
+                ${latestPending.id ? `<button type="button" class="suki-plain-btn" data-suki-cancel-req="${sukiEsc(latestPending.id)}">Cancel request</button>` : ''}`
+                : submitting ? `<button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="loader-circle"></i> Sending request…</button>`
+                : `<button type="button" class="suki-req-btn" data-suki-scan><i data-lucide="qr-code"></i> Scan store QR</button>`;
+            actionsEl.querySelector('[data-suki-scan]')?.addEventListener('click', () => openScanner(livePlace));
+            actionsEl.querySelector('[data-suki-retry]')?.addEventListener('click', () => mountPlaceSection(livePlace, false));
+            actionsEl.querySelectorAll('[data-suki-cancel-req]').forEach(button =>
+                button.addEventListener('click', () => cancelRequest(button.getAttribute('data-suki-cancel-req'))));
+            window.debouncedIcons?.();
+        };
+        window.SukiPlaceMarkPending = value => {
+            if (!stillWatching() || value.placeId !== livePlace.id) return;
+            latestPending = value;
+            requestError = false;
+            displayRequestActions();
+        };
+        window.SukiPlaceSubmissionState = value => {
+            if (!stillWatching()) return;
+            submitting = value === 'sending';
+            displayRequestActions();
+        };
+        if (typeof window.db.collection('loyalty_cards').doc(cardId).onSnapshot === 'function') {
+            const stop = window.db.collection('loyalty_cards').doc(cardId).onSnapshot(snap => {
+                if (!stillWatching()) return;
+                const nextCard = snap.exists ? { cardId, id: snap.id, ...snap.data() }
+                    : { cardId, stamps: 0, claimed: false, claimRequested: false, customerName: customerDisplayName() };
+                const version = JSON.stringify([nextCard.stamps, nextCard.claimed, nextCard.claimRequested, nextCard.customerName]);
+                if (lastCardVersion === version) return;
+                const previousStamps = Number(card.stamps) || 0;
+                const nextStamps = Number(nextCard.stamps) || 0;
+                Object.assign(card, nextCard);
+                lastCardVersion = version;
+                if (previewEl) {
+                    previewEl.innerHTML = renderCard(livePlace, nextCard);
+                    attachInteraction(previewEl);
+                }
+                if (nextStamps > previousStamps) window.showToast?.('Suki stamp added! 🎉', 'success');
+            }, error => {
+                if (stillWatching()) console.warn('[suki] live card updates interrupted:', error);
+            });
+            sukiPlaceLiveStops.push(stop);
+        }
+        // Prefer the existing composite index. On older Firebase projects
+        // without that deployed index, subscribe to this customer's requests
+        // and filter locally so approval still appears without a refresh.
+        const watchPending = (fallback = false) => {
+            let q = window.db.collection('stamp_requests');
+            q = fallback ? q.where('customerUid', '==', uid)
+                : q.where('placeId', '==', livePlace.id).where('customerUid', '==', uid).where('status', '==', 'pending').limit(1);
+            if (typeof q.onSnapshot !== 'function') return;
+            const stop = q.onSnapshot(snapshot => {
+                if (!stillWatching()) return;
+                const found = fallback ? snapshot.docs.find(doc => {
+                    const value = doc.data();
+                    return value.placeId === livePlace.id && value.status === 'pending';
+                }) : snapshot.docs[0];
+                latestPending = found ? { id: found.id, ...found.data() } : null;
+                requestError = false;
+                displayRequestActions();
+            }, error => {
+                if (!stillWatching()) return;
+                if (!fallback && error?.code === 'failed-precondition') {
+                    console.warn('[suki] pending-request index missing; using customer-scoped real-time fallback.');
+                    watchPending(true);
+                } else {
+                    requestError = true;
+                    displayRequestActions();
+                    console.warn('[suki] live request status unavailable:', error);
+                }
+            });
+            sukiPlaceLiveStops.push(stop);
+        };
+        watchPending();
+        window.SukiPlaceRefresh = () => { if (stillWatching()) displayRequestActions(); };
     }
 
     return {
         designOf, textTone, renderCard, attachInteraction,
         makeToken, parseToken, tokenValid, renderOwnerQr, openScanner,
+        scanPlaceCoords, checkScanDistance, verifyScanLocation, SUKI_SCAN_RADIUS_M,
         requestStamp, cancelRequest, requestClaim,
         approveRequest, rejectRequest, markClaimed,
         mountPlaceSection, unmountPlaceSection, requestStampForPlaceId, customerDisplayName
     };
 })();
+
+// Reject non-photo selections before preview/upload handlers run.
+if (typeof document !== 'undefined') document.addEventListener('change', function(event) {
+ const input=event.target;
+ if (!input?.matches?.('input[type="file"][accept*="image/"]')) return;
+ const invalid=Array.from(input.files || []).some(file=>!file.type.startsWith('image/'));
+ if(invalid){ input.value=''; event.stopImmediatePropagation(); window.showToast?.('Photos only. Please choose an image.', 'error'); }
+}, true);
