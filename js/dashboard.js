@@ -377,7 +377,7 @@ updateDashboardKpis(places);
         <div class="suki-status-line ${p.suki_enabled ? "on" : ""}"><span class="suki-dot"></span>${p.suki_enabled ? `Suki Card ON &bull; ${p.suki_stamp_count || 8} stamps` : "Suki Card OFF"}</div>
         <div style="display: flex; gap: 8px;">
             <button class="biz-edit-btn" style="padding: 8px 12px; background:var(--ui-surface); border: 1px solid #e2e8f0; color:var(--ui-ink); border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;" data-suki-edit="${p.id}">
-                <i data-lucide="stamp" style="width: 14px; height: 14px;"></i> Suki Card
+                <i data-lucide="pencil" style="width: 14px; height: 14px;"></i> Edit Suki Card
             </button>
             <button type="button" class="biz-edit-btn" data-manage-menu="${p.id}">Manage menu</button>
             <button class="biz-edit-btn" style="padding: 8px 12px; background:var(--ui-surface); border: 1px solid #e2e8f0; color:var(--ui-ink); border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;" data-posts="${p.id}">
@@ -2100,7 +2100,13 @@ if (description.length < 10) {
         if (!d) return;
         document.getElementById("sukiEnabled").checked = d.enabled;
         const body = document.getElementById("sukiStudioBody");
-        if (body) body.style.display = d.enabled ? "" : "none";
+        // The editor must stay accessible even before the owner enables the card.
+        // Previously, turning the card off hid every editing field.
+        if (body) body.style.display = "";
+        const enabledHelp = document.getElementById("sukiEnabledHelp");
+        if (enabledHelp) enabledHelp.textContent = d.enabled
+            ? "The card is enabled for customers. Customize it and save your changes."
+            : "The card is currently off for customers. You can still edit and save its design.";
         document.querySelectorAll("#sukiTemplateChips [data-suki-template]").forEach(b => b.classList.toggle("active", b.dataset.sukiTemplate === d.template));
         document.getElementById("sukiColorModeSolid").classList.toggle("active", d.colorMode === "solid");
         document.getElementById("sukiColorModeGradient").classList.toggle("active", d.colorMode === "gradient");
@@ -2314,47 +2320,74 @@ if (description.length < 10) {
         if (!place) return;
         document.getElementById("sukiStudioPlaceId").value = place.id;
         document.getElementById("sukiStudioPlaceName").textContent = place.name || "";
+        const status = document.getElementById("sukiStudioSaveStatus");
+        if (status) { status.textContent = "Edit your Suki Card below, then choose Save Changes."; status.dataset.state = "idle"; }
         sukiStudioInit(place);
         window.debouncedIcons?.();
         showPage("page-suki-studio");
     }
 
+    let sukiSaving = false;
+    function setSukiSaving(value) {
+        sukiSaving = value;
+        ["saveSukiStudioBtn", "saveSukiStudioBottomBtn"].forEach(id => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.disabled = value;
+            btn.setAttribute("aria-busy", String(value));
+            btn.innerHTML = value
+                ? '<i data-lucide="loader-circle"></i> Saving...'
+                : '<i data-lucide="save"></i> Save Changes';
+        });
+        window.debouncedIcons?.();
+    }
+
     async function saveSukiStudio() {
-        const id = document.getElementById("sukiStudioPlaceId").value;
-        const btn = document.getElementById("saveSukiStudioBtn");
-        if (!id) { alert("No establishment selected."); return; }
-        const allowed = await canManagePlaceId(id);
-        if (!allowed) {
-            alert("Only the owner or an admin can edit the Suki Card.");
+        if (sukiSaving) return;
+        const id = document.getElementById("sukiStudioPlaceId")?.value;
+        const status = document.getElementById("sukiStudioSaveStatus");
+        if (!id || !sukiDraft) {
+            if (status) { status.textContent = "Choose an establishment first."; status.dataset.state = "error"; }
+            window.showToast?.("No establishment selected.", "error");
             return;
         }
-        btn.textContent = "Saving..."; btn.disabled = true;
-        const sd = sukiReadStudioToDraft();
-        const updateData = {
-            suki_enabled: sd.enabled,
-            suki_stamp_count: sd.stampCount,
-            suki_reward: sd.reward,
-            suki_icon: sd.icon,
-            suki_template: sd.template,
-            suki_color_mode: sd.colorMode,
-            suki_color: sd.color,
-            suki_gradient: sd.gradId,
-            suki_gradient_from: sd.gradFrom,
-            suki_gradient_to: sd.gradTo,
-            suki_pattern: sd.pattern,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
+        // Save the exact field names already used by Firebase; no schema or DB migration.
+        setSukiSaving(true);
+        if (status) { status.textContent = "Saving to Firebase..."; status.dataset.state = "saving"; }
         try {
+            if (!(await canManagePlaceId(id))) {
+                throw new Error("Only the owner or an admin can edit the Suki Card.");
+            }
+            const sd = sukiReadStudioToDraft();
+            const updateData = {
+                suki_enabled: sd.enabled,
+                suki_stamp_count: sd.stampCount,
+                suki_reward: sd.reward,
+                suki_icon: sd.icon,
+                suki_template: sd.template,
+                suki_color_mode: sd.colorMode,
+                suki_color: sd.color,
+                suki_gradient: sd.gradId,
+                suki_gradient_from: sd.gradFrom,
+                suki_gradient_to: sd.gradTo,
+                suki_pattern: sd.pattern,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
             await window.db.collection("places").doc(id).update(updateData);
             const idx = currentAdminPlaces.findIndex(p => p.id === id);
             if (idx >= 0) currentAdminPlaces[idx] = { ...currentAdminPlaces[idx], ...updateData };
-            alert("Suki Card saved!");
-            showPage("page-dashboard");
-            render();
-            window.MapPage?.refresh?.();
+            if (sukiStudioPlace?.id === id) sukiStudioPlace = { ...sukiStudioPlace, ...updateData };
+            if (status) { status.textContent = "Saved successfully! Your Suki Card changes are now in Firebase."; status.dataset.state = "success"; }
+            window.showToast?.("Suki Card saved!", "success");
+            // Stay in the editor so the owner can verify or edit the card again.
+            // The dashboard refreshes on return via showPage('page-dashboard').
+        } catch (error) {
+            if (status) { status.textContent = "Save failed: " + (error?.message || "Please try again."); status.dataset.state = "error"; }
+            window.handleFirestoreError?.(error, "Could not save Suki Card.");
+            console.error("Suki Card save failed:", error);
+        } finally {
+            setSukiSaving(false);
         }
-        catch (error) { window.handleFirestoreError(error); alert("Error saving: " + error.message); }
-        finally { btn.innerHTML = `<i data-lucide="save" style="width: 16px; height: 16px;"></i> Save`; window.debouncedIcons?.(); btn.disabled = false; }
     }
 
     async function saveBusinessPortal() {
