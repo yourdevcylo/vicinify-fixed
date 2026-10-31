@@ -58,6 +58,7 @@ function requirementsTransition(order,actor,input) {
         if(state&&['waiting_customer','submitted'].includes(state.status))return fail('Review or waive the current requirements before creating another request.');
         const flags={address:input.required?.address===true,location:input.required?.location===true,orderDetails:input.required?.orderDetails===true};
         if(order.requestType==='table_reservation'&&(flags.address||flags.location))return fail('Delivery address and current location are not required for table reservations.',400);
+        if((Array.isArray(order.menuLines)||order.tableId)&&flags.orderDetails)return fail('Food items were already selected from the saved menu. Customers cannot type or replace food details.',400);
         if(!Object.values(flags).some(Boolean))return fail('Choose at least one requirement.',400);
         const notes=typeof input.notes==='string'?input.notes.trim():'';
         if(notes.length>1000)return fail('Requirement notes are too long.',400);

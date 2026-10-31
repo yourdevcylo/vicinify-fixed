@@ -3511,7 +3511,7 @@ return map[key] || map.table_reservation;
 function renderRequestDetailRows(d) {
     const legacy = {}; let current = '';
     String(d.details || '').split(/\r?\n/).forEach(line => {
-        const match = line.match(/^(Date|Time|Guests|Seating(?: Preference)?|Occasion|Items(?: \/ Order)?|Order|Fulfillment|Payment(?: Method| Type)?|Delivery Address|Address|Purpose|Notes):\s*(.*)$/i);
+        const match = line.match(/^(Date|Time|Table|Guests|Seating(?: Preference)?|Occasion|Items(?: \/ Order)?|Order|Fulfillment|Payment(?: Method| Type)?|Delivery Address|Address|Purpose|Notes):\s*(.*)$/i);
         if (match) { current = match[1].toLowerCase(); legacy[current] = match[2]; }
         else if (current) legacy[current] += (legacy[current] ? '\n' : '') + line;
     });
@@ -3536,6 +3536,7 @@ function renderRequestDetailRows(d) {
     const rows = [
         ['Date',date,true,'date',rawDate],['Time',time,true,'time',rawTime],
         ['Guests',take('guestCount','guests'),true,'guests'],
+        ['Table',take('tableName','table'),true,'table'],
         ['Items / Order',items,true,'items'],
         ['Estimated menu subtotal',Number.isInteger(d.estimatedSubtotalCents)?'₱'+(d.estimatedSubtotalCents/100).toFixed(2):'',true,'estimatedSubtotal'],['Request reference',d.reference||'',true,'requestReference'],
         ['Fulfillment',take('fulfillmentType','fulfillment'),false,'fulfillment'],
@@ -4638,6 +4639,12 @@ if(contextOrder&&contextOrder.placeId===placeId&&contextOrder.userId===customerU
     if(contextOrder.requestType==='table_reservation'){
         for(const key of ['reqAddress','reqLocation']){const field=document.getElementById(`${key}_${modalId}`);if(field){field.checked=false;field.disabled=true;field.closest('label').hidden=true;}}
         const field=document.getElementById(`reqOrder_${modalId}`);if(field){field.closest('label').querySelector('b').textContent='Additional reservation details';field.closest('label').querySelector('small').textContent='Only ask for information missing from the reservation.';}
+    }
+    // New menu-based transactions have immutable food choices. Businesses may
+    // request delivery details, but may not ask the customer to type new food.
+    if(Array.isArray(contextOrder.menuLines)||contextOrder.tableId){
+        const orderInput=document.getElementById(`reqOrder_${modalId}`);
+        if(orderInput){orderInput.checked=false;orderInput.disabled=true;orderInput.closest('label').hidden=true;}
     }
     const notes=document.getElementById(`reqNotes_${modalId}`);notes.closest('label').querySelector('span').textContent='Instructions (optional)';notes.placeholder='Explain which details the customer should provide.';
 }

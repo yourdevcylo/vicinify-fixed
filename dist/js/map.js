@@ -3115,6 +3115,83 @@ window.MapPage = (() => {
         window.updateRequestTypeFields();
     };
 
+    // Menu-only request picker. Menu IDs and current prices are verified again by Netlify.
+    const bookingMenuPickerHTML = type => `
+        <div class="field booking-menu-picker">
+            <label>${type==='table_reservation'?'Food & drinks (optional)':'Choose food & drinks from menu *'}</label>
+            <p class="booking-menu-help">Only listed, available menu items can be requested. Choose a quantity and the business-listed options. No typed food names.</p>
+            <input type="search" data-book-menu-search placeholder="Search food or drinks" aria-label="Search listed menu items" autocomplete="off" />
+            <div data-book-menu role="status">Loading available menu items…</div>
+            <p class="booking-menu-subtotal" data-book-menu-subtotal aria-live="polite"></p>
+        </div>`;
+    let bookingMenuCatalog=[];
+    async function loadBookingMenu(wrap) {
+        const target=wrap.querySelector('[data-book-menu]');
+        if(!target)return;
+        const placeId=getValue('bookPlaceId');
+        try {
+            const menu=await window.ViciCommerce.getMenu(placeId,true);
+            if(!target.isConnected||placeId!==getValue('bookPlaceId'))return;
+            bookingMenuCatalog=menu.filter(item=>!item.archived&&item.available);
+            if(!bookingMenuCatalog.length){target.innerHTML='<p class="booking-menu-empty">No available menu items yet. Non-table food requests cannot be submitted until the business lists items.</p>';return;}
+            const money=c=>'₱'+(Number(c||0)/100).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+            target.innerHTML=bookingMenuCatalog.map(item=>`<section class="booking-menu-item" data-book-menu-item="${escapeHtml(item.id)}">
+                <div class="booking-menu-item-head"><span class="booking-menu-item-label">${typeof (item.photoData||item.photoUrl)==='string'&&(/^data:image\/webp;base64,[A-Za-z0-9+/]+={0,2}$/.test(item.photoData||item.photoUrl)||/^https:\/\//.test(item.photoData||item.photoUrl))?`<img src="${escapeHtml(item.photoData||item.photoUrl)}" alt="" loading="lazy" />`:''}<span><b data-no-translate>${escapeHtml(item.name)}</b><small>${escapeHtml(item.category||'Menu')} · ${money(item.priceCents)}</small></span></span>
+                <label>Qty <input type="number" data-book-menu-qty min="0" max="99" step="1" value="0" inputmode="numeric" aria-label="Quantity for ${escapeHtml(item.name)}"></label></div>
+                ${(item.optionGroups||[]).map(group=>`<fieldset class="booking-menu-options" data-book-menu-group="${escapeHtml(group.id)}" hidden><legend>${escapeHtml(group.name)} · ${group.required?'Required':'Optional'}</legend>
+                    ${group.choices.map(choice=>`<label><input type="${group.maxSelect===1?'radio':'checkbox'}" data-book-choice name="booking-${escapeHtml(item.id)}-${escapeHtml(group.id)}" value="${escapeHtml(choice.id)}" ${choice.available===false?'disabled':''}> ${escapeHtml(choice.name)} ${choice.priceCents?'+ '+money(choice.priceCents):''} ${choice.available===false?'(unavailable)':''}</label>`).join('')}
+                    ${group.maxSelect===1&&!group.required?`<label><input type="radio" data-book-choice name="booking-${escapeHtml(item.id)}-${escapeHtml(group.id)}" value="" checked> None</label>`:''}
+                </fieldset>`).join('')}</section>`).join('');
+            const sync=()=>{
+                let total=0,selectionCount=0;
+                for(const card of target.querySelectorAll('[data-book-menu-item]')){
+                    const item=bookingMenuCatalog.find(i=>i.id===card.dataset.bookMenuItem);
+                    const qty=Number(card.querySelector('[data-book-menu-qty]').value||0);
+                    card.querySelectorAll('[data-book-menu-group]').forEach(g=>g.hidden=!(qty>0));
+                    if(item&&Number.isInteger(qty)&&qty>0){selectionCount+=qty;let extra=0;
+                        for(const g of item.optionGroups||[])for(const c of g.choices)if(card.querySelector(`[data-book-menu-group="${CSS.escape(g.id)}"] input[value="${CSS.escape(c.id)}"]`)?.checked)extra+=c.priceCents;
+                        total+=qty*(item.priceCents+extra);
+                    }
+                }
+                const summary=wrap.querySelector('[data-book-menu-subtotal]');
+                if(summary)summary.textContent=selectionCount?`Selected ${selectionCount} item(s) · Estimated subtotal ${money(total)}. Final prices verified at review.`:'No food selected.';
+            };
+            target.addEventListener('input',sync);
+            target.addEventListener('change',sync);
+            wrap.querySelector('[data-book-menu-search]')?.addEventListener('input',event=>{
+                const q=event.target.value.trim().toLocaleLowerCase();
+                for(const card of target.querySelectorAll('[data-book-menu-item]')){
+                    const menuItem=bookingMenuCatalog.find(i=>i.id===card.dataset.bookMenuItem);
+                    card.hidden=!!q&&!`${menuItem?.name||''} ${menuItem?.category||''} ${menuItem?.description||''}`.toLocaleLowerCase().includes(q);
+                }
+            });
+            sync();
+        } catch(e){if(target.isConnected)target.textContent='Could not load the saved menu. Check your connection and reopen this request.';}
+    }
+    function collectBookingMenuLines() {
+        const target=document.querySelector('#requestDynamicFields [data-book-menu]');
+        if(!target||!bookingMenuCatalog.length)return [];
+        const lines=[];
+        for(const card of target.querySelectorAll('[data-book-menu-item]')){
+            const item=bookingMenuCatalog.find(i=>i.id===card.dataset.bookMenuItem);
+            if(!item)throw Error('Menu item is no longer available.');
+            const quantity=Number(card.querySelector('[data-book-menu-qty]').value||0);
+            if(!Number.isInteger(quantity)||quantity<0||quantity>99)throw Error('Choose a valid quantity from 0 to 99.');
+            if(!quantity)continue;
+            const options={};
+            for(const group of item.optionGroups||[]){
+                const field=Array.from(card.querySelectorAll('[data-book-menu-group]')).find(e=>e.dataset.bookMenuGroup===group.id);
+                const selected=[...(field?.querySelectorAll('[data-book-choice]:checked')||[])].map(c=>c.value).filter(Boolean);
+                if(group.required&&!selected.length)throw Error(`Select ${group.name} for ${item.name}.`);
+                if(selected.length>group.maxSelect)throw Error(`Select up to ${group.maxSelect} option(s) for ${item.name}.`);
+                options[group.id]=selected;
+            }
+            lines.push({itemId:item.id,quantity,options});
+        }
+        if(lines.length>30)throw Error('Select a maximum of 30 different menu items.');
+        return lines;
+    }
+
     window.updateRequestTypeFields = function () {
         const wrap = document.getElementById("requestDynamicFields");
         const type = document.getElementById("bookType")?.value || "table_reservation";
@@ -3144,6 +3221,11 @@ window.MapPage = (() => {
                     ${chipRow("bookGuests", ["1", "2", "3", "4", "6+"], "2")}
                     <input type="number" id="bookGuests" min="1" max="99" placeholder="Or type a number" value="2" />
                 </div>
+                <div class="field"><label for="bookTable">Choose business-listed table *</label>
+                    <select id="bookTable" required>${(Array.isArray(currentRequestServices?.reservation_tables)?currentRequestServices.reservation_tables:[]).filter(t=>t&&typeof t.id==='string'&&typeof t.name==='string'&&Number.isInteger(t.seats)&&t.seats>0).map(t=>`<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)} · ${t.seats} seats</option>`).join('')||'<option value="">No tables configured by this business</option>'}</select>
+                    <small>Availability is confirmed by the business. Select a table that fits your guest count.</small>
+                </div>
+                ${bookingMenuPickerHTML(meta.key)}
                 <div class="field"><label>Seating Preference</label>
                     ${chipRow("bookSeating", ["No preference", "Window", "Quiet", "Outdoor", "Family"], "No preference")}
                     <input type="hidden" id="bookSeating" value="No preference" />
@@ -3154,9 +3236,7 @@ window.MapPage = (() => {
                 </div><div class="field"><label>Payment Method</label>${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer"], "GCash")}<input type="hidden" id="bookPayment" value="GCash" /></div>`;
         } else if (meta.key === "food_reservation") {
             fields = `
-                <div class="field"><label>Food Items to Reserve *</label>
-                    <textarea id="bookItems" rows="3" placeholder="Example:\n2x Carbonara\n1x Milk Tea"></textarea>
-                </div>
+                ${bookingMenuPickerHTML(meta.key)}
                 <div class="field"><label>Fulfillment</label>
                     ${chipRow("bookFulfillment", ["Dine-in", "Pickup"], "Dine-in")}
                     <input type="hidden" id="bookFulfillment" value="Dine-in" />
@@ -3167,9 +3247,7 @@ window.MapPage = (() => {
                 </div>`;
         } else if (meta.key === "pickup_order") {
             fields = `
-                <div class="field"><label>Order Details *</label>
-                    <textarea id="bookItems" rows="3" placeholder="Example:\n1x Chicken Meal\n2x Fries"></textarea>
-                </div>
+                ${bookingMenuPickerHTML(meta.key)}
                 <div class="field"><label>Payment Method *</label>
                     ${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer"], "GCash")}
                     <input type="hidden" id="bookPayment" value="GCash" />
@@ -3177,9 +3255,7 @@ window.MapPage = (() => {
         } else if (meta.key === "advance_order") {
             fields = `
                 <div class="req-note warn">Advance orders are for future, bulk, cakes, bilao, or events. The business may require downpayment first.</div>
-                <div class="field"><label>Order Details *</label>
-                    <textarea id="bookItems" rows="3" placeholder="Example:\n1 bilao pancit (Saturday)\n20 packed meals"></textarea>
-                </div>
+                ${bookingMenuPickerHTML(meta.key)}
                 <div class="field"><label>Payment Type *</label>
                     ${chipRow("bookPaymentType", ["Downpayment", "Full Payment"], "Downpayment")}
                     <input type="hidden" id="bookPaymentType" value="Downpayment" />
@@ -3191,9 +3267,7 @@ window.MapPage = (() => {
         } else if (meta.key === "delivery_order") {
             fields = `
                 <div class="req-note info">Order first — after the business accepts, Vicinify will ask for your address, landmark, and payment reference.</div>
-                <div class="field"><label>Order Details *</label>
-                    <textarea id="bookItems" rows="3" placeholder="Example:\n2x Burger\n1x Large Fries"></textarea>
-                </div>
+                ${bookingMenuPickerHTML(meta.key)}
                 <div class="field"><label>Payment Method *</label>
                     ${chipRow("bookPayment", ["GCash", "Maya", "Bank Transfer"], "GCash")}
                     <input type="hidden" id="bookPayment" value="GCash" />
@@ -3214,6 +3288,8 @@ window.MapPage = (() => {
                 <div class="req-card-body">${fields}</div>
             </div>`;
         window.debouncedIcons?.();
+        bookingMenuCatalog=[];
+        loadBookingMenu(wrap);
 
         // Chip interactions: tap to fill, keeps hidden inputs / number in sync
         wrap.querySelectorAll(".req-chips").forEach(row => {
@@ -3278,9 +3354,9 @@ window.MapPage = (() => {
         document.getElementById('bookingReviewStep').innerHTML = `
             <div class="booking-review-place"><span class="booking-store-icon"><i data-lucide="${icon}"></i></span><div><p>${escapeHtml(bookingText(meta.shortLabel))}</p><h4 data-no-translate>${escapeHtml(data.placeName)}</h4></div><span class="booking-review-unsent">${escapeHtml(bookingText('Not sent yet'))}</span></div>
             <dl class="booking-review-summary">
-                ${row('Date',date,true)}${row('Time',time,true)}${row('Guests',data.guests,true)}
+                ${row('Date',date,true)}${row('Time',time,true)}${row('Table',data.tableName,true)}${row('Guests',data.guests,true)}
                 ${row('Seating',data.seating==='No preference'?'':data.seating)}${row('Occasion',data.occasion==='None'?'':data.occasion)}
-                ${row('Items / Order',data.items,true)}${row('Fulfillment',data.fulfillment)}${row('Delivery Address',data.deliveryAddress,true)}
+                ${row('Items / Order',data.items,true)}${row('Menu subtotal (estimate)',data.menuSubtotal==null?'':('₱'+(data.menuSubtotal/100).toFixed(2)),true)}${row('Fulfillment',data.fulfillment)}${row('Delivery Address',data.deliveryAddress,true)}
                 ${row('Payment Type',data.paymentType)}${row('Payment Method',data.paymentMethod)}${row('Purpose',data.purpose,true)}${row('Notes',data.notes,true)}
             </dl>
             <div class="booking-review-next"><i data-lucide="circle-check"></i><div><b>${escapeHtml(bookingText('What happens next'))}</b><p>${escapeHtml(bookingText('The business will accept or decline your request. Follow updates in your transaction chat.'))}</p>${meta.needsPayment?`<p>${escapeHtml(bookingText('Send payment details only after the business accepts.'))}</p>`:''}</div></div>
@@ -3356,7 +3432,7 @@ window.MapPage = (() => {
             document.getElementById('bookDate').value=d.date||'';
             document.getElementById('bookTime').value=d.time||'';
             const guests=document.getElementById('bookGuests');if(guests)guests.value=d.guests||'';
-            const items=document.getElementById('bookItems');if(items)items.value=d.items||'';
+            // Assisted requests must still use real menu choices, never AI-written food names.
             document.querySelectorAll('[data-chip-for="bookGuests"] .req-chip').forEach(b=>{const selected=b.dataset.val===String(d.guests);b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));});
             syncBookingSchedule();
         }
@@ -3412,7 +3488,24 @@ window.MapPage = (() => {
         const guests = getValue("bookGuests");
         const seating = getValue("bookSeating");
         const occasion = getValue("bookOccasion");
-        const items = getValue("bookItems");
+        let menuLines=[];
+        try { menuLines=collectBookingMenuLines(); } catch(e){return window.showToast(e.message,'error');}
+        if(meta.needsItems&&!menuLines.length)return window.showToast('Choose at least one item from the actual menu.','error');
+        const tableId=getValue('bookTable');
+        let tableName='';
+        if(meta.key==='table_reservation'){
+            const table=(currentRequestServices?.reservation_tables||[]).find(t=>t.id===tableId);
+            if(!table)return window.showToast('Choose one of the business-listed tables.','error');
+            if(Number(guests)>table.seats)return window.showToast('Choose a table with enough seats for your guests.','error');
+            tableName=table.name;
+        }
+        let menuQuote=null;
+        if(menuLines.length){
+            try { menuQuote=await window.ViciData.command('orderQuote',{placeId,requestType,lines:menuLines}); }
+            catch(e){return window.showToast('Could not verify menu availability and prices: '+e.message,'error');}
+            if(!modal||modal.classList.contains('hidden'))return;
+        }
+        const items=menuQuote?.lines?.map(l=>`${l.quantity} × ${l.name}${l.optionLabels.length?' ('+l.optionLabels.join(', ')+')':''}`).join('\n')||'';
         const fulfillment = getValue("bookFulfillment");
         const paymentMethod = getValue("bookPayment");
         const paymentType = getValue("bookPaymentType");
@@ -3445,7 +3538,7 @@ window.MapPage = (() => {
             document.getElementById("bookGuests")?.focus();
             return window.showToast("Please enter the number of guests.", "error");
         }
-        if (meta.needsItems && !items) return window.showToast("Please enter the order/items details.", "error");
+
         if (meta.needsAddress && !deliveryAddress) return window.showToast("Please enter the delivery address.", "error");
         if (meta.needsPayment && !paymentMethod) return window.showToast("Please select a payment method.", "error");
 
@@ -3455,6 +3548,7 @@ window.MapPage = (() => {
             `Time: ${time}`
         ];
 
+        if (tableName) lines.push(`Table: ${tableName}`);
         if (guests) lines.push(`Guests: ${guests}`);
         if (seating) lines.push(`Seating: ${seating}`);
         if (occasion) lines.push(`Occasion: ${occasion}`);
@@ -3469,9 +3563,11 @@ window.MapPage = (() => {
         const details = lines.join("\n");
 
         // Review inside the same sheet. No writes occur until the second action.
-        const reviewData = {uid:user.uid,placeId,placeName,requestType,date,time,guests,seating,occasion,items,fulfillment,paymentMethod,paymentType,deliveryAddress,purpose,notes};
+        const reviewData = {uid:user.uid,placeId,placeName,requestType,date,time,guests,tableId,tableName,seating,occasion,items,menuLines,quoteDigest:menuQuote?.digest||null,menuSubtotal:menuQuote?.totalCents??null,fulfillment,paymentMethod,paymentType,deliveryAddress,purpose,notes};
         const snapshot = JSON.stringify(reviewData);
         if (bookingReviewSnapshot !== snapshot) {
+            // A changed request must not reuse the idempotency key from a previous submission.
+            bookingSubmissionKey=null;
             renderBookingReview(reviewData);
             bookingReviewSnapshot = snapshot;
             setBookingStep(true);
@@ -3514,6 +3610,8 @@ window.MapPage = (() => {
                 bookingTime: time,
                 bookingDetails: notes || purpose || items || "None",
                 guestCount: guests || null,
+                tableId: meta.key==='table_reservation'?tableId:null,
+                menuLines:menuLines.length?menuLines:undefined,
                 seatingPreference: seating || null,
                 occasion: occasion || null,
                 orderItems: items || null,
@@ -3534,7 +3632,7 @@ window.MapPage = (() => {
             try{const prior=JSON.parse(sessionStorage.getItem(attemptStorage)||'null');if(prior?.snapshot===attemptSnapshot)bookingSubmissionKey=prior.key;}catch{}
             bookingSubmissionKey=bookingSubmissionKey||window.crypto.randomUUID();
             try{sessionStorage.setItem(attemptStorage,JSON.stringify({snapshot:attemptSnapshot,key:bookingSubmissionKey}));}catch{}
-            const createdBooking=await window.ViciData.command('booking', {action:'create',confirmed:true,idempotencyKey:bookingSubmissionKey,request:requestData});
+            const createdBooking=await window.ViciData.command('booking', {action:'create',confirmed:true,idempotencyKey:bookingSubmissionKey,expectedQuoteDigest:menuQuote?.digest,request:requestData});
             try{sessionStorage.removeItem(attemptStorage);}catch{}
             window.ViciChat?.recordRequest?.({...createdBooking,placeId,placeName,requestType:meta.key});
 

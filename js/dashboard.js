@@ -2308,6 +2308,8 @@ if (description.length < 10) {
         document.getElementById("bizPortalPhone").value = place.contact_phone || place.phone || "";
         document.getElementById("bizPortalEmail").value = place.contact_email || "";
         document.getElementById("bizPortalBooking").checked = place.accepts_booking || false;
+        document.getElementById("bizReservationTables").value = Array.isArray(place.reservation_tables)
+            ? place.reservation_tables.map(t => `${t.name} | ${t.seats}`).join('\n') : '';
         document.getElementById("bizPortalOrders").checked = place.accepts_orders === true;
         document.getElementById("bizPortalAdvance").checked = place.accepts_advance_booking === true || (place.accepts_advance_booking == null && place.accepts_booking === true);
         document.getElementById("bizPortalRequests").checked = place.accepts_requests !== false;
@@ -2632,6 +2634,24 @@ if (description.length < 10) {
             if(error){ setBizSaveState(error, "error"); return; }
             autoAnswers[topic]=value;
         }
+        // Owner-defined table labels and seat capacities, never customer free text.
+        const tableRows = document.getElementById('bizReservationTables').value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
+        const reservationTables=[];
+        const seenTables=new Set();
+        if(tableRows.length>40){setBizSaveState('Maximum 40 tables per establishment.', 'error');return;}
+        for(let i=0;i<tableRows.length;i++){
+            const match=/^([^|]{1,55})\s*\|\s*(\d{1,3})$/.exec(tableRows[i]);
+            if(!match||Number(match[2])<1||Number(match[2])>99){setBizSaveState('Table format: Table name | seats (1–99). Check line '+(i+1)+'.','error');return;}
+            const name=match[1].trim(),normalized=name.toLocaleLowerCase();
+            if(!name||seenTables.has(normalized)){setBizSaveState('Each table must have a unique name.', 'error');return;}
+            seenTables.add(normalized);
+            // Stable IDs: reordering rows cannot silently change a booked table.
+            let hash=2166136261;
+            for(const ch of normalized)hash=Math.imul(hash^ch.codePointAt(0),16777619)>>>0;
+            const stableId='table_'+hash.toString(36);
+            if(reservationTables.some(t=>t.id===stableId)){setBizSaveState('Table names must be distinct.', 'error');return;}
+            reservationTables.push({id:stableId,name,seats:Number(match[2])});
+        }
         bizProfileSaving = true;
         setBizSaveState("Preparing your establishment profile...", "saving");
         try {
@@ -2655,6 +2675,7 @@ let updateData = {
     addr: address,
     phone: phone,
 
+    reservation_tables: reservationTables,
     accepts_booking: document.getElementById("bizPortalBooking").checked,
     accepts_orders: document.getElementById("bizPortalOrders").checked,
     accepts_advance_booking: document.getElementById("bizPortalAdvance").checked,

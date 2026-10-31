@@ -26,8 +26,17 @@ function createBooking(input, user, place, profile, now = Date.now()) {
         invalid('Choose a future date and time (Philippine time).');
     const requestType=input.requestType, orderItems=text('orderItems'),deliveryAddress=text('deliveryAddress'),paymentMethod=text('paymentMethod',80)||(input.requestType==='table_reservation'?'GCash':null);
     const guests=Number(input.guestCount);
-    if (requestType==='table_reservation' && (!Number.isInteger(guests)||guests<1||guests>500)) invalid('Enter 1 to 500 guests.');
-    if (requestType!=='table_reservation' && !orderItems) invalid('Enter the food or items requested.');
+    if (requestType==='table_reservation' && (!Number.isInteger(guests)||guests<1||guests>99)) invalid('Enter 1 to 99 guests.');
+    if (requestType==='table_reservation') {
+        const tables=Array.isArray(place.reservation_tables)?place.reservation_tables:[];
+        const table=tables.find(t=>t&&t.id===input.tableId&&typeof t.name==='string'&&Number.isInteger(t.seats)&&t.seats>=1&&t.seats<=99);
+        if(!table) invalid('Choose one of the business-listed tables. Ask the business to configure tables if none are listed.');
+        if(guests>table.seats) invalid('This table has fewer seats than your guest count. Choose a larger table.');
+    }
+    // All new food requests must originate from verified, listed menu item IDs.
+    // Table reservations may have no food pre-order, but cannot contain typed food names.
+    if (requestType!=='table_reservation' && (!Array.isArray(input.menuLines)||!input.menuLines.length||!orderItems)) invalid('Choose food and drinks from the business menu.');
+    if (requestType==='table_reservation' && orderItems && (!Array.isArray(input.menuLines)||!input.menuLines.length)) invalid('Food pre-orders must come from the saved menu.');
     if (requestType==='delivery_order' && !deliveryAddress && !Array.isArray(input.menuLines)) invalid('Enter a delivery address.');
     if (!['GCash','Maya','Bank Transfer'].includes(paymentMethod)) invalid('Choose GCash, Maya or Bank Transfer. Payment is required before preparation.');
     const rate=Number(place.refund_percent ?? 50);
@@ -38,6 +47,8 @@ function createBooking(input, user, place, profile, now = Date.now()) {
         requestGroup:['table_reservation','food_reservation'].includes(requestType)?'reservation':'order',
         bookingDate:date,bookingTime:time,scheduledAt:scheduled,
         bookingDetails:text('bookingDetails'),guestCount:requestType==='table_reservation'?guests:null,
+        tableId:requestType==='table_reservation'?input.tableId:null,
+        tableName:requestType==='table_reservation'?place.reservation_tables.find(t=>t.id===input.tableId).name:null,
         seatingPreference:text('seatingPreference',100),occasion:text('occasion',100),orderItems,
         fulfillmentType:text('fulfillmentType',100),deliveryAddress,paymentMethod,paymentType:text('paymentType',80),
         purpose:text('purpose'),details:text('details',4000),status:'pending',paymentFlowVersion:2,

@@ -18,7 +18,10 @@ exports.handler = async event => {
             await limit(user.uid, 'booking_create', 6);
             const placeRef = db.collection('places').doc(placeId);
             const key=body.idempotencyKey?identifier(body.idempotencyKey):null;
-            const menuOrder=Array.isArray(input.menuLines);
+            const menuOrder=Array.isArray(input.menuLines)&&input.menuLines.length>0;
+            if(input.requestType!=='table_reservation'&&!menuOrder)return reply(400,{error:'Choose items from the saved business menu. Typed items are not accepted.'});
+            if(input.requestType==='table_reservation'&&input.menuLines!==undefined&&!menuOrder&&(!Array.isArray(input.menuLines)||input.menuLines.length))return reply(400,{error:'Invalid optional menu selection.'});
+            if(input.orderItems&&!menuOrder)return reply(400,{error:'Typed food items are not accepted. Choose listed menu items.'});
             if(menuOrder&&(!key||body.confirmed!==true))return reply(400,{error:'Review and explicitly confirm the order first.'});
             const stable=value=>Array.isArray(value)?value.map(stable):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(k=>[k,stable(value[k])])):value;
             const hash=crypto.createHash('sha256').update(JSON.stringify(stable(Object.fromEntries(Object.entries(input).filter(([k])=>!['createdAt','updatedAt'].includes(k)))))).digest('hex');
@@ -36,7 +39,14 @@ exports.handler = async event => {
                 const profile = await transaction.get(db.collection('users').doc(user.uid));
                 if (!place.exists) throw Object.assign(new Error('Establishment not found.'), {status:404});
                 let verified=null;
-                if(menuOrder){if(input.requestType==='table_reservation'||place.data().accepts_orders!==true||input.requestType==='delivery_order'&&place.data().delivery_inhouse!==true)throw Object.assign(new Error('This ordering option is not supported.'),{status:409});verified=await Menu.quote(transaction,db,placeId,input.menuLines);if(body.expectedQuoteDigest!==verified.digest)throw Object.assign(new Error('Menu prices or options changed. Review the updated order before confirming.'),{status:409});}
+                if(menuOrder){
+                    const serviceType=input.requestType;
+                    if(!['table_reservation','food_reservation','pickup_order','delivery_order','advance_order'].includes(serviceType)
+                        ||serviceType==='delivery_order'&&place.data().delivery_inhouse!==true)
+                        throw Object.assign(new Error('This ordering option is not supported.'),{status:409});
+                    verified=await Menu.quote(transaction,db,placeId,input.menuLines);
+                    if(body.expectedQuoteDigest!==verified.digest)throw Object.assign(new Error('Menu prices or options changed. Review the updated menu before confirming.'),{status:409});
+                }
                 const checked=verified?{...input,orderItems:verified.lines.map(l=>`${l.quantity} × ${l.name}${l.optionLabels.length?' ('+l.optionLabels.join(', ')+')':''}`).join('\n')}:input;
                 const order = {...createBooking(checked,user,place.data(),profile.data()), transactionId:ref.id,reference:'VC-'+ref.id.slice(0,8).toUpperCase(),
                     ...(verified?{menuLines:verified.lines,estimatedSubtotalCents:verified.totalCents,currency:'PHP',quoteDigest:verified.digest}:{}),

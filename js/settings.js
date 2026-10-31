@@ -61,6 +61,7 @@ function getStatusTone(status) {
 function getTransactionSummary(d) {
     const parts = [];
     if (d.details) parts.push(d.details);
+    if (d.tableName && !String(d.details || '').includes('Table:')) parts.push('Table: ' + d.tableName);
     if (d.orderItems && !String(d.details || "").includes(d.orderItems)) parts.push("Order: " + d.orderItems);
     if (d.pickupTime) parts.push("Pickup: " + d.pickupTime);
     if (d.neededTime) parts.push("Needed: " + d.neededTime);

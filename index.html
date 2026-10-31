@@ -667,6 +667,11 @@
                         <label class="bizedit-toggle-row"><span><strong>Advance Bookings</strong><small>Food reservations and advance or bulk requests.</small></span><input type="checkbox" id="bizPortalAdvance" class="bizedit-switch" /></label>
                         <label class="bizedit-toggle-row"><span><strong>Customer Messages</strong><small>Show the message shortcut for questions and special requests.</small></span><input type="checkbox" id="bizPortalRequests" class="bizedit-switch" /></label>
                     </div>
+                    <div class="field bizedit-tables">
+                        <label for="bizReservationTables"><strong>Tables offered for reservation</strong></label>
+                        <p class="bizedit-hint">Business owner: enter one table per line as <b>Table name | seats</b>. Example: Table 1 | 4. Customers may select only these tables; your team confirms availability.</p>
+                        <textarea id="bizReservationTables" rows="4" maxlength="3200" placeholder="Table 1 | 2&#10;Table 2 | 4&#10;Family Table | 6"></textarea>
+                    </div>
                     <div class="field bizedit-refund">
                         <label>Cancellation Refund (before preparation starts)</label>
                         <select id="bizRefund">
@@ -978,7 +983,7 @@
 
                     <div class="field booking-field">
                         <label for="bookDetails">Additional Notes</label>
-                        <textarea id="bookDetails" rows="3" placeholder="Add any special request or instruction..."></textarea>
+                        <textarea id="bookDetails" rows="3" maxlength="1000" placeholder="Instructions only. Food items must be selected from the menu."></textarea>
                     </div>
 
                     <div class="booking-policy-note">
