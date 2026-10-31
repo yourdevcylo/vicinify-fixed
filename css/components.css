@@ -1958,3 +1958,9 @@ html body.vicinify-ui #page-place .placeCover > .placeTopBar,
 html body.vicinify-ui #page-place .placeCover > .placeCoverBrand {
     z-index: 3;
 }
+
+/* Confirmations raised from an open native Menu editor must enter the top layer.
+   A z-index alone cannot place a div above <dialog>. */
+html body.vicinify-ui dialog.vici-confirm-layer[open] { display:flex !important; }
+html body.vicinify-ui dialog.vici-confirm-layer::backdrop { background:rgb(7 17 15 / 58%); backdrop-filter:blur(2px); }
+html body.vicinify-ui dialog.vici-confirm-layer .modalBox { flex:0 1 400px; min-width:0; }

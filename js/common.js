@@ -1844,11 +1844,17 @@ window.vConfirm = function(title, message, confirmBtnText = "Confirm", isDanger 
         const modalId = "vConfirm_" + Date.now() + '_' + (window.__vConfirmSequence = (window.__vConfirmSequence || 0) + 1);
         const previousFocus=document.activeElement;
         window.lockBodyScroll(true);
+        // Native dialog goes into the browser top layer. A positioned <div>
+        // cannot appear above another <dialog>. Support older browsers with
+        // the previous fixed-overlay fallback.
+        const nativeConfirm = typeof HTMLDialogElement !== 'undefined' &&
+            typeof HTMLDialogElement.prototype.showModal === 'function';
+        const tag = nativeConfirm ? 'dialog' : 'div';
         const btnClass = isDanger ? "danger" : "primary";
         const btnStyle = isDanger ? "background: #ef4444; color: white; border: none; padding: 12px 18px; border-radius: 10px; font-weight: 600; cursor: pointer;" : "background: #0f172a; color: white; border: none; padding: 12px 18px; border-radius: 10px; font-weight: 600; cursor: pointer;";
         
         const modalHtml = `
-            <div id="${modalId}" role="alertdialog" aria-modal="true" aria-labelledby="${modalId}_title" aria-describedby="${modalId}_body" style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 99999;">
+            <${tag} id="${modalId}" class="vici-confirm-layer" role="alertdialog" aria-modal="true" aria-labelledby="${modalId}_title" aria-describedby="${modalId}_body" style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 99999; width:100%; height:100dvh; max-width:none; max-height:none; margin:0; padding:16px; border:0; background:transparent; color:inherit; box-sizing:border-box;">
                 <div class="modalBackdrop" style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
                 <div class="modalBox" style="position: relative; width: 90%; max-width: 400px; background:var(--ui-surface); border-radius: 18px; padding: 24px; z-index: 1; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
                     <h3 id="${modalId}_title" data-vconfirm-title style="margin-top: 0; font-size: 18px; color:var(--ui-ink); margin-bottom: 12px;"></h3>
@@ -1858,7 +1864,7 @@ window.vConfirm = function(title, message, confirmBtnText = "Confirm", isDanger 
                         <button id="confirmBtn_${modalId}" style="flex: 1; ${btnStyle}"></button>
                     </div>
                 </div>
-            </div>
+            </${tag}>
         `;
         
         document.body.insertAdjacentHTML('beforeend', modalHtml);
@@ -1874,6 +1880,7 @@ window.vConfirm = function(title, message, confirmBtnText = "Confirm", isDanger 
             if(finished)return;finished=true;
             document.removeEventListener('keydown',onKey,true);
             window.lockBodyScroll(false);
+            if(nativeConfirm && modalEl.open) modalEl.close();
             modalEl.remove();
             if(previousFocus?.isConnected)previousFocus.focus?.();
             resolve(result);
@@ -1888,6 +1895,17 @@ window.vConfirm = function(title, message, confirmBtnText = "Confirm", isDanger 
             }
         };
         document.addEventListener('keydown',onKey,true);
+        if(nativeConfirm){
+            // Escape triggers a native cancel event: always treat it as Cancel.
+            modalEl.addEventListener('cancel', event=>{event.preventDefault();cleanup(false);});
+            try { modalEl.showModal(); }
+            catch(error){
+                // Never leave an invisible/stuck confirmation if modal setup fails.
+                console.error('[vConfirm] Could not open confirmation dialog:',error);
+                cleanup(false);
+                return;
+            }
+        }
         document.getElementById(`cancelBtn_${modalId}`).focus();
 
         document.getElementById(`cancelBtn_${modalId}`).onclick = () => cleanup(false);
