@@ -3214,6 +3214,11 @@ window.MapPage = (() => {
                 ${options.map(o => `<button type="button" class="req-chip${o === def ? " active" : ""}" aria-pressed="${o === def}" data-val="${o}">${o}</button>`).join("")}
             </div>`;
 
+        // The checkbox that enables reservations does not create physical tables.
+        // Show an actionable warning immediately if the owner hasn't listed any.
+        const businessTables = Array.isArray(currentRequestServices?.reservation_tables)
+            ? currentRequestServices.reservation_tables.filter(t => t && typeof t.id === 'string' && t.id && typeof t.name === 'string' && t.name.trim() && Number.isInteger(t.seats) && t.seats >= 1 && t.seats <= 99)
+            : [];
         let fields = "";
         if (meta.key === "table_reservation") {
             fields = `
@@ -3222,8 +3227,12 @@ window.MapPage = (() => {
                     <input type="number" id="bookGuests" min="1" max="99" placeholder="Or type a number" value="2" />
                 </div>
                 <div class="field"><label for="bookTable">Choose business-listed table *</label>
-                    <select id="bookTable" required>${(Array.isArray(currentRequestServices?.reservation_tables)?currentRequestServices.reservation_tables:[]).filter(t=>t&&typeof t.id==='string'&&typeof t.name==='string'&&Number.isInteger(t.seats)&&t.seats>0).map(t=>`<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)} · ${t.seats} seats</option>`).join('')||'<option value="">No tables configured by this business</option>'}</select>
-                    <small>Availability is confirmed by the business. Select a table that fits your guest count.</small>
+                    <select id="bookTable" required aria-describedby="bookTableHelp" ${businessTables.length?'':'disabled'}>
+                        <option value="">${businessTables.length?'Select a table':'No tables configured by this business'}</option>
+                        ${businessTables.map(t=>`<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)} · ${t.seats} seats</option>`).join('')}
+                    </select>
+                    <small id="bookTableHelp">${businessTables.length?'Select a business-listed table with enough seats. The business confirms availability.':'Table Reservations is enabled, but the business has not saved any tables yet.'}</small>
+                    ${businessTables.length?'':'<p class="booking-table-warning" role="alert">Table reservations are not ready yet. The owner must add tables in Business Hub → Edit Establishment → Requests & Cancellation and save the changes.</p>'}
                 </div>
                 ${bookingMenuPickerHTML(meta.key)}
                 <div class="field"><label>Seating Preference</label>
@@ -3494,9 +3503,21 @@ window.MapPage = (() => {
         const tableId=getValue('bookTable');
         let tableName='';
         if(meta.key==='table_reservation'){
-            const table=(currentRequestServices?.reservation_tables||[]).find(t=>t.id===tableId);
-            if(!table)return window.showToast('Choose one of the business-listed tables.','error');
-            if(Number(guests)>table.seats)return window.showToast('Choose a table with enough seats for your guests.','error');
+            const availableTables=(Array.isArray(currentRequestServices?.reservation_tables)?currentRequestServices.reservation_tables:[])
+                .filter(t=>t&&typeof t.id==='string'&&typeof t.name==='string'&&Number.isInteger(t.seats)&&t.seats>=1&&t.seats<=99);
+            const table=availableTables.find(t=>t.id===tableId);
+            if(!table){
+                const field=document.getElementById('bookTable');
+                field?.scrollIntoView?.({behavior:'smooth',block:'center'});
+                if(availableTables.length)field?.focus?.({preventScroll:true});
+                return window.showToast(availableTables.length
+                    ? 'Select a table from the business list before reviewing.'
+                    : 'No tables saved yet. Ask the business to add tables under Requests & Cancellation.', 'error');
+            }
+            if(Number(guests)>table.seats){
+                document.getElementById('bookTable')?.scrollIntoView?.({behavior:'smooth',block:'center'});
+                return window.showToast('This table has fewer seats than your guest count. Choose a larger one.','error');
+            }
             tableName=table.name;
         }
         let menuQuote=null;

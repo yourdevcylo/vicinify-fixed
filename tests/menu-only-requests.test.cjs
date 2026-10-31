@@ -19,7 +19,7 @@ test('Table selection cannot invent table or exceed owner-listed capacity',()=>{
  assert.equal(create({tableId:'table_2',guestCount:5}).tableName,'Family Table');
 });
 test('Table requires configuration by the business',()=>{
- assert.throws(()=>create({}, {...owner,reservation_tables:[]}),/business-listed tables/);
+ assert.throws(()=>create({}, {...owner,reservation_tables:[]}),/No reservation tables are configured/);
 });
 test('Table cannot sneak in typed, unlisted food',()=>{
  assert.throws(()=>create({orderItems:'3x fake special'}),/saved menu/);

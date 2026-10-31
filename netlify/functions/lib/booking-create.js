@@ -30,7 +30,9 @@ function createBooking(input, user, place, profile, now = Date.now()) {
     if (requestType==='table_reservation') {
         const tables=Array.isArray(place.reservation_tables)?place.reservation_tables:[];
         const table=tables.find(t=>t&&t.id===input.tableId&&typeof t.name==='string'&&Number.isInteger(t.seats)&&t.seats>=1&&t.seats<=99);
-        if(!table) invalid('Choose one of the business-listed tables. Ask the business to configure tables if none are listed.');
+        if(!table) invalid(tables.length
+            ? 'Choose one of the business-listed tables. Reopen this request if the business recently changed its tables.'
+            : 'No reservation tables are configured yet. Ask the business to add tables under Requests & Cancellation.');
         if(guests>table.seats) invalid('This table has fewer seats than your guest count. Choose a larger table.');
     }
     // All new food requests must originate from verified, listed menu item IDs.

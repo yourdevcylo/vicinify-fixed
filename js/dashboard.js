@@ -2652,6 +2652,12 @@ if (description.length < 10) {
             if(reservationTables.some(t=>t.id===stableId)){setBizSaveState('Table names must be distinct.', 'error');return;}
             reservationTables.push({id:stableId,name,seats:Number(match[2])});
         }
+        if(document.getElementById('bizPortalBooking').checked && !reservationTables.length){
+            setBizSaveState('Table Reservations is ON, but no tables are listed. Add at least one table (e.g., Table 1 | 4) or turn Table Reservations OFF before saving.', 'error');
+            document.getElementById('bizReservationTables')?.scrollIntoView?.({behavior:'smooth',block:'center'});
+            document.getElementById('bizReservationTables')?.focus?.({preventScroll:true});
+            return;
+        }
         bizProfileSaving = true;
         setBizSaveState("Preparing your establishment profile...", "saving");
         try {

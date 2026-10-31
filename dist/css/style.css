@@ -12774,3 +12774,9 @@ body.dark #page-biz-edit .bizedit-check input, body.dark-mode #page-biz-edit .bi
 .booking-menu-item-label>span{display:grid;gap:4px;min-width:0}
 .booking-menu-item-label img{height:50px;width:50px;flex:none;border-radius:9px;object-fit:cover;background:#e9f4f0}
 .booking-menu-item[hidden]{display:none!important}
+
+/* Clear inline explanation when the business enabled reservations without listing tables. */
+html body.vicinify-ui #bookingModal .booking-table-warning { box-sizing:border-box; padding:10px 12px; margin:10px 0 0; border:1px solid #f2c8a0; border-radius:11px; background:#fff7ed; color:#91400d; font-size:12px; line-height:1.55; overflow-wrap:anywhere; }
+html body.vicinify-ui #bookingModal #bookTable { width:100%; min-width:0; }
+html body.vicinify-ui #bookingModal #bookTable:disabled { opacity:.78; cursor:not-allowed; }
+html body.dark-mode.vicinify-ui #bookingModal .booking-table-warning, html body.dark.vicinify-ui #bookingModal .booking-table-warning { background:#35230e; border-color:#a16207; color:#fef3c7; }
