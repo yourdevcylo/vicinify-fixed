@@ -187,10 +187,12 @@ html body.vicinify-ui #main-content #postModal .post-upload {
  border:1px dashed var(--ui-accent) !important; border-radius:10px; font-size:12px !important; font-weight:600 !important;
 }
 html body.vicinify-ui #main-content #postModal .post-upload svg { width:18px; height:18px; }
+/* Full-size transparent native input: mobile browsers can tap it directly. */
 html body.vicinify-ui #main-content #postModal #postMedia {
- display:block !important; position:absolute !important; width:1px !important; height:1px !important;
- min-height:0 !important; padding:0 !important; margin:-1px !important; overflow:hidden !important;
- clip-path:inset(50%); white-space:nowrap; border:0 !important;
+ display:block !important; position:absolute !important; inset:0 !important;
+ width:100% !important; height:100% !important; min-height:100% !important;
+ opacity:0 !important; padding:0 !important; margin:0 !important;
+ clip-path:none !important; border:0 !important; z-index:2; cursor:pointer;
 }
 html body.vicinify-ui #main-content #postModal .post-upload:focus-within { outline:2px solid var(--ui-accent); outline-offset:3px; }
 html body.vicinify-ui #main-content #postModal .post-media-preview { position:relative; margin:0; }

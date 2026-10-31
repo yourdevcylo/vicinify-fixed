@@ -2576,6 +2576,52 @@ window.MapPage = (() => {
     };
 
     let placePostPreviewUrl = null;
+
+    // Firebase Storage is intentionally NOT used for establishment updates.
+    // Convert the verified/re-encoded WebP blob into a small Firestore-safe thumbnail.
+    async function placePostPhotoDataUrl(file) {
+        if (!window.compressImageFile) throw new Error('Image optimizer is unavailable. Refresh Vicinify and try again.');
+        const presets = [[520, .53], [430, .45], [340, .38], [260, .32], [190, .27], [140, .22]];
+        const toDataUrl = blob => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ''));
+            reader.onerror = () => reject(new Error('Could not read the optimized image.'));
+            reader.readAsDataURL(blob);
+        });
+        for (const [width, quality] of presets) {
+            const { blob } = await window.compressImageFile(file, width, quality);
+            const dataUrl = await toDataUrl(blob);
+            if (/^data:image\/webp;base64,/i.test(dataUrl) && dataUrl.length <= 70000) return dataUrl;
+        }
+        throw new Error('Photo is too detailed to store. Please crop it or choose a smaller photo (max 5 MB).');
+    }
+
+    function showPlacePostComposeState(savedPostId = '') {
+        const modal = document.getElementById('placePostModal');
+        if (!modal) return;
+        modal.dataset.publishedPostId = savedPostId;
+        const published = !!savedPostId;
+        document.getElementById('placePostComposerFields')?.classList.toggle('hidden', published);
+        document.getElementById('placePostSuccess')?.classList.toggle('hidden', !published);
+        document.getElementById('placePostSaveFooter')?.classList.toggle('hidden', published);
+        document.getElementById('placePostShareFooter')?.classList.toggle('hidden', !published);
+        modal.querySelector('.modalBox')?.scrollTo?.({top:0,behavior:'instant'});
+    }
+
+    window.sharePublishedPlacePost = async function (buzzType = 'general') {
+        const modal = document.getElementById('placePostModal');
+        const postId = modal?.dataset?.publishedPostId || '';
+        if (!postId) return window.showToast('Please publish the establishment post first.', 'error');
+        const buttons = [...(document.getElementById('placePostShareFooter')?.querySelectorAll('button') || [])];
+        buttons.forEach(button => { button.disabled = true; });
+        try {
+            const shared = await window.sharePlacePostToBuzz(postId, buzzType);
+            if (shared) window.closePlacePostModal();
+        } finally {
+            buttons.forEach(button => { button.disabled = false; });
+        }
+    };
+
     function clearPlacePostPreview() {
         if (placePostPreviewUrl) URL.revokeObjectURL(placePostPreviewUrl);
         placePostPreviewUrl = null;
@@ -2596,7 +2642,7 @@ window.MapPage = (() => {
         placePostPreviewUrl = URL.createObjectURL(file);
         const preview = document.getElementById('placePostImagePreview');
         if (preview) { preview.src = placePostPreviewUrl; preview.classList.remove('hidden'); }
-        if (status) status.textContent = 'Preview only — this photo will be uploaded when you press Post Update.';
+        if (status) status.textContent = 'Preview only — photo will be compressed and saved when you press Post Update.';
     }
     document.getElementById('placePostMedia')?.addEventListener('change', previewSelectedPlacePhoto);
 
@@ -2609,6 +2655,7 @@ window.MapPage = (() => {
             return window.showToast("Only the owner or an admin can post updates for this establishment.", "error");
         }
 
+        showPlacePostComposeState();
         document.getElementById('placePostModal').dataset.editPostId = '';
         document.getElementById('placePostPlaceId').value = placeId;
         const postBodyEl = document.getElementById('placePostBody');
@@ -2637,6 +2684,7 @@ window.MapPage = (() => {
     window.closePlacePostModal = function () {
         const modal = document.getElementById('placePostModal');
         modal.classList.add('hidden');
+        showPlacePostComposeState();
         if (window.__postScrollLocked) { window.__postScrollLocked = false; window.lockBodyScroll?.(false); }
         // Reset on close too, so nothing stale can appear on the next open.
         const body = document.getElementById('placePostBody');
@@ -2691,47 +2739,42 @@ window.MapPage = (() => {
             let lowResPhoto = false;
             if (fileInput.files && fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                if (!file.type.startsWith('image/')) throw new Error('Choose a supported image.');
-                // A small JPEG reduces mobile upload time while keeping a usable feed image.
-                if (uploadStatus) uploadStatus.textContent = 'Optimizing photo and uploading to Firebase…';
-                btn.textContent = 'Uploading photo…';
-                try {
-                    mediaUrl = await window.uploadImageFileToStorage(file, `place_posts/${placeId}`, { maxWidth: 640, quality: 0.6 });
-                } catch (storageError) {
-                    // Storage may not be enabled on the site's current Firebase plan.
-                    // Post a *very small* JPEG thumbnail in the existing mediaUrl field
-                    // instead. Strict cap prevents bloating Firestore reads / document size.
-                    if (uploadStatus) uploadStatus.textContent = 'Photo storage unavailable. Preparing a smaller, low-resolution image…';
-                    let small = await window.compressImageFile(file, 280, 0.4);
-                    if (small.dataUrl.length > 24000) small = await window.compressImageFile(file, 180, 0.3);
-                    if (small.dataUrl.length > 24000) throw storageError;
-                    mediaUrl = small.dataUrl;
-                    lowResPhoto = true;
-                    if (uploadStatus) uploadStatus.textContent = 'Small photo ready. Saving the post…';
-                }
+                if (uploadStatus) uploadStatus.textContent = 'Optimizing photo for the establishment post…';
+                btn.textContent = 'Preparing photo…';
+                // No Storage attempt: the project does not have Firebase Storage enabled.
+                mediaUrl = await placePostPhotoDataUrl(file);
+                lowResPhoto = true;
+                if (uploadStatus) uploadStatus.textContent = 'Photo ready. Saving the post to Firestore…';
             }
-            if (uploadStatus && !lowResPhoto) uploadStatus.textContent = 'Saving post…';
-            btn.textContent = 'Saving post…';
+            if (uploadStatus) uploadStatus.textContent = 'Saving establishment post…';
+            btn.textContent = 'Publishing…';
 
-            if(editPostId) {
-                const ref=window.db.collection('place_posts').doc(editPostId);
-                const original=await ref.get();
-                if(!original.exists || original.data().placeId!==placeId) throw new Error('Post does not belong to this establishment.');
-                if(!body && !mediaUrl && !original.data().mediaUrl) throw new Error('Add a caption or photo.');
-                const changes={body};
-                if(mediaUrl) changes.mediaUrl=mediaUrl;
+            let savedRef;
+            if (editPostId) {
+                const ref = window.db.collection('place_posts').doc(editPostId);
+                const original = await ref.get();
+                if (!original.exists || original.data().placeId !== placeId) throw new Error('Post does not belong to this establishment.');
+                if (!body && !mediaUrl && !original.data().mediaUrl) throw new Error('Add a caption or photo.');
+                const changes = { body, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+                if (mediaUrl) changes.mediaUrl = mediaUrl;
                 await ref.update(changes);
-            } else await window.ContentPolicy.create(window.db, 'place_posts', {
-                placeId: placeId,
-                body: body,
-                mediaUrl: mediaUrl,
-                authorUid: user.uid,
-                authorName: AppState.userProfile?.fullName || "Store Admin",
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+                savedRef = ref;
+            } else {
+                savedRef = await window.ContentPolicy.create(window.db, 'place_posts', {
+                    placeId,
+                    body,
+                    mediaUrl,
+                    authorUid: user.uid,
+                    authorName: AppState.userProfile?.fullName || user.displayName || 'Store Admin',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
 
-            window.showToast(lowResPhoto ? "Post published with a small low-resolution photo." : "Establishment post published.", "success");
-            window.closePlacePostModal();
+            window.showToast(lowResPhoto ? 'Post published with a compressed photo.' : 'Establishment post published.', 'success');
+            // A store update belongs under the Establishment posts tab; it is NOT a priced menu item.
+            document.getElementById('placePostsTab')?.click();
+            showPlacePostComposeState(savedRef.id);
+            window.debouncedIcons?.();
         } catch (e) {
             if (uploadStatus) uploadStatus.textContent = 'Not published. ' + (e.message || 'Upload failed. Please retry.');
             window.showToast("Error: " + e.message, "error");
@@ -2804,7 +2847,15 @@ window.MapPage = (() => {
                 const existingRef = window.db.collection("buzz_posts").doc(post.buzzPostId);
                 const existingDoc = await existingRef.get();
                 if (existingDoc.exists && existingDoc.data().authorUid === user.uid) {
-                    await window.ContentPolicy.updatePost(window.db,'buzz_posts',existingRef,buzzPayload);
+                    // Source links are immutable after creation. Updating only the
+                    // permitted presentation fields preserves the original photo link.
+                    if (existingDoc.data().type !== type) {
+                        await window.ContentPolicy.updatePost(window.db,'buzz_posts',existingRef,{
+                            type, body:buzzPayload.body, mediaUrl:buzzPayload.mediaUrl,
+                            establishmentName:buzzPayload.establishmentName,
+                            authorName:buzzPayload.authorName, updatedAt:buzzPayload.updatedAt
+                        });
+                    }
                     buzzRef = existingRef;
                 }
             }
@@ -2828,9 +2879,11 @@ window.MapPage = (() => {
             });
 
             window.showToast(`Shared as ${typeLabel}.`, "success");
+            return true;
         } catch (error) {
             console.error("Share to Buzz failed:", error);
             window.showToast("Unable to share to Buzz: " + error.message, "error");
+            return false;
         }
     };
 

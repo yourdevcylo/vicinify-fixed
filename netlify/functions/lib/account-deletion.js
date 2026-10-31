@@ -30,6 +30,7 @@ function plan(uid,places) {
     for(const name of ['favorites','business_claims','place_reports'])add('delete',name,'userId',uid);
     for(const name of ['loyalty_cards','stamp_requests'])add('delete',name,'customerUid',uid);
     add('delete','buzz_posts','authorUid',uid);
+    add('delete','buzz_media','authorUid',uid);
     add('delete','private_places','owner_uid',uid);
     tasks.push({kind:'events',collection:'events'});
     for(const field of ['actorUid','adminUid'])add('audit','admin_audit',field,uid);
@@ -78,13 +79,23 @@ async function step(services,uid,job) {
         for(const scope of ['chat','comment','place','report','claim','menu','buzz'])batch.delete(db.collection('write_cooldowns').doc(uid+'_'+scope));await batch.commit();return {advance:true};
     }
     if(task.kind==='auth'){try{await auth.deleteUser(uid);}catch(error){if(error.code!=='auth/user-not-found')throw error;}return {done:true};}
-    if(task.kind==='storage')return (await erasePrefix(storage,task.prefix))?{advance:true}:{};
+    if(task.kind==='storage') {
+        if (!storage?.bucket) return {advance:true};
+        try { return (await erasePrefix(storage,task.prefix))?{advance:true}:{}; }
+        catch(error) { if([404,403,'storage/bucket-not-found'].includes(error.code)) return {advance:true}; throw error; }
+    }
     let q=task.kind==='events'?db.collectionGroup('events').where('actorUid','==',uid):db.collection(task.collection);
     if(task.field)q=q.where(task.field,'==',task.value);
     q=q.orderBy('__name__');if(job.cursor&&task.kind!=='events')q=q.startAfter(job.cursor);const snap=await q.limit(PAGE).get();
     for(const doc of snap.docs){
         const assets=task.kind==='contribution'?await require('./transfer-assets').migrateAssets(storage,doc.id,uid,doc.data()):{};
-        if(task.kind==='booking')await eraseAllProofs(storage,doc.id);
+        if(task.kind==='booking') {
+            await db.collection('payment_proofs').doc(doc.id).delete();
+            // Legacy Firebase Storage cleanup is optional: new installations do
+            // not have Storage enabled; account deletion must still complete.
+            if (storage?.bucket) try { await eraseAllProofs(storage,doc.id); }
+            catch(error) { if(!['storage/bucket-not-found',404,403].includes(error.code)) console.warn('Legacy proof cleanup unavailable:',error.code); }
+        }
         await db.runTransaction(async tx=>{
             const fresh=await tx.get(doc.ref);if(!fresh.exists)return;const data=fresh.data();
             if(task.kind==='delete'){tx.delete(doc.ref);return;}

@@ -1007,21 +1007,33 @@
                     <button onclick="closePlacePostModal()" class="modalClose" style="background: none; border: none; font-size: 18px; cursor: pointer;">X</button>
                 </div>
                 <div class="modalBody">
+                    <div id="placePostComposerFields">
                     <input type="hidden" id="placePostPlaceId" />
                     <div class="field" style="margin-bottom: 14px;">
                         <label style="font-size: 13px; font-weight:600; color: #475569; display: block; margin-bottom: 6px;">Announcement / Promo Details</label>
                         <textarea id="placePostBody" rows="3" placeholder="Example: Holiday hours, a promotion, or a store announcement. Add priced menu items in the Menu tab." style="width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px; font-family:inherit;"></textarea>
                     </div>
                     <div class="field" style="margin-bottom: 14px;">
-                        <label style="font-size: 13px; font-weight:600; color: #475569; display: block; margin-bottom: 6px;">Add Photo (Menu/Product)</label>
-                        <input type="file" id="placePostMedia" accept="image/*" style="width: 100%; border: 2px dashed #cbd5e1; background: #f8fafc; padding: 12px; border-radius: 12px; cursor: pointer;" />
+                        <label style="font-size: 13px; font-weight:600; color: #475569; display: block; margin-bottom: 6px;">Add photo to establishment post</label>
+                        <input type="file" id="placePostMedia" accept="image/jpeg,image/png,image/webp" style="width: 100%; border: 2px dashed #cbd5e1; background: #f8fafc; padding: 12px; border-radius: 12px; cursor: pointer;" />
                         <img id="placePostImagePreview" class="hidden" alt="Selected photo preview (not published yet)" style="display:block;width:100%;max-height:210px;object-fit:contain;margin-top:10px;border:1px solid var(--ui-border);border-radius:10px;background:var(--ui-soft);" />
-                        <p id="placePostUploadStatus" role="status" aria-live="polite" style="font-size:12px;color:var(--ui-muted);margin:8px 0 0;">Choose a photo to preview it before uploading.</p>
+                        <p id="placePostUploadStatus" role="status" aria-live="polite" style="font-size:12px;color:var(--ui-muted);margin:8px 0 0;">Choose a photo to preview it before posting.</p>
+                    </div>
+                    </div>
+                    <div id="placePostSuccess" class="hidden" role="status" aria-live="polite">
+                        <div class="post-success-icon"><i data-lucide="check-circle-2"></i></div>
+                        <h4>Posted to Establishment Posts!</h4>
+                        <p>Your update was saved. Share it to Buzz so more customers can see it.</p>
                     </div>
                 </div>
-                <div class="modalFooter" style="display: flex; justify-content: flex-end; gap: 10px; margin-top:20px;">
+                <div id="placePostSaveFooter" class="modalFooter" style="display: flex; justify-content: flex-end; gap: 10px; margin-top:20px;">
                     <button onclick="closePlacePostModal()" style="background: #f1f5f9; color: #475569; border: none; border-radius: 10px; padding: 12px 18px; font-weight: 600; cursor: pointer;">Cancel</button>
                     <button id="submitPlacePostBtn" onclick="submitPlacePost()" style="background: #f97316; color: white; border: none; border-radius: 10px; padding: 12px 18px; font-weight: 600; cursor: pointer;">Post Update</button>
+                </div>
+                <div id="placePostShareFooter" class="modalFooter hidden">
+                    <button type="button" class="ghost" onclick="closePlacePostModal()">Done</button>
+                    <button type="button" class="primary" id="placePostShareBuzzBtn" onclick="sharePublishedPlacePost('general')"><i data-lucide="share-2"></i> Share to Buzz</button>
+                    <button type="button" class="ghost" onclick="sharePublishedPlacePost('promo')">Share as Promo</button>
                 </div>
             </div>
         </div>
@@ -1044,6 +1056,8 @@
                     <input type="hidden" id="chatPlaceId" />
                     <input type="hidden" id="chatPlaceName" />
                     <input type="hidden" id="chatCustomerUid" />
+                    <label class="chat-photo-picker" title="Attach a JPG, PNG, or WebP photo (up to 5 MB)" aria-label="Attach photo"><i data-lucide="image-plus"></i><input id="chatPhotoFile" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Choose a photo to send in chat"></label>
+                    <div id="chatPhotoState" class="chat-photo-state" role="status" aria-live="polite" hidden><img id="chatPhotoPreview" alt="Selected chat photo preview" hidden><span id="chatPhotoName"></span><button type="button" onclick="window.clearChatPhoto()" aria-label="Remove photo">×</button></div>
                     <textarea id="chatMessageInput" maxlength="2000" aria-label="Message" rows="1" placeholder="Write a message…" autocomplete="off"></textarea>
                     <button id="sendChatBtn" aria-label="Send message" onclick="sendChatMessage()">
                         <i data-lucide="send" style="width:18px; height:18px; color: white;"></i>

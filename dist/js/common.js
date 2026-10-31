@@ -4096,6 +4096,7 @@ document.getElementById("chatModalAvatar").innerText = getInitial(provisionalTit
 
 const chatInput = document.getElementById("chatMessageInput");
 if (chatInput) chatInput.value = "";
+window.clearChatPhoto?.();
 setupChatSuggestions(isOwnerView);
 setupChatComposer();
 
@@ -4137,6 +4138,38 @@ if (currentChatUnsub) {
 
 };
 
+window.clearChatPhoto = function() {
+    if (window.__chatPhotoPreviewUrl) URL.revokeObjectURL(window.__chatPhotoPreviewUrl);
+    window.__chatPhotoPreviewUrl = null;
+    const preview = document.getElementById('chatPhotoPreview');
+    if (preview) { preview.hidden=true; preview.removeAttribute('src'); }
+    const file = document.getElementById('chatPhotoFile');
+    if(file) file.value = '';
+    const state = document.getElementById('chatPhotoState');
+    if(state) state.hidden = true;
+    const name = document.getElementById('chatPhotoName');
+    if(name) name.textContent = '';
+};
+if(!window.__chatPhotoPickerBound) {
+    window.__chatPhotoPickerBound = true;
+    document.addEventListener('change',event=>{
+        if(event.target?.id !== 'chatPhotoFile') return;
+        const file = event.target.files?.[0], state=document.getElementById('chatPhotoState');
+        if(!file) return window.clearChatPhoto();
+        if(!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 5*1024*1024) {
+            window.clearChatPhoto();
+            window.showToast?.('Choose a JPG, PNG, or WebP under 5 MB.','error');
+            return;
+        }
+        if (window.__chatPhotoPreviewUrl) URL.revokeObjectURL(window.__chatPhotoPreviewUrl);
+        window.__chatPhotoPreviewUrl = URL.createObjectURL(file);
+        const preview = document.getElementById('chatPhotoPreview');
+        if (preview) { preview.src=window.__chatPhotoPreviewUrl; preview.hidden=false; }
+        document.getElementById('chatPhotoName').textContent = '📷 '+file.name;
+        if(state) state.hidden = false;
+    });
+}
+
 window.sendChatMessage = async function(options = {}) {
 if(window.__chatSending)return;
 const user = window.auth?.currentUser;
@@ -4151,7 +4184,9 @@ const linkedBooking=transactionMode?document.getElementById('chatTransactionSumm
 if(transactionMode&&window.PaymentPolicy?.conversationClosed?.(deskOrder(linkedBooking)||{}))return window.showToast?.('This transaction conversation is archived. You can read it in history.','info');
 if(transactionMode&&!linkedBooking)return window.showToast?.('Choose a transaction before sending a message.','info');
 const quickSend = typeof options.text === 'string';
-const text = quickSend ? options.text.trim() : input.value.trim();
+const photoFile = quickSend ? null : document.getElementById('chatPhotoFile')?.files?.[0];
+const draft = quickSend ? options.text.trim() : input.value.trim();
+const text = draft || (photoFile ? 'Photo attachment' : '');
 
 if (!text) return;
 const contentError = window.ContentPolicy?.error('chat',text);
@@ -4163,6 +4198,7 @@ window.__chatSending=true;
 document.querySelectorAll('#chatSuggestions .chat-suggestion').forEach(button=>button.disabled=true);
 
 try {
+const inlinePhoto = photoFile ? await window.viciPhotoToInlineData(photoFile, 62000) : null;
 const isOwner = user.uid !== customerUid;
 const customerName = isOwner
     ? await getCustomerDisplayName(customerUid)
@@ -4180,6 +4216,7 @@ const quickQuestion = !isOwner && !transactionMode ? window.ContentPolicy?.topic
         userName: customerName,
         type: "text",
         text,
+        ...(inlinePhoto ? {photoData:inlinePhoto} : {}),
         ...(quickQuestion ? {quickQuestion} : {}),
         ...(linkedBooking ? {bookingId:linkedBooking,transactionId:linkedBooking} : {}),
         status: "sent",
@@ -4201,6 +4238,7 @@ const quickQuestion = !isOwner && !transactionMode ? window.ContentPolicy?.topic
         await user.getIdToken(true);
         messageRef=await window.ContentPolicy.create(window.db,'messages',messagePayload);
     }
+    if(photoFile) window.clearChatPhoto?.();
     if(quickQuestion && document.getElementById('chatModal').dataset.autoReply==='true') {
         window.ViciData.command('autoReply',{messageId:messageRef.id,topic:quickQuestion})
             .catch(error=>{
@@ -4211,7 +4249,7 @@ const quickQuestion = !isOwner && !transactionMode ? window.ContentPolicy?.topic
     }
 } catch (error) {
     console.error("sendChatMessage failed:", error);
-    if(!quickSend && !input.value.trim()){input.value = text;input.dispatchEvent(new Event("input", { bubbles: true }));}
+    if(!quickSend && draft && !input.value.trim()){input.value = draft;input.dispatchEvent(new Event("input", { bubbles: true }));}
     if (window.vicinifyToast) window.vicinifyToast(['permission-denied','firestore/permission-denied'].includes(error.code)
         ? 'Message not sent. Check that your email is verified and the latest Firestore rules are deployed.'
         : "Message not sent: " + error.message, "error");
@@ -4232,14 +4270,18 @@ async function compressPaymentReceipt(file) {
         const img = new Image(), objectUrl = URL.createObjectURL(file);
         img.onload = () => {
             URL.revokeObjectURL(objectUrl);
-            const scale = Math.min(1, 900 / Math.max(img.width, img.height));
-            const canvas = document.createElement("canvas");
-            canvas.width = Math.max(1, Math.round(img.width * scale));
-            canvas.height = Math.max(1, Math.round(img.height * scale));
-            canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-            const data = canvas.toDataURL("image/jpeg", .72);
-            if (data.length > 900 * 1024) reject(new Error("Receipt is too large. Try a smaller screenshot."));
-            else resolve(data);
+            const canvas = document.createElement('canvas');
+            let result = '';
+            for(const [width,quality] of [[900,.75],[760,.67],[640,.59],[510,.5]]) {
+                const scale=Math.min(1,width/Math.max(img.width,img.height));
+                canvas.width=Math.max(1,Math.round(img.width*scale));
+                canvas.height=Math.max(1,Math.round(img.height*scale));
+                canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+                result=canvas.toDataURL('image/jpeg',quality);
+                if(result.length<=600000)break;
+            }
+            if(result.length>600000)reject(new Error('Receipt too detailed for secure Firestore storage. Crop it or choose a smaller screenshot.'));
+            else resolve(result);
         };
         img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error("Could not read the receipt image.")); };
         img.src = objectUrl;
@@ -5474,6 +5516,7 @@ function renderTextBubble(d, currentUid, dateStr, options = {}) {
             ${!isMine && !options.grouped && d.senderName ? `<span data-no-translate class="chat-message-sender">${escapeHtml(d.senderName)}</span>` : ""}
             ${d.isAutoReply ? '<span class="chat-auto-reply-label">Automatic reply</span>' : ''}
             <div class="chat-message-text">${escapeHtml(d.text || "")}</div>
+            ${/^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(d.photoData || '') && d.photoData.length<=62000 ? `<img class="chat-attachment-image" src="${escapeHtml(d.photoData)}" alt="Chat photo attachment" loading="lazy">` : ''}
             ${d.isAutoReply && d.autoReplyTopic==='menu' ? `<button type="button" class="chat-auto-menu" data-auto-menu="${escapeHtml(d.placeId)}">View Menu</button>` : ''}
             <div class="chat-message-meta">${isMine ? receiptHtml(d, currentUid, { time: dateStr }) : escapeHtml(dateStr)}</div>
         </div>
@@ -7026,8 +7069,19 @@ window.compressImageFile = async function(file, maxWidth = 800, quality = 0.6) {
     const png = [137,80,78,71,13,10,26,10].every((n,i)=>bytes[i]===n);
     const webp = String.fromCharCode(...bytes.slice(0,4)) === "RIFF" && String.fromCharCode(...bytes.slice(8,12)) === "WEBP";
     if (!(file.type === "image/jpeg" && jpeg || file.type === "image/png" && png || file.type === "image/webp" && webp)) throw new Error("Invalid photo content.");
-    let bitmap;
-    try { bitmap = await createImageBitmap(file); } catch (_) { throw new Error("Photo could not be decoded."); }
+    let bitmap, imageObjectUrl = null;
+    try {
+        if (typeof createImageBitmap === 'function') bitmap = await createImageBitmap(file);
+        else {
+            imageObjectUrl = URL.createObjectURL(file);
+            bitmap = await new Promise((resolve,reject)=>{
+                const img = new Image();
+                img.onload = ()=>resolve(img);
+                img.onerror = ()=>reject(new Error('Photo could not be decoded.'));
+                img.src = imageObjectUrl;
+            });
+        }
+    } catch (_) { if(imageObjectUrl) URL.revokeObjectURL(imageObjectUrl); throw new Error('Photo could not be decoded.'); }
     try {
         if (bitmap.width < 1 || bitmap.height < 1 || bitmap.width * bitmap.height > 40000000) throw new Error("Photo dimensions are not supported.");
         const scale = Math.min(1, maxWidth / Math.max(bitmap.width, bitmap.height));
@@ -7038,7 +7092,24 @@ window.compressImageFile = async function(file, maxWidth = 800, quality = 0.6) {
         const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", quality));
         if (!blob) throw new Error("Photo conversion failed.");
         return { blob, dataUrl: "" };
-    } finally { bitmap.close?.(); }
+    } finally { bitmap.close?.(); if (imageObjectUrl) URL.revokeObjectURL(imageObjectUrl); }
+};
+
+// Small, verified WebP photo for Firestore-only installations (no Firebase Storage).
+// Never use FileReader on the original file as the stored bytes.
+window.viciPhotoToInlineData = async function(file, maxChars = 64000) {
+    if (!Number.isInteger(maxChars) || maxChars < 12000 || maxChars > 70000) throw new Error('Invalid image size limit.');
+    for (const [width, quality] of [[500,.54],[390,.45],[310,.38],[230,.31],[170,.24],[120,.18]]) {
+        const { blob } = await window.compressImageFile(file,width,quality);
+        const data = await new Promise((resolve,reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error('Unable to read optimized photo.'));
+            reader.onload = () => resolve(String(reader.result || ''));
+            reader.readAsDataURL(blob);
+        });
+        if (/^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(data) && data.length <= maxChars) return data;
+    }
+    throw new Error('Image too detailed for the free-plan photo limit. Crop or choose another JPG, PNG, or WebP.');
 };
 
 window.uploadImageFileToStorage = async function(file, folderName, options = {}) {

@@ -39,7 +39,8 @@ exports.handler=async event=>{
   if(check.ownedPlaces.length&&body.closeBusinesses!==true)return reply(409,{error:'Transfer ownership first, or explicitly choose to close your establishments.',...check});
   // Verify the cleanup query and bucket access before creating an irreversible job.
   await db.collectionGroup('events').where('actorUid','==',user.uid).limit(1).get();
-  try{await services().storage.bucket().getFiles({prefix:`places/${user.uid}/`,maxResults:1,autoPaginate:false});}catch(error){if(error.code!==404)throw error;}
+  // Storage is optional for this Firebase project. New photos are in Firestore.
+  // Do not block account deletion when the legacy Storage bucket is disabled.
   const token=crypto.randomBytes(32).toString('base64url');
   await ref.create({state:'running',phase:0,cursor:null,anon:'deleted_'+crypto.randomBytes(16).toString('hex'),places:check.ownedPlaces.map(p=>p.id),tokenHash:deletion.digest(token),createdAt:Date.now(),leaseUntil:0});
   // The lock is visible to client rules and all authenticated functions before the final recheck.

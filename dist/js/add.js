@@ -381,7 +381,7 @@ window.AddPage = (() => {
         for (const file of arr) {
             try {
                 const userId = window.auth?.currentUser?.uid || "anonymous";
-                const photoUrl = await window.uploadImageFileToStorage(file, `places/${userId}`, { maxWidth: 900, quality: 0.78 });
+                const photoUrl = await window.viciPhotoToInlineData(file,34000);
                 compressedResults.push(photoUrl);
             } catch (err) {
                 console.error("Skipping a photo due to error:", err);
@@ -455,9 +455,14 @@ if (desc.length < 10) {
         }
 
         try {
-            // Branding and photo uploads belong to the verified owner edit flow.
+            // Include selected images in the pending listing; approval gates publication.
+            // No Firebase Storage; re-encode images and cap total Firestore document size.
             const photos = [];
-            const logoUrl = "";
+            for (const file of selectedFilesArray.slice(0,5)) {
+                photos.push(await window.viciPhotoToInlineData(file, 34000));
+            }
+            const logoFile = document.getElementById('bizLogo')?.files?.[0];
+            const logoUrl = logoFile ? await window.viciPhotoToInlineData(logoFile, 34000) : '';
             // Admins (incl. the permanent admin UID) skip the approval
             // queue — the status AND the success message both use this.
             const isAdminSubmitter = AppState.userProfile?.role === "admin" || window.auth.currentUser.uid === "Z45NZhQTgsTUX79WJ5ksCH8N3c02";

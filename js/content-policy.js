@@ -24,7 +24,7 @@
   if(['name','place'].includes(kind)&&(/[<>\r\n\x00-\x1f\x7f]/.test(text)))return `${rule.label}: use plain text on one line.`;
   return null;
  }
- async function create(db,collection,payload,existingRef=null){
+ async function create(db,collection,payload,existingRef=null,options={}){
   payload={...payload};
   for(const [key,max] of Object.entries({authorName:80,userName:120,senderName:120,placeName:120,establishmentName:120}))
    if(typeof payload[key]==='string')payload[key]=payload[key].slice(0,max);
@@ -51,6 +51,15 @@
   }else{
    const batch=db.batch();
    batch.set(db.collection('write_cooldowns').doc(`${uid}_${scope}`),{uid,scope,targetId:ref.id,at:stamp()});
+   // Keep personal Buzz photos in a separate, small, public media document.
+   // A single atomic write prevents "post created, photo missing" partial success.
+   if(collection==='buzz_posts' && options.mediaDataUrl){
+    const photo=String(options.mediaDataUrl);
+    if(photo.length>70000 || !/^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(photo))throw new Error('Could not prepare a valid Buzz photo.');
+    batch.set(db.collection('buzz_media').doc(ref.id),{
+     authorUid:uid,dataUrl:photo,createdAt:stamp()
+    });
+   }
    batch.set(ref,payload);await batch.commit();
   }
   return ref;

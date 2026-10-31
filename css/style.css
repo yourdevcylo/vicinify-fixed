@@ -12780,3 +12780,30 @@ html body.vicinify-ui #bookingModal .booking-table-warning { box-sizing:border-b
 html body.vicinify-ui #bookingModal #bookTable { width:100%; min-width:0; }
 html body.vicinify-ui #bookingModal #bookTable:disabled { opacity:.78; cursor:not-allowed; }
 html body.dark-mode.vicinify-ui #bookingModal .booking-table-warning, html body.dark.vicinify-ui #bookingModal .booking-table-warning { background:#35230e; border-color:#a16207; color:#fef3c7; }
+
+/* Establishment post publishing: finished state is visually separated and
+   its success buttons must never overflow the narrow/mobile modal. */
+#placePostModal #placePostSuccess {text-align:center; padding:22px 10px;}
+#placePostModal #placePostSuccess .post-success-icon {display:flex; justify-content:center; color:var(--ui-accent); margin-bottom:12px;}
+#placePostModal #placePostSuccess .post-success-icon svg {width:32px; height:32px;}
+#placePostModal #placePostSuccess h4 {margin:0 0 8px; font-size:17px;}
+#placePostModal #placePostSuccess p {margin:0; color:var(--ui-muted); line-height:1.5;}
+#placePostModal #placePostShareFooter {display:flex; flex-wrap:wrap; gap:8px;}
+#placePostModal #placePostShareFooter.hidden, #placePostModal #placePostSaveFooter.hidden {display:none !important;}
+#placePostModal #placePostShareFooter button {flex:1 1 130px; white-space:normal;}
+@media(max-width:460px) {
+ #placePostModal #placePostShareFooter button {flex:1 1 100%;}
+}
+
+/* Chat photo attachment: native picker remains clickable on mobile. */
+#chatModal .chat-footer .chat-photo-picker {position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 38px;min-width:38px;height:38px;border:1px solid var(--ui-border,#cbd5e1);border-radius:12px;cursor:pointer;color:var(--ui-primary,#287e72);background:var(--ui-surface,#fff);overflow:hidden}
+#chatModal .chat-photo-picker input {position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:1;font-size:0}
+#chatModal .chat-photo-picker svg {width:20px;height:20px;pointer-events:none}
+#chatModal .chat-footer {flex-wrap:wrap}
+#chatModal .chat-photo-state {order:3;flex-basis:100%;display:flex;align-items:center;gap:8px;font-size:12px;min-width:0;color:var(--ui-muted,#64748b)}
+#chatModal .chat-photo-state[hidden] {display:none!important}
+#chatModal .chat-photo-state span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+#chatModal .chat-photo-state button {border:0;background:transparent;cursor:pointer;font-size:22px;color:inherit}
+#chatModal .chat-attachment-image {display:block;max-width:100%;max-height:280px;object-fit:contain;border-radius:10px;margin-top:8px}
+
+#chatModal #chatPhotoPreview {width:40px;height:40px;object-fit:cover;border-radius:8px;flex:none}#chatModal #chatPhotoPreview[hidden]{display:none!important}

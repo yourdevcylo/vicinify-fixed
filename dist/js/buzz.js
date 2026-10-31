@@ -6,6 +6,102 @@ window.BuzzPage = (() => {
     let unsubscribe = null;
     let selectedMediaFile = null;
     let isBusinessPost = false;
+    // Buzz's mediaUrl is limited to 2048 chars by Firestore rules. Shared
+    // inline thumbnails stay in place_posts and are resolved when Buzz renders.
+    const sharedPostPhotoCache = new Map();
+    async function resolveSharedPlacePhotos() {
+        const cards = [...document.querySelectorAll('.buzz-feed-media[data-place-post-id]')];
+        await Promise.all(cards.map(async holder => {
+            const postId = holder.dataset.placePostId;
+            const placeId = holder.dataset.sourcePlaceId;
+            if (!postId || !placeId) return;
+            try {
+                let loading = sharedPostPhotoCache.get(postId);
+                if (!loading) {
+                    loading = window.db.collection('place_posts').doc(postId).get();
+                    sharedPostPhotoCache.set(postId, loading);
+                    if (sharedPostPhotoCache.size > 60) sharedPostPhotoCache.delete(sharedPostPhotoCache.keys().next().value);
+                }
+                const snapshot = await loading;
+                if (!holder.isConnected) return;
+                const post = snapshot.exists ? snapshot.data() : null;
+                if (!post || post.placeId !== placeId) { holder.remove(); return; }
+                const src = window.safeImageUrl?.(post.mediaUrl);
+                if (!src) { holder.remove(); return; }
+                const photo = document.createElement('img');
+                photo.src = src;
+                photo.loading = 'lazy';
+                photo.alt = 'Photo from the establishment post';
+                photo.addEventListener('error', () => holder.remove(), {once:true});
+                holder.replaceChildren(photo);
+            } catch (error) {
+                sharedPostPhotoCache.delete(postId);
+                holder.remove();
+            }
+        }));
+    }
+
+
+    const inlineBuzzPhotoCache = new Map();
+    // For Buzz-created photos: image lives in buzz_media, not Firebase Storage.
+    async function resolveInlineBuzzPhotos() {
+        const cards = [...document.querySelectorAll('.buzz-feed-media[data-buzz-media-id]')];
+        await Promise.all(cards.map(async holder => {
+            const postId = holder.dataset.buzzMediaId;
+            if (!postId || !/^[A-Za-z0-9_-]{1,180}$/.test(postId)) return;
+            try {
+                let pending = inlineBuzzPhotoCache.get(postId);
+                if (!pending) {
+                    pending = window.db.collection('buzz_media').doc(postId).get();
+                    inlineBuzzPhotoCache.set(postId, pending);
+                    if (inlineBuzzPhotoCache.size > 60) inlineBuzzPhotoCache.delete(inlineBuzzPhotoCache.keys().next().value);
+                }
+                const snapshot = await pending;
+                if (!holder.isConnected) return;
+                const media = snapshot.exists ? snapshot.data() : null;
+                const src = window.safeImageUrl?.(media?.dataUrl);
+                if (!src) { holder.remove(); return; }
+                const img = document.createElement('img');
+                img.src = src;
+                img.loading = 'lazy';
+                img.alt = 'Buzz post photo';
+                img.addEventListener('error', () => holder.remove(), {once:true});
+                holder.replaceChildren(img);
+            } catch (e) {
+                inlineBuzzPhotoCache.delete(postId);
+                holder.remove();
+            }
+        }));
+    }
+
+    async function optimizeBuzzPhoto(file) {
+        if (!file || !/^image\/(jpeg|png|webp)$/i.test(file.type || '') || file.size > 5 * 1024 * 1024) {
+            throw new Error('Select a JPG, PNG, or WebP photo under 5 MB.');
+        }
+        if (!window.compressImageFile) throw new Error('Image optimizer unavailable. Reload the page and try again.');
+        const toDataUrl = blob => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ''));
+            reader.onerror = () => reject(new Error('Unable to read the compressed photo.'));
+            reader.readAsDataURL(blob);
+        });
+        for (const [width, quality] of [[520,.53],[430,.45],[340,.38],[260,.32],[190,.27],[140,.22]]) {
+            const {blob} = await window.compressImageFile(file, width, quality);
+            const dataUrl = await toDataUrl(blob);
+            if (/^data:image\/webp;base64,/i.test(dataUrl) && dataUrl.length <= 70000) return dataUrl;
+        }
+        throw new Error('This photo cannot fit in the free-plan size limit. Try a less detailed photo.');
+    }
+
+    function explainBuzzError(error) {
+        const message = String(error?.message || 'Unknown error');
+        if (error?.code === 'permission-denied' || /insufficient permissions/i.test(message)) {
+            if (!window.auth?.currentUser?.emailVerified) return 'Verify your email first, then sign in again to publish Buzz posts.';
+            return 'Buzz post was not saved. If you just posted, wait 30 seconds and retry. For photo posts, deploy the updated Firestore rules.';
+        }
+        if (/resource-exhausted/i.test(String(error?.code)) || /quota/i.test(message)) return 'Firestore usage limit reached. Try again after quota reset.';
+        return message;
+    }
 
     // 🔥 INJECT MODERN REACT-STYLE CSS 🔥
     const style = document.createElement('style');
@@ -164,9 +260,12 @@ window.BuzzPage = (() => {
             if(c.classList.contains("active")) selectedType = c.dataset.val;
         });
 
-        const body = (document.getElementById("postBody").value || "").trim();
+        const rawBody = (document.getElementById("postBody").value || "").trim();
+        const body = rawBody || (selectedMediaFile ? 'Photo update' : '');
         const brgy = document.getElementById("postBarangay").value;
-        const selectedBizId = document.getElementById("bizPostSelect").value;
+        const selectedBizId = isBusinessPost ? document.getElementById("bizPostSelect").value : "";
+
+        if (!user.emailVerified) return window.showToast?.('Verify your email before posting to Buzz.', 'error');
 
         const bodyProblem=window.ContentPolicy?.error('post',body);
         if(bodyProblem) return window.showToast ? window.showToast(bodyProblem,'error') : alert(bodyProblem);
@@ -194,17 +293,16 @@ window.BuzzPage = (() => {
         try {
            let mediaUrl = null;
 
-            if (selectedMediaFile) {
-                if (selectedMediaFile.type.startsWith("video/")) throw new Error("Only images are supported for now.");
-
-                mediaUrl = await window.uploadImageFileToStorage(selectedMediaFile, `buzz_posts/${user.uid}`, { maxWidth: 900, quality: 0.8 });
-            }
+            // Never invoke Firebase Storage in this project. Photo + post are
+            // persisted atomically via a small inline WebP document in Firestore.
+            const inlineMedia = selectedMediaFile ? await optimizeBuzzPhoto(selectedMediaFile) : null;
 
             await window.ContentPolicy.create(window.db, 'buzz_posts', {
                 type: selectedType,
                 barangay: brgy,
                 body: body,
-                mediaUrl: mediaUrl,
+                mediaUrl: null,
+                hasInlineMedia: !!inlineMedia,
                 likes: 0,
                 likedBy: [],
                 comments: [],
@@ -216,12 +314,13 @@ window.BuzzPage = (() => {
                 establishmentName: isBusinessPost && selectedBiz ? selectedBiz.name : null,
                 
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            }, null, {mediaDataUrl:inlineMedia});
 
             closeModal();
             if(window.showToast) window.showToast("Post published.", "success");
         } catch (error) {
-            if(window.showToast) window.showToast("Error: " + error.message, "error");
+            console.error('Buzz publish failed:', error);
+            if(window.showToast) window.showToast(explainBuzzError(error), "error");
         } finally {
             publishBtn.disabled = false;
             publishBtn.textContent = "Publish";
@@ -299,6 +398,10 @@ currentPosts = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));       
             const safeMediaUrl = window.safeImageUrl ? window.safeImageUrl(p.mediaUrl) : p.mediaUrl;
             if (safeMediaUrl) {
                 mediaHtml = `<div class="buzz-feed-media"><img src="${escapeHtml(safeMediaUrl)}" loading="lazy" /></div>`;
+            } else if (p.isBusinessPost && p.sourcePostId && (p.sourcePlaceId || p.establishmentId)) {
+                mediaHtml = `<div class="buzz-feed-media" data-place-post-id="${escapeHtml(String(p.sourcePostId))}" data-source-place-id="${escapeHtml(String(p.sourcePlaceId || p.establishmentId))}"><span class="muted">Loading shared photo…</span></div>`;
+            } else if (p.hasInlineMedia && /^[A-Za-z0-9_-]{1,180}$/.test(String(p.id || ''))) {
+                mediaHtml = `<div class="buzz-feed-media" data-buzz-media-id="${escapeHtml(String(p.id))}"><span class="muted">Loading photo…</span></div>`;
             }
 
             const deleteBtnHtml = isAuthor 
@@ -382,6 +485,9 @@ currentPosts = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));       
         });
 
         attachActionListeners();
+        // Loaded from the source establishment post instead of a prohibited large Buzz data URL.
+        void resolveSharedPlacePhotos();
+        void resolveInlineBuzzPhotos();
         window.debouncedIcons?.();
         window.LangManager?.translateDOM?.();
     }
@@ -394,7 +500,16 @@ currentPosts = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));       
                 if (!ans) return;
 
                 try {
-                    await window.db.collection("buzz_posts").doc(postId).delete();
+                    const post = window.db.collection('buzz_posts').doc(postId);
+                    const media = window.db.collection('buzz_media').doc(postId);
+                    const batch = window.db.batch();
+                    // Text-only Buzz posts have no buzz_media document; do not try to
+                    // delete an absent doc under rules requiring a matching owner.
+                    const mediaSnap = await media.get();
+                    if (mediaSnap.exists) batch.delete(media);
+                    batch.delete(post);
+                    await batch.commit();
+                    inlineBuzzPhotoCache.delete(postId);
                     if(window.showToast) window.showToast("Post deleted successfully.", "success");
                 } catch (e) {
                     if(window.showToast) window.showToast("Error: " + e.message, "error");
@@ -532,7 +647,7 @@ currentPosts = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));       
             </div>
             <label for="postMedia" class="post-upload">
                 <i data-lucide="image-plus"></i><span>Add a photo <span>(optional)</span></span>
-                <input type="file" id="postMedia" class="post-file-input" accept="image/*" />
+                <input type="file" id="postMedia" class="post-file-input" accept="image/jpeg,image/png,image/webp" />
             </label>
         `;
 
@@ -564,7 +679,7 @@ currentPosts = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));       
         }
 
         const postBodyEl = document.getElementById("postBody");
-        const syncPublishState = () => { const pb=document.getElementById("publishPostBtn"); if(pb) pb.disabled = !(postBodyEl?.value.trim() || selectedMediaFile); };
+        const syncPublishState = () => { const pb=document.getElementById("publishPostBtn"); if(pb) pb.disabled = !postBodyEl?.value.trim() && !selectedMediaFile; };
         postBodyEl?.addEventListener("input", (e) => { const cc=document.getElementById("charCount"); if(cc) cc.textContent = `${e.target.value.length}/500`; syncPublishState(); });
         window.__viciSyncPublish = syncPublishState; syncPublishState();
 
