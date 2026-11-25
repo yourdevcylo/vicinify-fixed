@@ -144,13 +144,18 @@ async function confirmReceivedBooking(bookingId, placeId) {
     if (!ans) return;
 
     try {
-        await window.ViciData.command("booking", { bookingId: bookingId, patch: {
+        const bookingResult = await window.ViciData.command("booking", { bookingId: bookingId, patch: {
             status: "received",
             customer_confirmed: true,
             customerConfirmedAt: firebase.firestore.FieldValue.serverTimestamp(),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         } });
-
+        // Receipt was already confirmed successfully. Loyalty sync failures
+        // must not change the booking result or block optional feedback.
+        if (bookingResult?.sukiStamp?.reason === 'retry-needed') {
+            try { await window.ViciData.command('sukiStamp', { action: 'retry_order', bookingId }); }
+            catch (sukiError) { console.warn('[suki] Receipt confirmed; stamp sync still needs retry:', sukiError?.message); }
+        }
 
         const rateAns = await window.vConfirm(
             "Give Feedback",

@@ -29,6 +29,8 @@ function plan(uid,places) {
     const tasks=places.map(id=>({kind:'close',id}));const add=(kind,collection,field,value)=>tasks.push({kind,collection,field,value});
     for(const name of ['favorites','business_claims','place_reports'])add('delete',name,'userId',uid);
     for(const name of ['loyalty_cards','stamp_requests'])add('delete',name,'customerUid',uid);
+    // Phase 7: erase sensitive registration and permit documents during account deletion.
+    for(const name of ['business_application_files','business_applications','verified_businesses'])add('delete',name,'ownerUid',uid);
     add('delete','buzz_posts','authorUid',uid);
     add('delete','buzz_media','authorUid',uid);
     add('delete','private_places','owner_uid',uid);

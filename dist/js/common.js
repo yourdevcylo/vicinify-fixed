@@ -2942,6 +2942,7 @@ window.auth.onAuthStateChanged(async (user) => {
                 }, 2500);
             }
             showPage("page-map", { resetHistory: true });
+            window.BusinessRegistration?.resumeIfRequested?.();
         };
 
         currentUserDocUnsub = window.db.collection("users").doc(user.uid).onSnapshot(async doc => {
@@ -5673,7 +5674,7 @@ function renderTransactionDesk(order,isOwner,orders=[]) {
     if(isOwner&&!['received','cancelled','rejected'].includes(status))buttons+=action('owner-cancel','Cancel request');
     if(!isOwner&&window.PaymentPolicy.cancellation(order).allowed)buttons+=action('cancel','Cancel request');
     const value=(label,value,personal=false)=>value?`<div><dt>${esc(t(label))}</dt><dd${personal?' data-no-translate':''}>${esc(String(value))}</dd></div>`:'';
-    return `<div class="transaction-desk-top"><b>${esc(t('Current transaction'))}</b><span>${esc(t(status.replace(/_/g,' ')))}</span></div>${renderRequestProcess(order,requirements)}<p class="transaction-desk-next">${esc(t(next))}</p>${!['cancelled','rejected'].includes(status)?renderDeskRequirements(requirements):''}${status==='accepted'&&flow.online&&flow.termsReady&&detailsReady&&order.paymentInstructions?`<p class="transaction-desk-payto" data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl class="transaction-desk-money">${value('Amount due',flow.termsReady&&detailsReady&&order.paymentAmountDue?'₱'+order.paymentAmountDue:'')}${value('Submitted payment',order.paymentAmount?'₱'+order.paymentAmount:'')}${value('Reference',order.paymentReference,true)}${value('Refund amount',order.refundAmount!=null?'₱'+order.refundAmount:'')}${value('Refund calculation',order.refundBaseAmount&&order.refundAmount!=null?'₱'+order.refundBaseAmount+' × '+order.refundPercent+'%':'')}${value('Refund reference',order.refundReference,true)}</dl><details class="transaction-desk-details"><summary>${esc(t('Payment and request details'))}</summary><p class="transaction-desk-next">${esc(t('Refund rate before preparation'))}: ${esc(String(order.refundPercent ?? 50))}% · ${esc(t('Cancellation closes when preparation starts.'))}</p><p class="transaction-desk-id" data-no-translate>TX-${esc(String(id).slice(-8))}</p>${flow.termsReady&&detailsReady&&order.paymentInstructions?`<p data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl>${value('Reference',order.paymentReference,true)}${value('Refund reference',order.refundReference,true)}${value('Business note',order.paymentReviewNote||order.refundNote,true)}</dl>${order.paymentProofPath?`<div class="transaction-desk-proof" data-tx-proof="${esc(order.paymentProofPath)}" data-booking-id="${esc(id)}"></div>`:''}${renderRequestDetailRows(order)}<p>${esc(t('Vicinify records manual payments and refunds. It does not transfer money.'))}</p></details><div class="transaction-desk-actions">${buttons}</div>`;
+    return `<div class="transaction-desk-top"><b>${esc(t('Current transaction'))}</b><span>${esc(t(status.replace(/_/g,' ')))}</span></div>${renderRequestProcess(order,requirements)}<p class="transaction-desk-next">${esc(t(next))}</p>${!['cancelled','rejected'].includes(status)?renderDeskRequirements(requirements):''}${status==='accepted'&&flow.online&&flow.termsReady&&detailsReady&&order.paymentInstructions?`<p class="transaction-desk-payto" data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl class="transaction-desk-money">${order.vipDiscountCents>0?value('Menu subtotal','₱'+(order.estimatedSubtotalCents/100).toFixed(2))+value('VIP discount ('+order.vipDiscountPercent+'%)','−₱'+(order.vipDiscountCents/100).toFixed(2))+value('Discounted menu total','₱'+(order.estimatedTotalCents/100).toFixed(2))+(order.additionalFeeCents>0?value('Additional fee','₱'+(order.additionalFeeCents/100).toFixed(2))+value('Fee explanation',order.additionalFeeReason,true):''):''}${value('Amount due',flow.termsReady&&detailsReady&&order.paymentAmountDue?'₱'+order.paymentAmountDue:'')}${value('Submitted payment',order.paymentAmount?'₱'+order.paymentAmount:'')}${value('Reference',order.paymentReference,true)}${value('Refund amount',order.refundAmount!=null?'₱'+order.refundAmount:'')}${value('Refund calculation',order.refundBaseAmount&&order.refundAmount!=null?'₱'+order.refundBaseAmount+' × '+order.refundPercent+'%':'')}${value('Refund reference',order.refundReference,true)}</dl><details class="transaction-desk-details"><summary>${esc(t('Payment and request details'))}</summary><p class="transaction-desk-next">${esc(t('Refund rate before preparation'))}: ${esc(String(order.refundPercent ?? 50))}% · ${esc(t('Cancellation closes when preparation starts.'))}</p><p class="transaction-desk-id" data-no-translate>TX-${esc(String(id).slice(-8))}</p>${flow.termsReady&&detailsReady&&order.paymentInstructions?`<p data-no-translate>${esc(order.paymentInstructions)}</p>`:''}<dl>${value('Reference',order.paymentReference,true)}${value('Refund reference',order.refundReference,true)}${value('Business note',order.paymentReviewNote||order.refundNote,true)}</dl>${order.paymentProofPath?`<div class="transaction-desk-proof" data-tx-proof="${esc(order.paymentProofPath)}" data-booking-id="${esc(id)}"></div>`:''}${renderRequestDetailRows(order)}<p>${esc(t('Vicinify records manual payments and refunds. It does not transfer money.'))}</p></details><div class="transaction-desk-actions">${buttons}</div>`;
 }
 function refreshTransactionDesk(isOwner) {
     if(document.getElementById('chatModal')?.dataset.mode==='messages'){document.getElementById('chatTransactionSummary')?.classList.add('hidden');return;}
@@ -5713,7 +5714,7 @@ function transactionInputDialog(title,fields,note,submitLabel='Save') {
     if(document.getElementById('transactionActionModal'))return Promise.resolve(null);
     return new Promise(resolve=>{
         const modal=document.createElement('div');modal.id='transactionActionModal';modal.className='req-modal';
-        modal.innerHTML=`<div class="modalBackdrop"></div><form class="req-sheet" role="dialog" aria-modal="true" aria-labelledby="transactionActionTitle"><header class="req-head"><div class="req-head-text"><h3 id="transactionActionTitle">${escapeHtml(title)}</h3><p>${escapeHtml(note)}</p></div></header><div class="req-body">${fields.map(f=>`<label class="req-field"><span>${escapeHtml(f.label)}</span>${f.area?`<textarea class="req-input" name="${f.name}" required minlength="${f.min||3}" maxlength="1000">${escapeHtml(f.value||'')}</textarea>`:`<input class="req-input" name="${f.name}" required ${f.readOnly?'readonly':''} ${f.money?'inputmode="decimal"':'minlength="3" maxlength="200"'} value="${escapeHtml(f.value||'')}">`}</label>`).join('')}</div><footer class="req-footer"><button type="button" class="req-btn ghost">Cancel</button><button type="submit" class="req-btn primary">${escapeHtml(submitLabel)}</button></footer></form>`;
+        modal.innerHTML=`<div class="modalBackdrop"></div><form class="req-sheet" role="dialog" aria-modal="true" aria-labelledby="transactionActionTitle"><header class="req-head"><div class="req-head-text"><h3 id="transactionActionTitle">${escapeHtml(title)}</h3><p>${escapeHtml(note)}</p></div></header><div class="req-body">${fields.map(f=>`<label class="req-field"><span>${escapeHtml(f.label)}</span>${f.area?`<textarea class="req-input" name="${f.name}" required minlength="${f.min||3}" maxlength="1000">${escapeHtml(f.value||'')}</textarea>`:`<input class="req-input" name="${f.name}" ${f.name==='extraFeeReason'?'':'required'} ${f.readOnly?'readonly':''} ${f.money?'inputmode="decimal"':'minlength="3" maxlength="200"'} value="${escapeHtml(f.value||'')}">`}</label>`).join('')}</div><footer class="req-footer"><button type="button" class="req-btn ghost">Cancel</button><button type="submit" class="req-btn primary">${escapeHtml(submitLabel)}</button></footer></form>`;
         const prior=document.activeElement,finish=value=>{document.removeEventListener('keydown',key);modal.remove();prior?.focus?.();resolve(value)};
         const key=e=>{if(e.key==='Escape')finish(null);if(e.key==='Tab'){const all=[...modal.querySelectorAll('input,textarea,button')];if(e.shiftKey&&document.activeElement===all[0]){e.preventDefault();all.at(-1).focus()}else if(!e.shiftKey&&document.activeElement===all.at(-1)){e.preventDefault();all[0].focus()}}};
         modal.querySelector('.modalBackdrop').onclick=()=>finish(null);modal.querySelector('[type=button]').onclick=()=>finish(null);
@@ -5752,7 +5753,10 @@ window.transactionDeskAction=async function(action,id,messageId){
         }else if(action==='delivery-details'){
             const input=await transactionInputDialog('Delivery address',[{name:'houseStreet',label:'House number, street or subdivision'},{name:'barangay',label:'Barangay'},{name:'city',label:'City / Municipality'},{name:'landmark',label:'Landmark'}],'The business uses this address to confirm the total and delivery fee.');if(!input)return;patch={deliveryDetails:input};
         }else if(action==='terms'){
-            const input=await transactionInputDialog('Set payment instructions',[{name:'paymentMethod',label:'Payment Method',value:window.PaymentPolicy.isOnline(order)?order.paymentMethod:'GCash'},{name:'amount',label:'Amount due now (₱)',money:true,value:order.paymentAmountDue},{name:'instructions',label:'Payment recipient and instructions',area:true,min:8,value:order.paymentInstructions}],'Include the recipient name, account number and agreed amount. This does not confirm a payment.');if(!input)return;patch={paymentTerms:input};
+            const discounted=Number.isInteger(order.vipDiscountCents)&&order.vipDiscountCents>0;
+            const priceHint=discounted?`VIP ${order.vipDiscountPercent}% is already deducted from the menu: ₱${(order.estimatedTotalCents/100).toFixed(2)}. Enter optional extra fees separately and explain them. The server calculates the final amount.`:'Include the recipient name, account number and agreed amount. This does not confirm a payment.';
+            const amountFields=discounted?[{name:'extraFee',label:'Additional fees only (₱, enter 0 if none)',value:(Number(order.additionalFeeCents||0)/100).toFixed(2)},{name:'extraFeeReason',label:'Reason for extra fee (required if above 0)',value:order.additionalFeeReason||''}]:[{name:'amount',label:'Amount due now (₱)',money:true,value:order.paymentAmountDue}];
+            const input=await transactionInputDialog('Set payment instructions',[{name:'paymentMethod',label:'Payment Method',value:window.PaymentPolicy.isOnline(order)?order.paymentMethod:'GCash'},...amountFields,{name:'instructions',label:'Payment recipient and instructions',area:true,min:8,value:order.paymentInstructions}],priceHint);if(!input)return;patch={paymentTerms:input};
         }else if(action==='refund-check'){
             const input=await transactionInputDialog('Verify received payment',[{name:'receivedAmount',label:'Amount actually received (₱)',money:true,value:order.paymentAmount}],'Check your account first. The refund will be calculated using the saved cancellation rate.');if(!input)return;patch={refundStatus:'pending',...input};
         }else if(action==='refund-missing'){
@@ -6987,7 +6991,7 @@ window.renderListView = function(filteredPlaces) {
                         <i data-lucide="chevron-right" style="width: 18px; height: 18px; color: #cbd5e1; flex-shrink: 0;"></i>
                     </div>
                     <div class="place-list-meta" style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-                        <div style="font-size: 13px; color:var(--ui-muted); text-transform: capitalize;">${escapeHtml(place.category || place.cat || "")}</div>
+                        <div style="font-size: 13px; color:var(--ui-muted); text-transform: capitalize;">${escapeHtml((Array.isArray(place.categories)&&place.categories.length?place.categories:[place.category||place.cat||'']).join(' · '))}</div>
                         <div style="width: 3px; height: 3px; border-radius: 50%; background: #cbd5e1;"></div>
                         ${ratingHtml}
                         <button type="button" class="place-list-action place-list-menu-trigger" data-action="menu" data-place-id="${escapeHtml(place.id)}"><i data-lucide="book-open"></i> Menu</button>
@@ -7212,6 +7216,13 @@ window.Suki = (() => {
         return { color: "#f59e0b", icon: "star" };
     }
 
+    // Only locally recompressed raster data URLs are accepted; prevents HTML,
+    // SVG, remote tracking images, and CSS injection via Firestore data.
+    function validBackgroundImage(value) {
+        if (typeof value !== "string" || value.length > 150000) return "";
+        return /^data:image\/webp;base64,[a-zA-Z0-9+/]+={0,2}$/.test(value) ? value : "";
+    }
+
     // Normalized design object from a place doc. Owner override wins;
     // falls back to the establishment's category icon/color.
     function designOf(place) {
@@ -7231,6 +7242,7 @@ window.Suki = (() => {
             gradFrom: hex(p.suki_gradient_from,(gradPreset && gradPreset.from)||'#1b5649'),
             gradTo: hex(p.suki_gradient_to,(gradPreset && gradPreset.to)||'#328d74'),
             pattern: Object.hasOwn(D.PATTERNS,p.suki_pattern) ? p.suki_pattern : 'none',
+            backgroundImage: validBackgroundImage(p.suki_background_image),
             placeName: String(p.name || "Establishment")
         };
     }
@@ -7255,6 +7267,22 @@ window.Suki = (() => {
             || user.displayName || "Customer";
     }
 
+    // Count only rewards the store owner has marked as handed over.
+    // Earlier versions kept just a `claimed` boolean (at most one claim
+    // could complete in that flow); recognize that one legacy redemption
+    // without fabricating a larger historical total.
+    function totalRedemptions(card) {
+        const count = Number(card?.redemptionCount);
+        if (card && card.redemptionCount != null && Number.isSafeInteger(count) && count >= 0) return count;
+        return card?.claimed ? 1 : 0;
+    }
+
+    // UI hint only: the backend ledger remains the authority on daily limits.
+    function manilaTodayKey() {
+        return new Date(Date.now() + 8 * 3600000).toISOString().slice(0,10).replaceAll('-', '');
+    }
+    function stampedToday(card) { return !!card && card.lastStampDay === manilaTodayKey(); }
+
     /* ---------- shared 3D card renderer ---------- */
     function renderCard(place, card, opts) {
         opts = opts || {};
@@ -7262,13 +7290,22 @@ window.Suki = (() => {
         const stamps = Math.min(d.stampCount,Math.max(0, parseInt(card && card.stamps, 10) || 0));
         const full = stamps >= d.stampCount;
         const baseForTone = d.colorMode === "gradient" ? d.gradFrom : d.color;
-        const tone = textTone(baseForTone);
+        const tone = d.backgroundImage ? "#ffffff" : textTone(baseForTone);
         const toneCls = tone === "#ffffff" ? "suki-on-dark" : "suki-on-light";
         const bg = d.colorMode === "gradient" ? `linear-gradient(135deg, ${d.gradFrom} 0%, ${d.gradTo} 100%)` : d.color;
+        const faceStyle = d.backgroundImage
+            ? `background:${sukiEsc(bg)};background-image:linear-gradient(rgba(0,0,0,.38),rgba(0,0,0,.38)),url(&quot;${d.backgroundImage}&quot;);background-position:center;background-size:cover;color:#ffffff;`
+            : `background:${sukiEsc(bg)};color:${tone};`;
         const cardId = (card && (card.cardId || card.id)) || "";
         const custName = (card && card.customerName) || "";
         const claimed = !!(card && card.claimed);
         const claimReq = !!(card && card.claimRequested);
+        const redeemed = totalRedemptions(card);
+        const vipEnd = card?.vipExpiresAt?.toMillis?.() || (Number(card?.vipExpiresAt?.seconds)||0)*1000;
+        const vip = place.suki_vip_enabled===true && card?.vipActive===true && (!vipEnd || vipEnd>Date.now());
+        const vipDays = Number.isSafeInteger(card?.verifiedPurchaseDays)&&card.verifiedPurchaseDays>=0 ? card.verifiedPurchaseDays:0;
+        const vipTarget = Math.max(1,Math.min(365,Number.parseInt(place.suki_vip_days,10)||10));
+        const vipBenefit = String(place.suki_vip_benefit||'').slice(0,120);
 
         let slots = "";
         for (let i = 0; i < d.stampCount; i++) {
@@ -7289,7 +7326,7 @@ window.Suki = (() => {
         return `
         <div class="suki-3d${d.stampCount>12||d.reward.length>60||d.placeName.length>28?' suki-dense':''}" data-suki-card style="--suki-columns:${d.stampCount<=6?d.stampCount:d.stampCount<=8?4:d.stampCount<=10?5:d.stampCount<=18?6:8}" data-stamp-count="${d.stampCount}">
             <div class="suki-flip">
-                <div class="suki-face suki-front ${toneCls}" style="background:${sukiEsc(bg)}; color:${tone};">
+                <div class="suki-face suki-front ${toneCls}" style="${faceStyle}">
                     <div class="suki-pattern suki-pattern-${sukiEsc(d.pattern)}"></div>
                     ${watermarkFront}
                     <div class="suki-shine"></div>
@@ -7297,25 +7334,32 @@ window.Suki = (() => {
                         <div class="suki-top">
                             <span class="suki-badge-icon"><i data-lucide="${sukiEsc(d.icon)}"></i></span>
                             <span class="suki-name" title="${sukiEsc(d.placeName)}">${sukiEsc(d.placeName)}</span>
+                            ${vip ? `<span class="suki-gold-tag">VIP SUKI</span>` : ''}
                             ${full ? `<span class="suki-gold-tag">${claimed ? 'Claimed' : claimReq ? 'Claim pending' : 'Reward ready'}</span>` : ""}
                         </div>
                         <div class="suki-stamps">${slots}</div>
-                        <div class="suki-progress"><b>${stamps} / ${d.stampCount}</b> stamps</div>
+                        <div class="suki-progress"><b>${stamps} / ${d.stampCount}</b> stamps &bull; <b>${redeemed}</b> reward${redeemed === 1 ? '' : 's'} redeemed</div>
                         <div class="suki-reward"><span><i data-lucide="gift"></i></span><span title="${sukiEsc(d.reward)}">${sukiEsc(d.reward)}</span></div>
                         <div class="suki-remaining">${claimed ? "Reward claimed" : claimReq ? "Claim sent for review" : full ? "Your reward is ready" : `${remaining} more stamp${remaining === 1 ? "" : "s"} to go`}</div>
                     </div>
                     <button type="button" class="suki-flip-btn" data-suki-flip title="Flip" aria-label="Flip card"><i data-lucide="rotate-3d"></i></button>
                 </div>
-                <div class="suki-face suki-back ${toneCls}" style="background:${sukiEsc(bg)}; color:${tone};">
+                <div class="suki-face suki-back ${toneCls}" style="${faceStyle}">
                     <div class="suki-pattern suki-pattern-${sukiEsc(d.pattern)}"></div>
                     ${watermarkBack}
                     <div class="suki-shine"></div>
                     <div class="suki-content suki-back-content">
-                        <div class="suki-back-title">Suki Card</div>
+                        <div class="suki-back-title">${vip?'VIP Suki Card':'Suki Card'}</div>
+                        ${place.suki_vip_enabled===true?`<div class="suki-back-row"><span>VIP progress</span><b>${vipDays} / ${vipTarget} days</b></div>`:''}
+                        ${vip&&vipBenefit?`<div class="suki-back-row"><span>VIP benefit</span><b>${sukiEsc(vipBenefit)}</b></div>`:''}
+                        ${vip&&Number.isInteger(place.suki_vip_discount_percent)&&place.suki_vip_discount_percent>=1&&place.suki_vip_discount_percent<=50?`<div class="suki-back-row"><span>Online menu discount</span><b>${place.suki_vip_discount_percent}% on Vicinify orders</b></div>`:''}
+                        ${vip?`<div class="suki-back-row"><span>Membership</span><b>${vipEnd?'Valid until '+new Date(vipEnd).toLocaleDateString('en-PH'):'Until revoked'}</b></div>`:''}
                         <div class="suki-back-row"><span>Reward</span><b><i data-lucide="gift" style="width:14px;height:14px;vertical-align:-2px;"></i> ${sukiEsc(d.reward)}</b></div>
                         <div class="suki-back-row"><span>Card ID</span><b class="suki-mono">${sukiEsc(cardId || "—")}</b></div>
                         <div class="suki-back-row"><span>Cardholder</span><b>${sukiEsc(custName || "—")}</b></div>
                         <div class="suki-back-row"><span>Status</span><b>${sukiEsc(statusText)}</b></div>
+                        <div class="suki-back-row"><span>Total redeemed</span><b>${redeemed}</b></div>
+                        <div class="suki-back-row"><span>Verified loyalty days</span><b>${Number.isSafeInteger(card?.verifiedPurchaseDays) && card.verifiedPurchaseDays >= 0 ? card.verifiedPurchaseDays : 0}</b></div>
                         ${claimBtn}
                     </div>
                     <button type="button" class="suki-flip-btn" data-suki-flip title="Back" aria-label="Flip card back"><i data-lucide="rotate-3d"></i></button>
@@ -7663,46 +7707,18 @@ window.Suki = (() => {
         if (typeof window.SukiPlaceRefresh === "function") window.SukiPlaceRefresh();
     }
 
-    // Owner: approve inside a transaction — request -> approved and the
-    // customer's card gains exactly one stamp (deterministic card ID
-    // keeps a double-tap from double-stamping).
+    // Owner approvals are validated by the trusted server, which atomically
+    // enforces one stamp per establishment/customer/Manila calendar day.
     async function approveRequest(requestId) {
         if (!requestId) return;
         try {
-            await window.db.runTransaction(async t => {
-                const reqRef = window.db.collection("stamp_requests").doc(requestId);
-                const reqSnap = await t.get(reqRef);
-                if (!reqSnap.exists) throw new Error("Request not found.");
-                const r = reqSnap.data();
-                if (r.status !== "pending") throw new Error("This request has already been handled.");
-                const cardId = `${r.placeId}_${r.customerUid}`;
-                const cardRef = window.db.collection("loyalty_cards").doc(cardId);
-                const cardSnap = await t.get(cardRef);
-                t.update(reqRef, {
-                    status: "approved",
-                    approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                if (cardSnap.exists) {
-                    t.update(cardRef, {
-                        stamps: (parseInt(cardSnap.data().stamps, 10) || 0) + 1,
-                        customerName: r.customerName || cardSnap.data().customerName || "Customer",
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                } else {
-                    t.set(cardRef, {
-                        placeId: r.placeId,
-                        customerUid: r.customerUid,
-                        customerName: r.customerName || "Customer",
-                        stamps: 1,
-                        claimed: false,
-                        claimRequested: false,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                }
-            });
-            window.showToast?.("Stamp approved! 🎉", "success");
-        } catch (err) { window.handleFirestoreError(err, "Could not approve the request."); }
+            const result = await window.ViciData.command('sukiStamp', { action:'approve_request', requestId });
+            if (result.reason === 'daily-limit')
+                window.showToast?.('This customer already received a Suki stamp today. No additional stamp was given.', 'info');
+            else if (result.reason === 'card-full')
+                window.showToast?.('Purchase day recorded. The card is full; redeem the reward before earning more stamps.', 'info');
+            else window.showToast?.('Suki stamp approved!', 'success');
+        } catch (err) { window.handleFirestoreError?.(err, 'Could not approve the request.'); }
     }
 
     async function rejectRequest(requestId) {
@@ -7718,17 +7734,12 @@ window.Suki = (() => {
 
     async function markClaimed(cardId) {
         if (!cardId) return;
-        const ans = await window.vConfirm("Mark as claimed", "Has the reward been given to the customer?", "Given", false);
+        const ans = await window.vConfirm('Mark as claimed', 'Has the reward been given to the customer? This records a redemption and starts the next stamp cycle.', 'Given', false);
         if (!ans) return;
         try {
-            await window.db.collection("loyalty_cards").doc(cardId).update({
-                claimed: true,
-                claimRequested: false,
-                claimedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            window.showToast?.("Marked as claimed. 🎁", "success");
-        } catch (err) { window.handleFirestoreError(err, "Could not mark the claim."); }
+            await window.ViciData.command('sukiStamp', {action:'redeem',cardId});
+            window.showToast?.('Reward redeemed. The next stamp cycle is ready!', 'success');
+        } catch (err) { window.handleFirestoreError?.(err, 'Could not mark the claim.'); }
     }
 
     /* ---------- Vicinify Scan: live-camera QR + strict proximity verification ---------- */
@@ -8089,6 +8100,9 @@ window.Suki = (() => {
                     ` : pendingReq ? `
                         <button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="clock"></i> Stamp request pending</button>
                         <button type="button" class="suki-plain-btn" data-suki-cancel-req="${sukiEsc(pendingReq.id)}">Cancel request</button>
+                    ` : stampedToday(card) ? `
+                        <p class="suki-note">Today's loyalty day is already recorded. Come back tomorrow for another stamp.</p>
+                        <button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="check-circle"></i> Daily stamp already used</button>
                     ` : `
                         <button type="button" class="suki-req-btn" data-suki-scan><i data-lucide="qr-code"></i> Scan store QR</button>
                     `}
@@ -8106,7 +8120,7 @@ window.Suki = (() => {
         let latestPending = pendingReq;
         let requestError = reqError;
         let submitting = false;
-        let lastCardVersion = JSON.stringify([card.stamps, card.claimed, card.claimRequested, card.customerName]);
+        let lastCardVersion = JSON.stringify([card.stamps, card.claimed, card.claimRequested, card.customerName, totalRedemptions(card),card.lastStampDay,card.verifiedPurchaseDays,card.vipActive,card.vipExpiresAt?.seconds]);
         const stillWatching = () => stillHere() && window.auth?.currentUser?.uid === uid;
         const displayRequestActions = () => {
             if (!stillWatching() || !actionsEl) return;
@@ -8117,6 +8131,7 @@ window.Suki = (() => {
                 <button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="clock"></i> Stamp request pending</button>
                 ${latestPending.id ? `<button type="button" class="suki-plain-btn" data-suki-cancel-req="${sukiEsc(latestPending.id)}">Cancel request</button>` : ''}`
                 : submitting ? `<button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="loader-circle"></i> Sending request…</button>`
+                : stampedToday(card) ? `<p class="suki-note">Today's loyalty day is already recorded. Come back tomorrow.</p><button type="button" class="suki-req-btn suki-req-wait" disabled><i data-lucide="check-circle"></i> Daily stamp already used</button>`
                 : `<button type="button" class="suki-req-btn" data-suki-scan><i data-lucide="qr-code"></i> Scan store QR</button>`;
             actionsEl.querySelector('[data-suki-scan]')?.addEventListener('click', () => openScanner(livePlace));
             actionsEl.querySelector('[data-suki-retry]')?.addEventListener('click', () => mountPlaceSection(livePlace, false));
@@ -8140,7 +8155,7 @@ window.Suki = (() => {
                 if (!stillWatching()) return;
                 const nextCard = snap.exists ? { cardId, id: snap.id, ...snap.data() }
                     : { cardId, stamps: 0, claimed: false, claimRequested: false, customerName: customerDisplayName() };
-                const version = JSON.stringify([nextCard.stamps, nextCard.claimed, nextCard.claimRequested, nextCard.customerName]);
+                const version = JSON.stringify([nextCard.stamps, nextCard.claimed, nextCard.claimRequested, nextCard.customerName, totalRedemptions(nextCard),nextCard.lastStampDay,nextCard.verifiedPurchaseDays,nextCard.vipActive,nextCard.vipExpiresAt?.seconds]);
                 if (lastCardVersion === version) return;
                 const previousStamps = Number(card.stamps) || 0;
                 const nextStamps = Number(nextCard.stamps) || 0;
@@ -8150,6 +8165,7 @@ window.Suki = (() => {
                     previewEl.innerHTML = renderCard(livePlace, nextCard);
                     attachInteraction(previewEl);
                 }
+                displayRequestActions();
                 if (nextStamps > previousStamps) window.showToast?.('Suki stamp added! 🎉', 'success');
             }, error => {
                 if (stillWatching()) console.warn('[suki] live card updates interrupted:', error);
@@ -8191,7 +8207,7 @@ window.Suki = (() => {
     }
 
     return {
-        designOf, textTone, renderCard, attachInteraction,
+        designOf, textTone, validBackgroundImage, renderCard, attachInteraction,
         makeToken, parseToken, tokenValid, renderOwnerQr, openScanner,
         scanPlaceCoords, checkScanDistance, verifyScanLocation, SUKI_SCAN_RADIUS_M,
         requestStamp, cancelRequest, requestClaim,

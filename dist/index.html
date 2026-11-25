@@ -22,15 +22,15 @@
     <link rel="dns-prefetch" href="https://tile.openstreetmap.org" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <link rel="stylesheet" href="css/style.css?v=VICI_7bf3c38dfef16e18" />
-    <link rel="stylesheet" href="css/ui.css?v=VICI_7bf3c38dfef16e18" />
-    <link rel="stylesheet" href="css/reference.css?v=VICI_7bf3c38dfef16e18" />
-    <link rel="stylesheet" href="css/components.css?v=VICI_7bf3c38dfef16e18" />
-    <link rel="stylesheet" href="css/place-preview.css?v=VICI_7bf3c38dfef16e18">
-    <link rel="stylesheet" href="css/suki-polish.css?v=VICI_7bf3c38dfef16e18">
-    <link rel="stylesheet" href="css/vici-chat.css?v=VICI_7bf3c38dfef16e18" />
+    <link rel="stylesheet" href="css/style.css?v=VICI_4bb3b5f7d232b972" />
+    <link rel="stylesheet" href="css/ui.css?v=VICI_4bb3b5f7d232b972" />
+    <link rel="stylesheet" href="css/reference.css?v=VICI_4bb3b5f7d232b972" />
+    <link rel="stylesheet" href="css/components.css?v=VICI_4bb3b5f7d232b972" />
+    <link rel="stylesheet" href="css/place-preview.css?v=VICI_4bb3b5f7d232b972">
+    <link rel="stylesheet" href="css/suki-polish.css?v=VICI_4bb3b5f7d232b972">
+    <link rel="stylesheet" href="css/vici-chat.css?v=VICI_4bb3b5f7d232b972" />
     <link rel="stylesheet" href="css/amenities-layout-fix.css?v=20261030b" />
-    <link rel="stylesheet" href="css/demo-switcher.css?v=VICI_7bf3c38dfef16e18" />
+    <link rel="stylesheet" href="css/demo-switcher.css?v=VICI_4bb3b5f7d232b972" />
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="icons/icon-180.png" sizes="180x180">
@@ -116,9 +116,56 @@
                     <div id="forgotRow" class="forgot-row"><button type="button" id="forgotPasswordLink" class="forgot-link" data-i18n="Forgot password?">Forgot password?</button></div>
                     <button type="button" id="loginBtn" class="auth-primary-btn">Sign in</button>
                     <div class="login-footer"><span id="authPrompt">Don't have an account?</span> <button type="button" id="toggleAuthBtn" class="auth-switch-btn">Sign up</button></div>
+                    <button type="button" id="registerBusinessAuthBtn" class="br-register-entry"><span>Register Your Business</span><small>Submit permits for one-time administrator verification</small></button>
                     <div class="auth-secure-note"><i data-lucide="shield-check"></i> Your neighborhood starts here.</div>
                 </div>
             </div>
+        </main>
+
+
+        <main id="page-business-register" class="page">
+          <section class="br-page">
+            <div class="br-page-head"><div><span class="br-kicker">VICINIFY · BUSINESS VERIFICATION</span><h2>Register Your Business</h2><p>One admin approval unlocks your Business Hub and establishment publishing.</p></div><button type="button" onclick="showPage('page-dashboard')" class="br-secondary">Back</button></div>
+            <div class="br-panel">
+              <h3>Application Tracker</h3>
+              <p>Registered Email: <b id="businessOwnerEmail">—</b> <span class="br-readonly">Verified account · read-only</span></p>
+              <p>Application Status: <strong id="businessApplicationStatus">Checking…</strong></p>
+              <p id="businessAdminRemarks" hidden></p>
+              <div id="businessApplicationMessage" role="status" aria-live="polite"></div>
+              <section class="br-notification-panel" aria-labelledby="businessNotificationTitle">
+                <h3 id="businessNotificationTitle">Application Updates</h3>
+                <p class="br-fine">Status updates appear here even when email delivery is unavailable.</p>
+                <div id="businessNotificationHistory" aria-live="polite">No updates yet.</div>
+              </section>
+              <div class="br-row"><button type="button" class="br-secondary" id="br_refresh">Refresh Email & Status</button><button type="button" id="businessRegistrationApproveNext" hidden onclick="showPage('page-add')">Create Establishment</button></div>
+              <div id="businessVerifyNotice" hidden><p>Please verify your account email before submitting documents.</p><button type="button" class="br-secondary" id="br_resend">Resend Verification Email</button></div>
+            </div>
+            <section id="businessRegistrationForm" class="br-panel">
+              <h3>Business Application</h3><p>All fields below apply to a Lipa City business. Your government documents will not be shown publicly.</p>
+              <fieldset id="businessRegistrationFields" class="br-fields">
+                <label>Legal Business Name *<input id="br_legalName" maxlength="120" placeholder="Name as stated on permit" required></label>
+                <label>Trade / Store Name *<input id="br_tradeName" maxlength="120" placeholder="Public business name" required></label>
+                <label>Business Registration Type *<select id="br_registrationType"><option value="sole_proprietorship">Sole Proprietorship (DTI)</option><option value="partnership">Partnership (SEC)</option><option value="corporation">Corporation (SEC)</option><option value="cooperative">Cooperative (CDA)</option></select></label>
+                <label>Registration Certificate Number *<input id="br_registrationNumber" maxlength="80" required></label>
+                <label>Mayor's / Business Permit Number *<input id="br_permitNumber" maxlength="80" required></label>
+                <label>Permit Expiration (if stated)<input id="br_permitExpiry" type="date"></label>
+                <label>Applicant's Full Name *<input id="br_representativeName" maxlength="100" required></label>
+                <label>Contact Number *<input id="br_contactNumber" maxlength="28" placeholder="09XX XXX XXXX" required></label>
+                <label>Relationship to Business *<select id="br_representativeRole"><option value="owner">Owner</option><option value="authorized_representative">Authorized Representative</option></select></label>
+                <label>Barangay (Lipa City) *<input id="br_barangay" maxlength="60" required placeholder="Barangay"></label>
+                <label>Business Address *<input id="br_address" maxlength="220" required placeholder="Street, building, barangay, Lipa City" ></label>
+              </fieldset>
+              <div class="br-row"><button id="br_save" type="button" class="br-secondary">Save Draft</button></div>
+              <section id="businessRegistrationFiles">
+                <h3>Verification Documents</h3><p>Required: current Mayor's/Business Permit, registration certificate, and Barangay Business Clearance. Authorization letter required for a representative. Sanitary permit where applicable.</p>
+                <p class="br-fine">Private PDF, JPG, PNG, or WebP · maximum 600 KB per document. Small-size upload limit is necessary for this Firebase Storage-free version. Compress documents legibly before uploading.</p>
+                <div id="businessDocumentList"></div>
+              </section>
+              <label class="br-declare"><input type="checkbox" id="br_declaration"> I confirm I am authorized to register this business, that the submitted documents are accurate, and that I understand they will be reviewed privately by the Vicinify admin for verification.</label>
+              <p class="br-fine">Permits are stored in protected Firestore documents. They are not public listing photos. Contact the administrator to request deletion of unnecessary records. Approval is platform verification, not government certification.</p>
+              <button id="br_submit" type="button" class="br-primary">Submit Application for Review</button>
+            </section>
+          </section>
         </main>
 
         <main id="page-map" class="page">
@@ -327,11 +374,14 @@
                     <button type="button" id="resetPinBtn" class="reset-pin-btn" onclick="window.AddPageResetPin && window.AddPageResetPin()"><i data-lucide="locate-fixed"></i> Reset pin to my location</button>
                 </div>
             </section>
+            <section id="phase7OwnerInfo" class="br-owner-note" hidden><b>Verified Business Owner</b><p>Your owner email is linked to your verified login account and cannot be edited here: <strong id="phase7OwnerEmail">—</strong>. New establishments publish directly under your account.</p></section>
             <section class="card">
                 <div class="formGrid">
                     <div class="field"><label>Business Name *</label><input id="bizName" type="text" placeholder="e.g., Aling Nena Sari-sari Store" maxlength="120" /></div>
                     <div class="field">
-                        <label>Category *</label>
+                        <label>Categories * (choose up to 3)</label>
+                        <div id="bizCatChoices" class="vici-category-choices" role="group" aria-label="Establishment categories"></div>
+                        <label for="bizCat" class="vici-primary-label">Primary Category *</label>
                         <select id="bizCat">
                             <option value="">Choose category</option>
                             <option value="restaurant">Restaurant</option>
@@ -430,6 +480,21 @@
                 <div id="myEstablishments" class="list pro-business-grid"></div>
             </section>
 
+            <section id="businessAnalyticsSection" class="hidden dash-pro-section" aria-label="Business Analytics">
+                <div class="section-head-row"><div><span class="section-kicker">Verified transactions only</span><h3>Business Analytics</h3></div><span class="section-note">Sales, customer reach, and best-selling menu items.</span></div>
+                <div class="ba-controls">
+                    <label for="businessAnalyticsPlace">Establishment<select id="businessAnalyticsPlace" aria-label="Choose an establishment for analytics"></select></label>
+                    <button type="button" class="ba-button ba-primary" id="businessAnalyticsLoad">Load report</button>
+                    <button type="button" class="ba-button" id="businessAnalyticsExport" disabled>Export CSV</button>
+                </div>
+                <div class="ba-view-tabs" role="group" aria-label="Analytics period">
+                    <button type="button" data-analytics-view="weekly" aria-pressed="false">Weekly</button>
+                    <button type="button" data-analytics-view="monthly" class="active" aria-pressed="true">Monthly</button>
+                    <button type="button" data-analytics-view="annual" aria-pressed="false">Annual</button>
+                </div>
+                <div id="businessAnalyticsContent" aria-live="polite">Choose an establishment and select Load report.</div>
+            </section>
+
             <section id="ownerInboxSection" class="hidden dash-pro-section customer-inbox-section">
                 <div class="section-head-row">
                     <div>
@@ -478,6 +543,8 @@
             </section>
         
             <section class="card hidden" id="customerActivitySection" style="margin-top: 0;">
+                <button type="button" id="registerBusinessFromActivity" class="br-register-entry"><span>Register Your Business</span><small>Own a Lipa City food business? Apply for verification.</small></button>
+                
                 <h3 style="margin-top:0; margin-bottom:16px; font-size:16px; color:#0f172a; display:flex; align-items:center; gap:8px;"><i data-lucide="activity"></i> My Activity</h3>
 
                 <div class="biz-portal-tabs settings-pill-tabs" style="margin-bottom: 16px; overflow-x: auto; white-space: nowrap; scrollbar-width: none;">
@@ -610,7 +677,9 @@
                 <div class="card bizedit-card bizedit-basic-card">
                     <div class="field"><label>Establishment Name</label><input type="text" id="bizPortalName" /></div>
                     <div class="field">
-                        <label>Category</label>
+                        <label>Categories (choose up to 3)</label>
+                        <div id="bizPortalCatChoices" class="vici-category-choices" role="group" aria-label="Establishment categories"></div>
+                        <label for="bizPortalCat" class="vici-primary-label">Primary Category</label>
                         <select id="bizPortalCat">
                             <option value="restaurant">Restaurant</option>
                             <option value="cafe">Café</option>
@@ -793,6 +862,16 @@
 
                         <div class="suki-field-label">Template <span style="font-weight:400; text-transform:none; letter-spacing:0;">(choose a style, then customize)</span></div>
                         <div id="sukiTemplateChips" class="suki-chips"></div>
+                        <div class="suki-studio-row" style="margin-top:12px; flex-wrap:wrap;">
+                            <a href="icons/suki-card-editable-template.svg" download="Vicinify-Suki-Card-Template-1012x638.svg" class="suki-chip" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;" aria-label="Download editable Suki Card design template, 1012 by 638 pixels"><i data-lucide="download"></i> Download Editable Template (1012 × 638)</a>
+                        </div>
+                        <p class="suki-editor-help">Edit the SVG in a compatible design app, then export a PNG, JPG, or WebP at 1012 × 638 pixels. Your uploaded artwork is only the background: stamps, reward count, and customer details remain live system data.</p>
+                        <div class="suki-studio-row" style="flex-wrap:wrap; align-items:center; margin-top:12px;">
+                            <label for="sukiBackgroundFile" class="suki-chip" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;"><i data-lucide="image-plus"></i> Upload custom card background</label>
+                            <input id="sukiBackgroundFile" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="sukiBackgroundHelp" style="max-width:100%; font-size:12px;" />
+                            <button type="button" id="sukiBackgroundReset" class="suki-chip"><i data-lucide="rotate-ccw"></i> Restore default background</button>
+                        </div>
+                        <p id="sukiBackgroundHelp" class="suki-editor-help" role="status" aria-live="polite">Accepted: PNG, JPG, or WebP · 1012 × 638 px (or matching ratio) · maximum 6 MB. Export the edited SVG to an image before uploading.</p>
 
                         <div class="suki-field-label">Color mode</div>
                         <div class="suki-chips">
@@ -832,6 +911,25 @@
                                 <input type="text" id="sukiReward" placeholder="e.g. Free coffee" maxlength="120" style="width:100%; box-sizing:border-box;" />
                             </div>
                         </div>
+
+                        <section id="sukiVipProgram" aria-label="VIP Suki program" style="margin-top:28px;border-top:1px solid #e2e8f0;padding-top:18px;">
+                            <h3 class="suki-editor-title"><i data-lucide="crown"></i> VIP Suki Program</h3>
+                            <p class="suki-editor-help">Verified purchase days are separate from stamps and total rewards redeemed. Business approval is required before a customer becomes VIP.</p>
+                            <label class="suki-field-label" for="sukiVipEnabled">Enable VIP Program</label>
+                            <input type="checkbox" id="sukiVipEnabled" style="accent-color:#9a7832;width:20px;height:20px;" />
+                            <div class="suki-studio-row" style="flex-wrap:wrap;gap:12px;margin-top:12px;">
+                                <div style="flex:1;min-width:130px;"><label class="suki-field-label" for="sukiVipDays">Required verified days</label><input type="number" id="sukiVipDays" min="1" max="365" value="10" style="width:100%;box-sizing:border-box" /></div>
+                                <div style="flex:1;min-width:170px;"><label class="suki-field-label" for="sukiVipDuration">VIP membership duration</label><select id="sukiVipDuration" style="width:100%"><option value="0">Permanent until revoked</option><option value="30">30 days</option><option value="90">90 days</option><option value="365">365 days</option></select></div>
+                            </div>
+                            <label class="suki-field-label" for="sukiVipBenefit">VIP benefit description</label>
+                            <input type="text" id="sukiVipBenefit" maxlength="120" placeholder="e.g. 10% off in-store purchases" style="width:100%;box-sizing:border-box;" />
+                            <label class="suki-field-label" for="sukiVipDiscountPercent">Automatic VIP discount for Vicinify menu orders (%)</label>
+                            <input type="number" id="sukiVipDiscountPercent" min="0" max="50" step="1" value="0" style="width:110px;box-sizing:border-box" />
+                            <p class="suki-editor-help">Optional. Set 0 to disable online discounts. Set 1–50% for approved VIPs; the verified discount is calculated on the server for menu items only. Other VIP benefits remain described above. Delivery and other fees are separate and disclosed before payment.</p>
+                            <button id="sukiVipLoadCustomers" type="button" class="suki-chip" style="margin-top:16px;"><i data-lucide="users"></i> Load VIP Customers</button>
+                            <p id="sukiVipStatus" role="status" aria-live="polite" class="suki-editor-help"></p>
+                            <div id="sukiVipCustomerList" style="display:grid;gap:10px;margin-top:10px;"></div>
+                        </section>
 
                         <div class="suki-field-label">Customer QR</div>
                         <div class="suki-studio-row">
@@ -1076,7 +1174,9 @@
                     <input type="hidden" id="editPlaceId" />
                     <div class="admin-field"><label>name</label><div class="sub-label">Business name</div><input type="text" id="editName" /></div>
                     <div class="admin-field">
-                        <label>category</label><div class="sub-label">Type of establishment</div>
+                        <label>Categories (choose up to 3)</label><div class="sub-label">Type of establishment</div>
+                        <div id="editCategoryChoices" class="vici-category-choices" role="group" aria-label="Establishment categories"></div>
+                        <label for="editCategory" class="vici-primary-label">Primary Category</label>
                         <select id="editCategory">
                             <option value="restaurant">restaurant</option>
                             <option value="cafe">cafe</option>
@@ -1194,30 +1294,34 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-    <script src="js/data.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/payment-policy.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/place-features.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/business-hours.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/place-preview.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/content-policy.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/account-deletion.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/password-policy.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/demo-switcher.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/common.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/vici-request.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/vici-commerce.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/vici-chat.js?v=VICI_7bf3c38dfef16e18"></script>
-    <link rel="stylesheet" href="css/categories.css?v=VICINIFY_CATEGORIES_20261030">
+    <link rel="stylesheet" href="css/business-registration.css?v=VICI_BUSINESS_PHASE7_20261123">
+    <link rel="stylesheet" href="css/business-analytics.css?v=VICI_ANALYTICS_PHASE8_20261123">
+    <script src="js/data.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/payment-policy.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/place-features.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/business-hours.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/place-preview.js?v=VICINIFY_MULTI_CAT_PHASE6_20261123"></script>
+    <script src="js/content-policy.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/account-deletion.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/password-policy.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/demo-switcher.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/common.js?v=VICINIFY_MULTI_CAT_PHASE6_20261123"></script>
+    <script src="js/vici-request.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/vici-commerce.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/vici-chat.js?v=VICI_4bb3b5f7d232b972"></script>
+    <link rel="stylesheet" href="css/categories.css?v=VICINIFY_CATEGORIES_MULTI_PHASE6_20261123">
     <link rel="stylesheet" href="css/database-management.css?v=VICINIFY_DB_MANAGEMENT_20261030">
-    <script src="js/categories.js?v=VICINIFY_CATEGORIES_20261030"></script>
-    <script src="js/map.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/add.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/buzz.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/dashboard.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/operating-hours-editor.js?v=VICI_7bf3c38dfef16e18"></script>
+    <script src="js/categories.js?v=VICINIFY_CATEGORIES_MULTI_PHASE6_20261123"></script>
+    <script src="js/map.js?v=VICINIFY_MULTI_CAT_PHASE6_20261123"></script>
+    <script src="js/add.js?v=VICINIFY_MULTI_CAT_PHASE6_20261123"></script>
+    <script src="js/buzz.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/dashboard.js?v=VICINIFY_MULTI_CAT_PHASE6_20261123"></script>
+    <script src="js/business-analytics.js?v=VICI_ANALYTICS_PHASE8_20261123"></script>
+    <script src="js/operating-hours-editor.js?v=VICI_4bb3b5f7d232b972"></script>
     <script src="js/database-management.js?v=VICINIFY_DB_MANAGEMENT_20261030"></script>
-    <script src="js/ownership-transfer.js?v=VICI_7bf3c38dfef16e18"></script>
-    <script src="js/settings.js?v=VICI_7bf3c38dfef16e18"></script>
+    <script src="js/ownership-transfer.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/settings.js?v=VICI_4bb3b5f7d232b972"></script>
+    <script src="js/business-registration.js?v=VICI_BUSINESS_PHASE7_20261123"></script>
 
     <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
     <script>lucide.createIcons();</script>
@@ -1302,12 +1406,12 @@ html body #page-place.active #placeUpdatesList > .place-menu-card {
 }
 </style>
 
-<link rel="stylesheet" href="css/mobile.css?v=VICI_7bf3c38dfef16e18" />
-<link rel="stylesheet" href="css/brand-icon.css?v=VICI_7bf3c38dfef16e18" />
-<link rel="stylesheet" href="css/service-management-layout.css?v=VICI_7bf3c38dfef16e18" />
-<link rel="stylesheet" href="css/operating-hours-editor.css?v=VICI_7bf3c38dfef16e18" />
+<link rel="stylesheet" href="css/mobile.css?v=VICI_4bb3b5f7d232b972" />
+<link rel="stylesheet" href="css/brand-icon.css?v=VICI_4bb3b5f7d232b972" />
+<link rel="stylesheet" href="css/service-management-layout.css?v=VICI_4bb3b5f7d232b972" />
+<link rel="stylesheet" href="css/operating-hours-editor.css?v=VICI_4bb3b5f7d232b972" />
 <link rel="stylesheet" href="css/request-mobile-polish.css?v=VICINIFY_MOBILE_REQUESTS_20261031" />
 <!-- build: VICINIFY_MODERN_FINAL_20261003 -->
-    <script src="js/ui.js?v=VICI_7bf3c38dfef16e18"></script>
+    <script src="js/ui.js?v=VICI_4bb3b5f7d232b972"></script>
 </body>
 </html>

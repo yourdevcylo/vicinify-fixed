@@ -1,9 +1,11 @@
 const crypto=require('node:crypto');
 const Menu=require('./lib/menu');
+const {withVipDiscount}=require('./lib/vip-pricing');
 const { services, authenticate, identifier, limit, reply } = require('./lib/admin');
 const { createBooking } = require('./lib/booking-create');
 const PaymentPolicy = require('../../js/payment-policy');
 const { transition } = require('./lib/booking-policy');
+const { awardConfirmedOrder } = require('./lib/suki-stamps');
 exports.handler = async event => {
     if (event.httpMethod !== 'POST') return reply(405, { error: 'POST only' });
     try {
@@ -44,12 +46,16 @@ exports.handler = async event => {
                     if(!['table_reservation','food_reservation','pickup_order','delivery_order','advance_order'].includes(serviceType)
                         ||serviceType==='delivery_order'&&place.data().delivery_inhouse!==true)
                         throw Object.assign(new Error('This ordering option is not supported.'),{status:409});
-                    verified=await Menu.quote(transaction,db,placeId,input.menuLines);
-                    if(body.expectedQuoteDigest!==verified.digest)throw Object.assign(new Error('Menu prices or options changed. Review the updated menu before confirming.'),{status:409});
+                    const menuQuote=await Menu.quote(transaction,db,placeId,input.menuLines);
+                    verified=await withVipDiscount({tx:transaction,db,quote:menuQuote,place:place.data(),placeId,customerUid:user.uid});
+                    if(body.expectedQuoteDigest!==verified.digest)throw Object.assign(new Error('Menu prices or options changed, or VIP savings changed. Review the updated menu before confirming.'),{status:409});
                 }
                 const checked=verified?{...input,orderItems:verified.lines.map(l=>`${l.quantity} × ${l.name}${l.optionLabels.length?' ('+l.optionLabels.join(', ')+')':''}`).join('\n')}:input;
                 const order = {...createBooking(checked,user,place.data(),profile.data()), transactionId:ref.id,reference:'VC-'+ref.id.slice(0,8).toUpperCase(),
-                    ...(verified?{menuLines:verified.lines,estimatedSubtotalCents:verified.totalCents,currency:'PHP',quoteDigest:verified.digest}:{}),
+                    ...(verified?{menuLines:verified.lines,estimatedSubtotalCents:verified.totalCents,
+                        vipDiscountPercent:verified.vipDiscountPercent,vipDiscountCents:verified.vipDiscountCents,
+                        estimatedTotalCents:verified.estimatedTotalCents,vipApplied:verified.vipApplied,
+                        currency:'PHP',quoteDigest:verified.digest}:{}),
                     createdAt:FieldValue.serverTimestamp(), updatedAt:FieldValue.serverTimestamp()};
                 if(keyRef)transaction.create(keyRef,{userId:user.uid,bookingId:ref.id,requestHash:hash,createdAt:FieldValue.serverTimestamp()});
                 transaction.create(ref,order);
@@ -61,6 +67,7 @@ exports.handler = async event => {
         if (body.action && body.action!=='update') return reply(400,{error:'Unknown booking action.'});
         const bookingId = identifier(body.bookingId);
         const ref = db.collection('bookings').doc(bookingId);
+        let confirmedReceipt = false;
         await db.runTransaction(async transaction => {
             const booking = await transaction.get(ref);
             if (!booking.exists) throw Object.assign(new Error('Booking not found.'), { status: 404 });
@@ -96,7 +103,10 @@ exports.handler = async event => {
             if(PaymentPolicy.conversationClosed({...order,...change}))change.conversationArchivedAt=FieldValue.serverTimestamp();
             if (change.status === 'payment_confirmed') change.paymentVerifiedAt = FieldValue.serverTimestamp();
             if (change.paymentReviewDecision) { change.paymentReviewedBy = user.uid; change.paymentReviewedAt = FieldValue.serverTimestamp(); }
-            if (change.status === 'received') change.customerConfirmedAt = FieldValue.serverTimestamp();
+            if (change.status === 'received') {
+                change.customerConfirmedAt = FieldValue.serverTimestamp();
+                confirmedReceipt = true;
+            }
             if (change.status === 'cancelled') change.cancelledAt = FieldValue.serverTimestamp();
             if (order.status === 'payment_submitted' && change.status === 'accepted') {
                 change.paymentProofPath = FieldValue.delete(); change.paymentProofUrl = FieldValue.delete();
@@ -115,7 +125,18 @@ exports.handler = async event => {
             cards.forEach(card => transaction.update(card.ref, { ...change, bookingStatus: nextStatus }));
             transaction.create(ref.collection('events').doc(), { actorUid: user.uid, from: order.status, to: nextStatus, action:body.action || (body.patch?.paymentTerms?'payment_terms':body.patch?.requirements?'requirements_'+body.patch.requirements.action:body.patch?.deliveryDetails?'delivery_details':body.patch?.refundStatus?'refund_update':'status_update'), paymentAmountDue:change.paymentAmountDue || null, refundAmount:change.refundAmount || order.refundAmount || null, refundStatus:change.refundStatus || null, paymentReviewDecision: change.paymentReviewDecision || null, paymentReviewNote: change.paymentReviewNote || null, createdAt: FieldValue.serverTimestamp() });
         });
-        return reply(200, { saved: true });
+        // Loyalty is non-critical to payment and booking state: if the extra
+        // award write fails, do not undo the already-confirmed transaction.
+        // The idempotent retry_order Suki endpoint can repair this later.
+        let sukiStamp = null;
+        if (confirmedReceipt) {
+            try { sukiStamp = await awardConfirmedOrder({db, FieldValue, bookingId}); }
+            catch (error) {
+                console.error('[booking] Suki award pending retry:', error?.code || error?.message || 'unknown');
+                sukiStamp = { awarded: false, qualified: false, reason: 'retry-needed' };
+            }
+        }
+        return reply(200, { saved: true, ...(sukiStamp ? {sukiStamp} : {}) });
     } catch (error) { return reply(error.status || (error instanceof SyntaxError ? 400 : 500), { error: error.status ? error.message : 'Booking could not be updated.' }); }
 };
 

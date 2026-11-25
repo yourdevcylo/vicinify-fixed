@@ -1,0 +1,36 @@
+/* Business Analytics Phase 8 – scoped styles; existing dashboard is untouched. */
+#businessAnalyticsSection{--ba-border:#dce5ef;color:var(--ui-ink,#12233b)}
+#businessAnalyticsSection .ba-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:14px 0}
+#businessAnalyticsSection .ba-controls label{display:grid;gap:5px;font-size:12px;font-weight:700;color:var(--ui-muted,#546579);min-width:200px;flex:1}
+#businessAnalyticsSection select{min-height:43px;border:1px solid var(--ba-border);border-radius:10px;background:var(--ui-surface,#fff);color:var(--ui-ink,#12233b);padding:8px 12px;width:100%;font-size:14px}
+#businessAnalyticsSection .ba-button{border:1px solid var(--ba-border);border-radius:10px;min-height:43px;background:var(--ui-surface,#fff);color:var(--ui-ink,#12233b);padding:8px 14px;font-weight:700;cursor:pointer}
+#businessAnalyticsSection .ba-primary{background:#116d54;color:#fff;border-color:#116d54}
+#businessAnalyticsSection .ba-button:disabled{opacity:.55;cursor:not-allowed}
+#businessAnalyticsSection .ba-view-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 16px}
+#businessAnalyticsSection .ba-view-tabs button{border:1px solid var(--ba-border);background:var(--ui-surface,#fff);color:var(--ui-ink,#12233b);padding:8px 14px;border-radius:8px;font-weight:650;cursor:pointer}
+#businessAnalyticsSection .ba-view-tabs button.active{background:#d9f6e9;color:#125944;border-color:#8cceb2}
+#businessAnalyticsSection #businessAnalyticsContent{min-height:58px;font-size:14px;line-height:1.5}
+#businessAnalyticsSection .ba-report-title{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+#businessAnalyticsSection .ba-report-title strong{display:block;font-size:16px}
+#businessAnalyticsSection .ba-report-title small{display:block;color:var(--ui-muted,#64748b);margin-top:4px}
+#businessAnalyticsSection .ba-growth{font-size:12px;color:#19624b}
+#businessAnalyticsSection .ba-kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#businessAnalyticsSection .ba-kpi{border:1px solid var(--ba-border);border-radius:13px;background:var(--ui-surface,#fff);padding:14px;min-width:0}
+#businessAnalyticsSection .ba-kpi span{display:block;font-size:12px;line-height:1.4;color:var(--ui-muted,#64748b)}
+#businessAnalyticsSection .ba-kpi strong{display:block;margin-top:6px;font-size:clamp(16px,2.2vw,23px);overflow-wrap:anywhere}
+#businessAnalyticsSection .ba-panel{margin-top:14px;border:1px solid var(--ba-border);border-radius:13px;background:var(--ui-surface,#fff);padding:14px}
+#businessAnalyticsSection .ba-panel h4{margin:0 0 16px;font-size:15px}
+#businessAnalyticsSection .ba-panel h4 small{font-weight:400;font-size:12px;color:var(--ui-muted,#64748b)}
+#businessAnalyticsSection .ba-chart-scroll,#businessAnalyticsSection .ba-table-scroll{width:100%;overflow-x:auto}
+#businessAnalyticsSection .ba-chart{height:205px;display:flex;align-items:stretch;gap:8px;min-width:560px;padding:0 6px 4px}
+#businessAnalyticsSection .ba-chart-entry{flex:1;min-width:35px;display:flex;flex-direction:column;align-items:center;min-height:0}
+#businessAnalyticsSection .ba-value{height:26px;white-space:nowrap;font-size:10px;color:var(--ui-muted,#64748b)}
+#businessAnalyticsSection .ba-track{height:143px;align-self:stretch;display:flex;flex-direction:column;justify-content:flex-end;border-bottom:1px solid var(--ba-border)}
+#businessAnalyticsSection .ba-bar{width:min(80%,52px);margin:0 auto;background:#188669;border-radius:6px 6px 0 0;min-height:0}
+#businessAnalyticsSection .ba-axis{padding-top:6px;white-space:nowrap;font-size:10px;color:var(--ui-muted,#64748b)}
+#businessAnalyticsSection .ba-top-table{border-collapse:collapse;width:100%;min-width:360px;text-align:left}
+#businessAnalyticsSection .ba-top-table th,#businessAnalyticsSection .ba-top-table td{padding:9px 10px;border-bottom:1px solid var(--ba-border);font-size:13px}
+#businessAnalyticsSection .ba-top-table th{color:var(--ui-muted,#64748b)}
+#businessAnalyticsSection .ba-disclaimer{margin:13px 0 0;font-size:12px;line-height:1.6;color:var(--ui-muted,#64748b)}
+@media(max-width:640px){#businessAnalyticsSection .ba-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#businessAnalyticsSection .ba-controls{align-items:stretch}#businessAnalyticsSection .ba-controls label{flex-basis:100%}#businessAnalyticsSection .ba-button{flex:1}}
+@media(max-width:340px){#businessAnalyticsSection .ba-kpi-grid{grid-template-columns:1fr}}

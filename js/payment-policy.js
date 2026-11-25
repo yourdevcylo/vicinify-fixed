@@ -74,10 +74,32 @@
         if(order.paymentFlowVersion===2&&['delivery','delivery_order'].includes(order.requestType)&&!order.deliveryAddress)throw Object.assign(new Error('Wait for the delivery address before setting the final amount.'),{status:409});
         if(order.requirementsState&&!['confirmed','waived'].includes(order.requirementsState.status))throw Object.assign(new Error('Review the requested details before setting the amount.'),{status:409});
         if(order.paymentFlowVersion===2&&!order.requirementsState&&!order.paymentTermsVersion)throw Object.assign(new Error('Confirm the requirements or choose no additional details first.'),{status:409});
-        const amount=money(input.amount);
         if(typeof input.instructions!=='string'||input.instructions.trim().length<8||input.instructions.length>1000)throw Object.assign(new Error('Enter the payment recipient and instructions (8–1000 characters).'),{status:400});
         const method=String(input.paymentMethod||order.paymentMethod||'GCash').trim();
         if(!['GCash','Maya','Bank Transfer'].includes(method))throw Object.assign(new Error('Choose GCash, Maya or Bank Transfer. Payment is required before preparation.'),{status:400});
+        if(Number.isInteger(order.vipDiscountCents) && order.vipDiscountCents > 0){
+            const gross=order.estimatedSubtotalCents,net=order.estimatedTotalCents;
+            if(!Number.isSafeInteger(gross)||!Number.isSafeInteger(net)||gross <= 0||
+                net !== gross-order.vipDiscountCents||net < 1||
+                !Number.isInteger(order.vipDiscountPercent)||order.vipDiscountPercent < 1||order.vipDiscountPercent > 50)
+                throw Object.assign(new Error('VIP price snapshot is invalid. Contact support before collecting payment.'),{status:409});
+            // No editable menu amount for VIP orders: it is the signed-in owner's
+            // server-verified quote snapshot, including its original discount.
+            if(input.amount != null)throw Object.assign(new Error('VIP menu amount is fixed; enter only additional fees.'),{status:400});
+            const raw=String(input.extraFee ?? '0').trim();
+            if(!/^\d+(?:\.\d{1,2})?$/.test(raw))throw Object.assign(new Error('Enter an additional fee of zero or more with up to two decimals.'),{status:400});
+            const extra=Math.round(Number(raw)*100);
+            if(!Number.isSafeInteger(extra)||extra<0||extra>500000)
+                throw Object.assign(new Error('Additional fee cannot exceed ₱5,000.'),{status:400});
+            const reason=String(input.extraFeeReason||'').trim();
+            if(reason.length>160 || extra>0 && reason.length<6)
+                throw Object.assign(new Error('Explain any additional fee (6–160 characters).'),{status:400});
+            const final=net+extra;
+            return {paymentMethod:method,paymentFlowVersion:2,paymentAmountDue:(final/100).toFixed(2),
+                additionalFeeCents:extra,additionalFeeReason:extra?reason:'',paymentInstructions:input.instructions.trim(),
+                paymentTermsVersion:2,paymentTermsNeedReview:false};
+        }
+        const amount=money(input.amount);
         return {paymentMethod:method,paymentFlowVersion:2,paymentAmountDue:(amount/100).toFixed(2),paymentInstructions:input.instructions.trim(),paymentTermsVersion:2,paymentTermsNeedReview:false};
     }
     function conversationClosed(order) {

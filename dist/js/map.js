@@ -240,7 +240,7 @@ window.MapPage = (() => {
         finally { if (_placesInFlight === run) _placesInFlight = null; }
     }
     const publicCacheKey='vicinify:approved-catalog:20261031-live-hours';
-    const cachedPublicFields=['id','name','category','cat','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','status_mode','statusMode','hours','operatingHours','operating_hours','is_verified','owner_uid','addedBy','approval_status','avgRating','reviewCount','ratingCount','priceRange','accepts_booking','accepts_orders','accepts_advance_booking','accepts_requests','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
+    const cachedPublicFields=['id','name','category','cat','categories','description','desc','address','addr','barangay','brgy','lat','lng','phone','contact_phone','photos','coverPhoto','logo','logoURL','logoUrl','brand_logo','brandLogo','profileLogo','avatarUrl','status','status_mode','statusMode','hours','operatingHours','operating_hours','is_verified','owner_uid','addedBy','approval_status','avgRating','reviewCount','ratingCount','priceRange','accepts_booking','accepts_orders','accepts_advance_booking','accepts_requests','refund_percent','suki_stamp_count','suki_icon','suki_template','suki_color_mode','suki_color','suki_gradient','suki_gradient_from','suki_gradient_to','suki_pattern','delivery_grab','delivery_inhouse','delivery_radius','suki_enabled','sukiEnabled','suki_design','sukiDesign','suki_required','suki_reward','suki_stamps','sukiRequired','sukiReward','createdAt','infoConfirmedAt','businessConfirmedAt','lastBusinessUpdateAt','updatedAt','lastConfirmedAt','last_verified_at'];
     function readPublicSessionCache(now) {
         try {
             const cached=JSON.parse(window.sessionStorage?.getItem(publicCacheKey)||'null');
@@ -444,7 +444,8 @@ window.MapPage = (() => {
     }
 
     function normalizePlace(p) {
-        const cat = normalizeCategoryKey(p.cat || p.category || "default");
+        const cat = normalizeCategoryKey(p.cat || p.category || (Array.isArray(p.categories) && p.categories[0]) || "default");
+        const cats = [...new Set([cat,...(Array.isArray(p.categories)?p.categories:[]).map(normalizeCategoryKey)])].slice(0,3);
         const addr = p.addr || p.address || "";
         const brgy = p.brgy || p.barangay || "";
         const phone = p.phone || p.contact_phone || "";
@@ -454,6 +455,7 @@ window.MapPage = (() => {
             ...p,
             cat,
             category: cat,
+            categories: cats,
             addr,
             address: addr,
             brgy: brgy || addr || "Lipa City",
@@ -517,6 +519,7 @@ window.MapPage = (() => {
             place.name,
             place.cat,
             place.category,
+            ...(Array.isArray(place.categories)?place.categories:[]),
             place.brgy,
             place.barangay,
             place.addr,
@@ -568,11 +571,11 @@ window.MapPage = (() => {
         const rating = Number(place.avgRating || 0);
         const reviews = Number(place.reviewCount || 0);
         const openState = getBusinessOpenState(place);
-        const text = [place.name, place.cat, place.category, place.brgy, place.barangay, place.addr, place.address, place.desc, place.description].join(" ").toLowerCase();
+        const text = [place.name, place.cat, place.category, ...(Array.isArray(place.categories)?place.categories:[]), place.brgy, place.barangay, place.addr, place.address, place.desc, place.description].join(" ").toLowerCase();
         let score = 0;
         const reasons = [];
 
-        if (intent.matchedCat !== "all" && normalizeCategoryKey(place.cat || place.category) === intent.matchedCat) {
+        if (intent.matchedCat !== "all" && (Array.isArray(place.categories)?place.categories:[place.cat||place.category]).some(c=>normalizeCategoryKey(c)===intent.matchedCat)) {
             score += 28;
             reasons.push("matches your food type");
         }
@@ -714,6 +717,7 @@ window.MapPage = (() => {
             id: place.id,
             name: place.name || "Establishment",
             category: place.cat || place.category || "",
+            categories: Array.isArray(place.categories)?place.categories:[],
             distance: place._distance != null ? formatDistance(place._distance) : "",
             rating: place.avgRating || 0,
             reviewCount: place.reviewCount || 0,
@@ -795,7 +799,7 @@ window.MapPage = (() => {
             const ids = new Set(reply.placeIds || []);
             const selectedPlaces=recommendations.filter(p=>ids.has(p.id)).slice(0,3);
             return { ...reply, memory:reply.error?context.memory:{searchQuery:query,placeIds:selectedPlaces.map(p=>p.id)}, picks: reply.error ? [] : reply.placeCards?.length?reply.placeCards:selectedPlaces.map(p => ({
-                id:p.id,name:p.name,category:p.cat || p.category,rating:p.avgRating || 0,reviewCount:p.reviewCount || 0,
+                id:p.id,name:p.name,category:p.cat || p.category,categories:Array.isArray(p.categories)?p.categories:[],rating:p.avgRating || 0,reviewCount:p.reviewCount || 0,
                 distance:p._distance != null ? formatDistance(p._distance) : "",photo:getSafeImageUrl(p.logoUrl || p.logoURL || p.logo || p.brandLogo || p.brand_logo || p.profileLogo || p.avatarUrl) || ""
             })) };
         },
@@ -1154,7 +1158,7 @@ window.MapPage = (() => {
         const places = await getAcceptedPlaces();
         const filtered = places.filter(p => {
             const filters = AppState.mapFilters || {};
-            const catOk = (AppState.activeCat === "all") || (normalizeCategoryKey(p.cat || p.category) === AppState.activeCat);
+            const catOk = (AppState.activeCat === "all") || (Array.isArray(p.categories)?p.categories:[p.cat||p.category]).some(c=>normalizeCategoryKey(c)===AppState.activeCat);
             const radOk = withinRadius(p.lat, p.lng);
             let searchOk = true;
             if (AppState.searchQuery) {
@@ -3418,7 +3422,7 @@ window.MapPage = (() => {
             <dl class="booking-review-summary">
                 ${row('Date',date,true)}${row('Time',time,true)}${row('Table',data.tableName,true)}${row('Guests',data.guests,true)}
                 ${row('Seating',data.seating==='No preference'?'':data.seating)}${row('Occasion',data.occasion==='None'?'':data.occasion)}
-                ${row('Items / Order',data.items,true)}${row('Menu subtotal (estimate)',data.menuSubtotal==null?'':('₱'+(data.menuSubtotal/100).toFixed(2)),true)}${row('Fulfillment',data.fulfillment)}${row('Delivery Address',data.deliveryAddress,true)}
+                ${row('Items / Order',data.items,true)}${row('Menu subtotal (estimate)',data.menuSubtotal==null?'':('₱'+(data.menuSubtotal/100).toFixed(2)),true)}${data.vipDiscount>0?row('VIP discount ('+data.vipPercent+'%)','−₱'+(data.vipDiscount/100).toFixed(2),true):''}${data.vipDiscount>0?row('Discounted menu total (estimate)','₱'+(data.menuTotal/100).toFixed(2),true):''}${row('Fulfillment',data.fulfillment)}${row('Delivery Address',data.deliveryAddress,true)}
                 ${row('Payment Type',data.paymentType)}${row('Payment Method',data.paymentMethod)}${row('Purpose',data.purpose,true)}${row('Notes',data.notes,true)}
             </dl>
             <div class="booking-review-next"><i data-lucide="circle-check"></i><div><b>${escapeHtml(bookingText('What happens next'))}</b><p>${escapeHtml(bookingText('The business will accept or decline your request. Follow updates in your transaction chat.'))}</p>${meta.needsPayment?`<p>${escapeHtml(bookingText('Send payment details only after the business accepts.'))}</p>`:''}</div></div>
@@ -3637,7 +3641,7 @@ window.MapPage = (() => {
         const details = lines.join("\n");
 
         // Review inside the same sheet. No writes occur until the second action.
-        const reviewData = {uid:user.uid,placeId,placeName,requestType,date,time,guests,tableId,tableName,seating,occasion,items,menuLines,quoteDigest:menuQuote?.digest||null,menuSubtotal:menuQuote?.totalCents??null,fulfillment,paymentMethod,paymentType,deliveryAddress,purpose,notes};
+        const reviewData = {uid:user.uid,placeId,placeName,requestType,date,time,guests,tableId,tableName,seating,occasion,items,menuLines,quoteDigest:menuQuote?.digest||null,menuSubtotal:menuQuote?.totalCents??null,vipPercent:menuQuote?.vipDiscountPercent||0,vipDiscount:menuQuote?.vipDiscountCents||0,menuTotal:menuQuote?.estimatedTotalCents??null,fulfillment,paymentMethod,paymentType,deliveryAddress,purpose,notes};
         const snapshot = JSON.stringify(reviewData);
         if (bookingReviewSnapshot !== snapshot) {
             // A changed request must not reuse the idempotency key from a previous submission.

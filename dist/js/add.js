@@ -408,7 +408,8 @@ window.AddPage = (() => {
 const name = (document.getElementById("bizName").value || "").trim();
 const nameProblem = window.ContentPolicy?.error('place',name);
 if(nameProblem) return window.showToast(nameProblem,'error');
-const cat = document.getElementById("bizCat").value;
+const selectedCategories = window.VicinifyCategories?.getSelection('bizCat') || { category:document.getElementById('bizCat').value,categories:[document.getElementById('bizCat').value].filter(Boolean) };
+const cat = selectedCategories.category;
 const priceRange = document.getElementById("bizPriceRange") ? document.getElementById("bizPriceRange").value : "";
 const addr = (document.getElementById("bizAddr").value || "").trim();
 const brgy = (document.getElementById("bizBrgy").value || "").trim();
@@ -467,7 +468,8 @@ if (desc.length < 10) {
             // queue — the status AND the success message both use this.
             const isAdminSubmitter = AppState.userProfile?.role === "admin" || window.auth.currentUser.uid === "Z45NZhQTgsTUX79WJ5ksCH8N3c02";
 
-           await window.ContentPolicy.create(window.db,'places',{
+           const verifiedBusinessOwner = !isAdminSubmitter && AppState.userProfile?.role === 'business' && AppState.userProfile?.businessVerificationStatus === 'approved';
+           const listingPayload = {
     name,
 
     // old field names
@@ -481,6 +483,7 @@ if (desc.length < 10) {
     ...(window.PlaceFeatures && document.getElementById("bizFeatures") ? { place_features: window.PlaceFeatures.readForm(document.getElementById("bizFeatures")) } : {}),
     // new/standard field names
     category: cat,
+    categories: selectedCategories.categories,
     address: addr,
     barangay: brgy,
     contact_phone: phone,
@@ -497,12 +500,18 @@ if (desc.length < 10) {
 owner_uid: null,
 
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
-});
+};
+           if (verifiedBusinessOwner) {
+             const {createdAt,addedBy,owner_uid,approval_status,...publicFields} = listingPayload;
+             await window.ViciData.command('businessPlace',{action:'publish',place:publicFields});
+           } else {
+             await window.ContentPolicy.create(window.db,'places',listingPayload);
+           }
 
             // Reset Form
             window.PlaceFeatures?.renderForm(document.getElementById("bizFeatures"));
             document.getElementById("bizName").value = "";
-            document.getElementById("bizCat").value = "";
+            window.VicinifyCategories?.setSelection("bizCat", []);
             if (document.getElementById("bizPriceRange")) document.getElementById("bizPriceRange").value = "";
             document.getElementById("bizAddr").value = "";
             document.getElementById("bizBrgy").value = "";
@@ -514,7 +523,10 @@ owner_uid: null,
             initPhotoGrid(); // Re-render to show empty state
             clearLogoInput(); // PLUS49: reset logo field too
 
-            if (isAdminSubmitter) {
+            if (verifiedBusinessOwner) {
+                if (window.showToast) showToast('Your verified business establishment is now published.', 'success');
+                else alert('Establishment published successfully!');
+            } else if (isAdminSubmitter) {
                 if (window.showToast) showToast("Success! Establishment approved and published.", "success");
                 else alert("Establishment approved and published!");
             } else {
@@ -531,13 +543,22 @@ owner_uid: null,
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = `<i data-lucide="send" style="width:20px;"></i> Submit for Approval`;
+                submitBtn.innerHTML = `<i data-lucide="send" style="width:20px;"></i> ${AppState.userProfile?.businessVerificationStatus==='approved'?'Publish Establishment':'Submit for Approval'}`;
                 window.debouncedIcons?.();
             }
         }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+        const ownerInfo=document.getElementById('phase7OwnerInfo');
+        document.addEventListener('click',()=>{
+          if(!ownerInfo)return;
+          const isOwner=AppState.userProfile?.role==='business' && AppState.userProfile?.businessVerificationStatus==='approved';
+          ownerInfo.hidden=!isOwner;
+          document.getElementById('phase7OwnerEmail').textContent=isOwner?(window.auth?.currentUser?.email||'Verified account'):'—';
+          const submit=document.getElementById('submitPendingBtn');
+          if(submit&&!submit.disabled)submit.textContent=isOwner?'Publish Establishment':'Submit for Approval';
+        });
         const addrLabel = document.getElementById("bizAddr")?.closest(".field")?.querySelector("label");
         const brgyLabel = document.getElementById("bizBrgy")?.closest(".field")?.querySelector("label");
         const descLabel = document.getElementById("bizDesc")?.closest(".field")?.querySelector("label");

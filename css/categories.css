@@ -8,3 +8,12 @@
 .category-row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--ui-border,#cbd5e1);padding:10px;border-radius:10px}
 .category-row small{opacity:.65;display:block}.category-row-actions{display:flex;gap:6px;flex-wrap:wrap}.category-row button:disabled{opacity:.5;cursor:not-allowed}
 #categoryManagerNotice{font-size:12px;min-height:1em}#categoryManagerNotice[data-error="true"]{color:#dc2626}
+
+/* Phase 6 — multi-category checkbox forms; retains existing category filter chips. */
+.vici-category-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;margin:8px 0 12px;max-width:100%;}
+.vici-category-option{display:flex;align-items:center;gap:8px;min-height:42px;padding:9px 11px;border:1px solid var(--ui-border,#cbd5e1);border-radius:10px;background:var(--ui-card,#fff);color:var(--ui-text,inherit);font-size:13px;cursor:pointer;line-height:1.3;}
+.vici-category-option:has(input:checked){border-color:var(--ui-primary,#237e72);background:var(--ui-accent-soft,#e6f5ed);}
+.vici-category-option input{width:17px;height:17px;flex:0 0 17px;accent-color:var(--ui-primary,#237e72);}
+.vici-category-option.vici-category-disabled{opacity:.62;cursor:default;}
+.vici-primary-label{display:block;margin:6px 0 6px;font-weight:600;}
+@media(max-width:420px){.vici-category-choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.vici-category-option{font-size:12px;padding:8px;}}

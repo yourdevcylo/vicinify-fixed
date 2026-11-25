@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1012" height="638" viewBox="0 0 1012 638">
+<title>Editable Vicinify Suki Card Background Template 1012 by 638</title>
+<desc>Editable background artwork only. Keep stamp indicators, customer identifiers and QR dynamic inside Vicinify.</desc>
+<defs><linearGradient id="mint" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#E8F8F0"/><stop offset="1" stop-color="#B7E6CF"/></linearGradient></defs>
+<rect width="1012" height="638" rx="38" fill="url(#mint)"/>
+<circle cx="860" cy="100" r="220" fill="#FFFFFF" opacity=".22"/>
+<circle cx="110" cy="600" r="160" fill="#287A5C" opacity=".11"/>
+<path d="M0 455C240 400 390 555 630 490S890 424 1012 484V638H0Z" fill="#19845F" opacity=".09"/>
+<text x="65" y="112" font-family="Arial,sans-serif" font-size="48" font-weight="700" fill="#1E6A51">YOUR BUSINESS NAME</text>
+<text x="67" y="158" font-family="Arial,sans-serif" font-size="23" fill="#3A7662">YOUR LOYALTY CARD DESIGN</text>
+<text x="67" y="540" font-family="Arial,sans-serif" font-size="21" fill="#39715D">Edit colors and artwork in your design app</text>
+<text x="67" y="576" font-family="Arial,sans-serif" font-size="18" fill="#39715D">1012 × 638 pixels  •  1.586:1 aspect ratio</text>
+</svg>

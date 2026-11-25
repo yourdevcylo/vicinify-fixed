@@ -263,6 +263,7 @@ window.DashboardPage = (() => {
             wrap.parentElement.classList.add("hidden");
             if (inbox) inbox.classList.add("hidden");
             updateDashboardKpis([]);
+            window.BusinessAnalytics?.reset?.();
             // One-tab rule: standard users get the My Activity hub on this tab.
             const hub = document.getElementById("customerActivitySection");
             if (hub) hub.classList.remove("hidden");
@@ -335,6 +336,7 @@ window.DashboardPage = (() => {
 
 places.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
 updateDashboardKpis(places);
+window.BusinessAnalytics?.setPlaces?.(places.filter(place=>place.owner_uid===user.uid));
 
             if (places.length === 0) {
                 wrap.innerHTML = `
@@ -613,6 +615,7 @@ globalMessagesUnsub = [];
                         <span class="status-badge status-${status}">${status.toUpperCase()}</span>
                     </div>
                     <p class="ticket-meta"><i data-lucide="${meta.icon}" aria-hidden="true"></i> <span>${escapeHtml(meta.title)} · ${dateStr}</span></p>
+                    ${d.vipDiscountCents>0?`<div class="payment-awaiting-note" style="color:var(--ui-text);">VIP ${escapeHtml(String(d.vipDiscountPercent))}%: Menu ₱${(d.estimatedSubtotalCents/100).toFixed(2)} − ₱${(d.vipDiscountCents/100).toFixed(2)} = <b>₱${(d.estimatedTotalCents/100).toFixed(2)}</b> before optional fees.</div>`:''}
                     <details class="ticket-request-details"><summary>Request details</summary>${renderRequestDetails(d)}</details>
                     ${
                         status === "pending" ? `
@@ -980,6 +983,7 @@ globalBookingsUnsub.push(bookingUnsub);
                         <div>
                             <div style="font-size:15px; font-weight:700; color:var(--ui-ink);">${escapeHtml(c.customerName || "Customer")} — wants to claim the reward 🎁</div>
                             <div style="font-size:13px; color:var(--ui-muted);">Card: ${escapeHtml(c.id)}</div>
+                            <div style="font-size:12px; color:var(--ui-muted);">Previously redeemed: ${Number.isSafeInteger(Number(c.redemptionCount)) && Number(c.redemptionCount) >= 0 && c.redemptionCount != null ? Number(c.redemptionCount) : (c.claimed ? 1 : 0)} reward(s)</div>
                         </div>
                     </div>
                     <div class="suki-req-actions">
@@ -1049,7 +1053,7 @@ globalBookingsUnsub.push(bookingUnsub);
         document.querySelectorAll("#adminPlacesTableBody tr").forEach(row => {
             const textMatch = row.innerText.toLowerCase().includes(q);
 
-            const catMatch = selCats.length === 0 || selCats.includes(row.dataset.category);
+            const catMatch = selCats.length === 0 || selCats.some(c => (row.dataset.categories || row.dataset.category || '').split(' ').includes(c));
             const appMatch = selApp.length === 0 || selApp.includes(row.dataset.approval);
             const verMatch = selVer.length === 0 || selVer.includes(row.dataset.verified);
             const bookMatch = selBook.length === 0 || selBook.includes(row.dataset.booking);
@@ -1133,6 +1137,7 @@ globalBookingsUnsub.push(bookingUnsub);
                     <button class="biz-tab" style="font-size: 15px; padding: 12px 16px;" data-biztab="admin-buzz" onclick="window.DashboardPage.loadAdminBuzz()"><i data-lucide="zap" style="width:18px; height:18px;"></i> Buzz Posts</button>
                     <button class="biz-tab" style="font-size: 15px; padding: 12px 16px;" data-biztab="admin-bookings" onclick="window.DashboardPage.loadAdminBookings()"><i data-lucide="calendar" style="width:18px; height:18px;"></i> Transactions</button>
                     <button class="biz-tab" style="font-size: 15px; padding: 12px 16px;" data-biztab="admin-messages" onclick="window.DashboardPage.loadAdminMessages()"><i data-lucide="message-square" style="width:18px; height:18px;"></i> Messages</button>
+                    <button class="biz-tab" style="font-size: 15px; padding: 12px 16px;" data-biztab="admin-business-applications" onclick="window.BusinessRegistration?.loadAdminApplications?.()"><i data-lucide="file-check" style="width:18px; height:18px;"></i> Business Applications</button>
                     <button class="biz-tab" style="font-size: 15px; padding: 12px 16px;" data-biztab="admin-claims" onclick="window.DashboardPage.loadAdminClaims()"><i data-lucide="shield-check" style="width:18px; height:18px;"></i> Claims</button>
                     <button class="biz-tab" style="font-size: 15px; padding: 12px 16px;" data-biztab="admin-reports" onclick="window.DashboardPage.loadAdminReports()"><i data-lucide="flag" style="width:18px; height:18px;"></i> Reports</button>
                     <button class="biz-tab" style="font-size: 15px; padding: 12px 16px;" data-biztab="admin-audit" onclick="window.DashboardPage.loadAdminAudit()"><i data-lucide="scroll-text" style="width:18px; height:18px;"></i> Audit</button>
@@ -1204,12 +1209,12 @@ globalBookingsUnsub.push(bookingUnsub);
                                 <tbody id="adminPlacesTableBody">
                                     ${places.map(p => `
                                     <tr style="font-size: 14px;" onclick="window.DashboardPage.openEditPanel('places', '${p.id}')"
-                                        data-category="${(p.category || p.cat || 'default').toLowerCase()}"
+                                        data-category="${escapeHtml((p.category || p.cat || 'default').toLowerCase())}" data-categories="${escapeHtml((Array.isArray(p.categories) && p.categories.length ? p.categories : [p.category || p.cat || 'default']).join(' ').toLowerCase())}"
                                         data-approval="${(p.approval_status || p.status || 'pending').toLowerCase()}"
                                         data-verified="${p.is_verified ? 'true' : 'false'}"
                                         data-booking="${p.accepts_booking ? 'true' : 'false'}">
                                         <td data-no-translate style="font-weight: 700;">${escapeHtml(p.name || "N/A")}</td>
-                                        <td>${escapeHtml(p.category || p.cat || "N/A")}</td>
+                                        <td>${escapeHtml((Array.isArray(p.categories) && p.categories.length ? p.categories : [p.category || p.cat || 'N/A']).join(', '))}</td>
                                         <td ${p.owner_email ? 'data-no-translate' : 'data-i18n="Unclaimed"'} onclick="event.stopPropagation(); window.DashboardPage.manualAssignOwner('${p.id}', '${safeString(p.name || "Establishment")}')" style="cursor:pointer; color: ${p.owner_email ? 'var(--ui-primary,#237e72)' : '#94a3b8'}; font-weight: 600;" title="Click to manually assign owner">
                                             ${escapeHtml(p.owner_email || "Unclaimed")}
                                         </td>
@@ -1225,6 +1230,7 @@ globalBookingsUnsub.push(bookingUnsub);
                 <div id="biz-panel-admin-buzz" class="biz-panel hidden"><div class="admin-db-container" id="adminBuzzList"><div class="muted" style="padding:20px; font-size:15px;">Fetching buzz posts...</div></div></div>
                 <div id="biz-panel-admin-bookings" class="biz-panel hidden"><div class="admin-db-container" id="adminBookingsList"><div class="muted" style="padding:20px; font-size:15px;">Fetching transactions...</div></div></div>
                 <div id="biz-panel-admin-messages" class="biz-panel hidden"><div class="admin-db-container" id="adminMessagesList"><div class="muted" style="padding:20px; font-size:15px;">Fetching messages...</div></div></div>
+                <div id="biz-panel-admin-business-applications" class="biz-panel hidden"><div class="admin-db-container" id="adminBusinessApplicationsList" style="padding:16px">Select Business Applications to review registration documents.</div></div>
                 <div id="biz-panel-admin-claims" class="biz-panel hidden"><div class="admin-db-container" id="adminClaimsList"><div class="muted" style="padding:20px; font-size:15px;">Fetching claims...</div></div></div>
                 <div id="biz-panel-admin-reports" class="biz-panel hidden"><div class="admin-db-container" id="adminReportsList"><div class="muted" style="padding:20px; font-size:15px;">Fetching reports...</div></div></div>
                 <div id="biz-panel-admin-audit" class="biz-panel hidden"><div class="admin-db-container" id="adminAuditList"><div class="muted" style="padding:20px; font-size:15px;">Fetching audit log...</div></div></div>
@@ -1834,7 +1840,9 @@ panelTitle.textContent = "Edit Establishment";
             formHtml += `
                 <div class="admin-field"><label>Name</label><div class="sub-label">Establishment name</div><input type="text" id="dynName" value="${escapeHtml(data.name || '')}" style="font-size: 15px; padding: 12px;"/></div>
                 
-                <div class="admin-field"><label>Category</label><div class="sub-label">Type of establishment</div>
+                <div class="admin-field"><label>Categories (choose up to 3)</label><div class="sub-label">Type of establishment</div>
+                    <div id="dynCatChoices" class="vici-category-choices" role="group" aria-label="Establishment categories"></div>
+                    <label for="dynCat" class="vici-primary-label">Primary Category</label>
                     <select id="dynCat" style="font-size: 15px; padding: 12px;">
                         <option value="restaurant" ${currentCat === 'restaurant' ? 'selected' : ''}>Restaurant</option>
 <option value="cafe" ${currentCat === 'cafe' ? 'selected' : ''}>Café</option>
@@ -1923,6 +1931,7 @@ panelTitle.textContent = "Edit Establishment";
         `;
 
         panelBody.innerHTML = formHtml;
+        if(type === 'places') window.VicinifyCategories?.setSelection('dynCat', adminData.places.find(p => p.id === id));
         window.debouncedIcons?.();
         overlay.classList.remove("hidden");
         overlay.classList.add("show");
@@ -1939,7 +1948,8 @@ panelTitle.textContent = "Edit Establishment";
 
         if (type === 'places') {
     const name = document.getElementById("dynName") ? document.getElementById("dynName").value.trim() : "";
-    const category = document.getElementById("dynCat").value;
+    const selectedCategories = window.VicinifyCategories?.getSelection('dynCat') || {category:document.getElementById('dynCat').value,categories:[document.getElementById('dynCat').value]};
+    const category = selectedCategories.category;
     const description = document.getElementById("dynDesc").value.trim();
     const address = document.getElementById("dynAddr").value.trim();
     const barangay = document.getElementById("dynBrgy").value.trim();
@@ -1968,8 +1978,9 @@ if (description.length < 10) {
     updateData = {
         name,
 
-        // standard field names
+        // standard field names; keep category/cat as primary for legacy consumers.
         category,
+        categories: selectedCategories.categories,
         description,
         address,
         barangay,
@@ -2082,6 +2093,7 @@ if (description.length < 10) {
     let sukiChipsBuilt = false;
     let sukiStudioBound = false;
     let sukiStudioPlace = null;
+    let sukiBackgroundProcessing = false;
 
     function sukiDefaultDraft(place) {
         const cat = (window.vicinifyCatConfig && window.vicinifyCatConfig(String(place.category || place.cat || "default").toLowerCase())) || { color: "#f59e0b", icon: "coffee" };
@@ -2096,7 +2108,13 @@ if (description.length < 10) {
             pattern: place.suki_pattern || "none",
             icon: place.suki_icon || "",
             stampCount: Math.max(2, Math.min(24, parseInt(place.suki_stamp_count, 10) || 8)),
-            reward: place.suki_reward || ""
+            reward: place.suki_reward || "",
+            vipEnabled: place.suki_vip_enabled === true,
+            vipDays: Math.max(1,Math.min(365,Number.parseInt(place.suki_vip_days,10)||10)),
+            vipDurationDays: [0,30,90,365].includes(Number(place.suki_vip_duration_days))?Number(place.suki_vip_duration_days):0,
+            vipBenefit: String(place.suki_vip_benefit || "").slice(0,120),
+            vipDiscountPercent: Number.isInteger(place.suki_vip_discount_percent) && place.suki_vip_discount_percent>=0 && place.suki_vip_discount_percent<=50 ? place.suki_vip_discount_percent : 0,
+            backgroundImage: window.Suki?.validBackgroundImage?.(place.suki_background_image) || ""
         };
     }
 
@@ -2205,6 +2223,15 @@ if (description.length < 10) {
         document.querySelectorAll('#sukiStudioBody .suki-chip').forEach(button=>button.setAttribute('aria-pressed',String(button.classList.contains('active'))));
         document.getElementById("sukiStampCount").value = d.stampCount;
         document.getElementById("sukiReward").value = d.reward;
+        document.getElementById("sukiVipEnabled").checked = d.vipEnabled;
+        document.getElementById("sukiVipDays").value = d.vipDays;
+        document.getElementById("sukiVipDuration").value = String(d.vipDurationDays);
+        document.getElementById("sukiVipBenefit").value = d.vipBenefit;
+        document.getElementById("sukiVipDiscountPercent").value = d.vipDiscountPercent;
+        const uploadHelp = document.getElementById("sukiBackgroundHelp");
+        if (uploadHelp && !sukiBackgroundProcessing) uploadHelp.textContent = d.backgroundImage
+            ? "Custom image selected. Save Changes to publish it to customers."
+            : "No custom background selected. Your existing Suki Studio colors and patterns will be used.";
         window.debouncedIcons?.();
     }
 
@@ -2217,6 +2244,12 @@ if (description.length < 10) {
         d.gradTo = document.getElementById("sukiGradTo").value;
         d.stampCount = Math.max(2, Math.min(24, parseInt(document.getElementById("sukiStampCount").value, 10) || 8));
         d.reward = document.getElementById("sukiReward").value.trim().slice(0, 120);
+        d.vipEnabled = document.getElementById("sukiVipEnabled").checked;
+        d.vipDays = Math.max(1,Math.min(365,Number.parseInt(document.getElementById("sukiVipDays").value,10)||10));
+        d.vipDurationDays = [0,30,90,365].includes(Number(document.getElementById("sukiVipDuration").value)) ? Number(document.getElementById("sukiVipDuration").value) : 0;
+        d.vipBenefit = document.getElementById("sukiVipBenefit").value.trim().slice(0,120);
+        const vipDiscountNumber=Number(document.getElementById("sukiVipDiscountPercent").value);
+        d.vipDiscountPercent = Number.isInteger(vipDiscountNumber) && vipDiscountNumber>=0 && vipDiscountNumber<=50 ? vipDiscountNumber : 0;
         return d;
     }
 
@@ -2236,7 +2269,13 @@ if (description.length < 10) {
             suki_gradient: d.gradId,
             suki_gradient_from: d.gradFrom,
             suki_gradient_to: d.gradTo,
-            suki_pattern: d.pattern
+            suki_pattern: d.pattern,
+            suki_background_image: d.backgroundImage,
+            suki_vip_enabled: d.vipEnabled,
+            suki_vip_days: d.vipDays,
+            suki_vip_duration_days: d.vipDurationDays,
+            suki_vip_benefit: d.vipBenefit,
+            suki_vip_discount_percent: d.vipDiscountPercent
         };
         const sampleStamps = Math.max(0, Math.min(d.stampCount - 1, 5));
         wrap.innerHTML = window.Suki.renderCard(ghost, {
@@ -2247,6 +2286,79 @@ if (description.length < 10) {
             customerName: "Juan Suki"
         }, { hideActions: true });
         window.Suki.attachInteraction(wrap);
+    }
+
+    // Keep artwork raster-only; SVG is editable as a downloaded template but
+    // cannot be uploaded into the website as HTML/XML executable content.
+    async function sukiCompressBackground(file) {
+        if (!file || !["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+            throw new Error("Please export your template as PNG, JPG, or WebP first.");
+        }
+        if (file.size < 1 || file.size > 6 * 1024 * 1024) {
+            throw new Error("The selected image must be smaller than 6 MB.");
+        }
+        const objectUrl = URL.createObjectURL(file);
+        try {
+            const img = await new Promise((resolve, reject) => {
+                const picture = new Image();
+                picture.onload = () => resolve(picture);
+                picture.onerror = () => reject(new Error("Could not read this image. Choose a different file."));
+                picture.src = objectUrl;
+            });
+            if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth > 8000 || img.naturalHeight > 8000) {
+                throw new Error("Invalid image dimensions.");
+            }
+            if (Math.abs((img.naturalWidth / img.naturalHeight) / (1012 / 638) - 1) > 0.012) {
+                throw new Error("Wrong proportions. Please export your card at 1012 × 638 pixels.");
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = 1012;
+            canvas.height = 638;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Image processing is unavailable on this device.");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            for (const quality of [0.72, 0.56, 0.4, 0.28]) {
+                const data = canvas.toDataURL("image/webp", quality);
+                if (data.length <= 150000 && /^data:image\/webp;base64,/.test(data)) return data;
+            }
+            throw new Error("This artwork is too complex. Export a smaller PNG/JPG and try again.");
+        } finally {
+            URL.revokeObjectURL(objectUrl);
+        }
+    }
+
+    async function loadSukiVipCustomers() {
+        const placeId = document.getElementById("sukiStudioPlaceId")?.value;
+        const wrap=document.getElementById("sukiVipCustomerList"),status=document.getElementById("sukiVipStatus");
+        if(!placeId||!wrap||!status)return;
+        wrap.replaceChildren();status.textContent='Loading loyalty customers...';
+        try {
+            if (!(await canManagePlaceId(placeId))) throw new Error('Only the owner can view VIP customers.');
+            const [cardsSnap,placeSnap]=await Promise.all([
+                window.db.collection('loyalty_cards').where('placeId','==',placeId).limit(100).get(),
+                window.db.collection('places').doc(placeId).get()
+            ]);
+            if(document.getElementById("sukiStudioPlaceId")?.value!==placeId)return;
+            if(!placeSnap.exists)throw new Error('Establishment not found.');
+            sukiStudioPlace={...placeSnap.data(),id:placeId};
+            const threshold=Number(sukiStudioPlace.suki_vip_days)||10;
+            const now=Date.now();
+            status.textContent=`${cardsSnap.size} customer card(s) loaded (first 100). Changes to VIP settings must be saved first.`;
+            for(const snapshot of cardsSnap.docs){
+                const c=snapshot.data();
+                const days=Number.isSafeInteger(c.verifiedPurchaseDays)&&c.verifiedPurchaseDays>=0?c.verifiedPurchaseDays:0;
+                const expires=c.vipExpiresAt?.toMillis?.() || (c.vipExpiresAt?.seconds ? c.vipExpiresAt.seconds*1000 : 0);
+                const vip=c.vipActive===true&&(!expires||expires>now);
+                const item=document.createElement('div');item.style.cssText='border:1px solid #dfe5e9;border-radius:12px;padding:12px;display:grid;gap:6px;';
+                const name=document.createElement('strong');name.textContent=c.customerName||'Customer';item.appendChild(name);
+                const info=document.createElement('small');info.textContent=`${days} verified days / ${threshold} required · ${Number(c.redemptionCount)||0} rewards redeemed · ${vip?'VIP active':days>=threshold?'Eligible':'Regular'}`;item.appendChild(info);
+                const btn=document.createElement('button');btn.type='button';btn.className='suki-chip';
+                btn.dataset.vipAction=vip?'revoke':'grant';btn.dataset.customerUid=c.customerUid;btn.dataset.days=String(days);
+                btn.textContent=vip?'Revoke VIP':days>=threshold?'Approve VIP':'Manual Grant VIP';
+                btn.disabled=!!(!vip&&!sukiStudioPlace.suki_vip_enabled);item.appendChild(btn);wrap.appendChild(item);
+            }
+            if(cardsSnap.empty)status.textContent='No Suki customers yet. Customers appear after they create a Suki Card.';
+        } catch(e){status.textContent='Unable to load customers: '+(e?.message||'Please try again.');}
     }
 
     function sukiStudioInit(place) {
@@ -2278,6 +2390,71 @@ if (description.length < 10) {
         document.getElementById("sukiGradTo").addEventListener("input", gradCustom);
         document.getElementById("sukiStampCount").addEventListener("input", () => { sukiReadStudioToDraft(); sukiRenderStudioPreview(); });
         document.getElementById("sukiReward").addEventListener("input", () => { sukiReadStudioToDraft(); sukiRenderStudioPreview(); });
+        ["sukiVipEnabled","sukiVipDays","sukiVipDuration","sukiVipBenefit","sukiVipDiscountPercent"].forEach(id =>
+            document.getElementById(id).addEventListener("change", () => { sukiReadStudioToDraft(); sukiRenderStudioPreview(); }));
+        document.getElementById("sukiVipLoadCustomers").addEventListener("click",loadSukiVipCustomers);
+        document.getElementById("sukiVipCustomerList").addEventListener("click", async event => {
+            const btn = event.target.closest('button[data-vip-action]');
+            if (!btn || btn.disabled) return;
+            const action = btn.dataset.vipAction;
+            const customerUid = btn.dataset.customerUid;
+            const placeId = document.getElementById("sukiStudioPlaceId").value;
+            const days = Number(btn.dataset.days)||0;
+            const threshold = Number(sukiStudioPlace?.suki_vip_days)||10;
+            const isGrant = action === 'grant';
+            let reason='';
+            if (isGrant && days < threshold) {
+                reason = window.prompt('Manual VIP grant: enter why this customer should qualify (minimum 8 characters).') || '';
+                if (reason.trim().length < 8) return;
+            } else if (!isGrant) {
+                reason = window.prompt('Reason to revoke VIP (minimum 8 characters):') || '';
+                if (reason.trim().length < 8) return;
+            }
+            const confirmed = await window.vConfirm?.(isGrant?'Grant VIP status?':'Revoke VIP status?',
+                isGrant?'Grant VIP to this customer?':'Remove the customer’s VIP status?',isGrant?'Grant VIP':'Revoke VIP',!isGrant);
+            if (confirmed !== true) return;
+            btn.disabled=true;
+            try {
+                await window.ViciData.command('sukiStamp',{action:'set_vip',placeId,customerUid,grant:isGrant,reason});
+                window.showToast?.(isGrant?'VIP membership approved.':'VIP membership revoked.','success');
+                await loadSukiVipCustomers();
+            } catch(e){window.handleFirestoreError?.(e,'Could not update VIP membership.');btn.disabled=false;}
+        });
+        document.getElementById("sukiBackgroundFile")?.addEventListener("change", async (e) => {
+            const file = e.target.files?.[0];
+            if (!file || !sukiDraft || sukiBackgroundProcessing) return;
+            const help = document.getElementById("sukiBackgroundHelp");
+            const sourceDraft = sukiDraft;
+            const sourcePlaceId = document.getElementById("sukiStudioPlaceId")?.value;
+            sukiBackgroundProcessing = true;
+            const saveBtn = document.getElementById("saveSukiStudioBtn");
+            if (saveBtn) saveBtn.disabled = true;
+            if (help) help.textContent = "Checking and compressing the design...";
+            try {
+                const image = await sukiCompressBackground(file);
+                // Suki Studio can change establishments while asynchronous
+                // image decoding is underway; don't apply to a different card.
+                if (sukiDraft === sourceDraft && document.getElementById("sukiStudioPlaceId")?.value === sourcePlaceId) {
+                    sukiDraft.backgroundImage = image;
+                    sukiRenderStudioPreview();
+                    if (help) help.textContent = "Custom background ready. Click Save Changes to publish it.";
+                }
+            } catch (error) {
+                if (help) help.textContent = error.message || "Unable to use this image.";
+                window.showToast?.(error.message || "Unable to use this image.", "error");
+            } finally {
+                e.target.value = "";
+                sukiBackgroundProcessing = false;
+                if (saveBtn && !sukiSaving) saveBtn.disabled = false;
+            }
+        });
+        document.getElementById("sukiBackgroundReset")?.addEventListener("click", () => {
+            if (!sukiDraft || sukiBackgroundProcessing) return;
+            sukiDraft.backgroundImage = "";
+            sukiRenderStudioPreview();
+            const help = document.getElementById("sukiBackgroundHelp");
+            if (help) help.textContent = "Default background selected. Click Save Changes to publish it.";
+        });
         document.getElementById("sukiShowQrBtn").addEventListener("click", () => {
             const qr = document.getElementById("sukiStudioQr");
             if (!qr) return;
@@ -2298,7 +2475,7 @@ if (description.length < 10) {
         setBizSaveState("", "idle");
         document.getElementById("bizPortalId").value = place.id;
         document.getElementById("bizPortalName").value = place.name || "";
-        document.getElementById("bizPortalCat").value = place.category || place.cat || "restaurant";
+        window.VicinifyCategories?.setSelection('bizPortalCat', place);
         document.getElementById("bizPortalDesc").value = place.description || place.desc || "";
         window.PlaceFeatures?.renderForm(document.getElementById("bizPortalFeatures"), place.place_features || {});
         document.getElementById('bizAutoReplies').checked=place.auto_reply_enabled===true;
@@ -2432,6 +2609,8 @@ if (description.length < 10) {
         const status = document.getElementById("sukiStudioSaveStatus");
         if (status) { status.textContent = ""; status.dataset.state = "idle"; status.hidden = true; }
         sukiStudioInit(place);
+        const vipList=document.getElementById('sukiVipCustomerList');if(vipList)vipList.replaceChildren();
+        const vipStatus=document.getElementById('sukiVipStatus');if(vipStatus)vipStatus.textContent='Save your VIP settings, then load customers.';
         window.debouncedIcons?.();
         showPage("page-suki-studio");
     }
@@ -2486,6 +2665,10 @@ if (description.length < 10) {
 
     async function saveSukiStudio() {
         if (sukiSaving) return;
+        if (sukiBackgroundProcessing) {
+            window.showToast?.("Finish processing the image before saving.", "error");
+            return;
+        }
         const id = document.getElementById("sukiStudioPlaceId")?.value;
         const status = document.getElementById("sukiStudioSaveStatus");
         if (!id || !sukiDraft) {
@@ -2500,6 +2683,10 @@ if (description.length < 10) {
             if (!(await canManagePlaceId(id))) {
                 throw new Error("Only the owner or an admin can edit the Suki Card.");
             }
+            const discountField=document.getElementById("sukiVipDiscountPercent");
+            const discountValue=Number(discountField?.value);
+            if(!discountField?.value.trim()||!Number.isInteger(discountValue)||discountValue<0||discountValue>50)
+                throw new Error("VIP online discount must be a whole percentage between 0 and 50 (0 disables it).");
             const sd = sukiReadStudioToDraft();
             // Snapshot exactly the version being written. Later edits remain
             // unsaved until their own successful Firebase write.
@@ -2516,6 +2703,12 @@ if (description.length < 10) {
                 suki_gradient_from: sd.gradFrom,
                 suki_gradient_to: sd.gradTo,
                 suki_pattern: sd.pattern,
+                suki_background_image: window.Suki?.validBackgroundImage?.(sd.backgroundImage) || "",
+                suki_vip_enabled: sd.vipEnabled,
+                suki_vip_days: sd.vipDays,
+                suki_vip_duration_days: sd.vipDurationDays,
+                suki_vip_benefit: sd.vipBenefit,
+                suki_vip_discount_percent: sd.vipDiscountPercent,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             await window.db.collection("places").doc(id).update(updateData);
@@ -2600,7 +2793,8 @@ if (description.length < 10) {
         const btn = document.getElementById("saveBizPortalBtn");
 
         const name = document.getElementById("bizPortalName").value.trim();
-const category = document.getElementById("bizPortalCat").value;
+const selectedCategories = window.VicinifyCategories?.getSelection('bizPortalCat') || {category:document.getElementById('bizPortalCat').value,categories:[document.getElementById('bizPortalCat').value]};
+const category = selectedCategories.category;
 const description = document.getElementById("bizPortalDesc").value.trim();
 const address = document.getElementById("bizPortalAddress").value.trim();
 const phone = document.getElementById("bizPortalPhone").value.trim();
@@ -2669,6 +2863,7 @@ let updateData = {
     ...(window.PlaceFeatures && document.getElementById("bizPortalFeatures") ? { place_features: window.PlaceFeatures.readForm(document.getElementById("bizPortalFeatures")) } : {}),
     // standard fields
     category,
+    categories: selectedCategories.categories,
     description,
     address,
     contact_phone: phone,
@@ -2931,6 +3126,7 @@ let updateData = {
         myPlacesCache = null; myPlacesCacheUid = null; myPlacesCacheAt = 0;
         currentAdminPlaces = []; adminData = {places:[],buzz_posts:[],bookings:[],messages:[]};
         bookingMap.clear(); messageMap.clear();
+        window.BusinessAnalytics?.reset?.();
         ['pendingList','myEstablishments','biz-panel-bookings','biz-panel-messages','biz-panel-suki','myBookingsList','myChatsList'].forEach(id=>{const el=document.getElementById(id);if(el)el.replaceChildren();});
         const overlay = document.getElementById('adminSidePanelOverlay');
         if(overlay) { overlay.classList.remove('show'); overlay.classList.add('hidden'); overlay.querySelector('.panel-body')?.replaceChildren(); }

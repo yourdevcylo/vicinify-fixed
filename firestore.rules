@@ -125,6 +125,12 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/places/$(placeId)).data.owner_uid == request.auth.uid;
     }
 
+    // Phase 7: permits, applications and verified-ownership grants are server-only.
+    // Never put permits in public place, photo or Buzz collections.
+    match /business_applications/{applicationId} { allow read, write: if false; }
+    match /business_application_files/{fileId} { allow read, write: if false; }
+    match /verified_businesses/{businessId} { allow read, write: if false; }
+
     match /account_deletions/{userId} { allow read, write: if false; }
     match /ownership_transfers/{placeId} { allow read, write: if false; }
 
@@ -147,6 +153,8 @@ service cloud.firestore {
             && request.auth.uid == userId
             && request.resource.data.role == resource.data.role
             && request.resource.data.uid == resource.data.uid
+            && !request.resource.data.diff(resource.data).affectedKeys()
+                 .hasAny(['businessVerificationStatus', 'businessApplicationId'])
           )
         )
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['fullName']) || validName(request.resource.data.fullName))
@@ -541,49 +549,34 @@ service cloud.firestore {
     }
 
     // --- ADDED 2026-10-05 (Suki Card / loyalty). Tightened 2026-10-05 (v53 audit). ---
-    // loyalty_cards/{cardId}: deterministic cardId = placeId + "_" + customerUid
-    // (idempotent approval: double-tap cannot double-stamp).
-    match /loyalty_cards/{cardId} {
-      // NOTE: `resource == null` covers the first-visit case — the customer
-      // must be allowed to `.get()` their card even before it exists.
-      allow read: if signedIn()
-        && (
-          isAdmin()
-          || resource == null
-          || resource.data.customerUid == request.auth.uid
-          || isPlaceOwner(resource.data.placeId)
-        );
+    // Server-administered one-stamp-per-day ledger. There are no client
+    // reads or writes: owner/customer browsers cannot forge a qualifying day.
+    match /suki_daily_stamps/{dayId} { allow read, write: if false; }
+    match /suki_order_awards/{bookingId} { allow read, write: if false; }
+    match /suki_vip_events/{eventId} { allow read, write: if false; }
 
-      // Create: safe starting state only — nobody may mint stamps or a
-      // pre-claimed card through the client.
-      // (a) the customer creates their own card on first stamp request, or
-      // (b) the place owner / admin creates it inside the approval
-      //     transaction when the doc does not exist yet (first stamp).
+    // loyalty_cards/{cardId}: deterministic cardId = placeId + "_" + customerUid.
+    // The trusted sukiStamp endpoint alone grants stamps/redeems rewards.
+    match /loyalty_cards/{cardId} {
+      allow read: if signedIn()
+        && (isAdmin() || resource == null
+          || resource.data.customerUid == request.auth.uid
+          || isPlaceOwner(resource.data.placeId));
+
+      // Legacy zero-stamp cards are allowed for customer self-init, without
+      // minting any stamps or pre-populating server-only loyalty fields.
       allow create: if verifiedEmail()
         && request.resource.data.placeId is string
-        && request.resource.data.customerUid is string
-        && cardId == (request.resource.data.placeId + "_" + request.resource.data.customerUid)
+        && request.resource.data.customerUid == request.auth.uid
+        && cardId == (request.resource.data.placeId + "_" + request.auth.uid)
+        && request.resource.data.stamps == 0
         && request.resource.data.claimed == false
         && request.resource.data.claimRequested == false
-        && (
-          (
-            request.resource.data.customerUid == request.auth.uid
-            && request.resource.data.stamps == 0
-          )
-          || (
-            (isPlaceOwner(request.resource.data.placeId) || isAdmin())
-            && request.resource.data.stamps == 1
-          )
-        );
+        && request.resource.data.keys().hasOnly(['placeId','customerUid','customerName','stamps','claimed','claimRequested','updatedAt']);
 
-      // Update: owners/admins run approvals and claim marking (stamps,
-      // claimed state). A customer may only flip their own claim-request
-      // fields — never stamps, claimed, placeId or customerUid.
-      allow update: if isAdmin()
-        || (verifiedEmail() && isPlaceOwner(resource.data.placeId)
-          && request.resource.data.placeId == resource.data.placeId
-          && request.resource.data.customerUid == resource.data.customerUid)
-        || (
+      // Only the customer can submit a reward-claim request from the UI.
+      // Even an owner cannot directly edit stamps, VIP progress, or totals.
+      allow update: if (
           verifiedEmail()
           && resource.data.customerUid == request.auth.uid
           && request.resource.data.customerUid == request.auth.uid
@@ -591,11 +584,11 @@ service cloud.firestore {
           && request.resource.data.stamps == resource.data.stamps
           && request.resource.data.claimed == resource.data.claimed
           && request.resource.data.diff(resource.data).affectedKeys()
-               .hasOnly(["claimRequested", "claimRequestedAt", "updatedAt"])
+               .hasOnly(['claimRequested', 'claimRequestedAt', 'updatedAt'])
         );
 
-      allow delete: if isAdmin()
-        || (verifiedEmail() && isPlaceOwner(resource.data.placeId));
+      // Maintenance and account deletion are handled through secure backends.
+      allow delete: if false;
     }
 
     // stamp_requests/{requestId}: Owner-tap approval flow.
@@ -613,23 +606,28 @@ service cloud.firestore {
         && request.resource.data.placeId is string
         && request.resource.data.status == "pending";
 
-      // Owner approves/rejects; a customer may cancel their own request
-      // without touching any other field.
-      allow update: if isAdmin()
-        || (verifiedEmail() && isPlaceOwner(resource.data.placeId)
+      // Only the server endpoint approves stamp requests; owner may reject
+      // a pending request, and customer may cancel their own pending request.
+      allow update: if (
+          verifiedEmail() && isPlaceOwner(resource.data.placeId)
+          && resource.data.status == 'pending'
+          && request.resource.data.status == 'rejected'
           && request.resource.data.placeId == resource.data.placeId
-          && request.resource.data.customerUid == resource.data.customerUid)
+          && request.resource.data.customerUid == resource.data.customerUid
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['status','updatedAt'])
+        )
         || (
           verifiedEmail()
           && resource.data.customerUid == request.auth.uid
+          && resource.data.status == "pending"
           && request.resource.data.customerUid == request.auth.uid
           && request.resource.data.status == "cancelled"
           && request.resource.data.diff(resource.data).affectedKeys()
                .hasOnly(["status", "updatedAt"])
         );
 
-      allow delete: if isAdmin()
-        || (verifiedEmail() && isPlaceOwner(resource.data.placeId));
+      allow delete: if false;
     }
   }
 }
