@@ -27,7 +27,16 @@ function emailText(app,type){
    rejected:`Your application for ${name} was reviewed and rejected. Sign in to Vicinify to read the administrator's remarks and next steps.`,
    changes_required:`Your application for ${name} needs changes. Sign in to Vicinify to read the administrator's remarks, update your details and resubmit.`
  };
- return `Hello,\n\n${base[type]}\n\nDiscover Good Food in Your Neighborhood.\nVicinify Team`;
+ let link='';
+ try{
+  const url=new URL(process.env.VICINIFY_PUBLIC_URL||process.env.URL||'');
+  if(url.protocol==='https:'&&!url.username&&!url.password){
+   url.search='';url.hash='';
+   if(type!=='approved')url.searchParams.set('business','1');
+   link=`\n\n${type==='approved'?'Sign in to Vicinify':'View your application'}: ${url.href}`;
+  }
+ }catch{}
+ return `Hello,\n\n${base[type]}${link}\n\nDiscover Good Food in Your Neighborhood.\nVicinify Team`;
 }
 async function updateEvent(db,uid,eventId,callback){
  const ref=db.collection('business_applications').doc(uid);

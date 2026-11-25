@@ -37,6 +37,12 @@ function renderForm(id){
   }).join('');
   select.value=state.primary;
   container.setAttribute('data-count',String(state.categories.length));
+  // Keep a visible selection counter outside the grid, and announce updates.
+  if(container.insertAdjacentElement){
+    let count=document.getElementById(id+'Count');
+    if(!count){count=document.createElement('small');count.id=id+'Count';count.className='vici-category-count';count.setAttribute('role','status');container.insertAdjacentElement('beforebegin',count);container.setAttribute('aria-describedby',count.id);}
+    count.textContent=`${state.categories.length} of ${MAX_CATEGORIES} selected`+(limitReached?' · Uncheck a category to choose another.':'');
+  }
   if(!container.dataset.multiBound){
     container.dataset.multiBound='1';
     container.addEventListener('change',event=>{
@@ -49,6 +55,8 @@ function renderForm(id){
       current.categories=next;
       if(!next.includes(current.primary))current.primary=next[0]||'';
       selections.set(id,current);renderForm(id);
+      // Re-render replaces the inputs; restore focus for keyboard users.
+      if(container.querySelectorAll){[...container.querySelectorAll('input[type="checkbox"]')].find(el=>el.value===input.value)?.focus({preventScroll:true});}
     });
   }
   if(!select.dataset.multiBound){

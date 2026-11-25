@@ -2460,6 +2460,7 @@ function showPage(pageId, options = {}) {
     }
 
     AppState.activePage = pageId;
+    document.body.classList.toggle("business-application-mode", pageId === "page-business-register");
 
     const bottomNav = document.querySelector(".bottom-nav");
     if (pageId === "page-login") {
@@ -2936,13 +2937,12 @@ window.auth.onAuthStateChanged(async (user) => {
                 setTimeout(() => { if (window.auth?.currentUser?.uid === user.uid) window.GlobalNotifier.start(user); }, 1500);
             }
             window.db.collection("public_profiles").doc(user.uid).set({ fullName: String(AppState.userProfile?.fullName || "Customer").slice(0, 120) }).catch(() => {});
-            if (!AppState.user.emailVerified) {
+            if (!AppState.user.emailVerified && sessionStorage.getItem("viciBusinessIntent")!=="1") {
                 setTimeout(() => {
                     if (window.alert) window.alert("Your account is unverified. Please check your email to verify your account.");
                 }, 2500);
             }
-            showPage("page-map", { resetHistory: true });
-            window.BusinessRegistration?.resumeIfRequested?.();
+            if (!window.BusinessRegistration?.resumeIfRequested?.()) showPage("page-map", { resetHistory: true });
         };
 
         currentUserDocUnsub = window.db.collection("users").doc(user.uid).onSnapshot(async doc => {

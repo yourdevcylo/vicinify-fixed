@@ -9,11 +9,46 @@
 .category-row small{opacity:.65;display:block}.category-row-actions{display:flex;gap:6px;flex-wrap:wrap}.category-row button:disabled{opacity:.5;cursor:not-allowed}
 #categoryManagerNotice{font-size:12px;min-height:1em}#categoryManagerNotice[data-error="true"]{color:#dc2626}
 
-/* Phase 6 — multi-category checkbox forms; retains existing category filter chips. */
-.vici-category-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;margin:8px 0 12px;max-width:100%;}
-.vici-category-option{display:flex;align-items:center;gap:8px;min-height:42px;padding:9px 11px;border:1px solid var(--ui-border,#cbd5e1);border-radius:10px;background:var(--ui-card,#fff);color:var(--ui-text,inherit);font-size:13px;cursor:pointer;line-height:1.3;}
-.vici-category-option:has(input:checked){border-color:var(--ui-primary,#237e72);background:var(--ui-accent-soft,#e6f5ed);}
-.vici-category-option input{width:17px;height:17px;flex:0 0 17px;accent-color:var(--ui-primary,#237e72);}
-.vici-category-option.vici-category-disabled{opacity:.62;cursor:default;}
-.vici-primary-label{display:block;margin:6px 0 6px;font-weight:600;}
-@media(max-width:420px){.vici-category-choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.vici-category-option{font-size:12px;padding:8px;}}
+/* Category controls: isolate real checkbox sizing from legacy full-width form rules. */
+html body.vicinify-ui .vici-category-choices {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(min(145px,100%),1fr));
+  gap:8px; margin:8px 0 12px; max-width:100%; min-width:0;
+}
+html body.vicinify-ui .vici-category-choices .vici-category-option,
+html body.vicinify-ui #main-content :is(#page-add,#page-biz-edit) .field .vici-category-choices .vici-category-option {
+  display:flex !important; flex-direction:row !important; align-items:center !important;
+  gap:10px; min-height:44px; min-width:0; padding:9px 12px !important; margin:0 !important;
+  box-sizing:border-box; border:1px solid var(--ui-border,#cbd5e1); border-radius:10px;
+  background:var(--ui-surface,#fff); color:var(--ui-ink,inherit) !important;
+  font-size:13px !important; font-weight:600 !important; line-height:1.35 !important; cursor:pointer;
+}
+html body.vicinify-ui .vici-category-choices .vici-category-option span {min-width:0;overflow-wrap:anywhere;}
+html body.vicinify-ui .vici-category-choices .vici-category-option input[type=checkbox],
+html body.vicinify-ui #main-content :is(#page-add,#page-biz-edit) .field .vici-category-choices .vici-category-option input[type=checkbox] {
+  appearance:auto !important; -webkit-appearance:auto !important; display:block !important;
+  width:18px !important; height:18px !important; min-width:18px !important; min-height:18px !important;
+  max-width:18px !important; max-height:18px !important; flex:0 0 18px !important;
+  margin:0 !important; padding:0 !important; border-radius:4px !important;
+  accent-color:var(--ui-primary,#237e72) !important; box-shadow:none !important; cursor:inherit;
+}
+html body.vicinify-ui .vici-category-choices .vici-category-option:has(input:checked) {
+  border-color:var(--ui-accent,#237e72) !important; background:var(--ui-accent-soft,#e6f5ed) !important;
+}
+html body.vicinify-ui .vici-category-choices .vici-category-option:has(input:focus-visible) {
+  outline:2px solid var(--ui-accent,#237e72); outline-offset:2px;
+}
+html body.vicinify-ui .vici-category-choices .vici-category-option:has(input:disabled) {
+  opacity:.55; cursor:not-allowed;
+}
+.vici-primary-label{display:block;margin:6px 0;font-weight:600;}
+.vici-category-count{display:block;color:var(--ui-muted,#64748b);font-size:12px;line-height:1.4;margin:4px 0 0;}
+html body.vicinify-ui #main-content #page-add .formGrid .vici-category-field {grid-column:1/-1;}
+html body.vicinify-ui #main-content #page-add .vici-category-field #bizCat {max-width:440px !important;}
+@media(max-width:640px){
+  html body.vicinify-ui .vici-category-choices {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  html body.vicinify-ui #main-content #page-add .vici-category-field #bizCat {max-width:none !important;}
+}
+@media(max-width:330px){html body.vicinify-ui .vici-category-choices{grid-template-columns:minmax(0,1fr);}}
+
+@media(min-width:641px){html body.vicinify-ui #main-content #page-add .vici-category-choices{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(min-width:1200px){html body.vicinify-ui #main-content #page-add .vici-category-choices{grid-template-columns:repeat(5,minmax(0,1fr));}}

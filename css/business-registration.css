@@ -46,3 +46,53 @@
 .br-notification-list li span{color:var(--ui-muted,#65746e)}
 .br-notification-list li small{flex:1 0 100%;color:var(--ui-muted,#65746e)}
 .br-admin-history{margin:12px 0}.br-admin-history summary{font-size:13px;cursor:pointer;font-weight:650}
+
+
+/* Phase 10 UI hotfix: registration owns one scroll area between the shell bars. */
+html body.vicinify-ui:not(.on-login) #main-content > #page-business-register.active {
+  position:fixed !important;
+  inset:var(--ui-header) 1px 1px var(--ui-rail) !important;
+  display:block !important; width:auto !important; max-width:none !important;
+  height:auto !important; min-height:0 !important; max-height:none !important;
+  margin:0 !important; padding:0 !important; box-sizing:border-box;
+  overflow-y:auto !important; overflow-x:hidden !important;
+  overscroll-behavior-y:contain; -webkit-overflow-scrolling:touch;
+  scroll-padding:16px; background:var(--ui-bg,#fff);
+}
+#page-business-register .br-page {width:100%;max-width:980px;box-sizing:border-box;padding:28px 24px 32px;}
+#page-business-register .br-page-head {align-items:flex-start;gap:14px;}
+#page-business-register .br-page-head > div {min-width:0;}
+#page-business-register .br-page-head h2 {line-height:1.2;overflow-wrap:anywhere;}
+#page-business-register .br-page-head > button {flex-shrink:0;min-height:44px;}
+#page-business-register .br-panel {min-width:0;overflow-wrap:anywhere;}
+#page-business-register .br-fields {min-width:0;}
+#page-business-register .br-fields label {min-width:0;}
+#page-business-register .br-fields :is(input,select) {width:100%;min-width:0;min-height:44px;}
+#page-business-register .br-document-row > div {flex:1;min-width:0;overflow-wrap:anywhere;}
+#page-business-register .br-file-button {flex-shrink:0;min-height:44px;align-items:center;}
+#page-business-register .br-declare input {width:18px;height:18px;margin:2px 0 0;accent-color:#237e72;}
+#page-business-register #br_submit {min-height:48px;width:100%;}
+#page-business-register #businessVerifyNotice {border:1px solid var(--ui-border,#dce6e5);border-radius:12px;padding:12px;margin-top:12px;background:var(--ui-soft,#f0f5f3);}
+#page-business-register #businessVerifyNotice p {margin:0 0 10px;}
+#page-business-register #businessApplicationMessage:empty {display:none;}
+@media (max-width:800px), (max-width:1024px) and (max-height:500px) {
+  html body.vicinify-ui:not(.on-login) #main-content > #page-business-register.active {
+    inset:var(--ui-header) 0 var(--navH) 0 !important;
+  }
+  #page-business-register .br-page {padding:20px max(12px,env(safe-area-inset-right)) 24px max(12px,env(safe-area-inset-left));}
+  #page-business-register .br-fields {grid-template-columns:minmax(0,1fr);}
+  #page-business-register .br-page-head h2 {font-size:22px !important;}
+  #page-business-register .br-panel {padding:16px;}
+  #page-business-register .br-row > button {flex:1 1 auto;min-height:44px;}
+}
+
+/* Standalone application screen: no dashboard chrome or overlapping controls. */
+html body.vicinify-ui.business-application-mode:not(.on-login) #main-content {padding:0 !important;}
+html body.vicinify-ui.business-application-mode:not(.on-login) #main-content :is(.workspace-header,.bottom-nav) {display:none !important;}
+html body.vicinify-ui.business-application-mode:not(.on-login) #main-content > #page-business-register.active {inset:0 !important;z-index:1001;}
+#page-business-register .br-page {padding-top:max(28px,env(safe-area-inset-top));padding-bottom:max(36px,env(safe-area-inset-bottom));}
+.br-exit-actions{display:flex;flex-wrap:wrap;gap:8px;flex-shrink:0;justify-content:flex-end;}
+.br-progress{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 20px;}
+.br-progress span,.br-auth-notice{background:var(--ui-soft,#eaf7f0);border:1px solid var(--ui-border,#dce6e5);border-radius:12px;padding:12px;color:var(--ui-ink,#172e2b);font-size:13px;}
+.br-auth-notice{margin-bottom:14px;} .br-auth-notice p{margin:6px 0 12px;}
+@media(max-width:620px){#page-business-register .br-page-head{flex-direction:column;} .br-exit-actions{width:100%;justify-content:flex-start;} .br-progress{gap:4px;} .br-progress span{font-size:11px;padding:8px;}}

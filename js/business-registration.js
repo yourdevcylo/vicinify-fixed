@@ -8,7 +8,7 @@ window.BusinessRegistration = (() => {
     ['sanitary_permit','Sanitary Permit (where applicable)',false],
     ['authorization_letter','Owner Authorization Letter (if representative)',false]
   ];
-  let current=null, busy=false, resumeTimer=0;
+  let current=null, busy=false, activeUid=null;
   const $=id=>document.getElementById(id);
   const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const message=(s,type='info')=>{const el=$('businessApplicationMessage');if(el){el.textContent=s;el.dataset.type=type;}else window.showToast?.(s,type);};
@@ -41,13 +41,27 @@ window.BusinessRegistration = (() => {
   async function refresh(){
     if(!window.auth?.currentUser)return;
     const u=window.auth.currentUser;
+    $('businessOwnerEmail').textContent=u.email||'—';
     await u.reload();
-    const data=await command('status');current=data.application;
+    if(window.auth?.currentUser?.uid!==u.uid)return;
     $('businessOwnerEmail').textContent=u.email||'—';
     const verified=!!u.emailVerified;
     $('businessVerifyNotice').hidden=verified;
-    $('businessRegistrationForm').hidden=!verified;
-    if(!verified){message('Verify your email before submitting your application.');return;}
+    if(!verified){
+      current=null;
+      $('businessRegistrationForm').hidden=true;
+      $('businessRegistrationApproveNext').hidden=true;
+      $('businessAdminRemarks').hidden=true;
+      $('businessApplicationStatus').textContent='Email verification required';
+      $('businessApplicationStatus').dataset.status='unverified';
+      $('businessNotificationHistory').textContent='No updates yet.';
+      message('Verify your email before submitting your application.');return;
+    }
+    // Refresh the ID token after reload so the server sees newly verified email claims.
+    await u.getIdToken(true);
+    const data=await command('status');
+    if(window.auth?.currentUser?.uid!==u.uid)return;
+    current=data.application;
     const status=current?.status||'not_started';
     $('businessApplicationStatus').textContent=({not_started:'Not started',draft:'Draft',pending:'Pending Admin Review',approved:'Approved — Business Hub Ready',changes_required:'Changes Required',rejected:'Rejected',suspended:'Suspended'})[status]||status;
     $('businessApplicationStatus').dataset.status=status;
@@ -57,6 +71,7 @@ window.BusinessRegistration = (() => {
     if(current?.details)renderDetails(current.details);
     paintFiles(current?.files||{});
     const editable=!['pending','approved','suspended'].includes(status);
+    $('businessRegistrationForm').hidden=!editable;
     $('businessRegistrationFields').disabled=!editable;
     $('br_save').disabled=!editable;
     $('br_submit').disabled=!editable;
@@ -68,15 +83,35 @@ window.BusinessRegistration = (() => {
     else message('Complete your business details and upload required documents.');
     window.debouncedIcons?.();
   }
+  function authMode(enabled){
+    $('businessAuthNotice').hidden=!enabled;
+    $('registerBusinessAuthBtn').hidden=enabled;
+    if(enabled)sessionStorage.setItem('viciBusinessIntent','1');
+    else sessionStorage.removeItem('viciBusinessIntent');
+  }
   async function open(){
-    if(!window.auth?.currentUser){sessionStorage.setItem('viciBusinessIntent','1');showPage('page-login');document.getElementById('authTabSignUp')?.click();return;}
-    sessionStorage.removeItem('viciBusinessIntent');showPage('page-business-register');
+    if(!window.auth?.currentUser){authMode(true);showPage('page-login');$('authTabSignUp')?.click();return;}
+    if(activeUid!==window.auth.currentUser.uid){
+      activeUid=window.auth.currentUser.uid;current=null;
+      $('businessRegistrationFields').querySelectorAll('input').forEach(el=>el.value='');
+      $('businessRegistrationFields').querySelectorAll('select').forEach(el=>el.selectedIndex=0);
+      $('br_declaration').checked=false; $('businessDocumentList').replaceChildren();
+    }
+    authMode(false);
+    $('businessRegistrationForm').hidden=true;
+    $('businessRegistrationApproveNext').hidden=true;
+    $('businessVerifyNotice').hidden=true;
+    $('businessAdminRemarks').hidden=true;
+    $('businessApplicationStatus').textContent='Checking…';
+    $('businessApplicationStatus').dataset.status='';
+    $('businessNotificationHistory').textContent='No updates yet.';
+    message('Checking your registration status…');
+    showPage('page-business-register');
     try{await refresh();}catch(e){message(e.message,'error');}
   }
   function resumeIfRequested(){
-    if(sessionStorage.getItem('viciBusinessIntent')!=='1')return;
-    clearTimeout(resumeTimer);
-    resumeTimer=setTimeout(()=>{if(window.auth?.currentUser)open();},250);
+    if(sessionStorage.getItem('viciBusinessIntent')!=='1'||!window.auth?.currentUser)return false;
+    void open();return true;
   }
   async function saveDetails(){
     const res=await command('save',{details:getDetails()});
@@ -137,6 +172,14 @@ window.BusinessRegistration = (() => {
   }
   document.addEventListener('DOMContentLoaded',()=>{
     $('registerBusinessAuthBtn')?.addEventListener('click',open);
+    $('businessAuthCancel')?.addEventListener('click',()=>{authMode(false);$('authTabSignIn')?.click();});
+    $('br_back')?.addEventListener('click',()=>showPage('page-map'));
+    $('br_signout')?.addEventListener('click',async()=>{try{await window.auth.signOut();}catch(e){message(e.message,'error');}});
+    if(new URLSearchParams(location.search).get('business')==='1'){
+      sessionStorage.setItem('viciBusinessIntent','1');
+      const url=new URL(location.href);url.searchParams.delete('business');history.replaceState(history.state,'',url);
+      authMode(true);
+    }else if(sessionStorage.getItem('viciBusinessIntent')==='1'){authMode(true);}
     $('registerBusinessFromActivity')?.addEventListener('click',open);
     $('br_refresh')?.addEventListener('click',async()=>{try{await refresh();}catch(e){message(e.message,'error');}});
     $('br_resend')?.addEventListener('click',()=>window.resendVerificationEmail?.());

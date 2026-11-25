@@ -1,7 +1,7 @@
 /* App shell: presentation, accessible navigation, and connection feedback.
    Database/auth workflows remain in their existing feature modules. */
 window.AppShell = (() => {
-    const titles = { 'page-map': 'Explore Lipa', 'page-buzz': 'Community Buzz', 'page-add': 'Add a place', 'page-dashboard': 'Your workspace', 'page-settings': 'Your preferences', 'page-place': 'Place details', 'page-biz-edit': 'Edit establishment', 'page-suki-studio': 'Suki Card Studio', 'page-biz-posts': 'Business posts' };
+    const titles = { 'page-map': 'Explore Lipa', 'page-buzz': 'Community Buzz', 'page-add': 'Add a place', 'page-business-register': 'Business Registration', 'page-dashboard': 'Your workspace', 'page-settings': 'Your preferences', 'page-place': 'Place details', 'page-biz-edit': 'Edit establishment', 'page-suki-studio': 'Suki Card Studio', 'page-biz-posts': 'Business posts' };
     function sync() {
         const page = document.querySelector('.page.active')?.id || 'page-login';
         if(page !== 'page-map') window.PlacePreview?.close?.();

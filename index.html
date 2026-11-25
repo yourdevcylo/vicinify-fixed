@@ -66,6 +66,7 @@
                         <p id="authSubtitle">Sign in to continue to Lipa’s local guide</p>
                         <div class="auth-brand-chip"><i data-lucide="map-pin"></i> Lipa City &middot; Local Guide</div>
                     </div>
+                    <div id="businessAuthNotice" class="br-auth-notice" hidden><strong>Business registration · Step 1 of 3</strong><p>Create an account or sign in, verify your email, then submit your business documents.</p><button type="button" class="br-secondary" id="businessAuthCancel">Back to regular sign in</button></div>
                     <div class="auth-tabs" role="tablist" aria-label="Authentication">
                         <button type="button" id="authTabSignIn" role="tab" aria-selected="true" aria-controls="authForm" class="active">Sign In</button>
                         <button type="button" id="authTabSignUp" role="tab" aria-selected="false" aria-controls="authForm" tabindex="-1">Sign Up</button>
@@ -125,10 +126,11 @@
 
         <main id="page-business-register" class="page">
           <section class="br-page">
-            <div class="br-page-head"><div><span class="br-kicker">VICINIFY · BUSINESS VERIFICATION</span><h2>Register Your Business</h2><p>One admin approval unlocks your Business Hub and establishment publishing.</p></div><button type="button" onclick="showPage('page-dashboard')" class="br-secondary">Back</button></div>
+            <div class="br-page-head"><div><span class="br-kicker">VICINIFY · BUSINESS VERIFICATION</span><h2>Register Your Business</h2><p>One admin approval unlocks your Business Hub and establishment publishing.</p></div><div class="br-exit-actions"><button type="button" id="br_back" class="br-secondary">Back to Vicinify</button><button type="button" id="br_signout" class="br-secondary">Sign out</button></div></div>
+            <div class="br-progress" aria-label="Registration steps"><span>1. Account &amp; email</span><span>2. Business requirements</span><span>3. Admin review</span></div>
             <div class="br-panel">
               <h3>Application Tracker</h3>
-              <p>Registered Email: <b id="businessOwnerEmail">—</b> <span class="br-readonly">Verified account · read-only</span></p>
+              <p>Registered Email: <b id="businessOwnerEmail">—</b> <span class="br-readonly">Account email · read-only</span></p>
               <p>Application Status: <strong id="businessApplicationStatus">Checking…</strong></p>
               <p id="businessAdminRemarks" hidden></p>
               <div id="businessApplicationMessage" role="status" aria-live="polite"></div>
@@ -137,10 +139,10 @@
                 <p class="br-fine">Status updates appear here even when email delivery is unavailable.</p>
                 <div id="businessNotificationHistory" aria-live="polite">No updates yet.</div>
               </section>
-              <div class="br-row"><button type="button" class="br-secondary" id="br_refresh">Refresh Email & Status</button><button type="button" id="businessRegistrationApproveNext" hidden onclick="showPage('page-add')">Create Establishment</button></div>
-              <div id="businessVerifyNotice" hidden><p>Please verify your account email before submitting documents.</p><button type="button" class="br-secondary" id="br_resend">Resend Verification Email</button></div>
+              <div class="br-row"><button type="button" class="br-secondary" id="br_refresh">Refresh Email & Status</button><button type="button" id="businessRegistrationApproveNext" hidden onclick="showPage('page-dashboard')">Open Business Hub</button></div>
+              <div id="businessVerifyNotice" hidden><p>Open the verification link in your email (check Spam too), then click Refresh Email &amp; Status.</p><button type="button" class="br-secondary" id="br_resend">Resend Verification Email</button></div>
             </div>
-            <section id="businessRegistrationForm" class="br-panel">
+            <section id="businessRegistrationForm" class="br-panel" hidden>
               <h3>Business Application</h3><p>All fields below apply to a Lipa City business. Your government documents will not be shown publicly.</p>
               <fieldset id="businessRegistrationFields" class="br-fields">
                 <label>Legal Business Name *<input id="br_legalName" maxlength="120" placeholder="Name as stated on permit" required></label>
@@ -150,7 +152,7 @@
                 <label>Mayor's / Business Permit Number *<input id="br_permitNumber" maxlength="80" required></label>
                 <label>Permit Expiration (if stated)<input id="br_permitExpiry" type="date"></label>
                 <label>Applicant's Full Name *<input id="br_representativeName" maxlength="100" required></label>
-                <label>Contact Number *<input id="br_contactNumber" maxlength="28" placeholder="09XX XXX XXXX" required></label>
+                <label>Contact Number *<input id="br_contactNumber" type="tel" autocomplete="tel" maxlength="28" placeholder="09XX XXX XXXX" required></label>
                 <label>Relationship to Business *<select id="br_representativeRole"><option value="owner">Owner</option><option value="authorized_representative">Authorized Representative</option></select></label>
                 <label>Barangay (Lipa City) *<input id="br_barangay" maxlength="60" required placeholder="Barangay"></label>
                 <label>Business Address *<input id="br_address" maxlength="220" required placeholder="Street, building, barangay, Lipa City" ></label>
@@ -378,7 +380,15 @@
             <section class="card">
                 <div class="formGrid">
                     <div class="field"><label>Business Name *</label><input id="bizName" type="text" placeholder="e.g., Aling Nena Sari-sari Store" maxlength="120" /></div>
-                    <div class="field">
+                    <div class="field"><label>Budget per person (optional)</label><select id="bizPriceRange">
+                        <option value="">No price range yet</option>
+                        <option value="Under ₱150">Under ₱150</option>
+                        <option value="₱150–₱300">₱150–₱300</option>
+                        <option value="₱300–₱500">₱300–₱500</option>
+                        <option value="₱500–₱1,000">₱500–₱1,000</option>
+                        <option value="Over ₱1,000">Over ₱1,000</option>
+                    </select></div>
+                    <div class="field vici-category-field">
                         <label>Categories * (choose up to 3)</label>
                         <div id="bizCatChoices" class="vici-category-choices" role="group" aria-label="Establishment categories"></div>
                         <label for="bizCat" class="vici-primary-label">Primary Category *</label>
@@ -395,14 +405,6 @@
                             <option value="fastfood">Fast-Food</option>
                         </select>
                     </div>
-                    <div class="field"><label>Budget per person (optional)</label><select id="bizPriceRange">
-                        <option value="">No price range yet</option>
-                        <option value="Under ₱150">Under ₱150</option>
-                        <option value="₱150–₱300">₱150–₱300</option>
-                        <option value="₱300–₱500">₱300–₱500</option>
-                        <option value="₱500–₱1,000">₱500–₱1,000</option>
-                        <option value="Over ₱1,000">Over ₱1,000</option>
-                    </select></div>
                     <div class="field"><label>Address (optional)</label><input id="bizAddr" type="text" placeholder="e.g., 123 Rizal St., Brgy. Sabang" /></div>
                     <div class="field"><label>Barangay *</label><select id="bizBrgy"><option value="" disabled selected hidden>Select barangay...</option></select></div>
                     <div class="field"><label>City / Municipality</label><input id="bizCity" type="text" value="Lipa City" readonly disabled /></div>
@@ -1294,7 +1296,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
-    <link rel="stylesheet" href="css/business-registration.css?v=VICI_BUSINESS_PHASE7_20261123">
+    <link rel="stylesheet" href="css/business-registration.css?v=VICINIFY_SUKI_REALTIME_20261030">
     <link rel="stylesheet" href="css/business-analytics.css?v=VICI_ANALYTICS_PHASE8_20261123">
     <script src="js/data.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/payment-policy.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
@@ -1305,13 +1307,13 @@
     <script src="js/account-deletion.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/password-policy.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/demo-switcher.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
-    <script src="js/common.js?v=VICINIFY_MULTI_CAT_PHASE6_20261123"></script>
+    <script src="js/common.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/vici-request.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/vici-commerce.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/vici-chat.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
-    <link rel="stylesheet" href="css/categories.css?v=VICINIFY_CATEGORIES_MULTI_PHASE6_20261123">
+    <link rel="stylesheet" href="css/categories.css?v=VICINIFY_SUKI_REALTIME_20261030">
     <link rel="stylesheet" href="css/database-management.css?v=VICINIFY_DB_MANAGEMENT_20261030">
-    <script src="js/categories.js?v=VICINIFY_CATEGORIES_MULTI_PHASE6_20261123"></script>
+    <script src="js/categories.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/map.js?v=VICINIFY_MULTI_CAT_PHASE6_20261123"></script>
     <script src="js/add.js?v=VICINIFY_MULTI_CAT_PHASE6_20261123"></script>
     <script src="js/buzz.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
@@ -1321,7 +1323,7 @@
     <script src="js/database-management.js?v=VICINIFY_DB_MANAGEMENT_20261030"></script>
     <script src="js/ownership-transfer.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
     <script src="js/settings.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
-    <script src="js/business-registration.js?v=VICI_BUSINESS_PHASE7_20261123"></script>
+    <script src="js/business-registration.js?v=VICINIFY_SUKI_REALTIME_20261030"></script>
 
     <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
     <script>lucide.createIcons();</script>
